@@ -140,7 +140,7 @@
               id="notes-input"
               class="form-input text-area" 
               placeholder="寫下你的收穫、靈修心得，或任何你想對輔導教師說的話..."
-              rows="8"
+              rows="5"
             ></textarea>
             
             <div class="save-row mt-4">
@@ -953,9 +953,26 @@ const advancedLabels = {
 .sticky-panel {
   position: sticky;
   top: 96px;
+  max-height: calc(100vh - 130px);
+  overflow-y: auto;
   padding: 2rem;
   border-radius: var(--radius-lg);
   background: white;
+}
+
+/* 針對小螢幕設計精緻滾動條，確保按鈕必定能被看見 */
+.sticky-panel::-webkit-scrollbar {
+  width: 6px;
+}
+.sticky-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sticky-panel::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 3px;
+}
+.sticky-panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.22);
 }
 
 .panel-header {
