@@ -779,7 +779,6 @@
         </div>
       </div>
     </div>
-  </div>
 
   <!-- Notes Dialog (placed at root level to avoid parent overflow constraints) -->
   <Teleport to="body">
@@ -893,6 +892,7 @@
     </div>
     </div>
   </Teleport>
+  </div>
 </template>
 
 <script setup lang="ts">
