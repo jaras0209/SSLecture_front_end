@@ -11,14 +11,24 @@ export interface Course {
   coverColor: string // CSS color code or gradient for card styling
 }
 
+export interface ListenSession {
+  id: string           // unique session ID (timestamp-based)
+  lecturer: string     // student-selected lecturer for this session
+  listenedAt: string   // student-registered datetime (YYYY-MM-DDTHH:mm)
+  notes: string        // personal notes for this session
+  createdAt: string    // system timestamp when this record was saved
+}
+
 export interface ProgressRecord {
   courseId: string
-  durationListened: number // in seconds
   completed: boolean
-  notes: string
+  notes: string               // kept for backward compatibility (legacy field)
   lastUpdated: string
-  listenedAt?: string // student-registered datetime (formatted YYYY-MM-DDTHH:mm)
-  lecturer?: string // student-selected lecturer
+  sessions: ListenSession[]   // all listening sessions (new multi-record support)
+  // legacy fields — kept for migration only
+  durationListened?: number
+  listenedAt?: string
+  lecturer?: string
 }
 
 // Maps username to their course records
@@ -285,47 +295,100 @@ export const useCoursesStore = defineStore('courses', () => {
 
 
   // Actions
-  function updateProgress(
-    username: string, 
-    courseId: string, 
-    durationListened: number, 
-    notes: string,
-    listenedAt?: string,
-    lecturer?: string
+
+  /**
+   * Migrate a legacy ProgressRecord (no sessions array) to the new format.
+   * Called automatically when reading or writing records.
+   */
+  function migrateRecord(record: ProgressRecord): ProgressRecord {
+    if (!record.sessions) {
+      record.sessions = []
+      // If old record had lecturer/listenedAt info, promote it as the first session
+      if (record.completed || record.lecturer || record.listenedAt) {
+        record.sessions.push({
+          id: 'migrated_' + record.courseId,
+          lecturer: record.lecturer || '',
+          listenedAt: record.listenedAt || record.lastUpdated || '',
+          notes: record.notes || '',
+          createdAt: record.lastUpdated || new Date().toLocaleString('zh-TW', { hour12: false })
+        })
+      }
+    }
+    return record
+  }
+
+  /**
+   * Add a new listening session to a course record.
+   * Creates the record if it doesn't exist yet.
+   */
+  function addListenSession(
+    username: string,
+    courseId: string,
+    session: Omit<ListenSession, 'id' | 'createdAt'>
   ): void {
     if (!progressDb.value[username]) {
       progressDb.value[username] = {}
     }
 
-    const course = courses.value.find(c => c.id === courseId)
-    if (!course) return
-
-    const previousRecord = progressDb.value[username][courseId]
-    const completed = durationListened >= course.duration * 0.98 || (previousRecord ? previousRecord.completed : false)
-    const finalDuration = Math.min(durationListened, course.duration)
-
-    progressDb.value[username][courseId] = {
-      courseId,
-      durationListened: finalDuration,
-      completed,
-      notes: notes.trim() !== '' ? notes : (previousRecord?.notes || ''),
-      lastUpdated: new Date().toLocaleString('zh-TW', { hour12: false }),
-      listenedAt: listenedAt || previousRecord?.listenedAt || new Date().toISOString().slice(0, 16),
-      lecturer: lecturer || previousRecord?.lecturer || ''
+    const existing = progressDb.value[username][courseId]
+    const now = new Date().toLocaleString('zh-TW', { hour12: false })
+    const newSession: ListenSession = {
+      id: 'session_' + Date.now(),
+      lecturer: session.lecturer,
+      listenedAt: session.listenedAt,
+      notes: session.notes,
+      createdAt: now
     }
+
+    if (existing) {
+      const migrated = migrateRecord(existing)
+      migrated.sessions.push(newSession)
+      migrated.completed = true
+      migrated.notes = session.notes || migrated.notes
+      migrated.lastUpdated = now
+      progressDb.value[username][courseId] = migrated
+    } else {
+      progressDb.value[username][courseId] = {
+        courseId,
+        completed: true,
+        notes: session.notes,
+        lastUpdated: now,
+        sessions: [newSession]
+      }
+    }
+  }
+
+  /**
+   * Legacy updateProgress kept for backward compatibility.
+   * New code should use addListenSession directly.
+   */
+  function updateProgress(
+    username: string,
+    courseId: string,
+    _durationListened: number,
+    notes: string,
+    listenedAt?: string,
+    lecturer?: string
+  ): void {
+    addListenSession(username, courseId, {
+      lecturer: lecturer || '',
+      listenedAt: listenedAt || new Date().toISOString().slice(0, 16),
+      notes: notes
+    })
   }
 
   function getStudentProgress(username: string, courseId: string): ProgressRecord {
     const userRecords = progressDb.value[username]
     if (userRecords && userRecords[courseId]) {
-      return userRecords[courseId]
+      // Always ensure sessions array exists (handles legacy data)
+      return migrateRecord(userRecords[courseId])
     }
     return {
       courseId,
-      durationListened: 0,
       completed: false,
       notes: '',
-      lastUpdated: ''
+      lastUpdated: '',
+      sessions: []
     }
   }
 
@@ -613,6 +676,7 @@ export const useCoursesStore = defineStore('courses', () => {
     comingOfAgeThemesDb,
     lecturers,
     updateProgress,
+    addListenSession,
     getStudentProgress,
     toggleRestriction,
     isPageRestricted,

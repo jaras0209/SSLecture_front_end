@@ -66,6 +66,7 @@
             v-for="course in filteredCourses" 
             :key="course.id" 
             class="course-card glass-panel"
+            :class="{ 'card-selected': selectedCourse?.id === course.id }"
             @click="selectCourse(course)"
           >
             <div class="card-cover" :style="{ background: course.coverColor }">
@@ -74,19 +75,29 @@
             </div>
             <div class="card-content">
               <h4 class="course-title">{{ course.title }}</h4>
-              <p class="course-speaker">🎤 講員：{{ course.speaker }} | ⏱️ {{ formatTime(course.duration) }}</p>
               <p class="course-desc">{{ course.description }}</p>
               
               <!-- Status info on card -->
               <div class="card-status-info mt-2">
+                <!-- Listen count badge -->
                 <span 
                   class="badge" 
                   :class="getRecord(course.id).completed ? 'badge-teacher' : 'badge-student'"
                 >
-                  {{ getRecord(course.id).completed ? '✅ 已記錄心得' : '📝 尚未寫心得' }}
+                  <template v-if="getRecord(course.id).sessions.length > 0">
+                    🎧 已聽 {{ getRecord(course.id).sessions.length }} 次
+                  </template>
+                  <template v-else>
+                    📝 尚未登記
+                  </template>
                 </span>
-                <span class="lecturer-tag text-xs text-muted block mt-1" v-if="getRecord(course.id).lecturer" style="display: block;">
-                  🎤 講師：{{ getRecord(course.id).lecturer }}
+                <!-- Show latest session lecturer -->
+                <span 
+                  class="lecturer-tag text-xs text-muted mt-1" 
+                  v-if="getRecord(course.id).sessions.length > 0"
+                  style="display: block;"
+                >
+                  🎤 講師：{{ getRecord(course.id).sessions[getRecord(course.id).sessions.length - 1].lecturer || '未填寫' }}
                 </span>
               </div>
             </div>
@@ -99,57 +110,144 @@
         <div v-if="selectedCourse" class="glass-panel sticky-panel">
           <h3 class="panel-header">📝 聽課與講座學習紀錄</h3>
           
-          <div class="course-banner-card mt-4" style="background: linear-gradient(135deg, #3B82F6 0%, #1E40AF 100%); padding: 1.5rem; border-radius: var(--radius-md); color: white; box-shadow: var(--shadow-sm);">
+          <!-- Course banner -->
+          <div class="course-banner-card mt-4" :style="{ background: selectedCourse.coverColor, padding: '1.5rem', borderRadius: 'var(--radius-md)', color: 'white', boxShadow: 'var(--shadow-sm)' }">
             <h4 style="color: white; font-size: 1.2rem; margin-bottom: 0.25rem; font-weight: 700;">{{ selectedCourse.title }}</h4>
-            <p style="color: rgba(255, 255, 255, 0.85); font-size: 0.9rem; margin-bottom: 0;">{{ selectedCourse.description }}</p>
+            <p style="color: rgba(255,255,255,0.85); font-size: 0.9rem; margin-bottom: 0;">{{ selectedCourse.description }}</p>
           </div>
 
-          <!-- Notes Area -->
-          <div class="notes-container mt-4">
-            <div class="form-group mb-3">
-              <label class="form-label" for="lecturer-select">🎤 授課講師：</label>
-              <select 
-                v-model="selectedLecturer" 
-                id="lecturer-select" 
-                class="form-input"
-              >
-                <option value="">-- 請選擇授課講師 --</option>
-                <option 
-                  v-for="lec in availableLecturers" 
-                  :key="lec.id" 
-                  :value="lec.name + ' ' + lec.title"
+          <!-- ── COMPLETED STATE ── -->
+          <template v-if="currentRecord?.completed">
+
+            <!-- Session history timeline -->
+            <div class="session-history mt-4">
+              <h4 class="section-sub-title">📋 聽課紀錄歷程（共 {{ currentRecord?.sessions.length ?? 0 }} 次）</h4>
+              <div class="timeline">
+                <div 
+                  v-for="(session, idx) in [...(currentRecord?.sessions ?? [])].reverse()" 
+                  :key="session.id" 
+                  class="timeline-item"
                 >
-                  {{ lec.name }} ({{ lec.title }})
-                </option>
-              </select>
+                  <div class="timeline-dot" :class="idx === 0 ? 'dot-latest' : 'dot-past'"></div>
+                  <div class="timeline-content glass-panel-sm">
+                    <div class="timeline-header">
+                      <span class="timeline-count">第 {{ (currentRecord?.sessions.length ?? 0) - idx }} 次</span>
+                      <span class="timeline-date">{{ session.listenedAt ? session.listenedAt.replace('T', ' ') : session.createdAt }}</span>
+                    </div>
+                    <p class="timeline-lecturer">🎤 {{ session.lecturer || '（未填寫講師）' }}</p>
+                    <p class="timeline-notes" v-if="session.notes">{{ session.notes }}</p>
+                    <p class="timeline-notes text-muted" v-else><em>（無心得）</em></p>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div class="form-group mb-3">
-              <label class="form-label" for="listened-time-input">📅 登記聽課時間：</label>
-              <input 
-                v-model="listenedAt" 
-                id="listened-time-input" 
-                type="datetime-local" 
-                class="form-input datetime-input" 
-              />
-            </div>
-
-            <label class="form-label" for="notes-input">✍️ 我的聽課心得與學習筆記</label>
-            <textarea 
-              v-model="notesText" 
-              id="notes-input"
-              class="form-input text-area" 
-              placeholder="寫下你的收穫、靈修心得，或任何你想對輔導教師說的話..."
-              rows="5"
-            ></textarea>
-            
-            <div class="save-row mt-4">
-              <span class="save-status" v-if="saveStatus">{{ saveStatus }}</span>
-              <button class="btn btn-secondary btn-sm" @click="() => saveNoteAndProgress()">
-                💾 儲存心得與聽課紀錄 (標記為已完成)
+            <!-- Collapsible review panel -->
+            <div class="review-section mt-4">
+              <button 
+                class="btn-review-toggle" 
+                @click="showReviewPanel = !showReviewPanel"
+              >
+                <span>{{ showReviewPanel ? '▲' : '▼' }}</span>
+                {{ showReviewPanel ? '收起複習紀錄' : '➕ 新增複習紀錄（再聽一次）' }}
               </button>
+
+              <transition name="review-slide">
+                <div v-if="showReviewPanel" class="review-form mt-3">
+                  <div class="form-group mb-3">
+                    <label class="form-label" for="review-lecturer-select">🎤 本次授課講師：</label>
+                    <select v-model="selectedLecturer" id="review-lecturer-select" class="form-input">
+                      <option value="">-- 請選擇授課講師 --</option>
+                      <option 
+                        v-for="lec in availableLecturers" 
+                        :key="lec.id" 
+                        :value="lec.name + ' ' + lec.title"
+                      >
+                        {{ lec.name }} ({{ lec.title }})
+                      </option>
+                    </select>
+                  </div>
+
+                  <div class="form-group mb-3">
+                    <label class="form-label" for="review-listened-time">📅 本次聽課時間：</label>
+                    <input 
+                      v-model="listenedAt" 
+                      id="review-listened-time" 
+                      type="datetime-local" 
+                      class="form-input datetime-input" 
+                    />
+                  </div>
+
+                  <div class="form-group mb-3">
+                    <label class="form-label" for="review-notes-input">✍️ 本次複習心得：</label>
+                    <textarea 
+                      v-model="notesText" 
+                      id="review-notes-input"
+                      class="form-input text-area" 
+                      placeholder="這次複習有哪些新的體會或收穫？"
+                      rows="4"
+                    ></textarea>
+                  </div>
+
+                  <div class="save-row mt-3">
+                    <span class="save-status" v-if="saveStatus">{{ saveStatus }}</span>
+                    <button class="btn btn-secondary btn-sm" @click="saveNoteAndProgress">
+                      💾 儲存複習紀錄
+                    </button>
+                  </div>
+                </div>
+              </transition>
             </div>
-          </div>
+          </template>
+
+          <!-- ── FIRST TIME STATE ── -->
+          <template v-else>
+            <div class="notes-container mt-4">
+              <div class="form-group mb-3">
+                <label class="form-label" for="lecturer-select">🎤 授課講師：</label>
+                <select 
+                  v-model="selectedLecturer" 
+                  id="lecturer-select" 
+                  class="form-input"
+                >
+                  <option value="">-- 請選擇授課講師 --</option>
+                  <option 
+                    v-for="lec in availableLecturers" 
+                    :key="lec.id" 
+                    :value="lec.name + ' ' + lec.title"
+                  >
+                    {{ lec.name }} ({{ lec.title }})
+                  </option>
+                </select>
+              </div>
+
+              <div class="form-group mb-3">
+                <label class="form-label" for="listened-time-input">📅 登記聽課時間：</label>
+                <input 
+                  v-model="listenedAt" 
+                  id="listened-time-input" 
+                  type="datetime-local" 
+                  class="form-input datetime-input" 
+                />
+              </div>
+
+              <label class="form-label" for="notes-input">✍️ 我的聽課心得與學習筆記</label>
+              <textarea 
+                v-model="notesText" 
+                id="notes-input"
+                class="form-input text-area" 
+                placeholder="寫下你的收穫、靈修心得，或任何你想對輔導教師說的話..."
+                rows="5"
+              ></textarea>
+              
+              <div class="save-row mt-4">
+                <span class="save-status" v-if="saveStatus">{{ saveStatus }}</span>
+                <button class="btn btn-secondary btn-sm" @click="saveNoteAndProgress">
+                  💾 儲存初次聽課紀錄（標記為已完成）
+                </button>
+              </div>
+            </div>
+          </template>
         </div>
         
         <div v-else class="glass-panel sticky-panel empty-player-state text-center">
@@ -557,6 +655,7 @@ const selectedLecturer = ref('')
 const notesText = ref('')
 const listenedAt = ref(new Date().toISOString().slice(0, 16))
 const saveStatus = ref('')
+const showReviewPanel = ref(false)
 
 const shiningProject = computed(() => {
   const username = authStore.currentUser?.username || ''
@@ -620,6 +719,12 @@ function getRecord(courseId: string) {
   return coursesStore.getStudentProgress(username, courseId)
 }
 
+// Reactive record for the currently selected course (drives the panel UI)
+const currentRecord = computed(() => {
+  if (!selectedCourse.value) return null
+  return getRecord(selectedCourse.value.id)
+})
+
 const availableLecturers = computed(() => {
   if (!selectedCourse.value) return []
   const courseId = selectedCourse.value.id
@@ -631,36 +736,38 @@ const availableLecturers = computed(() => {
 
 function selectCourse(course: Course) {
   selectedCourse.value = course
-  const record = getRecord(course.id)
-  selectedLecturer.value = record.lecturer || ''
-  notesText.value = record.notes
-  listenedAt.value = record.listenedAt || new Date().toISOString().slice(0, 16)
+  // Reset the form for a fresh entry (don't pre-fill from old data)
+  selectedLecturer.value = ''
+  notesText.value = ''
+  listenedAt.value = new Date().toISOString().slice(0, 16)
   saveStatus.value = ''
+  showReviewPanel.value = false
 }
 
 function saveNoteAndProgress() {
   if (!selectedCourse.value || !authStore.currentUser) return
-  
-  coursesStore.updateProgress(
+
+  coursesStore.addListenSession(
     authStore.currentUser.username,
     selectedCourse.value.id,
-    selectedCourse.value.duration,
-    notesText.value,
-    listenedAt.value,
-    selectedLecturer.value
+    {
+      lecturer: selectedLecturer.value,
+      listenedAt: listenedAt.value,
+      notes: notesText.value
+    }
   )
-  
-  saveStatus.value = '✓ 已成功儲存進度！'
+
+  saveStatus.value = '✓ 已成功儲存聽課紀錄！'
+  // Reset the form fields after saving
+  selectedLecturer.value = ''
+  notesText.value = ''
+  listenedAt.value = new Date().toISOString().slice(0, 16)
+  showReviewPanel.value = false
   setTimeout(() => {
     saveStatus.value = ''
   }, 3000)
 }
 
-function formatTime(seconds: number): string {
-  const m = Math.floor(seconds / 60)
-  const s = Math.floor(seconds % 60)
-  return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
-}
 
 function saveBasicInfo() {
   const username = authStore.currentUser?.username || ''
@@ -1536,4 +1643,150 @@ const advancedLabels = {
     border-radius: 50%;
   }
 }
+
+/* ── Card selected state ── */
+.course-card.card-selected {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ── Section subtitle ── */
+.section-sub-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 0.75rem;
+}
+
+/* ── Small glass panel (used in timeline items) ── */
+.glass-panel-sm {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-sm, 8px);
+  padding: 0.75rem 1rem;
+  backdrop-filter: blur(6px);
+}
+
+/* ── Timeline ── */
+.session-history .timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-left: 1.25rem;
+  border-left: 2px solid rgba(99, 102, 241, 0.2);
+}
+
+.timeline-item {
+  position: relative;
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.timeline-dot {
+  position: absolute;
+  left: -1.45rem;
+  top: 0.5rem;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid white;
+  flex-shrink: 0;
+}
+
+.timeline-dot.dot-latest {
+  background: var(--primary, #6366f1);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+}
+
+.timeline-dot.dot-past {
+  background: var(--text-muted, #9ca3af);
+}
+
+.timeline-content {
+  flex: 1;
+}
+
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.3rem;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.timeline-count {
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--primary, #6366f1);
+  padding: 1px 8px;
+  border-radius: 20px;
+}
+
+.timeline-date {
+  font-size: 0.75rem;
+  color: var(--text-muted, #9ca3af);
+}
+
+.timeline-lecturer {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin: 0.2rem 0;
+  color: var(--text-primary);
+}
+
+.timeline-notes {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+/* ── Review toggle button ── */
+.btn-review-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.7rem 1rem;
+  background: rgba(99, 102, 241, 0.08);
+  border: 1.5px dashed rgba(99, 102, 241, 0.4);
+  border-radius: var(--radius-sm, 8px);
+  color: var(--primary, #6366f1);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  text-align: left;
+}
+
+.btn-review-toggle:hover {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: var(--primary, #6366f1);
+}
+
+/* ── Review slide transition ── */
+.review-slide-enter-active,
+.review-slide-leave-active {
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  overflow: hidden;
+  max-height: 600px;
+}
+
+.review-slide-enter-from,
+.review-slide-leave-to {
+  max-height: 0;
+  opacity: 0;
+}
+
+.review-form {
+  background: rgba(99, 102, 241, 0.04);
+  border: 1px solid rgba(99, 102, 241, 0.12);
+  border-radius: var(--radius-sm, 8px);
+  padding: 1rem;
+}
 </style>
+

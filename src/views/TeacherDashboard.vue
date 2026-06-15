@@ -1201,7 +1201,7 @@ const studentsList = computed<StudentProgressSummary[]>(() => {
       records.push({
         courseTitle: course.title,
         courseId: course.id,
-        listenedTime: record.durationListened,
+        listenedTime: record.durationListened ?? 0,
         totalDuration: course.duration,
         percent,
         completed: record.completed,
