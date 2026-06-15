@@ -1,482 +1,875 @@
-# SuperStart 後端 API 設計規格書
+# SSLecture 後端 API 規格文件
 
-> 本文件定義了 SuperStart 聖經課程與講座紀錄平台的後端 API 邏輯，供後端開發人員或 AI Agent 參考實作。
-> 目前前端以 Vue 3 + Pinia + localStorage 模擬資料層，未來將逐步替換為真正的後端 API。
+> **文件版本**：v1.0.0  
+> **最後更新**：2026-06-15  
+> **前端版本**：Vue 3 + TypeScript（目前以 localStorage 模擬，待串接）  
+> **目標後端技術**：RESTful API（Node.js / Python / 任意語言均可）
 
 ---
 
 ## 目錄
-1. [資料模型 (Data Models)](#1-資料模型-data-models)
-2. [教會清單 (Churches)](#2-教會清單-churches)
-3. [API 端點 (Endpoints)](#3-api-端點-endpoints)
-4. [權限矩陣 (Permissions Matrix)](#4-權限矩陣-permissions-matrix)
-5. [教會隔離邏輯 (Church Isolation)](#5-教會隔離邏輯-church-isolation)
-6. [前端目前的 localStorage 資料結構](#6-前端目前的-localstorage-資料結構)
+
+1. [通用規範](#1-通用規範)
+2. [認證 Auth](#2-認證-auth)
+3. [課程 Courses](#3-課程-courses)
+4. [聽課紀錄 Listen Sessions](#4-聽課紀錄-listen-sessions)
+5. [講師管理 Lecturers](#5-講師管理-lecturers)
+6. [學員關懷配對 Assignments](#6-學員關懷配對-assignments)
+7. [閃耀計畫 Shining Project](#7-閃耀計畫-shining-project)
+8. [管理員 Admin](#8-管理員-admin)
+9. [資料模型定義](#9-資料模型定義)
+10. [錯誤碼一覽](#10-錯誤碼一覽)
+11. [前端串接遷移指南](#11-前端串接遷移指南)
 
 ---
 
-## 1. 資料模型 (Data Models)
+## 1. 通用規範
 
-### 1.1 User (使用者)
-
-| 欄位 | 類型 | 必填 | 說明 |
-|------|------|------|------|
-| `username` | string | ✅ | 使用者帳號 (唯一 primary key) |
-| `passwordHash` | string | ✅ | 密碼 hash |
-| `role` | enum | ✅ | 角色: `student`, `teacher`, `parent`, `pastor`, `admin` |
-| `church` | string | 條件 | 所屬教會名稱。`admin` 角色不需要，其他角色必填 |
-| `childUsernames` | string[] | 條件 | 家長綁定的學員帳號列表。僅 `parent` 角色使用 |
-| `loginMethod` | enum | ✅ | 登入方式: `credentials`, `google`, `line` |
-| `avatarUrl` | string | ❌ | 頭像 URL |
-| `createdAt` | datetime | ✅ | 註冊時間 |
-
-**角色說明：**
-- `student` (SS學員)：可填寫聽課心得、自我檢視閃耀計畫
-- `teacher` (輔導老師)：管理同教會學員、登記專題課、回饋心得
-- `parent` (關懷家長)：僅能查看自己綁定的學員資料（唯讀）
-- `pastor` (分區牧者)：查看整個教會的教師/學員概況、可編輯學員資料
-- `admin` (SS中央)：跨教會查看所有資料、管理所有帳號與權限
-
-### 1.2 Course (課程)
-
-| 欄位 | 類型 | 必填 | 說明 |
-|------|------|------|------|
-| `id` | string | ✅ | 課程 ID (格式: `bible-01`, `lecture-01`) |
-| `title` | string | ✅ | 課程標題 |
-| `category` | enum | ✅ | 分類: `bible` (聖經課程), `lecture` (專題講座) |
-| `speaker` | string | ✅ | 預設講員 |
-| `duration` | number | ✅ | 課程時長 (秒) |
-| `description` | string | ✅ | 課程描述 |
-| `coverColor` | string | ✅ | 卡片封面顏色 (CSS gradient) |
-
-**課程清單 (30 堂，固定)：**
-- 聖經課程 15 堂: 聖經時觀、日月停止、彼得與釣魚、以利亞與烏鴉飯、三分說、七階段法則、火之概念、末世論、比喻論、洪水審判、無知中的相剋世界、預定論、異端的概念、中心人物論、復活論
-- 專題講座 15 堂: 三位一體、聖子論、再臨論、空提論、啟示論、靈界論、撒旦論、該隱的個性、罪與悔改、創造目的、墮落論、施洗約翰與耶穌的關係使命、兩棵橄欖樹與兩個見證人、歷史論、一載二載半載
-
-### 1.3 ProgressRecord (聽課進度紀錄)
-
-| 欄位 | 類型 | 必填 | 說明 |
-|------|------|------|------|
-| `username` | string | ✅ | 學員帳號 (FK → User) |
-| `courseId` | string | ✅ | 課程 ID (FK → Course) |
-| `durationListened` | number | ✅ | 聽課時長 (秒) |
-| `completed` | boolean | ✅ | 是否已完成此課程 |
-| `notes` | string | ❌ | 學員的聽課心得筆記 |
-| `lastUpdated` | string | ✅ | 最後更新時間 |
-| `listenedAt` | string | ❌ | 學員登記的聽課日期時間 |
-| `lecturer` | string | ❌ | 學員選擇的授課講師名稱 |
-
-**複合主鍵：** `(username, courseId)`
-
-### 1.4 StudentCaretakers (輔導配對)
-
-| 欄位 | 類型 | 必填 | 說明 |
-|------|------|------|------|
-| `studentUsername` | string | ✅ | 學員帳號 (FK → User) |
-| `teacher` | string | ❌ | 負責的輔導老師帳號 |
-| `pastor` | string | ❌ | 負責的分區牧者帳號 |
-| `parent` | string | ❌ | 負責的關懷家長帳號 |
-
-**主鍵：** `studentUsername`
-
-### 1.5 ShiningProject (閃耀計畫)
-
-| 欄位 | 類型 | 必填 | 說明 |
-|------|------|------|------|
-| `username` | string | ✅ | 學員帳號 (FK → User) |
-| `name` | string | ❌ | 姓名 |
-| `birthday` | string | ❌ | 生日 |
-| `church` | string | ❌ | 教會 |
-| `schoolGrade` | string | ❌ | 學校/年級 |
-| `faithPhase1` | object | ✅ | 信仰指標 Phase 1 (5 個布林值) |
-| `faithPhase2` | object | ✅ | 信仰指標 Phase 2 (5 個布林值) |
-| `advancedChallenges` | object | ✅ | 進階挑戰 (5 個布林值) |
-| `customChallenge` | string | ❌ | 自訂挑戰文字 |
-| `characterLectures` | object | ✅ | 品格力專題 { theme: { speaker, date } } |
-| `comingOfAgeTopics` | object | ✅ | 成年禮專題 { theme: { speaker, date } } |
-
-### 1.6 Lecturer (講師)
-
-| 欄位 | 類型 | 必填 | 說明 |
-|------|------|------|------|
-| `id` | string | ✅ | 講師 ID |
-| `name` | string | ✅ | 講師姓名 |
-| `title` | string | ✅ | 稱號 (牧師/傳道/長老/輔導/老師) |
-| `courseIds` | string[] | ✅ | 可講授的課程 ID 列表 |
-| `church` | string | ❌ | 講師所屬教會，用於隔離顯示 |
-
-**說明：** 講師資料依教會隔離。
-
-### 1.7 DynamicThemes (動態專題大綱)
-
-| 欄位 | 類型 | 說明 |
-|------|------|------|
-| `characterThemesDb` | Record<string, string[]> | 依教會隔離的品格力專題清單 |
-| `comingOfAgeThemesDb` | Record<string, string[]> | 依教會隔離的成年禮必修專題清單 |
-
-**說明：** 各教會擁有獨立的專題大綱，由該教會的教師/牧者進行管理。
-
----
-
-## 2. 教會清單 (Churches)
-
-以下為系統支援的教會列表（固定，未來可由 Admin 維護）：
-
-| # | 教會名稱 |
-|---|---------|
-| 1 | 愛與話語 (預設) |
-| 2 | 主大明 |
-| 3 | 主勝利 |
-| 4 | 主生命 |
-| 5 | 主和睦光 |
-| 6 | 台北主話語 |
-| 7 | 聖靈 |
-| 8 | 永明 |
-| 9 | 主希望光 |
-| 10 | 實踐 |
-| 11 | 主愛 |
-| 12 | 主大永 |
-| 13 | 主磐石 |
-| 14 | 信主 |
-| 15 | 宜蘭主話語 |
-| 16 | 天民 |
-| 17 | 主幸福 |
-| 18 | 信榮 |
-| 19 | 主盼望 |
-
----
-
-## 3. API 端點 (Endpoints)
-
-### 3.1 認證 (Auth)
-
-#### `POST /api/auth/login`
-- **描述**：帳號密碼登入
-- **Request Body**：`{ username: string, password: string }`
-- **Response**：`{ success: boolean, message: string, user?: User }`
-- **權限**：公開
-
-#### `POST /api/auth/register`
-- **描述**：註冊新帳號
-- **Request Body**：
-  ```json
-  {
-    "username": "string",
-    "password": "string",
-    "role": "student | teacher | parent | pastor | admin",
-    "church": "string (非 admin 必填)",
-    "childUsernames": ["string"] // 僅 parent 角色必填
-  }
-  ```
-- **驗證邏輯**：
-  - `username` 不可重複
-  - `role` 非 `admin` 時，`church` 為必填且必須在教會清單內
-  - `role` 為 `parent` 時，`childUsernames` 至少須包含一位已存在的 `student` 帳號，且這些學員必須與家長所選的 `church` 相同。
-- **Response**：`{ success: boolean, message: string, user?: User }`
-- **權限**：公開
-
-#### `POST /api/auth/oauth`
-- **描述**：第三方 OAuth 登入 (Google / LINE)
-- **Request Body**：`{ provider: 'google' | 'line', token: string, role: UserRole, church?: string, childUsernames?: string[] }`
-- **Response**：`{ success: boolean, user?: User }`
-- **權限**：公開
-
-#### `POST /api/auth/logout`
-- **描述**：登出
-- **權限**：已認證
-
----
-
-### 3.2 使用者管理 (Users)
-
-#### `GET /api/users`
-- **描述**：取得使用者清單
-- **Query Parameters**：`role?: string`, `church?: string`
-- **權限**：`admin` (全部), `pastor` (同教會), `teacher` (同教會 student 與 teacher)
-- **教會隔離**：非 admin 角色僅返回同教會成員
-
-#### `GET /api/users/:username`
-- **描述**：取得特定使用者資訊
-- **權限**：本人、`admin`、同教會 `teacher`/`pastor`
-- **教會隔離**：非 admin 只能查看同教會成員
-
-#### `PATCH /api/users/:username/role`
-- **描述**：變更使用者角色
-- **Request Body**：`{ role: UserRole }`
-- **權限**：僅 `admin`
-
-#### `PATCH /api/users/:username/password`
-- **描述**：變更使用者密碼
-- **Request Body**：`{ oldPassword: string, newPassword: string }`
-- **權限**：本人或 `admin` (admin 可直接重設密碼而不需原密碼)
-
-#### `DELETE /api/users/:username`
-- **描述**：刪除使用者
-- **權限**：僅 `admin`
-
-#### `GET /api/users/students?church=xxx`
-- **描述**：取得某教會的所有學員帳號列表
-- **權限**：`admin` (任何教會), `pastor`/`teacher` (僅同教會)
-
-#### `GET /api/users/teachers?church=xxx`
-- **描述**：取得某教會的所有教師帳號列表
-- **權限**：`admin` (任何教會), `pastor` (僅同教會)
-
----
-
-### 3.3 課程 (Courses)
-
-#### `GET /api/courses`
-- **描述**：取得所有課程清單
-- **權限**：已認證
-
-#### `GET /api/courses/:courseId`
-- **描述**：取得特定課程資訊
-- **權限**：已認證
-
----
-
-### 3.4 聽課進度 (Progress)
-
-#### `GET /api/progress/:username`
-- **描述**：取得某學員的所有課程進度
-- **權限**：本人 (`student`)、負責的 `teacher`/`pastor`/`parent`、`admin`
-- **教會隔離**：`teacher`/`pastor` 只能查看同教會學員
-
-#### `PUT /api/progress/:username/:courseId`
-- **描述**：更新學員的聽課進度
-- **Request Body**：
-  ```json
-  {
-    "durationListened": 180,
-    "notes": "心得內容",
-    "listenedAt": "2026-06-01T10:00",
-    "lecturer": "張牧師"
-  }
-  ```
-- **權限**：本人 (`student`)、負責的 `teacher` (可更正)
-- **說明**：提交後自動將 `completed` 設為 `true`
-
----
-
-### 3.5 輔導配對 (Caretakers)
-
-#### `GET /api/caretakers/:studentUsername`
-- **描述**：取得某學員的配對輔導資訊
-- **Response**：`{ teacher?: string, pastor?: string, parent?: string }`
-- **權限**：相關人員 (`student` 本人、配對的 `teacher`/`pastor`/`parent`、`admin`)
-
-#### `PUT /api/caretakers/:studentUsername`
-- **描述**：設定或更新學員的配對
-- **Request Body**：`{ role: 'teacher' | 'pastor' | 'parent', username: string }`
-- **權限**：`teacher` (設定自己為 teacher)、`pastor`、`admin`
-- **教會隔離**：`teacher`/`pastor` 只能配對同教會學員
-- **資料一致性**：當指定或變更 `parent` 時，必須同步更新該 `parent` 帳號的 `childUsernames` 陣列，確保家長儀表板的檢視權限與配對資料保持一致。
-
-#### `DELETE /api/caretakers/:studentUsername/:role`
-- **描述**：移除某角色的配對
-- **權限**：同上
-
----
-
-### 3.6 閃耀計畫 (Shining Project)
-
-#### `GET /api/shining/:username`
-- **描述**：取得某學員的閃耀計畫資料
-- **權限**：本人、負責的 `teacher`/`pastor`/`parent`(唯讀)、`admin`
-
-#### `PUT /api/shining/:username/basic`
-- **描述**：更新基本資料 (姓名/生日/教會/年級)
-- **權限**：本人 (`student`)
-
-#### `PUT /api/shining/:username/checklist`
-- **描述**：更新信仰指標勾選
-- **Request Body**：`{ category: string, key: string, value: boolean }`
-- **權限**：本人 (`student`)
-
-#### `PUT /api/shining/:username/lecture`
-- **描述**：更新品格力/成年禮專題登記
-- **Request Body**：`{ type: 'character' | 'comingOfAge', theme: string, speaker: string, date: string }`
-- **權限**：`teacher`、`pastor`、`admin` (非學員填寫，由教師代為登記)
-
----
-
-### 3.7 講師 (Lecturers)
-
-#### `GET /api/lecturers`
-- **描述**：取得所有講師清單
-- **Query Parameters**：`church?: string`
-- **權限**：已認證
-- **教會隔離**：非 admin 角色只能查看與取得同教會的講師清單。
-
-#### `POST /api/lecturers`
-- **描述**：新增講師
-- **Request Body**：`{ name: string, title: string, courseIds: string[], church: string }`
-- **權限**：`teacher`、`pastor`、`admin`
-
-#### `PUT /api/lecturers/:id`
-- **描述**：更新講師資訊
-- **權限**：`teacher`、`pastor`、`admin` (需同教會或 admin)
-
-#### `DELETE /api/lecturers/:id`
-- **描述**：刪除講師
-- **權限**：`teacher`、`pastor`、`admin` (需同教會或 admin)
-
----
-
-### 3.8 動態專題大綱 (Themes)
-
-#### `GET /api/themes`
-- **描述**：取得品格力與成年禮專題主題清單
-- **Query Parameters**：`church?: string`
-- **Response**：`{ characterThemes: string[], comingOfAgeThemes: string[] }`
-- **權限**：已認證
-- **教會隔離**：非 admin 角色僅能取得該所屬教會的清單。
-
-#### `POST /api/themes`
-- **描述**：新增主題
-- **Request Body**：`{ type: 'character' | 'comingOfAge', name: string, church: string }`
-- **權限**：`teacher`、`pastor`、`admin`
-
-#### `PUT /api/themes`
-- **描述**：重新命名主題
-- **Request Body**：`{ type: 'character' | 'comingOfAge', oldName: string, newName: string, church: string }`
-- **權限**：`teacher`、`pastor`、`admin`
-
-#### `DELETE /api/themes`
-- **描述**：刪除主題
-- **Request Body**：`{ type: 'character' | 'comingOfAge', name: string, church: string }`
-- **權限**：`teacher`、`pastor`、`admin`
-
----
-
-### 3.9 統計 (Statistics)
-
-#### `GET /api/stats/church-summaries`
-- **描述**：取得所有教會的教師/學員數量統計
-- **Response**：`[{ church: string, teacherCount: number, studentCount: number }]`
-- **權限**：`admin`
-
-#### `GET /api/stats/church/:church/lecturer-stats`
-- **描述**：取得某教會中有幫 SS 講過課的講師與其講課次數
-- **Response**：`[{ lecturerName: string, sessionCount: number }]`
-- **權限**：`admin`、同教會 `pastor`
-
-#### `GET /api/stats/teacher/:teacherUsername/managed-students`
-- **描述**：取得某教師管理的 SS 學員列表
-- **Response**：`string[]`
-- **權限**：`admin`、同教會 `pastor`、`teacher` 本人
-
----
-
-### 3.10 頁面限制 (Restrictions)
-
-#### `GET /api/restrictions/:username`
-- **描述**：取得使用者被限制的頁面列表
-- **權限**：`admin`
-
-#### `PUT /api/restrictions/:username`
-- **描述**：設定頁面限制
-- **Request Body**：`{ page: string }`
-- **權限**：`admin`
-
----
-
-## 4. 權限矩陣 (Permissions Matrix)
-
-| 資源 / 操作 | student | teacher | parent | pastor | admin |
-|---|---|---|---|---|---|
-| **查看自己的課程進度** | ✅ | ❌ | ❌ | ❌ | ❌ |
-| **填寫聽課心得** | ✅ | ❌ | ❌ | ❌ | ❌ |
-| **填寫閃耀計畫 (自我檢視)** | ✅ | ❌ | ❌ | ❌ | ❌ |
-| **查看同教會學員進度** | ❌ | ✅ | ❌ | ✅ | ✅(全部) |
-| **查看自己綁定的學員進度** | ❌ | ❌ | ✅(唯讀) | ❌ | ❌ |
-| **編輯學員專題課登記** | ❌ | ✅ | ❌ | ✅ | ✅ |
-| **回覆學員心得回饋** | ❌ | ✅ | ❌ | ✅ | ✅ |
-| **管理學員 (加入/取消管理)** | ❌ | ✅(同教會) | ❌ | ✅(同教會) | ✅ |
-| **查看教會總覽統計** | ❌ | ❌ | ❌ | ✅ | ✅(全部) |
-| **查看教師管理概況** | ❌ | ❌ | ❌ | ✅ | ✅ |
-| **查看講師授課統計** | ❌ | ❌ | ❌ | ✅ | ✅ |
-| **管理專題大綱/講師** | ❌ | ✅ | ❌ | ✅ | ✅ |
-| **建立/刪除帳號** | ❌ | ❌ | ❌ | ❌ | ✅ |
-| **變更角色** | ❌ | ❌ | ❌ | ❌ | ✅ |
-| **設定頁面限制** | ❌ | ❌ | ❌ | ❌ | ✅ |
-| **跨教會查看資料** | ❌ | ❌ | ❌ | ❌ | ✅ |
-
----
-
-## 5. 教會隔離邏輯 (Church Isolation)
-
-### 核心原則
-
-> **同教會原則 (Same-Church Principle)**：非 admin 角色只能查看和操作**與自己同教會**的成員資料。
-
-### 前端篩選邏輯
-
-前端目前使用 `authStore.usersDb` 搭配 `currentUser.church` 進行篩選：
-
+### Base URL
 ```
-教師 (teacher) 能看見的學員 =
-  所有 usersDb 中 role === 'student' && church === currentUser.church 的帳號
-
-牧者 (pastor) 能看見的學員/教師 =
-  所有 usersDb 中 (role === 'student' || role === 'teacher') && church === currentUser.church 的帳號
-
-家長 (parent) 能看見的學員 =
-  usersDb 中 username 在 currentUser.childUsernames 列表中的學員 (家長註冊時或管理員配對時會強制篩選與同步為同教會學員)
-
-Admin (admin) =
-  無限制，可跨教會查看所有帳號
+https://api.sslecture.example.com/v1
 ```
 
-### 後端實作建議
+### 請求格式
+- Content-Type: `application/json`
+- 字元編碼：`UTF-8`
 
-1. **API 層面強制隔離**：在每個需要教會隔離的 API 端點中，後端應從 JWT/Session 中取得當前用戶的 `church`，並在 SQL/NoSQL 查詢中加入 `WHERE church = ?` 條件。
-2. **不信任前端篩選**：前端的篩選僅為 UX 優化，後端必須獨立驗證。
-3. **Admin 例外**：Admin 角色的請求不加教會條件。
-4. **家長的特殊邏輯**：家長不是透過教會篩選，而是透過 `childUsernames` 綁定關係來決定可查看的學員。
+### 認證方式
+所有需要登入的 API 須在 Header 帶上 JWT Token：
+```
+Authorization: Bearer <access_token>
+```
 
-### 資料一致性
+### 標準回應格式
 
-- 當透過管理介面 (Admin) 或 API 為學員指派/變更家長 (parent) 時，應同步更新該家長帳號中的 `childUsernames` 列表。
-- 當學員被刪除時，應同步清理：
-  - 該學員在 `StudentCaretakers` 中的配對記錄
-  - 家長帳號中 `childUsernames` 的引用
-  - 該學員的 `ProgressRecord` 和 `ShiningProject` (可選擇保留或刪除)
+#### 成功
+```json
+{
+  "success": true,
+  "data": { ... }
+}
+```
 
----
+#### 失敗
+```json
+{
+  "success": false,
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "請先登入"
+  }
+}
+```
 
-## 6. 前端目前的 localStorage 資料結構
-
-| localStorage Key | 資料模型 | 說明 |
-|---|---|---|
-| `superstart_user` | `User` | 當前登入用戶 |
-| `superstart_users_db` | `Record<string, UserDbEntry>` | 所有帳號資料庫 |
-| `superstart_progress_db` | `Record<string, Record<string, ProgressRecord>>` | 聽課進度 (username → courseId → record) |
-| `superstart_restrictions_db` | `Record<string, string[]>` | 頁面限制 (username → restricted paths) |
-| `superstart_student_teacher_db` | `Record<string, StudentCaretakers>` | 輔導配對 (studentUsername → caretakers) |
-| `superstart_shining_project_db` | `Record<string, ShiningProject>` | 閃耀計畫 (username → project) |
-| `superstart_character_themes_db` | `Record<string, string[]>` | 品格力動態主題清單庫 |
-| `superstart_coming_of_age_themes_db` | `Record<string, string[]>` | 成年禮動態主題清單庫 |
-| `superstart_lecturers_db` | `Lecturer[]` | 講師資料庫 (包含 church 欄位) |
-
-### UserDbEntry 結構
-
-```typescript
-interface UserDbEntry {
-  passwordHash: string
-  role: 'student' | 'teacher' | 'parent' | 'pastor' | 'admin'
-  church?: string           // 所屬教會 (admin 為 undefined)
-  childUsernames?: string[] // 家長綁定的學員帳號列表
+### 分頁格式（列表類 API）
+```json
+{
+  "success": true,
+  "data": {
+    "items": [ ... ],
+    "total": 100,
+    "page": 1,
+    "pageSize": 20
+  }
 }
 ```
 
 ---
 
-> ⚠️ **注意事項**：本文件描述的是目前前端 mock 資料層的邏輯。後端實作時應以此為邏輯基礎，但需加入：
-> - 密碼 hash 加鹽 (bcrypt 等)
-> - JWT/Session 認證機制
-> - SQL/NoSQL 資料庫替代 localStorage
-> - 輸入驗證與 SQL Injection 防護
-> - Rate Limiting
-> - CORS 設定
+## 2. 認證 Auth
+
+### `POST /auth/login`
+**說明**：帳號密碼登入，回傳 JWT Token
+
+**權限**：公開
+
+**Request Body**：
+```json
+{
+  "username": "student01",
+  "password": "123456"
+}
+```
+
+**Response**：
+```json
+{
+  "success": true,
+  "data": {
+    "accessToken": "eyJhbGci...",
+    "refreshToken": "eyJhbGci...",
+    "expiresIn": 3600,
+    "user": {
+      "id": "u_001",
+      "username": "student01",
+      "role": "student",
+      "church": "愛與話語",
+      "avatarUrl": "https://..."
+    }
+  }
+}
+```
+
+**錯誤**：
+- `401 INVALID_CREDENTIALS`：帳號或密碼錯誤
+- `403 ACCOUNT_DISABLED`：帳號被停用
+
+---
+
+### `POST /auth/refresh`
+**說明**：使用 Refresh Token 換發新的 Access Token
+
+**Request Body**：
+```json
+{
+  "refreshToken": "eyJhbGci..."
+}
+```
+
+**Response**：
+```json
+{
+  "success": true,
+  "data": {
+    "accessToken": "eyJhbGci...",
+    "expiresIn": 3600
+  }
+}
+```
+
+---
+
+### `POST /auth/logout`
+**說明**：登出（伺服器端將 Refresh Token 列入黑名單）
+
+**權限**：需登入
+
+**Response**：
+```json
+{ "success": true }
+```
+
+---
+
+### `GET /auth/me`
+**說明**：取得當前登入使用者的完整資料
+
+**權限**：需登入
+
+**Response**：
+```json
+{
+  "success": true,
+  "data": {
+    "id": "u_001",
+    "username": "student01",
+    "role": "student",
+    "church": "愛與話語",
+    "displayName": "王小明",
+    "avatarUrl": "https://...",
+    "createdAt": "2025-01-01T00:00:00Z"
+  }
+}
+```
+
+---
+
+## 3. 課程 Courses
+
+> 課程清單由後端維護，前端只讀取。
+
+### `GET /courses`
+**說明**：取得所有課程清單
+
+**權限**：需登入
+
+**Query Params**：
+| 參數 | 型別 | 說明 |
+|------|------|------|
+| `category` | `bible` \| `lecture` \| 不傳 | 篩選分類 |
+| `church` | string | 篩選教會（若有教會專屬課程） |
+
+**Response**：
+```json
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "bible-01",
+        "title": "聖經時觀",
+        "category": "bible",
+        "description": "精選聖經專題...",
+        "coverColor": "linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%)",
+        "duration": 180
+      }
+    ],
+    "total": 30
+  }
+}
+```
+
+---
+
+### `GET /courses/:courseId`
+**說明**：取得單一課程詳情（含授課講師清單）
+
+**權限**：需登入
+
+**Response**：
+```json
+{
+  "success": true,
+  "data": {
+    "id": "bible-01",
+    "title": "聖經時觀",
+    "category": "bible",
+    "description": "...",
+    "coverColor": "...",
+    "duration": 180,
+    "lecturers": [
+      { "id": "l1", "name": "張牧師", "title": "牧師" }
+    ]
+  }
+}
+```
+
+---
+
+## 4. 聽課紀錄 Listen Sessions
+
+> **核心設計理念**：  
+> 學員每次聆聽同一課程，都會**新增一筆** Session 紀錄，不覆蓋舊紀錄。  
+> 只要有任何一筆 Session 存在，該課程即標記為「已完成（completed = true）」。  
+> Session 建立後，允許學員修改聽課時間、講師與心得。
+
+### `GET /progress/:username`
+**說明**：取得某學員所有課程的進度總覽
+
+**權限**：
+- `student`：只能查詢自己
+- `teacher` / `pastor` / `parent`：只能查詢其管理的學員
+- `admin`：可查詢任何人
+
+**Response**：
+```json
+{
+  "success": true,
+  "data": {
+    "username": "student01",
+    "completedCount": 15,
+    "totalCourses": 30,
+    "records": [
+      {
+        "courseId": "bible-01",
+        "completed": true,
+        "sessionCount": 2,
+        "lastUpdated": "2026-06-15T10:00:00Z",
+        "latestLecturer": "張牧師 牧師"
+      }
+    ]
+  }
+}
+```
+
+---
+
+### `GET /progress/:username/:courseId/sessions`
+**說明**：取得某學員某課程的所有聽課 Session 紀錄（依時間降冪排列）
+
+**權限**：同進度總覽
+
+**Response**：
+```json
+{
+  "success": true,
+  "data": {
+    "courseId": "bible-01",
+    "completed": true,
+    "sessions": [
+      {
+        "id": "session_1718467200000",
+        "lecturer": "張牧師 牧師",
+        "listenedAt": "2026-06-15T09:00",
+        "notes": "這次收穫很多，了解了聖經時觀的含義。",
+        "createdAt": "2026/6/15 10:30:00",
+        "updatedAt": null
+      }
+    ]
+  }
+}
+```
+
+---
+
+### `POST /progress/:username/:courseId/sessions`
+**說明**：新增一筆聽課紀錄（初次或複習皆使用此端點）
+
+**權限**：
+- `student`：只能對自己操作
+
+**Request Body**：
+```json
+{
+  "lecturer": "張牧師 牧師",
+  "listenedAt": "2026-06-15T09:00",
+  "notes": "這次收穫很多..."
+}
+```
+
+**Validation 規則**：
+- `lecturer`：必填，長度 1~50 字元
+- `listenedAt`：必填，格式 `YYYY-MM-DDTHH:mm`，不可晚於目前時間 + 1 小時
+- `notes`：選填，最大 2000 字元
+
+**Response**：
+```json
+{
+  "success": true,
+  "data": {
+    "id": "session_1718467200000",
+    "lecturer": "張牧師 牧師",
+    "listenedAt": "2026-06-15T09:00",
+    "notes": "這次收穫很多...",
+    "createdAt": "2026-06-15T10:30:00Z",
+    "courseCompleted": true
+  }
+}
+```
+
+---
+
+### `PATCH /progress/:username/:courseId/sessions/:sessionId`
+**說明**：修改一筆既有聽課 Session（聽課時間、講師、心得均可修改）
+
+**權限**：
+- `student`：只能修改自己的紀錄
+- `teacher` / `admin`：可協助修改
+
+**Request Body**（所有欄位均選填，只傳要修改的欄位）：
+```json
+{
+  "lecturer": "陳傳道 傳道",
+  "listenedAt": "2026-06-14T14:00",
+  "notes": "修改後的心得..."
+}
+```
+
+**Response**：
+```json
+{
+  "success": true,
+  "data": {
+    "id": "session_1718467200000",
+    "lecturer": "陳傳道 傳道",
+    "listenedAt": "2026-06-14T14:00",
+    "notes": "修改後的心得...",
+    "createdAt": "2026-06-15T10:30:00Z",
+    "updatedAt": "2026-06-15T13:00:00Z"
+  }
+}
+```
+
+**錯誤**：
+- `404 SESSION_NOT_FOUND`：找不到此 Session
+- `403 FORBIDDEN`：無權限修改他人紀錄
+
+---
+
+### `DELETE /progress/:username/:courseId/sessions/:sessionId`
+**說明**：刪除一筆聽課 Session
+
+**權限**：`admin` 限定
+
+> ⚠️ **注意**：若刪除後該課程的 sessions 清單為空，`completed` 欄位自動改回 `false`。
+
+**Response**：
+```json
+{ "success": true }
+```
+
+---
+
+## 5. 講師管理 Lecturers
+
+### `GET /lecturers`
+**說明**：取得可用講師清單
+
+**權限**：需登入
+
+**Query Params**：
+| 參數 | 型別 | 說明 |
+|------|------|------|
+| `church` | string | 篩選教會 |
+| `courseId` | string | 篩選有授課某課程的講師 |
+
+**Response**：
+```json
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "l1",
+        "name": "張牧師",
+        "title": "牧師",
+        "church": "愛與話語",
+        "courseIds": ["bible-01", "bible-02"]
+      }
+    ]
+  }
+}
+```
+
+---
+
+### `POST /lecturers`
+**說明**：新增講師
+
+**權限**：`admin`
+
+**Request Body**：
+```json
+{
+  "name": "林長老",
+  "title": "長老",
+  "church": "愛與話語",
+  "courseIds": ["lecture-01", "lecture-02"]
+}
+```
+
+---
+
+### `PUT /lecturers/:lecturerId`
+**說明**：完整更新講師資料
+
+**權限**：`admin`
+
+**Request Body**：同 POST
+
+---
+
+### `DELETE /lecturers/:lecturerId`
+**說明**：刪除講師
+
+**權限**：`admin`
+
+---
+
+## 6. 學員關懷配對 Assignments
+
+> 每位學員可配對三種關懷角色：
+> - `teacher`：輔導教師
+> - `pastor`：分區牧者  
+> - `parent`：關懷家長
+
+### `GET /assignments/:studentUsername`
+**說明**：取得某學員的關懷人員配對資料
+
+**權限**：
+- `student`：只能查詢自己
+- `teacher` / `pastor` / `parent`：只能查詢其管理的學員
+- `admin`：可查詢任何人
+
+**Response**：
+```json
+{
+  "success": true,
+  "data": {
+    "studentUsername": "student01",
+    "teacher": "teacher01",
+    "pastor": "pastor01",
+    "parent": "parent01"
+  }
+}
+```
+
+---
+
+### `PUT /assignments/:studentUsername`
+**說明**：設定或更新學員的關懷人員配對
+
+**權限**：
+- `teacher`：只能設定 `teacher` 欄位（且只能指定自己）
+- `pastor`：只能設定 `pastor` 欄位（且只能指定自己）
+- `admin`：可設定任意欄位、指定任意人
+
+**Request Body**（欄位均選填）：
+```json
+{
+  "teacher": "teacher01",
+  "pastor": "pastor01",
+  "parent": "parent01"
+}
+```
+
+---
+
+### `DELETE /assignments/:studentUsername/:role`
+**說明**：移除某角色的配對
+
+**權限**：同 PUT
+
+**Path Params**：`role` = `teacher` | `pastor` | `parent`
+
+---
+
+### `GET /assignments/teacher/:teacherUsername/students`
+**說明**：取得某輔導教師管理的所有學員列表
+
+**權限**：
+- `teacher`：只能查詢自己
+- `admin`：可查詢任何人
+
+**Response**：
+```json
+{
+  "success": true,
+  "data": {
+    "teacherUsername": "teacher01",
+    "students": [
+      {
+        "username": "student01",
+        "displayName": "王小明",
+        "church": "愛與話語",
+        "completedCount": 15,
+        "totalCourses": 30
+      }
+    ]
+  }
+}
+```
+
+---
+
+## 7. 閃耀計畫 Shining Project
+
+### `GET /shining/:username`
+**說明**：取得某學員的閃耀計畫完整資料
+
+**權限**：同學員關懷配對的讀取權限
+
+**Response**：
+```json
+{
+  "success": true,
+  "data": {
+    "username": "student01",
+    "name": "王小明",
+    "birthday": "2010-05-20",
+    "church": "愛與話語",
+    "schoolGrade": "師大附中 高一",
+    "faithPhase1": {
+      "worship": true,
+      "prayer": false,
+      "independent": true,
+      "reply": true,
+      "share": false
+    },
+    "faithPhase2": {
+      "courses30": false,
+      "prayerLong": false,
+      "morningWorship": true,
+      "readBible": false,
+      "churchService": true
+    },
+    "advancedChallenges": {
+      "wednesday": false,
+      "shareFaith": true,
+      "copySermon": false,
+      "morningProverb": true,
+      "custom": false
+    },
+    "customChallenge": "每天讀一章詩篇",
+    "characterLectures": {
+      "品格力 - 自律": { "speaker": "張牧師", "date": "2026-03-10" }
+    },
+    "comingOfAgeTopics": {
+      "基督教歷史": { "speaker": "陳傳道", "date": "2026-04-01" }
+    },
+    "updatedAt": "2026-06-15T10:00:00Z"
+  }
+}
+```
+
+---
+
+### `PATCH /shining/:username`
+**說明**：更新閃耀計畫（部分更新，只傳要修改的欄位）
+
+**權限**：
+- `student`：只能更新自己的資料
+- `teacher`：可協助更新其管理學員的資料
+- `admin`：可更新任何人
+
+**Request Body**（所有欄位均選填）：
+```json
+{
+  "name": "王小明",
+  "birthday": "2010-05-20",
+  "church": "愛與話語",
+  "schoolGrade": "師大附中 高一",
+  "faithPhase1": { "worship": true },
+  "faithPhase2": { "courses30": true },
+  "advancedChallenges": { "shareFaith": true },
+  "customChallenge": "每天讀一章詩篇",
+  "characterLectures": {
+    "品格力 - 自律": { "speaker": "張牧師", "date": "2026-03-10" }
+  },
+  "comingOfAgeTopics": {
+    "基督教歷史": { "speaker": "陳傳道", "date": "2026-04-01" }
+  }
+}
+```
+
+> ⚠️ **注意**：`faithPhase2.courses30` 若後端計算學員已完成 30 門課，應自動設為 `true`，不受前端傳入值影響。
+
+---
+
+## 8. 管理員 Admin
+
+### `GET /admin/users`
+**說明**：取得所有使用者列表
+
+**權限**：`admin`
+
+**Query Params**：
+| 參數 | 型別 | 說明 |
+|------|------|------|
+| `role` | string | 篩選角色 |
+| `church` | string | 篩選教會 |
+| `page` | number | 頁碼（預設 1）|
+| `pageSize` | number | 每頁筆數（預設 20）|
+
+---
+
+### `POST /admin/users`
+**說明**：建立新使用者帳號
+
+**權限**：`admin`
+
+**Request Body**：
+```json
+{
+  "username": "student02",
+  "password": "初始密碼",
+  "role": "student",
+  "church": "愛與話語",
+  "displayName": "李小華"
+}
+```
+
+---
+
+### `PUT /admin/users/:username`
+**說明**：更新使用者資料（包含重設密碼、更改角色）
+
+**權限**：`admin`
+
+**Request Body**（欄位均選填）：
+```json
+{
+  "displayName": "新名稱",
+  "role": "teacher",
+  "church": "愛與話語",
+  "password": "新密碼（選填）"
+}
+```
+
+---
+
+### `DELETE /admin/users/:username`
+**說明**：停用使用者帳號（軟刪除，`isActive = false`）
+
+**權限**：`admin`
+
+---
+
+### `GET /admin/church-summary`
+**說明**：取得各教會的統計數據
+
+**權限**：`admin` / `pastor`（牧者只能看自己負責的教會）
+
+**Response**：
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "church": "愛與話語",
+      "teacherCount": 5,
+      "studentCount": 30,
+      "completionRate": 0.62
+    }
+  ]
+}
+```
+
+---
+
+### `GET /admin/page-restrictions/:username`
+**說明**：取得某使用者的頁面存取限制清單
+
+**權限**：`admin`
+
+**Response**：
+```json
+{
+  "success": true,
+  "data": {
+    "username": "student01",
+    "restrictedPages": ["/shining"]
+  }
+}
+```
+
+---
+
+### `POST /admin/page-restrictions/:username/toggle`
+**說明**：切換頁面存取限制（有則移除，無則新增）
+
+**權限**：`admin`
+
+**Request Body**：
+```json
+{ "page": "/shining" }
+```
+
+---
+
+## 9. 資料模型定義
+
+### User（使用者）
+| 欄位 | 型別 | 說明 |
+|------|------|------|
+| `id` | string | 系統唯一 ID（UUID） |
+| `username` | string | 登入帳號（唯一，英數字） |
+| `passwordHash` | string | 密碼雜湊值（bcrypt，後端儲存，不回傳） |
+| `role` | `student` \| `teacher` \| `pastor` \| `parent` \| `admin` | 角色 |
+| `church` | string | 所屬教會名稱 |
+| `displayName` | string | 顯示名稱 |
+| `avatarUrl` | string? | 頭像 URL |
+| `isActive` | boolean | 是否啟用（false = 軟刪除） |
+| `createdAt` | ISO8601 | 建立時間 |
+| `updatedAt` | ISO8601 | 最後更新時間 |
+
+### ListenSession（聽課紀錄）
+| 欄位 | 型別 | 說明 |
+|------|------|------|
+| `id` | string | 唯一 ID（UUID 或時間戳） |
+| `username` | string | 學員帳號（FK → User） |
+| `courseId` | string | 課程 ID（FK → Course） |
+| `lecturer` | string | 授課講師名稱（自由文字，來自講師名稱+職稱） |
+| `listenedAt` | `YYYY-MM-DDTHH:mm` | 學員填報的聆聽時間 |
+| `notes` | string | 學員心得（可為空） |
+| `createdAt` | ISO8601 | 系統建立時間 |
+| `updatedAt` | ISO8601? | 最後修改時間（null 表示從未修改） |
+
+### Course（課程）
+| 欄位 | 型別 | 說明 |
+|------|------|------|
+| `id` | string | 唯一 ID（格式：`bible-01`, `lecture-01`） |
+| `title` | string | 課程名稱 |
+| `category` | `bible` \| `lecture` | 分類 |
+| `description` | string | 課程說明 |
+| `coverColor` | string | 卡片封面 CSS 顏色/漸層 |
+| `duration` | number | 課程時長（秒） |
+
+### Lecturer（講師）
+| 欄位 | 型別 | 說明 |
+|------|------|------|
+| `id` | string | 唯一 ID |
+| `name` | string | 姓名 |
+| `title` | string | 職稱（牧師/傳道/長老/輔導等） |
+| `church` | string | 所屬教會 |
+| `courseIds` | string[] | 可授課的課程 ID 清單（用於篩選建議講師） |
+
+### StudentAssignment（關懷配對）
+| 欄位 | 型別 | 說明 |
+|------|------|------|
+| `studentUsername` | string | 學員帳號（FK） |
+| `teacher` | string? | 輔導教師帳號（FK） |
+| `pastor` | string? | 分區牧者帳號（FK） |
+| `parent` | string? | 關懷家長帳號（FK） |
+| `updatedAt` | ISO8601 | 最後更新時間 |
+
+---
+
+## 10. 錯誤碼一覽
+
+| HTTP 狀態碼 | 錯誤碼 | 中文說明 |
+|-------------|--------|---------|
+| 400 | `VALIDATION_ERROR` | 請求參數格式錯誤或驗證失敗 |
+| 400 | `INVALID_DATE_FORMAT` | 日期時間格式不正確 |
+| 401 | `UNAUTHORIZED` | 未提供 Token 或 Token 無效 |
+| 401 | `INVALID_CREDENTIALS` | 帳號或密碼錯誤 |
+| 401 | `TOKEN_EXPIRED` | Access Token 已過期，請呼叫 /auth/refresh |
+| 401 | `REFRESH_TOKEN_EXPIRED` | Refresh Token 已過期，需重新登入 |
+| 403 | `FORBIDDEN` | 有登入但無權限執行此操作 |
+| 403 | `ACCOUNT_DISABLED` | 帳號已被停用（isActive = false） |
+| 404 | `USER_NOT_FOUND` | 找不到此使用者 |
+| 404 | `COURSE_NOT_FOUND` | 找不到此課程 |
+| 404 | `SESSION_NOT_FOUND` | 找不到此聽課紀錄 |
+| 404 | `LECTURER_NOT_FOUND` | 找不到此講師 |
+| 409 | `USERNAME_TAKEN` | 帳號名稱已被使用 |
+| 500 | `INTERNAL_ERROR` | 伺服器內部錯誤 |
+
+---
+
+## 11. 前端串接遷移指南
+
+> 目前前端使用 `localStorage` 作為臨時資料庫，後端串接後需逐步替換。
+
+### localStorage → API 對照表
+
+| 前端 localStorage Key | 對應 API 端點 |
+|----------------------|--------------|
+| `superstart_user` | `GET /auth/me` |
+| `superstart_users_db` | `GET /admin/users` |
+| `superstart_progress_db` | `GET /progress/:username` |
+| `superstart_lecturers_db` | `GET /lecturers` |
+| `superstart_student_teacher_db` | `GET /assignments/:studentUsername` |
+| `superstart_shining_project_db` | `GET /shining/:username` |
+| `superstart_restrictions_db` | `GET /admin/page-restrictions/:username` |
+| `superstart_character_themes_db` | 建議新增：`GET /themes?type=character&church=...` |
+| `superstart_coming_of_age_themes_db` | 建議新增：`GET /themes?type=comingOfAge&church=...` |
+
+### Store 函式 → API 對照表
+
+| 前端 Store 函式 | 對應 API 呼叫 |
+|----------------|--------------|
+| `addListenSession()` | `POST /progress/:username/:courseId/sessions` |
+| `updateListenSession()` | `PATCH /progress/:username/:courseId/sessions/:sessionId` |
+| `getStudentProgress()` | `GET /progress/:username/:courseId/sessions` |
+| `assignStudentCaretaker()` | `PUT /assignments/:studentUsername` |
+| `removeStudentCaretaker()` | `DELETE /assignments/:studentUsername/:role` |
+| `getShiningProject()` | `GET /shining/:username` |
+| `updateShiningBasicInfo()` | `PATCH /shining/:username` |
+| `addLecturer()` | `POST /lecturers` |
+| `updateLecturer()` | `PUT /lecturers/:lecturerId` |
+| `deleteLecturer()` | `DELETE /lecturers/:lecturerId` |
+| `toggleRestriction()` | `POST /admin/page-restrictions/:username/toggle` |
+
+### Token 管理策略
+
+```
+Access Token 有效期：1 小時（建議）
+Refresh Token 有效期：30 天（建議）
+
+自動刷新流程：
+1. 登入 → 取得 accessToken + refreshToken，存入 localStorage
+2. 每次 API 請求，在 axios 攔截器中自動帶入 Authorization header
+3. 若收到 401 TOKEN_EXPIRED，自動呼叫 POST /auth/refresh 換發新 Token
+4. 若換發失敗（REFRESH_TOKEN_EXPIRED），清除 Token，導向登入頁
+```
+
+### 建議前端修改步驟
+
+1. **安裝 axios**：`npm install axios`
+2. **建立 `src/api/client.ts`**：封裝 axios instance，設定 Base URL 與 Token 攔截器
+3. **逐步替換各 Store**：將 `localStorage.getItem / setItem` 改為 `await api.get/post` 呼叫
+4. **錯誤處理**：在 axios response 攔截器統一處理 401/403 錯誤，顯示提示訊息
+
+---
+
+*本文件由前端團隊維護。如後端有欄位或邏輯調整，請同步更新此文件並通知前後端雙方確認後再上線。*

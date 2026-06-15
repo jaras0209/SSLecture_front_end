@@ -377,6 +377,31 @@ export const useCoursesStore = defineStore('courses', () => {
     })
   }
 
+  /**
+   * Update an existing session's editable fields (listenedAt and notes).
+   * The lecturer field is intentionally immutable after creation to preserve audit integrity.
+   */
+  function updateListenSession(
+    username: string,
+    courseId: string,
+    sessionId: string,
+    patch: { listenedAt?: string; notes?: string; lecturer?: string }
+  ): boolean {
+    const record = progressDb.value[username]?.[courseId]
+    if (!record) return false
+    migrateRecord(record)
+    const session = record.sessions.find(s => s.id === sessionId)
+    if (!session) return false
+    if (patch.listenedAt !== undefined) session.listenedAt = patch.listenedAt
+    if (patch.notes !== undefined) session.notes = patch.notes
+    if (patch.lecturer !== undefined) session.lecturer = patch.lecturer
+    record.lastUpdated = new Date().toLocaleString('zh-TW', { hour12: false })
+    // Trigger reactivity
+    progressDb.value = { ...progressDb.value }
+    return true
+  }
+
+
   function getStudentProgress(username: string, courseId: string): ProgressRecord {
     const userRecords = progressDb.value[username]
     if (userRecords && userRecords[courseId]) {
@@ -677,6 +702,7 @@ export const useCoursesStore = defineStore('courses', () => {
     lecturers,
     updateProgress,
     addListenSession,
+    updateListenSession,
     getStudentProgress,
     toggleRestriction,
     isPageRestricted,

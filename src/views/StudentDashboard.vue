@@ -130,13 +130,68 @@
                 >
                   <div class="timeline-dot" :class="idx === 0 ? 'dot-latest' : 'dot-past'"></div>
                   <div class="timeline-content glass-panel-sm">
+
+                    <!-- View mode header -->
                     <div class="timeline-header">
                       <span class="timeline-count">第 {{ (currentRecord?.sessions.length ?? 0) - idx }} 次</span>
-                      <span class="timeline-date">{{ session.listenedAt ? session.listenedAt.replace('T', ' ') : session.createdAt }}</span>
+                      <div class="timeline-actions">
+                        <span class="timeline-date">{{ session.listenedAt ? session.listenedAt.replace('T', ' ') : session.createdAt }}</span>
+                        <button 
+                          class="btn-edit-session" 
+                          @click="startEditSession(session)"
+                          v-if="editingSessionId !== session.id"
+                          title="編輯此筆紀錄"
+                        >✏️</button>
+                      </div>
                     </div>
-                    <p class="timeline-lecturer">🎤 {{ session.lecturer || '（未填寫講師）' }}</p>
-                    <p class="timeline-notes" v-if="session.notes">{{ session.notes }}</p>
-                    <p class="timeline-notes text-muted" v-else><em>（無心得）</em></p>
+
+                    <!-- View mode body -->
+                    <template v-if="editingSessionId !== session.id">
+                      <p class="timeline-lecturer">🎤 {{ session.lecturer || '（未填寫講師）' }}</p>
+                      <p class="timeline-notes" v-if="session.notes">{{ session.notes }}</p>
+                      <p class="timeline-notes text-muted" v-else><em>（無心得）</em></p>
+                    </template>
+
+                    <!-- Edit mode (inline) -->
+                    <template v-else>
+                      <div class="edit-session-form mt-2">
+                        <div class="form-group mb-2">
+                          <label class="form-label form-label-sm">🎤 授課講師：</label>
+                          <select v-model="editSessionDraft.lecturer" class="form-input form-input-sm">
+                            <option value="">-- 請選擇 --</option>
+                            <option 
+                              v-for="lec in availableLecturers" 
+                              :key="lec.id" 
+                              :value="lec.name + ' ' + lec.title"
+                            >
+                              {{ lec.name }} ({{ lec.title }})
+                            </option>
+                          </select>
+                        </div>
+                        <div class="form-group mb-2">
+                          <label class="form-label form-label-sm">📅 聽課時間：</label>
+                          <input 
+                            v-model="editSessionDraft.listenedAt" 
+                            type="datetime-local" 
+                            class="form-input form-input-sm datetime-input" 
+                          />
+                        </div>
+                        <div class="form-group mb-2">
+                          <label class="form-label form-label-sm">✍️ 心得：</label>
+                          <textarea 
+                            v-model="editSessionDraft.notes"
+                            class="form-input form-input-sm text-area"
+                            rows="3"
+                            placeholder="修改你的心得..."
+                          ></textarea>
+                        </div>
+                        <div class="edit-session-actions">
+                          <button class="btn btn-primary btn-xs" @click="saveEditSession(session.id)">💾 儲存</button>
+                          <button class="btn btn-ghost btn-xs" @click="cancelEditSession">取消</button>
+                        </div>
+                      </div>
+                    </template>
+
                   </div>
                 </div>
               </div>
@@ -633,7 +688,7 @@
 import { ref, computed, reactive, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
-import type { Course } from '@/stores/courses'
+import type { Course, ListenSession } from '@/stores/courses'
 
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
@@ -656,6 +711,10 @@ const notesText = ref('')
 const listenedAt = ref(new Date().toISOString().slice(0, 16))
 const saveStatus = ref('')
 const showReviewPanel = ref(false)
+
+// Edit session state
+const editingSessionId = ref<string | null>(null)
+const editSessionDraft = reactive({ lecturer: '', listenedAt: '', notes: '' })
 
 const shiningProject = computed(() => {
   const username = authStore.currentUser?.username || ''
@@ -766,6 +825,33 @@ function saveNoteAndProgress() {
   setTimeout(() => {
     saveStatus.value = ''
   }, 3000)
+}
+
+// ── Session inline edit handlers ──
+function startEditSession(session: ListenSession) {
+  editingSessionId.value = session.id
+  editSessionDraft.lecturer = session.lecturer
+  editSessionDraft.listenedAt = session.listenedAt
+  editSessionDraft.notes = session.notes
+}
+
+function saveEditSession(sessionId: string) {
+  if (!selectedCourse.value || !authStore.currentUser) return
+  coursesStore.updateListenSession(
+    authStore.currentUser.username,
+    selectedCourse.value.id,
+    sessionId,
+    {
+      lecturer: editSessionDraft.lecturer,
+      listenedAt: editSessionDraft.listenedAt,
+      notes: editSessionDraft.notes
+    }
+  )
+  editingSessionId.value = null
+}
+
+function cancelEditSession() {
+  editingSessionId.value = null
 }
 
 
@@ -1788,5 +1874,78 @@ const advancedLabels = {
   border-radius: var(--radius-sm, 8px);
   padding: 1rem;
 }
+
+/* \u2500\u2500 Timeline edit controls \u2500\u2500 */
+.timeline-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.btn-edit-session {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 2px 4px;
+  border-radius: 4px;
+  opacity: 0.5;
+  transition: opacity 0.15s, background 0.15s;
+  line-height: 1;
+}
+
+.btn-edit-session:hover {
+  opacity: 1;
+  background: rgba(99, 102, 241, 0.12);
+}
+
+/* Compact form labels and inputs inside edit panel */
+.form-label-sm {
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+  display: block;
+  color: var(--text-secondary);
+}
+
+.form-input-sm {
+  font-size: 0.82rem;
+  padding: 0.35rem 0.6rem;
+  height: auto;
+}
+
+.edit-session-form {
+  border-top: 1px dashed rgba(99, 102, 241, 0.2);
+  padding-top: 0.75rem;
+}
+
+.edit-session-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+/* Extra small button variant */
+.btn-xs {
+  font-size: 0.78rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: 6px;
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border, #e5e7eb);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.15s;
+}
+
+.btn-ghost:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
 </style>
+
+
 
