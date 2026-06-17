@@ -18,6 +18,7 @@ export interface User {
   church?: string
   childUsernames?: string[]
   displayName?: string   // 暱稱（未設定時顯示 username）
+  realName?: string      // 真實姓名（管理端顯示用）
   lastLoginAt?: string   // 上次登入時間
 }
 
@@ -36,6 +37,7 @@ export const useAuthStore = defineStore('auth', () => {
     church?: string
     childUsernames?: string[]
     displayName?: string
+    realName?: string
     lastLoginAt?: string
     avatarUrl?: string
   }>>({
@@ -98,6 +100,7 @@ export const useAuthStore = defineStore('auth', () => {
       church: user.church,
       childUsernames: user.childUsernames,
       displayName: user.displayName,
+      realName: user.realName,
       lastLoginAt: now
     }
     return { success: true, message: '登入成功！' }
@@ -183,7 +186,7 @@ export const useAuthStore = defineStore('auth', () => {
    */
   function updateProfile(
     username: string,
-    patch: { displayName?: string; avatarUrl?: string }
+    patch: { displayName?: string; realName?: string; avatarUrl?: string }
   ): { success: boolean; message: string } {
     const dbUser = usersDb.value[username]
     if (!dbUser) {
@@ -191,6 +194,9 @@ export const useAuthStore = defineStore('auth', () => {
     }
     if (patch.displayName !== undefined) {
       dbUser.displayName = patch.displayName.trim() || undefined
+    }
+    if (patch.realName !== undefined) {
+      dbUser.realName = patch.realName.trim() || undefined
     }
     if (patch.avatarUrl !== undefined) {
       dbUser.avatarUrl = patch.avatarUrl
@@ -200,6 +206,7 @@ export const useAuthStore = defineStore('auth', () => {
       currentUser.value = {
         ...currentUser.value,
         displayName: dbUser.displayName,
+        realName: dbUser.realName,
         avatarUrl: dbUser.avatarUrl || currentUser.value.avatarUrl
       }
     }

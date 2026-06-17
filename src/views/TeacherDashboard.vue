@@ -111,7 +111,10 @@
               <tr v-for="student in filteredStudents" :key="student.username">
                 <td class="student-cell">
                   <img :src="student.avatarUrl" class="avatar-sm" alt="Avatar" />
-                  <span class="student-name">{{ student.username }}</span>
+                  <div class="student-name-col">
+                    <span class="student-name">{{ student.realName || student.username }}</span>
+                    <span v-if="student.realName" class="student-id-tag">@{{ student.username }}</span>
+                  </div>
                 </td>
                 <td>
                   <span class="badge" :class="getCaretakerBadgeClass(student.username)">
@@ -178,7 +181,10 @@
           <div class="student-profile">
             <img :src="selectedStudent.avatarUrl" class="avatar-md" alt="Avatar" />
             <div>
-              <h4>{{ selectedStudent.username }} 的學習檔案</h4>
+              <h4>
+                {{ selectedStudent.realName || selectedStudent.username }} 的學習檔案
+                <span v-if="selectedStudent.realName" class="student-id-tag-sm">@{{ selectedStudent.username }}</span>
+              </h4>
               <p>總進度完成率：{{ selectedStudent.totalProgressPercent }}%</p>
             </div>
           </div>
@@ -801,7 +807,10 @@
         <div class="notes-dialog-profile">
           <img :src="notesDialogStudent.avatarUrl" class="avatar-md" alt="Avatar" />
           <div>
-            <h3>{{ notesDialogStudent.username }} 的心得與筆記</h3>
+            <h3>
+              {{ notesDialogStudent.realName || notesDialogStudent.username }} 的心得與筆記
+              <span v-if="notesDialogStudent.realName" class="student-id-tag-sm">@{{ notesDialogStudent.username }}</span>
+            </h3>
             <p class="notes-dialog-subtitle">總完成 {{ notesDialogStudent.completedCount }} / {{ coursesStore.courses.length }} 堂課 · {{ notesDialogStudent.totalProgressPercent }}%</p>
           </div>
         </div>
@@ -983,6 +992,7 @@ interface StudentRecordDetail {
 
 interface StudentProgressSummary {
   username: string
+  realName?: string
   avatarUrl: string
   completedCount: number
   totalProgressPercent: number
@@ -1243,7 +1253,8 @@ const studentsList = computed<StudentProgressSummary[]>(() => {
 
     students.push({
       username,
-      avatarUrl: `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${username}`,
+      realName: authStore.usersDb[username]?.realName,
+      avatarUrl: authStore.usersDb[username]?.avatarUrl || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${username}`,
       completedCount: totalCompleted,
       totalProgressPercent,
       lastActive: lastActiveTime,
@@ -1630,6 +1641,33 @@ const filteredLecturers = computed(() => coursesStore.getLecturersByChurch(curre
   font-weight: 700;
   color: var(--text-primary);
 }
+
+/* Name + account ID layout in student table */
+.student-name-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.student-id-tag {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* Smaller inline tag for drawer / dialog headers */
+.student-id-tag-sm {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  background: rgba(0,0,0,0.05);
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
 
 .table-progress {
   display: flex;

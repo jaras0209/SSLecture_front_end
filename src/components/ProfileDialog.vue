@@ -62,6 +62,23 @@
             <p class="pd-char-hint">{{ draftDisplayName.length }}/20 字元</p>
           </div>
 
+          <!-- ── Real Name ── -->
+          <div class="form-group mt-3">
+            <label class="form-label" for="pd-realname">
+              👤 真實姓名
+              <span class="pd-field-badge">管理端可見</span>
+            </label>
+            <input
+              v-model="draftRealName"
+              id="pd-realname"
+              type="text"
+              maxlength="20"
+              class="form-input"
+              placeholder="輸入你的真實姓名（教師、牧者管理時顯示）"
+            />
+            <p class="pd-field-note">🔒 此欄位僅供輔導教師、牧者、管理員在管理介面識別你的身份，不對其他學員顯示。</p>
+          </div>
+
           <!-- ── Info (readonly) ── -->
           <div class="pd-info-grid mt-3">
             <div class="pd-info-item">
@@ -146,6 +163,7 @@ const authStore = useAuthStore()
 
 // ── Draft state ──
 const draftDisplayName = ref('')
+const draftRealName = ref('')
 const draftAvatarUrl = ref('')
 const customAvatarUrl = ref('')
 const selectedStyle = ref('')
@@ -160,6 +178,7 @@ watch(() => props.modelValue, (open) => {
   if (open) {
     const u = authStore.currentUser
     draftDisplayName.value = u?.displayName || ''
+    draftRealName.value = u?.realName || ''
     draftAvatarUrl.value = u?.avatarUrl || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${u?.username}`
     customAvatarUrl.value = ''
     selectedStyle.value = ''
@@ -252,6 +271,7 @@ function saveProfile() {
   if (!username) return
   const result = authStore.updateProfile(username, {
     displayName: draftDisplayName.value.trim(),
+    realName: draftRealName.value.trim(),
     avatarUrl: draftAvatarUrl.value
   })
   saveMsg.value = result.message
@@ -443,6 +463,32 @@ function close() {
   margin-top: 0.25rem;
   text-align: right;
 }
+
+/* Real name management badge */
+.pd-field-badge {
+  display: inline-block;
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 20px;
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--primary);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  margin-left: 0.4rem;
+  vertical-align: middle;
+  letter-spacing: 0.02em;
+}
+
+.pd-field-note {
+  font-size: 0.71rem;
+  color: var(--text-muted);
+  margin-top: 0.3rem;
+  line-height: 1.5;
+  background: rgba(99, 102, 241, 0.04);
+  border-radius: 6px;
+  padding: 0.3rem 0.5rem;
+}
+
 
 /* ── Info Grid ── */
 .pd-info-grid {

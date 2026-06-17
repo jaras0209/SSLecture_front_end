@@ -87,7 +87,7 @@
           <table class="admin-table">
             <thead>
               <tr>
-                <th>使用者帳號</th>
+                <th>姓名 / 帳號</th>
                 <th>角色身分變更</th>
                 <th>限制瀏覽 /student</th>
                 <th>限制瀏覽 /teacher</th>
@@ -98,7 +98,11 @@
               <tr v-for="user in usersList" :key="user.username">
                 <td class="username-cell">
                   <span class="avatar-dot" :class="getAvatarClass(user.role)"></span>
-                  <strong>{{ user.username }}</strong>
+                  <div class="admin-name-col">
+                    <strong>{{ user.realName || user.username }}</strong>
+                    <span v-if="user.realName" class="admin-id-tag">@{{ user.username }}</span>
+                    <span v-if="user.church" class="admin-church-tag">{{ user.church }}</span>
+                  </div>
                   <span v-if="user.username === authStore.currentUser?.username" class="me-tag">(你)</span>
                 </td>
                 <td>
@@ -210,7 +214,8 @@
                   v-for="t in getChurchTeacherList(summary.church)" 
                   :key="t" 
                   class="church-chip chip-teacher"
-                >✍️ {{ t }}</span>
+                  :title="`帳號：${t}`"
+                >✍️ {{ authStore.usersDb[t]?.realName || t }}</span>
                 <span v-if="getChurchTeacherList(summary.church).length === 0" class="chip-empty">尚無輔導教師</span>
               </div>
             </div>
@@ -222,7 +227,8 @@
                   v-for="std in getChurchStudentList(summary.church)" 
                   :key="std" 
                   class="church-chip chip-student"
-                >🎒 {{ std }}</span>
+                  :title="`帳號：${std}`"
+                >🎒 {{ authStore.usersDb[std]?.realName || std }}</span>
                 <span v-if="getChurchStudentList(summary.church).length === 0" class="chip-empty">尚無 SS 學員</span>
               </div>
             </div>
@@ -269,7 +275,9 @@ const alertType = ref<'success' | 'error'>('success')
 const usersList = computed(() => {
   return Object.keys(authStore.usersDb).map(username => ({
     username,
-    role: authStore.usersDb[username].role
+    role: authStore.usersDb[username].role,
+    realName: authStore.usersDb[username].realName,
+    church: authStore.usersDb[username].church
   }))
 })
 
@@ -486,6 +494,31 @@ function getChurchTeacherList(church: string): string[] {
   align-items: center;
   gap: 0.5rem;
 }
+
+/* Admin name column with real name + ID tag + church */
+.admin-name-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.admin-id-tag {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.admin-church-tag {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  background: rgba(99, 102, 241, 0.07);
+  border-radius: 4px;
+  padding: 1px 5px;
+  display: inline-block;
+  width: fit-content;
+}
+
 
 .avatar-dot {
   width: 10px;
