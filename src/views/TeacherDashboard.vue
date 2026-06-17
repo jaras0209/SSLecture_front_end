@@ -3,10 +3,19 @@
     <!-- Header panel with statistics -->
     <header class="dashboard-header glass-panel no-print">
       <div class="header-intro">
-        <h2 v-if="authStore.currentUser?.role === 'pastor'">牧養分析控制台 ⛪</h2>
-        <h2 v-else-if="authStore.currentUser?.role === 'admin'">SS中央分析控制台 👑</h2>
-        <h2 v-else>關懷與輔導分析控制台 👨‍🏫</h2>
-        <p>追蹤 SS學員 的聽課狀況與心得紀錄，給予支持與回饋。</p>
+        <div class="header-user-row">
+          <div class="teacher-avatar-wrap" @click="showProfileDialog = true" title="點擊編輯個人資料">
+            <img :src="authStore.currentUser?.avatarUrl" alt="avatar" class="teacher-avatar-sm" />
+            <span class="teacher-role-badge">{{ teacherRoleBadge }}</span>
+          </div>
+          <div>
+            <h2 v-if="authStore.currentUser?.role === 'pastor'">牧養分析控制台 ⛪</h2>
+            <h2 v-else-if="authStore.currentUser?.role === 'admin'">SS中央分析控制台 👑</h2>
+            <h2 v-else>關懷與輔導分析控制台 👨‍🏫</h2>
+            <p>{{ teacherDisplayName }}，追蹤 SS學員 的聽課狀況與心得紀錄，給予支持與回饋。</p>
+            <p v-if="authStore.currentUser?.lastLoginAt" class="last-login-hint-sm">🕐 上次登入：{{ authStore.currentUser?.lastLoginAt }}</p>
+          </div>
+        </div>
       </div>
       <div class="stats-grid">
         <div class="stat-box">
@@ -23,6 +32,9 @@
         </div>
       </div>
     </header>
+
+    <!-- Profile Dialog -->
+    <ProfileDialog v-model="showProfileDialog" />
 
     <!-- Main Tab Switcher for settings tab -->
     <div class="main-tabs mb-4 no-print" v-if="authStore.currentUser?.role !== 'parent'">
@@ -899,9 +911,22 @@
 import { ref, computed, watch } from 'vue'
 import { useAuthStore, CHURCHES } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
+import ProfileDialog from '@/components/ProfileDialog.vue'
 
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
+
+const showProfileDialog = ref(false)
+
+const teacherDisplayName = computed(() => {
+  const u = authStore.currentUser
+  return u?.displayName || u?.username || ''
+})
+
+const teacherBadgeMap: Record<string, string> = {
+  student: '🎒', teacher: '👨‍🏫', pastor: '⛪', parent: '👨‍👩‍👦', admin: '👑'
+}
+const teacherRoleBadge = computed(() => teacherBadgeMap[authStore.currentUser?.role || ''] || '👤')
 
 const currentTab = ref<'my-students' | 'all-students'>('my-students')
 const searchQuery = ref('')
@@ -1436,6 +1461,48 @@ const filteredLecturers = computed(() => coursesStore.getLecturersByChurch(curre
   flex-wrap: wrap;
   gap: 1.5rem;
 }
+
+.header-user-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+.teacher-avatar-wrap {
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.teacher-avatar-sm {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 2px solid rgba(99,102,241,0.25);
+  object-fit: cover;
+  transition: opacity 0.2s;
+}
+.teacher-avatar-wrap:hover .teacher-avatar-sm {
+  opacity: 0.8;
+}
+.teacher-role-badge {
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  background: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.last-login-hint-sm {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
 
 .stats-grid {
   display: flex;

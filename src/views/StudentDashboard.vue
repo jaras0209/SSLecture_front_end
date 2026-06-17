@@ -3,10 +3,17 @@
     <!-- Header Summary Panel -->
     <header class="dashboard-header glass-panel no-print">
       <div class="user-greeting">
-        <img :src="authStore.currentUser?.avatarUrl" alt="Avatar" class="avatar-lg" />
+        <div class="avatar-clickable" @click="showProfileDialog = true" title="點擊編輯個人資料">
+          <img :src="authStore.currentUser?.avatarUrl" alt="Avatar" class="avatar-lg" />
+          <span class="avatar-edit-hint">✏️</span>
+          <div class="role-badge-overlay">{{ roleBadge }}</div>
+        </div>
         <div>
-          <h2>哈囉，{{ authStore.currentUser?.username }}！ 👋</h2>
-          <p>準備好聆聽神的話語了嗎？今天也是充滿恩典的一天！</p>
+          <h2>哈囉，{{ displayName }}！ 👋</h2>
+          <p class="motivation-text">{{ motivationText }}</p>
+          <p v-if="authStore.currentUser?.lastLoginAt" class="last-login-hint">
+            🕐 上次登入：{{ authStore.currentUser?.lastLoginAt }}
+          </p>
           <div class="flex flex-wrap gap-2 mt-2">
             <span v-if="assignedTeacher" class="assigned-teacher-label">🛡️ 輔導教師：<strong>{{ assignedTeacher }}</strong></span>
             <span v-if="assignedPastor" class="assigned-teacher-label" style="background: rgba(139, 92, 246, 0.08); color: var(--info);">⛪ 分區牧者：<strong>{{ assignedPastor }}</strong></span>
@@ -24,8 +31,15 @@
           <span class="summary-num">{{ overallProgressPercent }}%</span>
           <span class="summary-label">總體完成度</span>
         </div>
+        <div class="summary-card clickable-card" @click="showProfileDialog = true" title="編輯個人資料">
+          <span class="summary-num" style="font-size: 1.4rem;">⚙️</span>
+          <span class="summary-label">個人資料</span>
+        </div>
       </div>
     </header>
+
+    <!-- Profile Dialog -->
+    <ProfileDialog v-model="showProfileDialog" />
 
     <!-- Main Navigation Tab (Sermons vs Shining Project) -->
     <div class="main-tabs mb-4 no-print">
@@ -689,6 +703,7 @@ import { ref, computed, reactive, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import type { Course, ListenSession } from '@/stores/courses'
+import ProfileDialog from '@/components/ProfileDialog.vue'
 
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
@@ -711,6 +726,30 @@ const notesText = ref('')
 const listenedAt = ref(new Date().toISOString().slice(0, 16))
 const saveStatus = ref('')
 const showReviewPanel = ref(false)
+const showProfileDialog = ref(false)
+
+// Display name: use nickname if set, else username
+const displayName = computed(() => {
+  const u = authStore.currentUser
+  return u?.displayName || u?.username || ''
+})
+
+// Role badge emoji for avatar overlay
+const badgeMap: Record<string, string> = {
+  student: '🎒', teacher: '👨‍🏫', pastor: '⛪', parent: '👨‍👩‍👦', admin: '👑'
+}
+const roleBadge = computed(() => badgeMap[authStore.currentUser?.role || ''] || '👤')
+
+// Motivational text based on progress percentage
+const motivationText = computed(() => {
+  const pct = overallProgressPercent.value
+  if (pct === 0) return '開始你的第一步吧！🌱'
+  if (pct < 30) return '很好的開始，繼續加油！💪'
+  if (pct < 60) return '已完成超過一半，你很厲害！🔥'
+  if (pct < 100) return '快到終點了，再一把勁！⭐'
+  return '恭喜你！完成全部課程！🎉'
+})
+
 
 // Edit session state
 const editingSessionId = ref<string | null>(null)
@@ -1538,6 +1577,66 @@ const advancedLabels = {
   font-size: 0.8rem;
   font-weight: 500;
 }
+
+/* Avatar clickable wrapper */
+.avatar-clickable {
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+.avatar-clickable:hover .avatar-edit-hint {
+  opacity: 1;
+}
+.avatar-edit-hint {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.role-badge-overlay {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  background: white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+
+/* Motivational + last-login text */
+.motivation-text {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+.last-login-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* Clickable summary card */
+.clickable-card {
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.clickable-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(99,102,241,0.15);
+}
+
 
 .datetime-input {
   font-size: 0.9rem;

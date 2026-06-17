@@ -2,11 +2,21 @@
   <div class="admin-dashboard container">
     <!-- Header banner -->
     <header class="dashboard-header glass-panel">
-      <div>
-        <h2>安全權限控制中心 ⚙️</h2>
-        <p>SS中央專用：變更使用者角色、設定頁面存取權限，以及新增測試人員。</p>
+      <div class="admin-header-user-row">
+        <div class="admin-avatar-wrap" @click="showProfileDialog = true" title="點擊編輯個人資料">
+          <img :src="authStore.currentUser?.avatarUrl" alt="avatar" class="admin-avatar-sm" />
+          <span class="admin-role-badge">👑</span>
+        </div>
+        <div>
+          <h2>安全權限控制中心 ⚙️</h2>
+          <p>{{ adminDisplayName }}｜SS中央專用：變更使用者角色、設定頁面存取權限，以及新增測試人員。</p>
+          <p v-if="authStore.currentUser?.lastLoginAt" style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">🕐 上次登入：{{ authStore.currentUser?.lastLoginAt }}</p>
+        </div>
       </div>
     </header>
+
+    <!-- Profile Dialog -->
+    <ProfileDialog v-model="showProfileDialog" />
 
     <div class="dashboard-body">
       <!-- Create New User Panel -->
@@ -233,9 +243,17 @@ import { ref, reactive, computed } from 'vue'
 import { useAuthStore, CHURCHES } from '@/stores/auth'
 import type { UserRole } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
+import ProfileDialog from '@/components/ProfileDialog.vue'
 
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
+
+const showProfileDialog = ref(false)
+
+const adminDisplayName = computed(() => {
+  const u = authStore.currentUser
+  return u?.displayName || u?.username || ''
+})
 
 const newUser = reactive({
   username: '',
@@ -341,6 +359,41 @@ function getChurchTeacherList(church: string): string[] {
   padding: 2rem;
   margin-bottom: 2rem;
 }
+
+.admin-header-user-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.admin-avatar-wrap {
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.admin-avatar-sm {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 2px solid rgba(99,102,241,0.3);
+  object-fit: cover;
+  transition: opacity 0.2s;
+}
+.admin-avatar-wrap:hover .admin-avatar-sm { opacity: 0.8; }
+.admin-role-badge {
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  background: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
 
 .dashboard-body {
   display: grid;

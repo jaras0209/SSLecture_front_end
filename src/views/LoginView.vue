@@ -75,9 +75,35 @@
             id="reg-password" 
             type="password" 
             class="form-input" 
-            placeholder="請輸入密碼" 
+            placeholder="至少 8 字元，含大小寫、數字" 
             required 
           />
+          <!-- Password Strength Indicator -->
+          <div v-if="registerForm.password" class="pwd-strength-section">
+            <div class="pwd-bars-row">
+              <div class="pwd-bar" :class="regPwdBarClass(0)"></div>
+              <div class="pwd-bar" :class="regPwdBarClass(1)"></div>
+              <div class="pwd-bar" :class="regPwdBarClass(2)"></div>
+              <span class="pwd-strength-label" :class="regPwdStrengthTextClass">{{ regPwdStrengthLabel }}</span>
+            </div>
+            <ul class="pwd-rules-list">
+              <li :class="{ 'rule-ok': registerForm.password.length >= 8 }">
+                {{ registerForm.password.length >= 8 ? '✅' : '❌' }} 至少 8 個字元
+              </li>
+              <li :class="{ 'rule-ok': /[A-Z]/.test(registerForm.password) }">
+                {{ /[A-Z]/.test(registerForm.password) ? '✅' : '❌' }} 包含英文大寫字母
+              </li>
+              <li :class="{ 'rule-ok': /[a-z]/.test(registerForm.password) }">
+                {{ /[a-z]/.test(registerForm.password) ? '✅' : '❌' }} 包含英文小寫字母
+              </li>
+              <li :class="{ 'rule-ok': /[0-9]/.test(registerForm.password) }">
+                {{ /[0-9]/.test(registerForm.password) ? '✅' : '❌' }} 包含數字
+              </li>
+              <li :class="{ 'rule-ok': /[^A-Za-z0-9]/.test(registerForm.password) }">
+                {{ /[^A-Za-z0-9]/.test(registerForm.password) ? '✅' : '❌' }} 包含特殊符號（!@#$%^&*）
+              </li>
+            </ul>
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label">選擇我的角色身分</label>
@@ -342,9 +368,44 @@ function handleLogin() {
   }
 }
 
+// ── Password strength (register form) ──
+function calcRegPwdStrength(p: string): number {
+  if (p.length < 6) return 0
+  let score = 1
+  if (p.length >= 8) score++
+  if (/[A-Z]/.test(p) && /[a-z]/.test(p)) score++
+  if (/[0-9]/.test(p)) score++
+  if (/[^A-Za-z0-9]/.test(p)) score++
+  return Math.min(score - 1, 3)
+}
+
+const regPwdStrength = computed(() => calcRegPwdStrength(registerForm.password))
+
+function regPwdBarClass(idx: number): string {
+  const s = regPwdStrength.value
+  if (s === 0) return idx === 0 ? 'bar-weak' : 'bar-empty'
+  if (s === 1) return idx <= 0 ? 'bar-fair' : 'bar-empty'
+  if (s === 2) return idx <= 1 ? 'bar-medium' : 'bar-empty'
+  return 'bar-strong'
+}
+
+const regPwdStrengthLabel = computed(() => {
+  const labels = ['弱密碼', '普通', '中等強度', '強密碼']
+  return labels[regPwdStrength.value]
+})
+
+const regPwdStrengthTextClass = computed(() => {
+  const cls = ['text-weak', 'text-fair', 'text-medium', 'text-strong']
+  return cls[regPwdStrength.value]
+})
+
 function handleRegister() {
   if (!registerForm.username || !registerForm.password) {
     showAlert('請填寫所有欄位！', 'error')
+    return
+  }
+  if (regPwdStrength.value < 2) {
+    showAlert('密碼強度不足，請設定中等以上強度的密碼（需 8 字元以上，並含數字或特殊符號）', 'error')
     return
   }
   if (registerForm.role !== 'admin' && !registerForm.church) {
@@ -803,4 +864,59 @@ async function confirmOAuthLogin() {
 
 .mb-4 { margin-bottom: 1rem; }
 .mt-2 { margin-top: 0.5rem; }
+
+/* ── Password Strength ── */
+.pwd-strength-section {
+  margin-top: 0.5rem;
+}
+
+.pwd-bars-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 0.5rem;
+}
+
+.pwd-bar {
+  height: 5px;
+  flex: 1;
+  border-radius: 3px;
+  transition: background 0.3s;
+}
+
+.bar-empty  { background: #e2e8f0; }
+.bar-weak   { background: #ef4444; }
+.bar-fair   { background: #f59e0b; }
+.bar-medium { background: #3b82f6; }
+.bar-strong { background: #10b981; }
+
+.pwd-strength-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.text-weak   { color: #ef4444; }
+.text-fair   { color: #f59e0b; }
+.text-medium { color: #3b82f6; }
+.text-strong { color: #10b981; }
+
+.pwd-rules-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+}
+
+.pwd-rules-list li {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: color 0.2s;
+}
+
+.pwd-rules-list li.rule-ok {
+  color: #059669;
+}
 </style>

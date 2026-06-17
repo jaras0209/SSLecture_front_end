@@ -17,6 +17,8 @@ export interface User {
   avatarUrl?: string
   church?: string
   childUsernames?: string[]
+  displayName?: string   // 暱稱（未設定時顯示 username）
+  lastLoginAt?: string   // 上次登入時間
 }
 
 export const useAuthStore = defineStore('auth', () => {
@@ -28,7 +30,15 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticating = ref<boolean>(false)
 
   // Pre-configured mock accounts database
-  const usersDb = ref<Record<string, { passwordHash: string; role: UserRole; church?: string; childUsernames?: string[] }>>({
+  const usersDb = ref<Record<string, {
+    passwordHash: string
+    role: UserRole
+    church?: string
+    childUsernames?: string[]
+    displayName?: string
+    lastLoginAt?: string
+    avatarUrl?: string
+  }>>({
     student: { passwordHash: '123456', role: 'student', church: '愛與話語' },
     teacher: { passwordHash: '123456', role: 'teacher', church: '愛與話語' },
     admin: { passwordHash: '123456', role: 'admin' },
@@ -76,13 +86,19 @@ export const useAuthStore = defineStore('auth', () => {
       return { success: false, message: '密碼錯誤，請再試一次。' }
     }
     
+    const now = new Date().toLocaleString('zh-TW', { hour12: false })
+    // Save last login time
+    usersDb.value[username].lastLoginAt = now
+
     currentUser.value = {
       username,
       role: user.role,
       loginMethod: 'credentials',
-      avatarUrl: `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${username}`,
+      avatarUrl: user.avatarUrl || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${username}`,
       church: user.church,
-      childUsernames: user.childUsernames
+      childUsernames: user.childUsernames,
+      displayName: user.displayName,
+      lastLoginAt: now
     }
     return { success: true, message: '登入成功！' }
   }
@@ -161,6 +177,35 @@ export const useAuthStore = defineStore('auth', () => {
     return { success: true, message: '密碼修改成功！' }
   }
 
+  /**
+   * Update profile (displayName and/or avatarUrl).
+   * Syncs both currentUser and usersDb for persistence.
+   */
+  function updateProfile(
+    username: string,
+    patch: { displayName?: string; avatarUrl?: string }
+  ): { success: boolean; message: string } {
+    const dbUser = usersDb.value[username]
+    if (!dbUser) {
+      return { success: false, message: '找不到此帳號。' }
+    }
+    if (patch.displayName !== undefined) {
+      dbUser.displayName = patch.displayName.trim() || undefined
+    }
+    if (patch.avatarUrl !== undefined) {
+      dbUser.avatarUrl = patch.avatarUrl
+    }
+    // Sync into currentUser if it's the same person
+    if (currentUser.value && currentUser.value.username === username) {
+      currentUser.value = {
+        ...currentUser.value,
+        displayName: dbUser.displayName,
+        avatarUrl: dbUser.avatarUrl || currentUser.value.avatarUrl
+      }
+    }
+    return { success: true, message: '個人資料已更新！' }
+  }
+
   return {
     currentUser,
     isAuthenticated,
@@ -170,6 +215,7 @@ export const useAuthStore = defineStore('auth', () => {
     register,
     loginWithThirdParty,
     logout,
-    updatePassword
+    updatePassword,
+    updateProfile
   }
 })
