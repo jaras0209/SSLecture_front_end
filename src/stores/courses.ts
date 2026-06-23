@@ -88,6 +88,21 @@ export interface Lecturer {
   church?: string
 }
 
+/** 年度教學人次申報 (by teacher, by year) */
+export interface TeachingStats {
+  teacherUsername: string
+  year: number                   // e.g. 2025
+  church: string
+  oneOnOne30: number             // 1對1講「三十個論」人次
+  oneToMany30: number            // 1對多講「三十個論」人次
+  oneOnOneShining: number        // 1對1講「閃耀計畫課程」人次
+  oneToManyShining: number       // 1對多講「閃耀計畫課程」人次
+  submittedAt?: string           // 最後更新時間
+}
+
+// key = `${teacherUsername}_${year}`
+export type TeachingStatsDb = Record<string, TeachingStats>
+
 
 export const useCoursesStore = defineStore('courses', () => {
   // Pre-configured cover colors gradients cyclic list
@@ -245,6 +260,17 @@ export const useCoursesStore = defineStore('courses', () => {
     ]
   }
 
+  // Teaching Stats database (persistent)
+  const teachingStatsDb = ref<TeachingStatsDb>({})
+  const savedTeachingStats = localStorage.getItem('superstart_teaching_stats_db')
+  if (savedTeachingStats) {
+    try {
+      teachingStatsDb.value = JSON.parse(savedTeachingStats)
+    } catch (e) {
+      teachingStatsDb.value = {}
+    }
+  }
+
   // Watchers to persist state
   watch(progressDb, (newDb) => {
     localStorage.setItem('superstart_progress_db', JSON.stringify(newDb))
@@ -272,6 +298,10 @@ export const useCoursesStore = defineStore('courses', () => {
 
   watch(lecturers, (newLecturers) => {
     localStorage.setItem('superstart_lecturers_db', JSON.stringify(newLecturers))
+  }, { deep: true })
+
+  watch(teachingStatsDb, (newStats) => {
+    localStorage.setItem('superstart_teaching_stats_db', JSON.stringify(newStats))
   }, { deep: true })
 
   // Blank template initializer
@@ -691,6 +721,54 @@ export const useCoursesStore = defineStore('courses', () => {
       .sort((a, b) => b.sessionCount - a.sessionCount)
   }
 
+  // ── Teaching Stats Actions ──────────────────────────────
+
+  /**
+   * 教師填報或更新某年度的教學人次統計
+   */
+  function saveTeachingStats(
+    teacherUsername: string,
+    year: number,
+    church: string,
+    stats: Omit<TeachingStats, 'teacherUsername' | 'year' | 'church' | 'submittedAt'>
+  ): void {
+    const key = `${teacherUsername}_${year}`
+    teachingStatsDb.value[key] = {
+      teacherUsername,
+      year,
+      church,
+      ...stats,
+      submittedAt: new Date().toLocaleString('zh-TW', { hour12: false })
+    }
+  }
+
+  /**
+   * 取得指定教師在某年度的統計（若無則回傳預設空值）
+   */
+  function getTeachingStats(teacherUsername: string, year: number): TeachingStats {
+    const key = `${teacherUsername}_${year}`
+    return teachingStatsDb.value[key] ?? {
+      teacherUsername,
+      year,
+      church: '',
+      oneOnOne30: 0,
+      oneToMany30: 0,
+      oneOnOneShining: 0,
+      oneToManyShining: 0
+    }
+  }
+
+  /**
+   * 取得所有教師的統計（可選年份篩選）；SS 中央用
+   */
+  function getAllTeachingStats(year?: number): TeachingStats[] {
+    const all = Object.values(teachingStatsDb.value)
+    if (year !== undefined) {
+      return all.filter(s => s.year === year)
+    }
+    return all
+  }
+
   return {
     courses,
     progressDb,
@@ -700,6 +778,7 @@ export const useCoursesStore = defineStore('courses', () => {
     characterThemesDb,
     comingOfAgeThemesDb,
     lecturers,
+    teachingStatsDb,
     updateProgress,
     addListenSession,
     updateListenSession,
@@ -731,7 +810,11 @@ export const useCoursesStore = defineStore('courses', () => {
     getParentsByChurch,
     getStudentsManagedByTeacher,
     getChurchSummaries,
-    getLecturerStatsForChurch
+    getLecturerStatsForChurch,
+    saveTeachingStats,
+    getTeachingStats,
+    getAllTeachingStats
   }
 })
+
 

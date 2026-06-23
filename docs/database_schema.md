@@ -1,7 +1,7 @@
 # SSLecture 後端資料庫設計文件
 
-> **文件版本**：v1.0.0  
-> **最後更新**：2026-06-15  
+> **文件版本**：v1.2.0  
+> **最後更新**：2026-06-24  
 > **資料來源**：分析前端 `src/stores/auth.ts`、`src/stores/courses.ts`、localStorage 資料結構  
 > **建議資料庫**：PostgreSQL（主要）/ MySQL（可選）  
 > **ORM 建議**：Prisma（Node.js）/ SQLAlchemy（Python）
@@ -25,6 +25,7 @@
    - [themes（動態專題大綱）](#211-themes-動態專題大綱)
    - [page_restrictions（頁面存取限制）](#212-page_restrictions-頁面存取限制)
    - [refresh_tokens（Token 管理）](#213-refresh_tokens-token-管理)
+   - [teaching_stats（年度教學統計）](#214-teaching_stats-年度教學統計)
 3. [索引設計](#3-索引設計)
 4. [資料關聯圖（文字版）](#4-資料關聯圖文字版)
 5. [設計決策與說明](#5-設計決策與說明)
@@ -78,10 +79,12 @@
 | `password_hash` | `VARCHAR(255)` | NOT NULL | bcrypt 雜湊密碼 |
 | `role` | `ENUM` | NOT NULL | `student` / `teacher` / `pastor` / `parent` / `admin` |
 | `church_id` | `UUID` | FK → churches.id, NULL | 所屬教會（admin 為 NULL） |
-| `display_name` | `VARCHAR(100)` | NULL | 顯示名稱 |
+| `display_name` | `VARCHAR(100)` | NULL | 暱稱（公開顯示） |
+| `real_name` | `VARCHAR(100)` | NULL | 真實姓名（管理端顯示，不對學員公開） |
 | `avatar_url` | `VARCHAR(512)` | NULL | 頭像圖片 URL |
 | `login_method` | `ENUM` | NOT NULL, DEFAULT 'credentials' | `credentials` / `google` / `line` |
 | `is_active` | `BOOLEAN` | NOT NULL, DEFAULT TRUE | 帳號是否啟用（FALSE = 軟刪除） |
+| `last_login_at` | `TIMESTAMPTZ` | NULL | 最後登入時間 |
 | `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
 | `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 最後更新時間 |
 
@@ -89,6 +92,7 @@
 - `username` 唯一索引，用於登入
 - `role` 決定整個系統的存取權限邏輯
 - `admin` 角色的 `church_id` 為 NULL（跨教會管理）
+- `real_name` 僅式於管理端（教師/牧者/管理員）顯示，不對學員公開
 - `is_active = FALSE` 為軟刪除，歷史資料保留
 
 ---
@@ -738,6 +742,55 @@ INSERT INTO users (username, password_hash, role, church_id, display_name) VALUE
   ('pastor',  '$2b$12$...', 'pastor',  (SELECT id FROM churches WHERE name='愛與話語'), '分區牧者'),
   ('parent',  '$2b$12$...', 'parent',  (SELECT id FROM churches WHERE name='愛與話語'), '關懷家長'),
   ('admin',   '$2b$12$...', 'admin',   NULL,                                            'SS中央管理員');
+```
+
+---
+
+*本文件由前端分析自動生成，後端工程師可直接參考此 SQL 進行資料庫建置。如有結構調整需求，請同步更新 `backend_api_spec.md` 文件。*
+
+---
+
+### 2.14 `teaching_stats` 年度教學統計
+
+> **對應前端**：`courses.ts` → `TeachingStats` interface，`superstart_teaching_stats_db` localStorage key
+
+| 欄位名 | 資料型別 | 限制 | 說明 |
+|--------|----------|------|------|
+| `id` | `UUID` | PK, NOT NULL | 系統唯一識別碼 |
+| `teacher_id` | `UUID` | FK → users.id, NOT NULL | 教師帳號（role = teacher） |
+| `year` | `SMALLINT` | NOT NULL, CHECK >= 2020 | 統計年度（如 2025） |
+| `one_on_one_30` | `INTEGER` | NOT NULL, DEFAULT 0, CHECK >= 0 | 1對1 講「三十個論」人次 |
+| `one_to_many_30` | `INTEGER` | NOT NULL, DEFAULT 0, CHECK >= 0 | 1對多 講「三十個論」人次 |
+| `one_on_one_shining` | `INTEGER` | NOT NULL, DEFAULT 0, CHECK >= 0 | 1對1 講「閃耀計畫課程」人次 |
+| `one_to_many_shining` | `INTEGER` | NOT NULL, DEFAULT 0, CHECK >= 0 | 1對多 講「閃耀計畫課程」人次 |
+| `submitted_at` | `TIMESTAMPTZ` | NULL | 最後申報/更新時間 |
+| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
+| `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 最後更新時間 |
+
+**設計說明**：
+- `(teacher_id, year)` 為複合唯一鍵，保證每位教師每年度僅一筆紀錄
+- 人次對應前端計算規則：一次對多人講義以「人次」計（如一次對3人 = 3人次）
+- 可由後端提供查詢橫醵：`GROUP BY year` 提供跨教會年度比較
+
+**SQL DDL**：
+```sql
+CREATE TABLE teaching_stats (
+  id                    UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+  teacher_id            UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  year                  SMALLINT     NOT NULL CHECK (year >= 2020),
+  one_on_one_30         INTEGER      NOT NULL DEFAULT 0 CHECK (one_on_one_30 >= 0),
+  one_to_many_30        INTEGER      NOT NULL DEFAULT 0 CHECK (one_to_many_30 >= 0),
+  one_on_one_shining    INTEGER      NOT NULL DEFAULT 0 CHECK (one_on_one_shining >= 0),
+  one_to_many_shining   INTEGER      NOT NULL DEFAULT 0 CHECK (one_to_many_shining >= 0),
+  submitted_at          TIMESTAMPTZ,
+  created_at            TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+  updated_at            TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+
+  CONSTRAINT uq_teaching_stats_teacher_year UNIQUE (teacher_id, year)
+);
+
+CREATE INDEX idx_teaching_stats_year ON teaching_stats(year);
+CREATE INDEX idx_teaching_stats_teacher ON teaching_stats(teacher_id);
 ```
 
 ---

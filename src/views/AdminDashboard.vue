@@ -241,6 +241,89 @@
         </div>
       </div>
     </section>
+
+    <!-- Annual Teaching Stats Overview — SS Central only -->
+    <section class="admin-stats-overview glass-panel mt-4">
+      <div class="main-header">
+        <h3>📊 年度教師教學人次統計總覽</h3>
+        <div class="stats-header-controls">
+          <select v-model="adminStatsYear" class="form-input select-input" style="min-width:120px;">
+            <option v-for="y in adminAvailableYears" :key="y" :value="y">{{ y }} 年度</option>
+          </select>
+          <span class="user-count-badge">共 {{ adminTeachingStats.length }} 筆</span>
+        </div>
+      </div>
+
+      <div class="table-container mt-4">
+        <table class="admin-table stats-table">
+          <thead>
+            <tr>
+              <th>教師姓名</th>
+              <th>所屬教會</th>
+              <th>1對1<br/>三十個論</th>
+              <th>1對多<br/>三十個論</th>
+              <th>1對1<br/>閃耀計畫</th>
+              <th>1對多<br/>閃耀計畫</th>
+              <th>合計人次</th>
+              <th>最後更新</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="row in adminTeachingStats" :key="row.teacherUsername">
+              <td class="username-cell">
+                <span class="avatar-dot" :class="getAvatarClass('teacher')"></span>
+                <div class="admin-name-col">
+                  <strong>{{ authStore.usersDb[row.teacherUsername]?.realName || row.teacherUsername }}</strong>
+                  <span v-if="authStore.usersDb[row.teacherUsername]?.realName" class="admin-id-tag">
+                    @{{ row.teacherUsername }}
+                  </span>
+                </div>
+              </td>
+              <td>
+                <span class="admin-church-tag" style="font-size:0.78rem;">{{ row.church || '—' }}</span>
+              </td>
+              <td class="text-center">
+                <span class="stat-num">{{ row.oneOnOne30 }}</span>
+              </td>
+              <td class="text-center">
+                <span class="stat-num">{{ row.oneToMany30 }}</span>
+              </td>
+              <td class="text-center">
+                <span class="stat-num">{{ row.oneOnOneShining }}</span>
+              </td>
+              <td class="text-center">
+                <span class="stat-num">{{ row.oneToManyShining }}</span>
+              </td>
+              <td class="text-center">
+                <span class="badge badge-total">
+                  {{ row.oneOnOne30 + row.oneToMany30 + row.oneOnOneShining + row.oneToManyShining }}
+                </span>
+              </td>
+              <td class="text-xs text-muted">{{ row.submittedAt || '—' }}</td>
+            </tr>
+            <tr v-if="adminTeachingStats.length === 0">
+              <td colspan="8" class="text-center empty-row">
+                {{ adminStatsYear }} 年度尚未有任何教師填寫申報資料
+              </td>
+            </tr>
+            <!-- Grand Total Row -->
+            <tr v-if="adminTeachingStats.length > 0" class="stats-grand-total-row">
+              <td colspan="2"><strong>📊 全體合計</strong></td>
+              <td class="text-center"><strong>{{ adminStatsTotals.oneOnOne30 }}</strong></td>
+              <td class="text-center"><strong>{{ adminStatsTotals.oneToMany30 }}</strong></td>
+              <td class="text-center"><strong>{{ adminStatsTotals.oneOnOneShining }}</strong></td>
+              <td class="text-center"><strong>{{ adminStatsTotals.oneToManyShining }}</strong></td>
+              <td class="text-center">
+                <span class="badge badge-total" style="background: var(--primary); color: white; font-size:0.9rem;">
+                  {{ adminStatsTotals.total }}
+                </span>
+              </td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -279,6 +362,33 @@ const usersList = computed(() => {
     realName: authStore.usersDb[username].realName,
     church: authStore.usersDb[username].church
   }))
+})
+
+
+// ── Teaching Stats Overview ──
+const adminCurrentYear = new Date().getFullYear()
+const adminAvailableYears = Array.from({ length: 5 }, (_, i) => adminCurrentYear - i)
+const adminStatsYear = ref(adminCurrentYear)
+
+const adminTeachingStats = computed(() => {
+  return coursesStore.getAllTeachingStats(adminStatsYear.value)
+    .sort((a, b) => {
+      // Sort by church, then teacher
+      const churchDiff = (a.church || '').localeCompare(b.church || '', 'zh-TW')
+      if (churchDiff !== 0) return churchDiff
+      return a.teacherUsername.localeCompare(b.teacherUsername)
+    })
+})
+
+const adminStatsTotals = computed(() => {
+  const rows = adminTeachingStats.value
+  return {
+    oneOnOne30: rows.reduce((s, r) => s + r.oneOnOne30, 0),
+    oneToMany30: rows.reduce((s, r) => s + r.oneToMany30, 0),
+    oneOnOneShining: rows.reduce((s, r) => s + r.oneOnOneShining, 0),
+    oneToManyShining: rows.reduce((s, r) => s + r.oneToManyShining, 0),
+    total: rows.reduce((s, r) => s + r.oneOnOne30 + r.oneToMany30 + r.oneOnOneShining + r.oneToManyShining, 0)
+  }
 })
 
 
@@ -534,6 +644,51 @@ function getChurchTeacherList(church: string): string[] {
 .me-tag {
   font-size: 0.75rem;
   color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* ─── Admin Teaching Stats Overview ─── */
+.admin-stats-overview {
+  padding: 2rem;
+}
+
+.stats-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.stats-table th {
+  text-align: center;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.stats-table th:first-child,
+.stats-table th:nth-child(2) {
+  text-align: left;
+}
+
+.stat-num {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.badge-total {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.stats-grand-total-row td {
+  background: rgba(99, 102, 241, 0.05);
+  border-top: 2px solid rgba(99, 102, 241, 0.2);
   font-weight: 600;
 }
 

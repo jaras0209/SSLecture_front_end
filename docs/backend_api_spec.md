@@ -1,7 +1,7 @@
 # SSLecture 後端 API 規格文件
 
-> **文件版本**：v1.0.0  
-> **最後更新**：2026-06-15  
+> **文件版本**：v1.2.0  
+> **最後更新**：2026-06-24  
 > **前端版本**：Vue 3 + TypeScript（目前以 localStorage 模擬，待串接）  
 > **目標後端技術**：RESTful API（Node.js / Python / 任意語言均可）
 
@@ -17,9 +17,10 @@
 6. [學員關懷配對 Assignments](#6-學員關懷配對-assignments)
 7. [閃耀計畫 Shining Project](#7-閃耀計畫-shining-project)
 8. [管理員 Admin](#8-管理員-admin)
-9. [資料模型定義](#9-資料模型定義)
-10. [錯誤碼一覽](#10-錯誤碼一覽)
-11. [前端串接遷移指南](#11-前端串接遷移指南)
+9. [年度教學統計 Teaching Stats](#9-年度教學統計-teaching-stats)
+10. [資料模型定義](#10-資料模型定義)
+11. [錯誤碼一覽](#11-錯誤碼一覽)
+12. [前端串接遷移指南](#12-前端串接遷移指南)
 
 ---
 
@@ -737,7 +738,126 @@ Authorization: Bearer <access_token>
 
 ---
 
-## 9. 資料模型定義
+## 9. 年度教學統計 Teaching Stats
+
+> 教師每年度填報自身的教學人次；SS 中央（admin）可查詢所有教師的統計。
+
+### `GET /teaching-stats`
+**說明**：取得教學統計列表（可依年度篩選）
+
+**權限**：
+- `teacher`：只能查詢自己的統計
+- `admin`：可查詢所有人
+
+**Query Params**：
+| 參數 | 型別 | 說明 |
+|------|------|------|
+| `year` | number | 年度篩選（如 `2025`）；不傳則回傳全部 |
+| `teacherUsername` | string | 篩選特定教師（`admin` 限定） |
+
+**Response**：
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "teacherUsername": "teacher01",
+      "year": 2025,
+      "church": "愛與話語",
+      "oneOnOne30": 12,
+      "oneToMany30": 6,
+      "oneOnOneShining": 8,
+      "oneToManyShining": 3,
+      "submittedAt": "2025-12-31T23:00:00Z"
+    }
+  ]
+}
+```
+
+---
+
+### `PUT /teaching-stats/:teacherUsername/:year`
+**說明**：教師填報或更新某年度的教學統計（冪等操作，有則更新，無則新增）
+
+**權限**：
+- `teacher`：只能填報自己（`:teacherUsername` 必須等於自己）
+- `admin`：可代為填報任何教師
+
+**Request Body**：
+```json
+{
+  "oneOnOne30": 12,
+  "oneToMany30": 6,
+  "oneOnOneShining": 8,
+  "oneToManyShining": 3
+}
+```
+
+**Validation 規則**：
+- 所有欄位必填，型別為非負整數（`>= 0`）
+- `year` 需合理範圍（2020 ～ 當前年份 + 1）
+
+**Response**：
+```json
+{
+  "success": true,
+  "data": {
+    "teacherUsername": "teacher01",
+    "year": 2025,
+    "church": "愛與話語",
+    "oneOnOne30": 12,
+    "oneToMany30": 6,
+    "oneOnOneShining": 8,
+    "oneToManyShining": 3,
+    "submittedAt": "2025-12-31T23:00:00Z"
+  }
+}
+```
+
+**錯誤**：
+- `400 VALIDATION_ERROR`：欄位非整數或為負數
+- `403 FORBIDDEN`：教師嘗試填報他人數據
+
+---
+
+### `GET /teaching-stats/summary?year=2025`
+**說明**：SS 中央用 — 取得某年度所有教師統計的彙總（含全體合計）
+
+**權限**：`admin`
+
+**Response**：
+```json
+{
+  "success": true,
+  "data": {
+    "year": 2025,
+    "rows": [
+      {
+        "teacherUsername": "teacher01",
+        "realName": "王大明",
+        "church": "愛與話語",
+        "oneOnOne30": 12,
+        "oneToMany30": 6,
+        "oneOnOneShining": 8,
+        "oneToManyShining": 3,
+        "total": 29,
+        "submittedAt": "2025-12-31T23:00:00Z"
+      }
+    ],
+    "totals": {
+      "oneOnOne30": 120,
+      "oneToMany30": 60,
+      "oneOnOneShining": 80,
+      "oneToManyShining": 30,
+      "total": 290
+    }
+  }
+}
+```
+
+---
+
+## 10. 資料模型定義
 
 ### User（使用者）
 | 欄位 | 型別 | 說明 |
@@ -747,9 +867,11 @@ Authorization: Bearer <access_token>
 | `passwordHash` | string | 密碼雜湊值（bcrypt，後端儲存，不回傳） |
 | `role` | `student` \| `teacher` \| `pastor` \| `parent` \| `admin` | 角色 |
 | `church` | string | 所屬教會名稱 |
-| `displayName` | string | 顯示名稱 |
+| `displayName` | string? | 暱稱（公開顯示） |
+| `realName` | string? | 真實姓名（管理端顯示，不對其他學員公開） |
 | `avatarUrl` | string? | 頭像 URL |
 | `isActive` | boolean | 是否啟用（false = 軟刪除） |
+| `lastLoginAt` | ISO8601? | 最後登入時間 |
 | `createdAt` | ISO8601 | 建立時間 |
 | `updatedAt` | ISO8601 | 最後更新時間 |
 
@@ -795,7 +917,7 @@ Authorization: Bearer <access_token>
 
 ---
 
-## 10. 錯誤碼一覽
+## 11. 錯誤碼一覽
 
 | HTTP 狀態碼 | 錯誤碼 | 中文說明 |
 |-------------|--------|---------|
@@ -811,12 +933,13 @@ Authorization: Bearer <access_token>
 | 404 | `COURSE_NOT_FOUND` | 找不到此課程 |
 | 404 | `SESSION_NOT_FOUND` | 找不到此聽課紀錄 |
 | 404 | `LECTURER_NOT_FOUND` | 找不到此講師 |
+| 404 | `STATS_NOT_FOUND` | 找不到此年度教學統計 |
 | 409 | `USERNAME_TAKEN` | 帳號名稱已被使用 |
 | 500 | `INTERNAL_ERROR` | 伺服器內部錯誤 |
 
 ---
 
-## 11. 前端串接遷移指南
+## 12. 前端串接遷移指南
 
 > 目前前端使用 `localStorage` 作為臨時資料庫，後端串接後需逐步替換。
 
@@ -833,6 +956,7 @@ Authorization: Bearer <access_token>
 | `superstart_restrictions_db` | `GET /admin/page-restrictions/:username` |
 | `superstart_character_themes_db` | 建議新增：`GET /themes?type=character&church=...` |
 | `superstart_coming_of_age_themes_db` | 建議新增：`GET /themes?type=comingOfAge&church=...` |
+| `superstart_teaching_stats_db` | `GET /teaching-stats` / `PUT /teaching-stats/:username/:year` |
 
 ### Store 函式 → API 對照表
 
@@ -849,6 +973,9 @@ Authorization: Bearer <access_token>
 | `updateLecturer()` | `PUT /lecturers/:lecturerId` |
 | `deleteLecturer()` | `DELETE /lecturers/:lecturerId` |
 | `toggleRestriction()` | `POST /admin/page-restrictions/:username/toggle` |
+| `saveTeachingStats()` | `PUT /teaching-stats/:username/:year` |
+| `getTeachingStats()` | `GET /teaching-stats?teacherUsername=...&year=...` |
+| `getAllTeachingStats()` | `GET /teaching-stats/summary?year=...` |
 
 ### Token 管理策略
 
