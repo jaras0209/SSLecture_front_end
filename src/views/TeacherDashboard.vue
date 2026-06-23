@@ -421,8 +421,17 @@
               <tbody>
                 <tr v-for="stdUsername in pastorChurchStudents" :key="stdUsername">
                   <td class="student-cell">
-                    <img :src="`https://api.dicebear.com/7.x/fun-emoji/svg?seed=${stdUsername}`" class="avatar-sm" alt="Avatar" />
-                    <strong>{{ stdUsername }}</strong>
+                    <img
+                      :src="authStore.usersDb[stdUsername]?.avatarUrl || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${stdUsername}`"
+                      class="avatar-sm" alt="Avatar"
+                    />
+                    <div class="student-name-col">
+                      <strong>{{ authStore.usersDb[stdUsername]?.realName || stdUsername }}</strong>
+                      <span v-if="authStore.usersDb[stdUsername]?.displayName" class="student-nickname-tag">
+                        「{{ authStore.usersDb[stdUsername]?.displayName }}」
+                      </span>
+                      <span v-if="authStore.usersDb[stdUsername]?.realName" class="student-id-tag">@{{ stdUsername }}</span>
+                    </div>
                   </td>
                   <td>
                     <select 
@@ -431,7 +440,10 @@
                       class="form-input text-sm"
                     >
                       <option value="">-- 未指派 --</option>
-                      <option v-for="t in pastorChurchTeachers" :key="t" :value="t">{{ t }}</option>
+                      <option v-for="t in pastorChurchTeachers" :key="t" :value="t">
+                        {{ authStore.usersDb[t]?.realName || t }}
+                        {{ authStore.usersDb[t]?.displayName ? `「${authStore.usersDb[t]?.displayName}」` : '' }}
+                      </option>
                     </select>
                   </td>
                   <td>
@@ -441,7 +453,10 @@
                       class="form-input text-sm"
                     >
                       <option value="">-- 未指派 --</option>
-                      <option v-for="pa in pastorChurchParents" :key="pa" :value="pa">{{ pa }}</option>
+                      <option v-for="pa in pastorChurchParents" :key="pa" :value="pa">
+                        {{ authStore.usersDb[pa]?.realName || pa }}
+                        {{ authStore.usersDb[pa]?.displayName ? `「${authStore.usersDb[pa]?.displayName}」` : '' }}
+                      </option>
                     </select>
                   </td>
                 </tr>
@@ -468,19 +483,29 @@
               <tbody>
                 <tr v-for="teacher in pastorChurchTeachers" :key="teacher">
                   <td class="student-cell">
-                    <img :src="`https://api.dicebear.com/7.x/fun-emoji/svg?seed=${teacher}`" class="avatar-sm" alt="Avatar" />
-                    <span class="student-name">{{ teacher }}</span>
+                    <img
+                      :src="authStore.usersDb[teacher]?.avatarUrl || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${teacher}`"
+                      class="avatar-sm" alt="Avatar"
+                    />
+                    <div class="student-name-col">
+                      <span class="student-name">{{ authStore.usersDb[teacher]?.realName || teacher }}</span>
+                      <span v-if="authStore.usersDb[teacher]?.displayName" class="student-nickname-tag">
+                        「{{ authStore.usersDb[teacher]?.displayName }}」
+                      </span>
+                      <span v-if="authStore.usersDb[teacher]?.realName" class="student-id-tag">@{{ teacher }}</span>
+                    </div>
                   </td>
                   <td>
                     <span class="badge badge-teacher">{{ getTeacherManagedStudents(teacher).length }} 位</span>
                   </td>
                   <td>
                     <div class="managed-students-list">
-                      <span 
-                        v-for="s in getTeacherManagedStudents(teacher)" 
-                        :key="s" 
+                      <span
+                        v-for="s in getTeacherManagedStudents(teacher)"
+                        :key="s"
                         class="badge badge-student mr-1"
-                      >🎒 {{ s }}</span>
+                        :title="`帳號：${s}`"
+                      >🎒 {{ authStore.usersDb[s]?.realName || s }}</span>
                       <span v-if="getTeacherManagedStudents(teacher).length === 0" class="text-muted text-xs italic">尚未管理任何學員</span>
                     </div>
                   </td>
@@ -1666,6 +1691,14 @@ const filteredLecturers = computed(() => coursesStore.getLecturersByChurch(curre
   border-radius: 4px;
   margin-left: 6px;
   vertical-align: middle;
+}
+
+/* Nickname tag shown below real name */
+.student-nickname-tag {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  font-style: italic;
 }
 
 
