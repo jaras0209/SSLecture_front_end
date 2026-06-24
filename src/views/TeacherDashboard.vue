@@ -606,14 +606,27 @@
         <div class="lecturers-grid mt-4">
           <div v-for="lec in filteredLecturers" :key="lec.id" class="lecturer-card glass-card">
             <div class="flex justify-between align-center">
-              <h5 style="margin: 0;"><strong>{{ lec.name }}</strong> <span class="badge badge-teacher ml-2">{{ lec.title }}</span></h5>
+              <div>
+                <h5 style="margin: 0;">
+                  <strong>{{ lec.name }}</strong>
+                  <span class="badge badge-teacher ml-2">{{ lec.title }}</span>
+                </h5>
+                <div class="lec-link-tags mt-1">
+                  <span v-if="lec.linkedUsername" class="lec-linked-badge">
+                    🔗 @{{ lec.linkedUsername }}
+                  </span>
+                  <span v-else class="lec-custom-badge">
+                    ✍️ 外來講員
+                  </span>
+                </div>
+              </div>
               <div class="flex gap-2">
                 <button class="btn btn-outline btn-sm" style="padding: 0.15rem 0.5rem; font-size: 0.75rem;" @click="openEditLecturer(lec)">編輯</button>
                 <button class="btn btn-danger btn-sm" style="padding: 0.15rem 0.5rem; font-size: 0.75rem;" @click="deleteLecturer(lec.id)">刪除</button>
               </div>
             </div>
             <div class="course-badges mt-2">
-              <span class="text-xs text-muted block">可講授課程 ({{ lec.courseIds.length }} 堂)：</span>
+              <span class="text-xs text-muted block">可講授課程 ({{ lec.courseIds.length }} 堂指派)：</span>
               <div class="flex flex-wrap gap-1 mt-1">
                 <span v-for="cid in lec.courseIds" :key="cid" class="badge badge-student" style="font-size: 0.7rem;">
                   {{ coursesStore.courses.find(c => c.id === cid)?.title || cid }}
@@ -632,17 +645,70 @@
     <!-- Lecturer Editor Modal -->
     <Teleport to="body">
       <div v-if="showLecturerModal" class="modal-overlay">
-      <div class="glass-panel modal-card" style="max-width: 600px; width: 90%; max-height: 85vh; overflow-y: auto; padding: 2rem;">
+      <div class="glass-panel modal-card lecturer-modal-card">
         <h3>{{ editingLecturerId ? '📝 編輯講師資訊' : '➕ 新增講師' }}</h3>
-        
-        <div class="form-group mt-4">
-          <label class="form-label">講師姓名</label>
-          <input v-model="lecturerForm.name" type="text" class="form-input" placeholder="請輸入姓名" />
+
+        <!-- Mode Toggle -->
+        <div class="link-mode-toggle mt-4">
+          <button
+            class="link-mode-btn"
+            :class="{ active: lecturerForm.linkMode === 'link' }"
+            @click="lecturerForm.linkMode = 'link'; lecturerForm.linkedUsername = ''; lecturerForm.name = ''"
+            id="btn-link-mode"
+          >
+            🔗 連結現有教師帳號
+          </button>
+          <button
+            class="link-mode-btn"
+            :class="{ active: lecturerForm.linkMode === 'custom' }"
+            @click="lecturerForm.linkMode = 'custom'; lecturerForm.linkedUsername = ''"
+            id="btn-custom-mode"
+          >
+            ✍️ 自訂姓名（外來講員）
+          </button>
         </div>
-        
+
+        <!-- Link Mode: pick from teachers in church -->
+        <div v-if="lecturerForm.linkMode === 'link'" class="form-group mt-4">
+          <label class="form-label">選取教師帳號</label>
+          <select
+            v-model="lecturerForm.linkedUsername"
+            class="form-input select-input"
+            @change="onLinkedUsernameChange(lecturerForm.linkedUsername)"
+            id="select-linked-teacher"
+          >
+            <option value="">— 請選擇 —</option>
+            <option v-for="t in teachersInChurch" :key="t.username" :value="t.username">
+              {{ t.displayLabel }}
+            </option>
+          </select>
+          <p v-if="teachersInChurch.length === 0" class="text-xs text-muted mt-1">
+            ⚠️ 本教會目前無任何教師帳號
+          </p>
+          <div v-if="lecturerForm.linkedUsername" class="linked-user-preview mt-2">
+            <span class="linked-chip">🔗 已連結 @{{ lecturerForm.linkedUsername }}</span>
+            <span class="text-xs text-muted ml-2">名稱將自動同步</span>
+          </div>
+        </div>
+
+        <!-- Lecturer display name (editable in custom mode, auto in link mode) -->
+        <div class="form-group" :class="{ 'mt-4': lecturerForm.linkMode !== 'link' }">
+          <label class="form-label">
+            講師顯示名稱
+            <span v-if="lecturerForm.linkMode === 'link'" class="text-xs text-muted ml-1">（已從帳號自動帶入，可修改）</span>
+          </label>
+          <input
+            v-model="lecturerForm.name"
+            type="text"
+            class="form-input"
+            placeholder="請輸入姓名"
+            id="input-lecturer-name"
+          />
+        </div>
+
         <div class="form-group">
           <label class="form-label">講師稱號</label>
-          <select v-model="lecturerForm.title" class="form-input select-input">
+          <select v-model="lecturerForm.title" class="form-input select-input" id="select-lecturer-title">
             <option value="牧師">牧師</option>
             <option value="傳道">傳道</option>
             <option value="長老">長老</option>
@@ -652,18 +718,18 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">指派講授課程 (可複選)</label>
-          <div class="courses-checkboxes-grid mt-2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-height: 250px; overflow-y: auto; padding: 8px; border: 1px solid #E2E8F0; border-radius: 8px; background: white;">
-            <label v-for="c in coursesStore.courses" :key="c.id" class="check-item-row" style="font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
+          <label class="form-label">指派講授課程 <span class="text-xs text-muted">（可複選，代表此人可被學員選取為授課講師）</span></label>
+          <div class="courses-checkboxes-grid mt-2">
+            <label v-for="c in coursesStore.courses" :key="c.id" class="check-item-row">
               <input type="checkbox" :value="c.id" v-model="lecturerForm.courseIds" />
-              <span>{{ c.title }} ({{ c.category === 'bible' ? '聖經' : '講座' }})</span>
+              <span>{{ c.title }} <span class="text-xs text-muted">({{ c.category === 'bible' ? '聖經' : '講座' }})</span></span>
             </label>
           </div>
         </div>
 
         <div class="flex justify-end gap-2 mt-6" style="display: flex; justify-content: flex-end;">
           <button @click="showLecturerModal = false" class="btn btn-outline btn-sm">取消</button>
-          <button @click="saveLecturer" class="btn btn-secondary btn-sm">儲存</button>
+          <button @click="saveLecturer" class="btn btn-secondary btn-sm" id="btn-save-lecturer">儲存</button>
         </div>
       </div>
     </div>
@@ -1106,8 +1172,35 @@ const editingLecturerId = ref<string | null>(null)
 const lecturerForm = ref({
   name: '',
   title: '牧師',
-  courseIds: [] as string[]
+  courseIds: [] as string[],
+  linkedUsername: '',   // '' = 自訂姓名模式
+  linkMode: 'custom' as 'link' | 'custom'  // 'link'=連結帳號, 'custom'=自訂
 })
+
+// Teachers available in current church for the link-account dropdown
+const teachersInChurch = computed(() => {
+  const church = currentContextChurch.value
+  return Object.entries(authStore.usersDb)
+    .filter(([, u]) => u.role === 'teacher' && u.church === church)
+    .map(([username, u]) => ({
+      username,
+      displayLabel: u.realName
+        ? `${u.realName}（@${username}）`
+        : u.displayName
+          ? `${u.displayName}（@${username}）`
+          : `@${username}`,
+      name: u.realName || u.displayName || username
+    }))
+})
+
+// When linkedUsername changes in link-mode, auto-fill name from user db
+function onLinkedUsernameChange(username: string) {
+  if (!username) return
+  const u = authStore.usersDb[username]
+  if (u) {
+    lecturerForm.value.name = u.realName || u.displayName || username
+  }
+}
 
 // Sub tab inside details drawer: only shining now
 const activeDrawerTab = ref<'notes' | 'shining'>('shining')
@@ -1340,7 +1433,9 @@ function openAddLecturer() {
   lecturerForm.value = {
     name: '',
     title: '牧師',
-    courseIds: []
+    courseIds: [],
+    linkedUsername: '',
+    linkMode: 'custom'
   }
   showLecturerModal.value = true
 }
@@ -1350,7 +1445,9 @@ function openEditLecturer(lec: any) {
   lecturerForm.value = {
     name: lec.name,
     title: lec.title,
-    courseIds: [...lec.courseIds]
+    courseIds: [...lec.courseIds],
+    linkedUsername: lec.linkedUsername || '',
+    linkMode: lec.linkedUsername ? 'link' : 'custom'
   }
   showLecturerModal.value = true
 }
@@ -1360,20 +1457,26 @@ function saveLecturer() {
     alert('請輸入講師姓名！')
     return
   }
+  const linkedUsername = lecturerForm.value.linkMode === 'link'
+    ? (lecturerForm.value.linkedUsername || '')
+    : ''
+
   if (editingLecturerId.value) {
     coursesStore.updateLecturer(
       editingLecturerId.value,
       lecturerForm.value.name,
       lecturerForm.value.title,
       lecturerForm.value.courseIds,
-      currentContextChurch.value
+      currentContextChurch.value,
+      linkedUsername
     )
   } else {
     coursesStore.addLecturer(
       lecturerForm.value.name,
       lecturerForm.value.title,
       lecturerForm.value.courseIds,
-      currentContextChurch.value
+      currentContextChurch.value,
+      linkedUsername || undefined
     )
   }
   showLecturerModal.value = false
@@ -2474,6 +2577,108 @@ const filteredLecturers = computed(() => coursesStore.getLecturersByChurch(curre
   background: white;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
+}
+
+/* ─── Lecturer Modal ─── */
+.lecturer-modal-card {
+  max-width: 620px;
+  width: 90%;
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 2rem;
+}
+
+.link-mode-toggle {
+  display: flex;
+  gap: 0.5rem;
+  background: rgba(99, 102, 241, 0.05);
+  border: 1px solid rgba(99, 102, 241, 0.12);
+  border-radius: 10px;
+  padding: 0.35rem;
+}
+
+.link-mode-btn {
+  flex: 1;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.link-mode-btn.active {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 2px 8px rgba(99,102,241,0.3);
+}
+
+.linked-user-preview {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background: rgba(16, 185, 129, 0.06);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 8px;
+}
+
+.linked-chip {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #059669;
+}
+
+/* Lecturer card link badges */
+.lec-link-tags {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.lec-linked-badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 20px;
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.lec-custom-badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 20px;
+  background: rgba(245, 158, 11, 0.1);
+  color: #D97706;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.courses-checkboxes-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 8px;
+  border: 1px solid rgba(99,102,241,0.12);
+  border-radius: 8px;
+  background: rgba(248, 250, 252, 0.8);
+}
+
+.check-item-row {
+  font-size: 0.82rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  cursor: pointer;
+  padding: 2px 0;
 }
 
 .inputs-row-readonly {

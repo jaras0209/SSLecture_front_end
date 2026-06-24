@@ -86,6 +86,7 @@ export interface Lecturer {
   title: string
   courseIds: string[]
   church?: string
+  linkedUsername?: string   // 連結的教師帳號 username（選填，無則為自訂講師）
 }
 
 /** 年度教學人次申報 (by teacher, by year) */
@@ -548,18 +549,22 @@ export const useCoursesStore = defineStore('courses', () => {
     return lecturers.value.filter(l => l.church === church || !l.church)
   }
 
-  function addLecturer(name: string, title: string, courseIds: string[], church: string): void {
+  function addLecturer(name: string, title: string, courseIds: string[], church: string, linkedUsername?: string): void {
     const id = 'l_' + Date.now()
-    lecturers.value.push({ id, name, title, courseIds, church })
+    lecturers.value.push({ id, name, title, courseIds, church, linkedUsername })
   }
 
-  function updateLecturer(id: string, name: string, title: string, courseIds: string[], church?: string): void {
+  function updateLecturer(id: string, name: string, title: string, courseIds: string[], church?: string, linkedUsername?: string): void {
     const lec = lecturers.value.find(l => l.id === id)
     if (lec) {
       lec.name = name
       lec.title = title
       lec.courseIds = courseIds
       if (church) lec.church = church
+      // linkedUsername: pass undefined to keep existing, pass '' to clear, pass value to set
+      if (linkedUsername !== undefined) {
+        lec.linkedUsername = linkedUsername || undefined
+      }
     }
   }
 
@@ -568,6 +573,36 @@ export const useCoursesStore = defineStore('courses', () => {
     if (index > -1) {
       lecturers.value.splice(index, 1)
     }
+  }
+
+  /**
+   * 取得教師帳號在講師資料庫中的 linked 紀錄
+   */
+  function getLecturerByUsername(username: string): Lecturer | undefined {
+    return lecturers.value.find(l => l.linkedUsername === username)
+  }
+
+  /**
+   * 取得某帳號實際被學員登記為講師的課程授課次數統計
+   * 回傳 { courseId: sessionCount } map
+   */
+  function getActualTeachingCourseCounts(
+    authUsersDb: Record<string, { role: string; church?: string }>,
+    lecturerName: string,
+    church: string
+  ): number {
+    const churchStudents = getStudentsByChurch(authUsersDb, church)
+    let count = 0
+    churchStudents.forEach(studentUsername => {
+      const userRecords = progressDb.value[studentUsername]
+      if (!userRecords) return
+      Object.values(userRecords).forEach(record => {
+        if (record.lecturer && record.lecturer.trim() === lecturerName.trim()) {
+          count += (record.sessions?.length || (record.completed ? 1 : 0))
+        }
+      })
+    })
+    return count
   }
 
   // Shining Project Actions
@@ -813,7 +848,9 @@ export const useCoursesStore = defineStore('courses', () => {
     getLecturerStatsForChurch,
     saveTeachingStats,
     getTeachingStats,
-    getAllTeachingStats
+    getAllTeachingStats,
+    getLecturerByUsername,
+    getActualTeachingCourseCounts
   }
 })
 

@@ -415,7 +415,8 @@ Authorization: Bearer <access_token>
         "name": "張牧師",
         "title": "牧師",
         "church": "愛與話語",
-        "courseIds": ["bible-01", "bible-02"]
+        "courseIds": ["bible-01", "bible-02"],
+        "linkedUsername": "teacher01"
       }
     ]
   }
@@ -427,7 +428,7 @@ Authorization: Bearer <access_token>
 ### `POST /lecturers`
 **說明**：新增講師
 
-**權限**：`admin`
+**權限**：`admin`，或具權限的 `teacher`
 
 **Request Body**：
 ```json
@@ -435,9 +436,22 @@ Authorization: Bearer <access_token>
   "name": "林長老",
   "title": "長老",
   "church": "愛與話語",
-  "courseIds": ["lecture-01", "lecture-02"]
+  "courseIds": ["lecture-01", "lecture-02"],
+  "linkedUsername": "teacher02"
 }
 ```
+
+**欄位說明**：
+| 欄位 | 型別 | 必填 | 說明 |
+|------|------|------|------|
+| `name` | string | 是 | 講師顯示名稱 |
+| `title` | string | 是 | 牧師 / 傳道 / 長老 / 辔導 / 老師 |
+| `church` | string | 是 | 所屬教會 |
+| `courseIds` | string[] | 是 | 可講授課程 ID 清單 |
+| `linkedUsername` | string? | 否 | 連結已登入教師帳號（空則為自訂講師） |
+
+> [!NOTE]
+> `linkedUsername` 為空則為「自訂 / 外來講員」，不選用系統帳號文件；無則繼続現有值。
 
 ---
 
@@ -901,10 +915,11 @@ Authorization: Bearer <access_token>
 | 欄位 | 型別 | 說明 |
 |------|------|------|
 | `id` | string | 唯一 ID |
-| `name` | string | 姓名 |
+| `name` | string | 講師顯示名稱 |
 | `title` | string | 職稱（牧師/傳道/長老/輔導等） |
 | `church` | string | 所屬教會 |
 | `courseIds` | string[] | 可授課的課程 ID 清單（用於篩選建議講師） |
+| `linkedUsername` | string? | 連結的教師帳號（FK → users.username）；空則為外來/自訂講師 |
 
 ### StudentAssignment（關懷配對）
 | 欄位 | 型別 | 說明 |

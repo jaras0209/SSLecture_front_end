@@ -260,6 +260,7 @@
             <tr>
               <th>教師姓名</th>
               <th>所屬教會</th>
+              <th>講師資料庫</th>
               <th>1對1<br/>三十個論</th>
               <th>1對多<br/>三十個論</th>
               <th>1對1<br/>閃耀計畫</th>
@@ -283,6 +284,16 @@
                 <span class="admin-church-tag" style="font-size:0.78rem;">{{ row.church || '—' }}</span>
               </td>
               <td class="text-center">
+                <!-- Linked lecturer info -->
+                <template v-if="getLinkedLecturer(row.teacherUsername)">
+                  <div class="linked-lec-cell">
+                    <span class="linked-lec-name">{{ getLinkedLecturer(row.teacherUsername)?.name }}</span>
+                    <span class="lec-course-count">{{ getLinkedLecturer(row.teacherUsername)?.courseIds.length }} 堂</span>
+                  </div>
+                </template>
+                <span v-else class="text-xs text-muted">未建立</span>
+              </td>
+              <td class="text-center">
                 <span class="stat-num">{{ row.oneOnOne30 }}</span>
               </td>
               <td class="text-center">
@@ -302,13 +313,13 @@
               <td class="text-xs text-muted">{{ row.submittedAt || '—' }}</td>
             </tr>
             <tr v-if="adminTeachingStats.length === 0">
-              <td colspan="8" class="text-center empty-row">
+              <td colspan="9" class="text-center empty-row">
                 {{ adminStatsYear }} 年度尚未有任何教師填寫申報資料
               </td>
             </tr>
             <!-- Grand Total Row -->
             <tr v-if="adminTeachingStats.length > 0" class="stats-grand-total-row">
-              <td colspan="2"><strong>📊 全體合計</strong></td>
+              <td colspan="3"><strong>📊 全體合計</strong></td>
               <td class="text-center"><strong>{{ adminStatsTotals.oneOnOne30 }}</strong></td>
               <td class="text-center"><strong>{{ adminStatsTotals.oneToMany30 }}</strong></td>
               <td class="text-center"><strong>{{ adminStatsTotals.oneOnOneShining }}</strong></td>
@@ -391,6 +402,13 @@ const adminStatsTotals = computed(() => {
   }
 })
 
+/**
+ * 根據 teacherUsername 查找對應的講師資料庫紀錄
+ * 用於統計總覽表顯示「講師資料庫」欄位
+ */
+function getLinkedLecturer(teacherUsername: string) {
+  return coursesStore.getLecturerByUsername(teacherUsername)
+}
 
 function showAlert(msg: string, type: 'success' | 'error' = 'success') {
   alertMsg.value = msg
@@ -690,6 +708,30 @@ function getChurchTeacherList(church: string): string[] {
   background: rgba(99, 102, 241, 0.05);
   border-top: 2px solid rgba(99, 102, 241, 0.2);
   font-weight: 600;
+}
+
+/* Linked lecturer cell in admin stats table */
+.linked-lec-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.linked-lec-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.lec-course-count {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 20px;
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
 .table-select-input {

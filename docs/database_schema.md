@@ -143,12 +143,19 @@
 | 欄位名 | 資料型別 | 限制 | 說明 |
 |--------|----------|------|------|
 | `id` | `UUID` | PK, NOT NULL | 唯一識別碼 |
-| `name` | `VARCHAR(50)` | NOT NULL | 講師姓名 |
+| `name` | `VARCHAR(100)` | NOT NULL | 講師顯示名稱 |
 | `title` | `VARCHAR(30)` | NOT NULL | 職稱（牧師、傳道、長老、輔導、老師） |
 | `church_id` | `UUID` | FK → churches.id, NULL | 所屬教會（NULL 表示跨教會） |
+| `linked_user_id` | `UUID` | FK → users.id, NULL | 連結的教師帳號（NULL = 外來/自訂講師） |
 | `is_active` | `BOOLEAN` | NOT NULL, DEFAULT TRUE | 是否啟用 |
 | `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
 | `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 最後更新時間 |
+
+**設計說明**：
+- `linked_user_id` 是選填欄位：
+  - 有值 → 講師為系統內教師帳號，可自動同步姓名與統計
+  - NULL → 自訂講師或外來講員，僅儲存名稱字串
+- 同一位教師帳號在同一教會應僅連結一筆講師記錄（建議應用端進行檢查）
 
 ---
 
@@ -515,14 +522,18 @@ CREATE TABLE courses (
 --  4. lecturers（講師）
 -- ═══════════════════════════════════════════════════
 CREATE TABLE lecturers (
-  id         UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  name       VARCHAR(50) NOT NULL,
-  title      VARCHAR(30) NOT NULL,
-  church_id  UUID        REFERENCES churches(id) ON DELETE SET NULL,
-  is_active  BOOLEAN     NOT NULL DEFAULT TRUE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  id              UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+  name            VARCHAR(100) NOT NULL,
+  title           VARCHAR(30)  NOT NULL,
+  church_id       UUID         REFERENCES churches(id) ON DELETE SET NULL,
+  linked_user_id  UUID         REFERENCES users(id) ON DELETE SET NULL,  -- NULL = 外來/自訂講師
+  is_active       BOOLEAN      NOT NULL DEFAULT TRUE,
+  created_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+  updated_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
+
+CREATE INDEX idx_lecturers_church       ON lecturers(church_id);
+CREATE INDEX idx_lecturers_linked_user  ON lecturers(linked_user_id);
 
 -- ═══════════════════════════════════════════════════
 --  5. lecturer_courses（講師授課關聯，多對多）
