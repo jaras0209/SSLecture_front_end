@@ -1,8 +1,8 @@
 # SSLecture 後端資料庫設計文件
 
-> **文件版本**：v1.2.0  
-> **最後更新**：2026-06-24  
-> **資料來源**：分析前端 `src/stores/auth.ts`、`src/stores/courses.ts`、localStorage 資料結構  
+> **文件版本**：v1.3.0  
+> **最後更新**：2026-06-30  
+> **資料來源**：分析前端 `src/stores/auth.ts`、`src/stores/courses.ts`、`src/stores/bookings.ts`、localStorage 資料結構  
 > **建議資料庫**：PostgreSQL（主要）/ MySQL（可選）  
 > **ORM 建議**：Prisma（Node.js）/ SQLAlchemy（Python）
 
@@ -26,6 +26,8 @@
    - [page_restrictions（頁面存取限制）](#212-page_restrictions-頁面存取限制)
    - [refresh_tokens（Token 管理）](#213-refresh_tokens-token-管理)
    - [teaching_stats（年度教學統計）](#214-teaching_stats-年度教學統計)
+   - [booking_sessions（預約場次）](#215-booking_sessions-預約場次) ⭐ NEW
+   - [booking_attendees（場次學員）](#216-booking_attendees-場次學員) ⭐ NEW
 3. [索引設計](#3-索引設計)
 4. [資料關聯圖（文字版）](#4-資料關聯圖文字版)
 5. [設計決策與說明](#5-設計決策與說明)
@@ -40,28 +42,34 @@
 ┌─────────────┐     ┌──────────────────┐     ┌──────────────────┐
 │   churches  │────<│      users       │>────│ student_assign   │
 └─────────────┘     └──────────────────┘     └──────────────────┘
-                           │   │
-              ┌────────────┘   └────────────────┐
-              ▼                                  ▼
-┌──────────────────────┐         ┌──────────────────────────┐
-│   listen_sessions    │         │    shining_projects       │
-│  (多次聽課紀錄)       │         │    (閃耀計畫主表)          │
-└──────────────────────┘         └──────────────────────────┘
-         │                                │
-         ▼                                ├──> shining_faith_checklists
-  ┌─────────────┐                         └──> shining_lectures
-  │   courses   │
-  └─────────────┘
-         │
-         ▼
-  ┌────────────────────┐     ┌──────────────┐
-  │  lecturer_courses  │────>│   lecturers  │
-  └────────────────────┘     └──────────────┘
+                           │   │   │
+              ┌────────────┘   │   └────────────────┐
+              ▼               │                    ▼
+┌──────────────────────┐      │     ┌──────────────────────────┐
+│   listen_sessions    │      │     │    shining_projects       │
+│  (多次聽課紀錄)       │      │     │    (閃耀計畫主表)          │
+└──────────────────────┘      │     └──────────────────────────┘
+         │                    │              │
+         ▼                    ▼              ├──> shining_faith_checklists
+  ┌─────────────┐   ┌────────────────────┐  └──> shining_lectures
+  │   courses   │   │  booking_sessions  │ ⭐
+  └─────────────┘   │  (預約場次)         │
+         │          └────────────────────┘
+         ▼                    │
+  ┌────────────────────┐      ▼
+  │  lecturer_courses  │────>┌──────────────────────┐
+  └────────────────────┘    │  booking_attendees   │ ⭐
+         │                  │  (學員出席與回饋)      │
+         ▼                  └──────────────────────┘
+  ┌──────────────┐
+  │   lecturers  │
+  └──────────────┘
 
 其他獨立表：
   themes               (動態專題大綱清單)
   page_restrictions    (頁面存取限制)
   refresh_tokens       (JWT Refresh Token 黑名單)
+  teaching_stats       (年度教學統計)
 ```
 
 ---
@@ -384,6 +392,21 @@ CREATE INDEX idx_page_restrictions_user ON page_restrictions(user_id);
 -- refresh_tokens 表
 CREATE INDEX idx_refresh_tokens_user       ON refresh_tokens(user_id);
 CREATE INDEX idx_refresh_tokens_expires_at ON refresh_tokens(expires_at);
+
+-- teaching_stats 表
+CREATE INDEX idx_teaching_stats_year    ON teaching_stats(year);
+CREATE INDEX idx_teaching_stats_teacher ON teaching_stats(teacher_id);
+
+-- booking_sessions 表 ⭐
+CREATE INDEX idx_booking_sessions_teacher  ON booking_sessions(teacher_id);
+CREATE INDEX idx_booking_sessions_church   ON booking_sessions(church_id);
+CREATE INDEX idx_booking_sessions_status   ON booking_sessions(status);
+CREATE INDEX idx_booking_sessions_proposed ON booking_sessions(proposed_at DESC);
+
+-- booking_attendees 表 ⭐
+CREATE INDEX idx_booking_attendees_session ON booking_attendees(session_id);
+CREATE INDEX idx_booking_attendees_student ON booking_attendees(student_id);
+CREATE INDEX idx_booking_attendees_status  ON booking_attendees(attendance_status);
 ```
 
 ---
@@ -393,24 +416,25 @@ CREATE INDEX idx_refresh_tokens_expires_at ON refresh_tokens(expires_at);
 ```
 churches (1) ──────────────────────────── (N) users
     │                                           │
-    │                                    ┌──────┴──────┐
-    │                                    │             │
-    (1)                               student       teacher/
-    │                                   (1)         pastor/
-    └──> (N) themes                     │          parent
-    │                                   │
-    (1)                    ┌────────────┼──────────────────┐
-    │                      │            │                  │
-    └──> (N) lecturers     │            │                  │
-              │            ▼            ▼                  ▼
-              │     listen_sessions  shining_           student_
-              │     (N 筆，每次       projects          assignments
-              └──> (N) lecturer_     聽課一筆)             │
-                   courses               │          (teacher, pastor,
-                       │            ┌────┴────┐      parent FK)
-                       ▼            │         │
-                   courses      faith_      shining_
-                               checklists   lectures
+    │                                    ┌──────┴──────────┐
+    │                                    │                  │
+    (1)                               student          teacher/
+    │                                   (1)           pastor/
+    └──> (N) themes                     │            parent
+    │                                   │               │
+    (1)                    ┌────────────┼──────────┐    │
+    │                      │            │          │    │
+    └──> (N) lecturers     │            │          │    │
+              │            ▼            ▼          ▼    ▼
+              │     listen_sessions  shining_   student_ booking_
+              │     (N 筆聽課)       projects   assign   sessions ⭐
+              └──> (N) lecturer_         │                  │
+                   courses           ┌──┴──┐          booking_
+                       │             │     │          attendees ⭐
+                       ▼           faith_ shining_       │
+                   courses        checklists lectures     ├──> student
+                                                         └──> listen_sessions
+                                                              (選填連結)
 ```
 
 ---
@@ -456,6 +480,21 @@ FROM listen_sessions
 WHERE student_id = $1
 -- 若 completed_count >= 30，則 courses30 = true
 ```
+
+### 5.6 Booking System 的冠餘資料為何負載講師/課程名稱？
+
+`booking_sessions` 表同時儲存 `lecturer_id`（FK）及 `lecturer_name`（文字）。
+
+**原因**：
+- 講師進行了安排後，若將來講師資料被刪除或改名，歷史預約紀錄仍需可讀
+- `lecturer_id` 供系統查詢關聯用，設為 `ON DELETE SET NULL`
+- `course_title` 同理：課程被冊除後預約紀錄仍需可讀
+
+### 5.7 `booking_attendees` 的 `student_username` 為何冠餘儲存？
+
+- 前端將 `username` 作為準 Session 和 Attendee 的 ID 組成核心，孶存後方便前端直接顯示而不需 JOIN
+- 學員帳號一旦編輯（橪數少版本），需同步更新此冠餘欄位
+- 建議後端建立 trigger `after_update_users` 同步更新 `booking_attendees.student_username`
 
 ---
 
@@ -802,6 +841,132 @@ CREATE TABLE teaching_stats (
 
 CREATE INDEX idx_teaching_stats_year ON teaching_stats(year);
 CREATE INDEX idx_teaching_stats_teacher ON teaching_stats(teacher_id);
+```
+
+---
+
+### 2.15 `booking_sessions` 預約場次 ⭐
+
+> **對應前端**：`bookings.ts` → `BookingSession` interface，`superstart_booking_sessions_db` localStorage key  
+> **新增於**：v1.3.0（2026-06-30）
+
+| 欄位名 | 資料型別 | 限制 | 說明 |
+|--------|----------|------|------|
+| `id` | `VARCHAR(64)` | PK, NOT NULL | 前端格式：`sess_${Date.now()}` |
+| `teacher_id` | `UUID` | FK → users.id, NOT NULL | 建立預約的教師 |
+| `church_id` | `UUID` | FK → churches.id, NULL | 場次所屬教會 |
+| `course_id` | `VARCHAR(64)` | FK → courses.id, NULL | 對應課程 |
+| `course_title` | `VARCHAR(200)` | NOT NULL | 課程名稱（冗餘儲存，保留歷史） |
+| `lecturer_id` | `VARCHAR(64)` | FK → lecturers.id, NULL | 對應講師 |
+| `lecturer_name` | `VARCHAR(100)` | NOT NULL | 講師姓名（冗餘儲存） |
+| `lecturer_title` | `VARCHAR(50)` | NOT NULL, DEFAULT '' | 講師稱謂（如「牧師」） |
+| `proposed_at` | `TIMESTAMPTZ` | NOT NULL | 教師提議的時間 |
+| `confirmed_at` | `TIMESTAMPTZ` | NULL | 最終確認的時間（雙方同意後填入） |
+| `duration_minutes` | `SMALLINT` | NULL, CHECK >= 1 | 預計課程時長（分鐘） |
+| `status` | `VARCHAR(20)` | NOT NULL, DEFAULT 'pending' | `pending / confirmed / completed / cancelled` |
+| `cancel_reason` | `TEXT` | NULL | 取消原因（status = cancelled 時填入） |
+| `teacher_session_notes` | `TEXT` | NULL | 教師整場備注（完成後填寫） |
+| `is_group_session` | `BOOLEAN` | NOT NULL, DEFAULT FALSE | 是否為團體聽課 |
+| `prep_scriptures` | `TEXT[]` | NOT NULL, DEFAULT '{}' | 預習經文列表（PostgreSQL 陣列） |
+| `prep_reading_notes` | `TEXT` | NULL | 預習說明 |
+| `prep_materials` | `TEXT` | NULL | 補充材料說明 |
+| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
+| `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 最後更新時間 |
+
+**狀態機**：
+```
+pending ──confirm──> confirmed ──complete──> completed
+  │                      │
+  └──cancel──────────────┴──cancel──> cancelled
+```
+
+**設計說明**：
+- `course_title`、`lecturer_name`、`lecturer_title` 冗餘儲存，避免講師/課程被刪除後歷史資料遺失
+- `prep_scriptures` 使用 PostgreSQL 原生陣列型別；MySQL 替代方案可改用 JSON 欄位
+- 建議後端在 `status = completed` 時自動 trigger 同步至 `listen_sessions`（若需要）
+
+**SQL DDL**：
+```sql
+CREATE TABLE booking_sessions (
+  id                    VARCHAR(64)  PRIMARY KEY,
+  teacher_id            UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  church_id             UUID         REFERENCES churches(id) ON DELETE SET NULL,
+  course_id             VARCHAR(64)  REFERENCES courses(id) ON DELETE SET NULL,
+  course_title          VARCHAR(200) NOT NULL,
+  lecturer_id           VARCHAR(64)  REFERENCES lecturers(id) ON DELETE SET NULL,
+  lecturer_name         VARCHAR(100) NOT NULL,
+  lecturer_title        VARCHAR(50)  NOT NULL DEFAULT '',
+  proposed_at           TIMESTAMPTZ  NOT NULL,
+  confirmed_at          TIMESTAMPTZ,
+  duration_minutes      SMALLINT     CHECK (duration_minutes >= 1),
+  status                VARCHAR(20)  NOT NULL DEFAULT 'pending'
+                          CHECK (status IN ('pending','confirmed','completed','cancelled')),
+  cancel_reason         TEXT,
+  teacher_session_notes TEXT,
+  is_group_session      BOOLEAN      NOT NULL DEFAULT FALSE,
+  prep_scriptures       TEXT[]       NOT NULL DEFAULT '{}',
+  prep_reading_notes    TEXT,
+  prep_materials        TEXT,
+  created_at            TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+  updated_at            TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_booking_sessions_teacher  ON booking_sessions(teacher_id);
+CREATE INDEX idx_booking_sessions_church   ON booking_sessions(church_id);
+CREATE INDEX idx_booking_sessions_status   ON booking_sessions(status);
+CREATE INDEX idx_booking_sessions_proposed ON booking_sessions(proposed_at DESC);
+```
+
+---
+
+### 2.16 `booking_attendees` 場次學員 ⭐
+
+> **對應前端**：`bookings.ts` → `BookingAttendee` interface，`superstart_booking_attendees_db` localStorage key  
+> **新增於**：v1.3.0（2026-06-30）
+
+| 欄位名 | 資料型別 | 限制 | 說明 |
+|--------|----------|------|------|
+| `id` | `VARCHAR(128)` | PK, NOT NULL | 前端格式：`att_${sessionId}_${studentUsername}` |
+| `session_id` | `VARCHAR(64)` | FK → booking_sessions.id, NOT NULL | 所屬預約場次 |
+| `student_id` | `UUID` | FK → users.id, NOT NULL | 受邀學員 |
+| `student_username` | `VARCHAR(50)` | NOT NULL | 學員帳號（冗餘儲存，方便查詢） |
+| `attendance_status` | `VARCHAR(20)` | NOT NULL, DEFAULT 'invited' | `invited / attended / absent` |
+| `student_feedback` | `TEXT` | NULL | 學員課後心得（由學員自行填寫） |
+| `teacher_feedback` | `TEXT` | NULL | 教師對該學員的個別回饋 |
+| `feedback_at` | `TIMESTAMPTZ` | NULL | 回饋最後更新時間 |
+| `linked_listen_session_id` | `VARCHAR(64)` | FK → listen_sessions.id, NULL | 手動連結至聽課進度紀錄 |
+| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
+| `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 最後更新時間 |
+
+**設計說明**：
+- `(session_id, student_id)` 為複合唯一鍵，確保同一場次同一學員只有一筆
+- `attendance_status` 由教師在場次完成後填寫，預設 `invited`
+- `student_feedback` 由學員自行從學員端填寫
+- `linked_listen_session_id` 為選填，允許手動關聯到已存在的 `listen_sessions` 紀錄
+- `student_username` 冗餘儲存方便前端直接顯示，避免 JOIN 查詢
+
+**SQL DDL**：
+```sql
+CREATE TABLE booking_attendees (
+  id                       VARCHAR(128) PRIMARY KEY,
+  session_id               VARCHAR(64)  NOT NULL REFERENCES booking_sessions(id) ON DELETE CASCADE,
+  student_id               UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  student_username         VARCHAR(50)  NOT NULL,
+  attendance_status        VARCHAR(20)  NOT NULL DEFAULT 'invited'
+                             CHECK (attendance_status IN ('invited','attended','absent')),
+  student_feedback         TEXT,
+  teacher_feedback         TEXT,
+  feedback_at              TIMESTAMPTZ,
+  linked_listen_session_id VARCHAR(64)  REFERENCES listen_sessions(id) ON DELETE SET NULL,
+  created_at               TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+  updated_at               TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+
+  CONSTRAINT uq_booking_attendees_session_student UNIQUE (session_id, student_id)
+);
+
+CREATE INDEX idx_booking_attendees_session ON booking_attendees(session_id);
+CREATE INDEX idx_booking_attendees_student ON booking_attendees(student_id);
+CREATE INDEX idx_booking_attendees_status  ON booking_attendees(attendance_status);
 ```
 
 ---

@@ -1,7 +1,7 @@
 # SSLecture 後端 API 規格文件
 
-> **文件版本**：v1.2.0  
-> **最後更新**：2026-06-24  
+> **文件版本**：v1.3.0  
+> **最後更新**：2026-06-30  
 > **前端版本**：Vue 3 + TypeScript（目前以 localStorage 模擬，待串接）  
 > **目標後端技術**：RESTful API（Node.js / Python / 任意語言均可）
 
@@ -18,9 +18,10 @@
 7. [閃耀計畫 Shining Project](#7-閃耀計畫-shining-project)
 8. [管理員 Admin](#8-管理員-admin)
 9. [年度教學統計 Teaching Stats](#9-年度教學統計-teaching-stats)
-10. [資料模型定義](#10-資料模型定義)
-11. [錯誤碼一覽](#11-錯誤碼一覽)
-12. [前端串接遷移指南](#12-前端串接遷移指南)
+10. [聽課預約 Booking System](#10-聽課預約-booking-system) ⭐ NEW
+11. [資料模型定義](#11-資料模型定義)
+12. [錯誤碼一覽](#12-錯誤碼一覽)
+13. [前端串接遷移指南](#13-前端串接遷移指南)
 
 ---
 
@@ -871,7 +872,243 @@ Authorization: Bearer <access_token>
 
 ---
 
-## 10. 資料模型定義
+## 10. 聽課預約 Booking System ⭐
+
+> **新增於 v1.3.0**  
+> 管理「教師為學員安排聽課場次（BookingSession）」及「個別學員出席與回饋（BookingAttendee）」的完整預約流程。
+
+---
+
+### 10.1 預約場次 Booking Sessions
+
+#### 取得教師的所有預約場次
+```
+GET /bookings/sessions?teacherUsername={username}&status={status}
+```
+
+| 查詢參數 | 型別 | 必填 | 說明 |
+|----------|------|------|------|
+| `teacherUsername` | string | 否 | 篩選特定教師建立的場次 |
+| `church` | string | 否 | 依教會篩選 |
+| `status` | string | 否 | `pending \| confirmed \| completed \| cancelled` |
+
+**回應範例**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "sess_1751234567890",
+      "courseId": "course_001",
+      "courseTitle": "信仰基礎課程",
+      "lecturerId": "lec_abc123",
+      "lecturerName": "王大明",
+      "lecturerTitle": "牧師",
+      "teacherUsername": "teacher_wang",
+      "proposedAt": "2026-07-15T14:00:00+08:00",
+      "confirmedAt": "2026-07-15T14:00:00+08:00",
+      "durationMinutes": 90,
+      "status": "confirmed",
+      "prep": {
+        "scriptures": ["約翰福音 1:1-18", "創世紀 1:1"],
+        "readingNotes": "請先思考：信仰對你的意義是什麼",
+        "materials": "請攜帶聖經"
+      },
+      "teacherSessionNotes": "",
+      "church": "愛與話語",
+      "isGroupSession": true,
+      "createdAt": "2026-07-01T10:00:00+08:00",
+      "updatedAt": "2026-07-02T09:00:00+08:00"
+    }
+  ]
+}
+```
+
+#### 取得學員的預約場次（含出席資料）
+```
+GET /bookings/sessions?studentUsername={username}
+```
+回傳該學員所有 BookingAttendee 對應的 Session，並 join attendee 出席資料。
+
+---
+
+#### 建立預約場次
+```
+POST /bookings/sessions
+```
+
+**權限**：`teacher`、`admin`
+
+**Request Body**
+```json
+{
+  "courseId": "course_001",
+  "courseTitle": "信仰基礎課程",
+  "lecturerId": "lec_abc123",
+  "lecturerName": "王大明",
+  "lecturerTitle": "牧師",
+  "proposedAt": "2026-07-15T14:00:00+08:00",
+  "durationMinutes": 90,
+  "prep": {
+    "scriptures": ["約翰福音 1:1-18"],
+    "readingNotes": "請先思考...",
+    "materials": ""
+  },
+  "studentUsernames": ["student_a", "student_b"],
+  "church": "愛與話語"
+}
+```
+
+**回應**：同取得單一場次的結構，並自動建立對應的 `booking_attendees` 記錄。
+
+---
+
+#### 更新場次狀態
+```
+PATCH /bookings/sessions/:sessionId/status
+```
+
+**Request Body**
+```json
+{
+  "status": "confirmed",
+  "confirmedAt": "2026-07-15T14:00:00+08:00",
+  "cancelReason": ""
+}
+```
+
+| status 值 | 說明 |
+|-----------|------|
+| `pending` | 初始狀態，等待確認 |
+| `confirmed` | 時間已確認 |
+| `completed` | 課程已完成，回饋已填寫 |
+| `cancelled` | 已取消（可附原因） |
+
+---
+
+#### 更新預習內容
+```
+PATCH /bookings/sessions/:sessionId/prep
+```
+
+**Request Body**
+```json
+{
+  "scriptures": ["約翰福音 1:1-18"],
+  "readingNotes": "更新說明...",
+  "materials": "請攜帶聖經"
+}
+```
+
+---
+
+#### 完成場次（標記完成並儲存整體備注）
+```
+POST /bookings/sessions/:sessionId/complete
+```
+
+**Request Body**
+```json
+{
+  "teacherSessionNotes": "整體場次順利，學員反應良好"
+}
+```
+
+---
+
+#### 刪除場次（及所有關聯學員記錄）
+```
+DELETE /bookings/sessions/:sessionId
+```
+
+**權限**：`teacher`（本人）、`admin`
+
+---
+
+### 10.2 場次學員 Booking Attendees
+
+#### 取得場次的所有學員記錄
+```
+GET /bookings/sessions/:sessionId/attendees
+```
+
+**回應範例**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "att_sess_1751234567890_student_a",
+      "sessionId": "sess_1751234567890",
+      "studentUsername": "student_a",
+      "attendanceStatus": "attended",
+      "studentFeedback": "這次課程讓我對信仰有更深的認識",
+      "teacherFeedback": "學員專注，表現積極",
+      "feedbackAt": "2026-07-15T16:00:00+08:00",
+      "linkedListenSessionId": null,
+      "createdAt": "2026-07-01T10:00:00+08:00",
+      "updatedAt": "2026-07-15T16:00:00+08:00"
+    }
+  ]
+}
+```
+
+---
+
+#### 新增學員至場次
+```
+POST /bookings/sessions/:sessionId/attendees
+```
+
+**Request Body**
+```json
+{
+  "studentUsername": "student_c"
+}
+```
+
+---
+
+#### 更新學員出席狀態與回饋
+```
+PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
+```
+
+**Request Body**
+```json
+{
+  "attendanceStatus": "attended",
+  "teacherFeedback": "表現良好，繼續加油",
+  "studentFeedback": "收穫很多，感謝老師",
+  "linkedListenSessionId": "listen_sess_xyz"
+}
+```
+
+| attendanceStatus 值 | 說明 |
+|---------------------|------|
+| `invited` | 已邀請，尚未確認出席 |
+| `attended` | 已出席 |
+| `absent` | 缺席 |
+
+---
+
+### 10.3 API 端點一覽
+
+| 功能 | 方法 | 路徑 |
+|------|------|------|
+| 取得場次列表 | `GET` | `/bookings/sessions` |
+| 建立新場次 | `POST` | `/bookings/sessions` |
+| 更新場次狀態 | `PATCH` | `/bookings/sessions/:id/status` |
+| 更新預習內容 | `PATCH` | `/bookings/sessions/:id/prep` |
+| 完成場次 | `POST` | `/bookings/sessions/:id/complete` |
+| 刪除場次 | `DELETE` | `/bookings/sessions/:id` |
+| 取得場次學員 | `GET` | `/bookings/sessions/:id/attendees` |
+| 新增學員 | `POST` | `/bookings/sessions/:id/attendees` |
+| 更新學員回饋 | `PATCH` | `/bookings/sessions/:id/attendees/:username` |
+
+---
+
+## 11. 資料模型定義
 
 ### User（使用者）
 | 欄位 | 型別 | 說明 |
@@ -932,12 +1169,13 @@ Authorization: Bearer <access_token>
 
 ---
 
-## 11. 錯誤碼一覽
+## 12. 錯誤碼一覽
 
 | HTTP 狀態碼 | 錯誤碼 | 中文說明 |
 |-------------|--------|---------|
 | 400 | `VALIDATION_ERROR` | 請求參數格式錯誤或驗證失敗 |
 | 400 | `INVALID_DATE_FORMAT` | 日期時間格式不正確 |
+| 400 | `INVALID_STATUS_TRANSITION` | 場次狀態流轉不合法（如已完成場次不可再確認） |
 | 401 | `UNAUTHORIZED` | 未提供 Token 或 Token 無效 |
 | 401 | `INVALID_CREDENTIALS` | 帳號或密碼錯誤 |
 | 401 | `TOKEN_EXPIRED` | Access Token 已過期，請呼叫 /auth/refresh |
@@ -947,14 +1185,17 @@ Authorization: Bearer <access_token>
 | 404 | `USER_NOT_FOUND` | 找不到此使用者 |
 | 404 | `COURSE_NOT_FOUND` | 找不到此課程 |
 | 404 | `SESSION_NOT_FOUND` | 找不到此聽課紀錄 |
+| 404 | `BOOKING_SESSION_NOT_FOUND` | 找不到此預約場次 |
+| 404 | `BOOKING_ATTENDEE_NOT_FOUND` | 找不到此場次的學員記錄 |
 | 404 | `LECTURER_NOT_FOUND` | 找不到此講師 |
 | 404 | `STATS_NOT_FOUND` | 找不到此年度教學統計 |
 | 409 | `USERNAME_TAKEN` | 帳號名稱已被使用 |
+| 409 | `ATTENDEE_ALREADY_EXISTS` | 該學員已加入此場次 |
 | 500 | `INTERNAL_ERROR` | 伺服器內部錯誤 |
 
 ---
 
-## 12. 前端串接遷移指南
+## 13. 前端串接遷移指南
 
 > 目前前端使用 `localStorage` 作為臨時資料庫，後端串接後需逐步替換。
 
@@ -972,6 +1213,8 @@ Authorization: Bearer <access_token>
 | `superstart_character_themes_db` | 建議新增：`GET /themes?type=character&church=...` |
 | `superstart_coming_of_age_themes_db` | 建議新增：`GET /themes?type=comingOfAge&church=...` |
 | `superstart_teaching_stats_db` | `GET /teaching-stats` / `PUT /teaching-stats/:username/:year` |
+| `superstart_booking_sessions_db` | `GET /bookings/sessions` / `POST /bookings/sessions` ⭐ |
+| `superstart_booking_attendees_db` | `GET /bookings/sessions/:id/attendees` / `PATCH /bookings/sessions/:id/attendees/:username` ⭐ |
 
 ### Store 函式 → API 對照表
 
@@ -991,6 +1234,16 @@ Authorization: Bearer <access_token>
 | `saveTeachingStats()` | `PUT /teaching-stats/:username/:year` |
 | `getTeachingStats()` | `GET /teaching-stats?teacherUsername=...&year=...` |
 | `getAllTeachingStats()` | `GET /teaching-stats/summary?year=...` |
+| `bookingsStore.createSession()` | `POST /bookings/sessions` ⭐ |
+| `bookingsStore.updateSessionStatus()` | `PATCH /bookings/sessions/:id/status` ⭐ |
+| `bookingsStore.updatePrep()` | `PATCH /bookings/sessions/:id/prep` ⭐ |
+| `bookingsStore.completeSession()` | `POST /bookings/sessions/:id/complete` ⭐ |
+| `bookingsStore.updateAttendee()` | `PATCH /bookings/sessions/:id/attendees/:username` ⭐ |
+| `bookingsStore.addAttendeeToSession()` | `POST /bookings/sessions/:id/attendees` ⭐ |
+| `bookingsStore.deleteSession()` | `DELETE /bookings/sessions/:id` ⭐ |
+| `bookingsStore.getSessionsByTeacher()` | `GET /bookings/sessions?teacherUsername=...` ⭐ |
+| `bookingsStore.getUpcomingSessions()` | `GET /bookings/sessions?studentUsername=...&upcoming=true` ⭐ |
+| `bookingsStore.getPastSessions()` | `GET /bookings/sessions?studentUsername=...&past=true` ⭐ |
 
 ### Token 管理策略
 
@@ -1010,7 +1263,8 @@ Refresh Token 有效期：30 天（建議）
 1. **安裝 axios**：`npm install axios`
 2. **建立 `src/api/client.ts`**：封裝 axios instance，設定 Base URL 與 Token 攔截器
 3. **逐步替換各 Store**：將 `localStorage.getItem / setItem` 改為 `await api.get/post` 呼叫
-4. **錯誤處理**：在 axios response 攔截器統一處理 401/403 錯誤，顯示提示訊息
+4. **預約系統優先級**：`bookings.ts` 已完全獨立，可優先串接 `/bookings/*` 路徑
+5. **錯誤處理**：在 axios response 攔截器統一處理 401/403 錯誤，顯示提示訊息
 
 ---
 
