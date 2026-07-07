@@ -2,46 +2,58 @@
   <div id="app-container">
     <!-- Navigation Navbar (Only visible when logged in) -->
     <nav v-if="authStore.isAuthenticated" class="navbar">
-      <router-link to="/" class="navbar-brand">
-        <span class="navbar-logo-dot"></span>
-        <span>SuperStart</span>
-      </router-link>
+      <div class="navbar-top-row">
+        <router-link to="/" class="navbar-brand">
+          <span class="navbar-logo-dot"></span>
+          <span>SuperStart</span>
+        </router-link>
 
-      <ul class="navbar-menu">
-        <!-- Student Link (hidden if restricted) -->
-        <li v-if="canAccess('/student')">
-          <router-link to="/student" class="navbar-link">🎒 學習與檢視</router-link>
-        </li>
-        <!-- Teacher Link (hidden if restricted) -->
-        <li v-if="canAccess('/teacher')">
-          <router-link to="/teacher" class="navbar-link">👨‍🏫 關懷與審查</router-link>
-        </li>
-        <!-- Admin Link -->
-        <li v-if="canAccess('/admin')">
-          <router-link to="/admin" class="navbar-link">⚙️ SS中央控制台</router-link>
-        </li>
-      </ul>
+        <!-- Hamburger Button (mobile only) -->
+        <button class="hamburger-btn" @click="mobileMenuOpen = !mobileMenuOpen" :aria-label="mobileMenuOpen ? '關閉選單' : '開啟選單'">
+          <span class="hamburger-line" :class="{ open: mobileMenuOpen }"></span>
+          <span class="hamburger-line" :class="{ open: mobileMenuOpen }"></span>
+          <span class="hamburger-line" :class="{ open: mobileMenuOpen }"></span>
+        </button>
+      </div>
 
-      <!-- User controls -->
-      <div class="user-control-panel">
-        <div class="user-meta-info">
-          <img :src="authStore.currentUser?.avatarUrl" class="avatar-nav" alt="Avatar" />
-          <div class="user-labels">
-            <span class="username-nav">{{ authStore.currentUser?.username }}</span>
-            <span :class="['badge', getBadgeClass(authStore.currentUser?.role)]">
-              {{ getRoleLabel(authStore.currentUser?.role) }}
-            </span>
-            <span v-if="authStore.currentUser?.church" class="badge badge-church">
-              ⛪ {{ authStore.currentUser.church }}
-            </span>
+      <!-- Collapsible menu -->
+      <div class="navbar-collapse" :class="{ 'is-open': mobileMenuOpen }">
+        <ul class="navbar-menu">
+          <!-- Student Link (hidden if restricted) -->
+          <li v-if="canAccess('/student')">
+            <router-link to="/student" class="navbar-link" @click="mobileMenuOpen = false">🎒 學習與檢視</router-link>
+          </li>
+          <!-- Teacher Link (hidden if restricted) -->
+          <li v-if="canAccess('/teacher')">
+            <router-link to="/teacher" class="navbar-link" @click="mobileMenuOpen = false">👨‍🏫 關懷與審查</router-link>
+          </li>
+          <!-- Admin Link -->
+          <li v-if="canAccess('/admin')">
+            <router-link to="/admin" class="navbar-link" @click="mobileMenuOpen = false">⚙️ SS中央控制台</router-link>
+          </li>
+        </ul>
+
+        <!-- User controls -->
+        <div class="user-control-panel">
+          <div class="user-meta-info">
+            <img :src="authStore.currentUser?.avatarUrl" class="avatar-nav" alt="Avatar" />
+            <div class="user-labels">
+              <span class="username-nav">{{ authStore.currentUser?.username }}</span>
+              <span :class="['badge', getBadgeClass(authStore.currentUser?.role)]">
+                {{ getRoleLabel(authStore.currentUser?.role) }}
+              </span>
+              <span v-if="authStore.currentUser?.church" class="badge badge-church">
+                ⛪ {{ authStore.currentUser.church }}
+              </span>
+            </div>
           </div>
+          <button @click="showPasswordModal = true" class="btn btn-outline btn-sm action-btn">
+            🔒 修改密碼
+          </button>
+          <button @click="handleLogout" class="btn btn-outline btn-sm action-btn logout-btn">
+            登出 ➔
+          </button>
         </div>
-        <button @click="showPasswordModal = true" class="btn btn-outline btn-sm action-btn">
-          🔒 修改密碼
-        </button>
-        <button @click="handleLogout" class="btn btn-outline btn-sm action-btn logout-btn">
-          登出 ➔
-        </button>
       </div>
     </nav>
 
@@ -99,6 +111,7 @@ const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
 
 // Password Change State
+const mobileMenuOpen = ref(false)
 const showPasswordModal = ref(false)
 const pwdForm = reactive({
   oldPassword: '',
@@ -315,19 +328,100 @@ function getRoleLabel(role?: string) {
   font-weight: 600;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .navbar {
     flex-direction: column;
-    gap: 1rem;
-    padding: 1rem;
+    padding: 0;
+    align-items: stretch;
   }
-  .navbar-menu {
-    width: 100%;
-    justify-content: center;
-  }
-  .user-control-panel {
-    width: 100%;
+
+  .navbar-top-row {
+    display: flex;
     justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
   }
+
+  .hamburger-btn {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    padding: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+  }
+
+  .hamburger-line {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: var(--text-primary);
+    border-radius: 2px;
+    transition: all 0.25s ease;
+    transform-origin: center;
+  }
+
+  .hamburger-line.open:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+  .hamburger-line.open:nth-child(2) { opacity: 0; transform: scaleX(0); }
+  .hamburger-line.open:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+  .navbar-collapse {
+    display: none;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem 1rem;
+    border-top: 1px solid rgba(0,0,0,0.06);
+    background: rgba(255,255,255,0.98);
+  }
+
+  .navbar-collapse.is-open {
+    display: flex;
+  }
+
+  .navbar-menu {
+    flex-direction: column;
+    gap: 0.25rem;
+    width: 100%;
+  }
+
+  .navbar-menu li { width: 100%; }
+
+  .navbar-link {
+    display: block;
+    padding: 0.6rem 0.75rem;
+    border-radius: var(--radius-md);
+    font-size: 0.95rem;
+  }
+
+  .user-control-panel {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #F1F5F9;
+    width: 100%;
+  }
+
+  .user-meta-info {
+    flex: 1;
+  }
+
+  .action-btn {
+    flex: 1;
+    justify-content: center;
+    font-size: 0.78rem;
+    padding: 0.4rem 0.5rem;
+  }
+}
+
+/* Desktop: hide hamburger */
+@media (min-width: 641px) {
+  .hamburger-btn { display: none; }
+  .navbar-collapse { display: flex !important; align-items: center; gap: 1.5rem; flex: 1; }
+  .navbar { flex-direction: row; padding: 0.75rem 2rem; }
+  .navbar-top-row { flex: 0 0 auto; }
 }
 </style>

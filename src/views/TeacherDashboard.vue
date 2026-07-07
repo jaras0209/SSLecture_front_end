@@ -2820,6 +2820,214 @@ const filteredLecturers = computed(() => coursesStore.getLecturersByChurch(curre
   display: none;
 }
 
+/* ══════════════════════════════════════════
+   TeacherDashboard — Mobile RWD (640px)
+══════════════════════════════════════════ */
+@media (max-width: 640px) {
+  /* Dashboard header */
+  .dashboard-header {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    gap: 0.75rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .user-greeting {
+    gap: 0.75rem;
+    width: 100%;
+  }
+
+  .avatar-lg {
+    width: 52px;
+    height: 52px;
+  }
+
+  /* Stat boxes */
+  .teacher-stats-row {
+    gap: 0.5rem;
+  }
+
+  .stat-box {
+    min-width: 80px;
+    padding: 0.5rem 0.75rem;
+    flex: 1;
+  }
+
+  .stat-val {
+    font-size: 1.5rem;
+  }
+
+  /* Tab navigation: scrollable */
+  .main-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    scroll-snap-type: x proximity;
+    padding: 0.25rem;
+    gap: 0.25rem;
+  }
+
+  .main-tab-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    font-size: 0.82rem;
+    padding: 0.6rem 0.85rem;
+    scroll-snap-align: start;
+  }
+
+  /* Tab selectors (inner tabs) also scrollable */
+  .tab-selectors {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+  }
+
+  .tab-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    font-size: 0.78rem;
+    padding: 0.35rem 0.75rem;
+  }
+
+  /* Dashboard body */
+  .dashboard-body {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  /* Glass panels */
+  .glass-panel {
+    padding: 1rem !important;
+  }
+
+  /* Panel header */
+  .panel-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  /* Search input */
+  .search-input {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  /* Table: always has overflow-x auto */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .students-table th,
+  .students-table td {
+    font-size: 0.78rem;
+    padding: 0.5rem 0.5rem;
+    white-space: nowrap;
+  }
+
+  /* Booking cards */
+  .booking-card {
+    padding: 0.85rem;
+  }
+
+  .booking-card-header {
+    flex-direction: column;
+    gap: 0.4rem;
+    align-items: flex-start;
+  }
+
+  .booking-meta-row {
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+
+  .booking-actions-row {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+}
+
+/* ══════════════════════════════════════════
+   TeacherDashboard — Mobile RWD (480px)
+══════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .dashboard-header {
+    padding: 0.75rem;
+  }
+
+  .stat-box {
+    min-width: 65px;
+    padding: 0.4rem 0.5rem;
+  }
+
+  .stat-val {
+    font-size: 1.3rem;
+  }
+
+  .stat-lbl {
+    font-size: 0.72rem;
+  }
+
+  /* Main tab buttons smaller */
+  .main-tab-btn {
+    padding: 0.5rem 0.65rem;
+    font-size: 0.78rem;
+  }
+
+  /* Student table: font smaller */
+  .students-table th,
+  .students-table td {
+    font-size: 0.72rem;
+    padding: 0.4rem 0.4rem;
+  }
+
+  /* Booking filter tabs */
+  .booking-filter-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+  }
+
+  .booking-filter-tab {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+  }
+
+  /* Booking create button */
+  .booking-create-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Modal: full width on phones */
+  .modal-card,
+  .modal-booking-card {
+    max-width: 100% !important;
+    margin: 0;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+  }
+
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  /* Stats form */
+  .stats-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Student card (if card view) */
+  .student-card-content {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
 @media print {
   /* Hide all screen elements completely */
   .no-print, nav, header, .main-tabs, .btn, .tab-selectors, #app-container, .main-content, .student-details-drawer {

@@ -477,3 +477,121 @@ h1, h2, h3, h4, h5, h6 {
     display: none !important;
   }
 }
+
+/* ═══════════════════════════════════
+   Mobile RWD — 640px (tablet)
+═══════════════════════════════════ */
+@media (max-width: 640px) {
+  .container {
+    padding: 0 0.75rem;
+    margin: 1rem auto;
+  }
+
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.25rem; }
+  h3 { font-size: 1.1rem; }
+
+  .btn {
+    padding: 0.6rem 1rem;
+    font-size: 0.88rem;
+  }
+
+  .btn-sm {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.8rem;
+  }
+
+  .modal-overlay {
+    padding: 0.75rem;
+    align-items: flex-end;
+  }
+
+  .glass-card {
+    padding: 1rem;
+  }
+}
+
+/* ═══════════════════════════════════
+   Mobile RWD — 480px (phones)
+═══════════════════════════════════ */
+@media (max-width: 480px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  #app-container {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  .container {
+    padding: 0 0.5rem;
+    margin: 0.75rem auto;
+  }
+
+  h1 { font-size: 1.3rem; }
+  h2 { font-size: 1.15rem; }
+
+  /* Buttons — stack easily on small screens */
+  .btn {
+    padding: 0.55rem 0.9rem;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  /* Badges — wrap text if needed */
+  .badge {
+    font-size: 0.68rem;
+    padding: 0.2rem 0.5rem;
+    white-space: nowrap;
+  }
+
+  /* Grid: always single column */
+  .grid-cols-3 {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  /* Glass card compact */
+  .glass-card {
+    padding: 0.85rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .glass-panel {
+    border-radius: var(--radius-sm);
+  }
+
+  /* Modal: full-width bottom sheet on phones */
+  .modal-overlay {
+    padding: 0.5rem;
+    align-items: flex-end;
+  }
+
+  /* Progress bar */
+  .progress-bar-container {
+    height: 6px;
+  }
+
+  /* Audio player */
+  .audio-controls {
+    gap: 0.75rem;
+  }
+
+  .player-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .player-btn.play {
+    width: 48px;
+    height: 48px;
+  }
+
+  /* Section titles */
+  .section-title-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}

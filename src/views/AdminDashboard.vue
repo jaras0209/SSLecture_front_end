@@ -1077,4 +1077,146 @@ function getChurchTeacherList(church: string): string[] {
 }
 
 .mt-4 { margin-top: 1rem; }
+
+/* ══════════════════════════════════════════
+   AdminDashboard — Mobile RWD (640px)
+══════════════════════════════════════════ */
+@media (max-width: 640px) {
+  /* Dashboard body: single column */
+  .dashboard-body {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  /* Sidebar compact */
+  .admin-sidebar {
+    padding: 1rem;
+    border-radius: var(--radius-md);
+  }
+
+  /* Main area */
+  .admin-main {
+    padding: 1rem;
+    border-radius: var(--radius-md);
+  }
+
+  /* Main header */
+  .main-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  /* Tab navigation */
+  .main-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    gap: 0.25rem;
+    padding: 0.25rem;
+  }
+
+  .main-tab-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    font-size: 0.82rem;
+    padding: 0.6rem 0.85rem;
+  }
+
+  /* Table: scrollable */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Inner tab selectors */
+  .tab-selectors {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+  }
+
+  .tab-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    font-size: 0.78rem;
+    padding: 0.35rem 0.75rem;
+  }
+
+  /* Glass panels */
+  .glass-panel {
+    padding: 1rem !important;
+  }
+
+  /* Panel header rows */
+  .panel-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+/* ══════════════════════════════════════════
+   AdminDashboard — Mobile RWD (480px)
+══════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .admin-sidebar {
+    padding: 0.75rem;
+  }
+
+  .admin-main {
+    padding: 0.75rem;
+  }
+
+  .main-tab-btn {
+    padding: 0.5rem 0.65rem;
+    font-size: 0.78rem;
+  }
+
+  /* User table compact */
+  .users-table th,
+  .users-table td {
+    font-size: 0.72rem;
+    padding: 0.4rem 0.4rem;
+    white-space: nowrap;
+  }
+
+  /* Stats grid */
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .stat-card {
+    padding: 0.75rem;
+  }
+
+  /* Overview cards */
+  .overview-card {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  /* Section buttons */
+  .section-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .section-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Form groups */
+  .form-row-inline {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .form-row-inline .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
 </style>

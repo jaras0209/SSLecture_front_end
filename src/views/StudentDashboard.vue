@@ -1890,6 +1890,206 @@ const advancedLabels = {
   display: none;
 }
 
+/* ══════════════════════════════════════════
+   StudentDashboard — Mobile RWD (640px)
+══════════════════════════════════════════ */
+@media (max-width: 640px) {
+  /* Dashboard header compact */
+  .dashboard-header {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    gap: 0.75rem;
+  }
+
+  .user-greeting {
+    gap: 0.75rem;
+  }
+
+  .avatar-lg {
+    width: 52px;
+    height: 52px;
+  }
+
+  .progress-summary {
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .summary-card {
+    padding: 0.5rem 1rem;
+    flex: 1;
+    min-width: 70px;
+  }
+
+  .summary-num {
+    font-size: 1.4rem;
+  }
+
+  /* Tab navigation: horizontal scroll instead of overflow */
+  .main-tabs {
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    flex-wrap: nowrap;
+    padding: 0.25rem;
+    gap: 0.25rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .main-tab-btn {
+    flex: 0 0 auto;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.82rem;
+    white-space: nowrap;
+    scroll-snap-align: start;
+  }
+
+  /* Dashboard body: single column */
+  .dashboard-body {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 0 0.25rem;
+  }
+
+  /* Course card: vertical on mobile */
+  .course-card {
+    flex-direction: column;
+  }
+
+  .card-cover {
+    width: 100%;
+    height: 140px;
+  }
+
+  .card-content {
+    padding: 0.85rem;
+  }
+
+  .course-title {
+    font-size: 1rem;
+  }
+
+  /* Filter tabs: horizontal scroll */
+  .filter-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    max-width: 100%;
+  }
+
+  .filter-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    font-size: 0.78rem;
+    padding: 0.35rem 0.75rem;
+  }
+
+  /* Panel header row */
+  .panel-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .section-title {
+    font-size: 1rem;
+  }
+
+  /* Glass panel padding */
+  .glass-panel {
+    padding: 1rem !important;
+  }
+}
+
+/* ══════════════════════════════════════════
+   StudentDashboard — Mobile RWD (480px)
+══════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .dashboard-header {
+    padding: 0.75rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .user-greeting {
+    width: 100%;
+  }
+
+  .progress-summary {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .summary-card {
+    padding: 0.4rem 0.6rem;
+  }
+
+  .summary-num {
+    font-size: 1.2rem;
+  }
+
+  .main-tab-btn {
+    padding: 0.5rem 0.65rem;
+    font-size: 0.78rem;
+  }
+
+  /* Booking panel styles */
+  .student-bookings-panel {
+    padding: 0.75rem !important;
+  }
+
+  .sbc-card {
+    padding: 0.75rem;
+  }
+
+  .sbc-meta-row {
+    flex-direction: column;
+    gap: 0.25rem;
+    align-items: flex-start;
+  }
+
+  .sbc-status-badge {
+    align-self: flex-start;
+  }
+
+  .sbc-prep-row {
+    font-size: 0.8rem;
+  }
+
+  .scripture-chip {
+    font-size: 0.72rem;
+    padding: 0.15rem 0.45rem;
+  }
+
+  /* Shining panel */
+  .shining-dashboard-body {
+    padding: 0.5rem;
+  }
+
+  .shining-row-cols {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Form inline */
+  .form-group-inline {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .info-lbl {
+    min-width: unset;
+    font-size: 0.8rem;
+  }
+
+  /* Print certificate button section */
+  .print-cert-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
 @media print {
   /* Hide all screen elements completely */
   .no-print, nav, header, .main-tabs, .btn, .shining-toolbar, #app-container, .main-content {
