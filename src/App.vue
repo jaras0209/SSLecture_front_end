@@ -417,37 +417,38 @@ function getRoleLabel(role?: string) {
   }
 }
 
-/* Desktop: hide hamburger, restore horizontal layout */
+/* Desktop: hide hamburger, restore horizontal layout with centered menu */
 @media (min-width: 641px) {
   .hamburger-btn { display: none; }
 
+  /* Three-column grid: logo | nav links (centered) | user controls */
   .navbar {
-    flex-direction: row;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
     padding: 0.75rem 2rem;
-    gap: 1.5rem;
+    gap: 0;
   }
 
   .navbar-top-row {
-    flex: 0 0 auto;
+    /* Left column: logo */
+    justify-self: start;
+    flex: unset;
   }
 
-  /* Collapse is always visible on desktop and fills remaining space */
+  /* Collapse holds center (nav menu) + right (user controls) */
+  /* We split it using display: contents so grid sees children directly */
   .navbar-collapse {
-    display: flex !important;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between; /* nav menu left, user controls right */
-    flex: 1;
-    gap: 1.5rem;
-    padding: 0;
-    border-top: none;
-    background: transparent;
+    display: contents !important;
   }
 
+  /* Center column: nav links */
   .navbar-menu {
     flex-direction: row;
-    gap: 1.5rem;
+    gap: 0.5rem;
+    justify-self: center;
+    justify-content: center;
+    width: auto;
   }
 
   .navbar-menu li {
@@ -457,15 +458,18 @@ function getRoleLabel(role?: string) {
   .navbar-link {
     display: inline-flex;
     padding: 0.5rem 1rem;
-    font-size: 1rem;
+    font-size: 0.95rem;
+    white-space: nowrap;
   }
 
+  /* Right column: user controls */
   .user-control-panel {
+    justify-self: end;
     flex-wrap: nowrap;
     width: auto;
     padding-top: 0;
     border-top: none;
-    gap: 1.25rem;
+    gap: 1rem;
   }
 
   .user-meta-info {
