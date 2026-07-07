@@ -417,11 +417,65 @@ function getRoleLabel(role?: string) {
   }
 }
 
-/* Desktop: hide hamburger */
+/* Desktop: hide hamburger, restore horizontal layout */
 @media (min-width: 641px) {
   .hamburger-btn { display: none; }
-  .navbar-collapse { display: flex !important; align-items: center; gap: 1.5rem; flex: 1; }
-  .navbar { flex-direction: row; padding: 0.75rem 2rem; }
-  .navbar-top-row { flex: 0 0 auto; }
+
+  .navbar {
+    flex-direction: row;
+    align-items: center;
+    padding: 0.75rem 2rem;
+    gap: 1.5rem;
+  }
+
+  .navbar-top-row {
+    flex: 0 0 auto;
+  }
+
+  /* Collapse is always visible on desktop and fills remaining space */
+  .navbar-collapse {
+    display: flex !important;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between; /* nav menu left, user controls right */
+    flex: 1;
+    gap: 1.5rem;
+    padding: 0;
+    border-top: none;
+    background: transparent;
+  }
+
+  .navbar-menu {
+    flex-direction: row;
+    gap: 1.5rem;
+  }
+
+  .navbar-menu li {
+    width: auto;
+  }
+
+  .navbar-link {
+    display: inline-flex;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+  }
+
+  .user-control-panel {
+    flex-wrap: nowrap;
+    width: auto;
+    padding-top: 0;
+    border-top: none;
+    gap: 1.25rem;
+  }
+
+  .user-meta-info {
+    flex: 0 0 auto;
+  }
+
+  .action-btn {
+    flex: 0 0 auto;
+    font-size: 0.75rem;
+    padding: 0.35rem 0.75rem;
+  }
 }
 </style>
