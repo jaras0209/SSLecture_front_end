@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <!-- Toast Notifications -->
   <Teleport to="body">
     <div class="toast-container" aria-live="polite">
@@ -40,7 +40,7 @@ function resolve(ok: boolean) {
 }
 </script>
 
-<style scoped>
+<style>
 /* ── Toast Container ────────────────────────────────── */
 .toast-container {
   position: fixed;

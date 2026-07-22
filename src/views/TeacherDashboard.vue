@@ -544,7 +544,7 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
 // have been moved to TeacherStudentList.vue and TeacherStudentDrawer.vue
 </script>
 
-<style scoped>
+<style>
 /* Drawer Tabs Selector Styles */
 .drawer-tabs {
   display: flex;

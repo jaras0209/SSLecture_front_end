@@ -211,7 +211,7 @@ const overallProgressPercent = computed(() => {
 
 </script>
 
-<style scoped>
+<style>
 /* Main Tab Switcher */
 .main-tabs {
   display: flex;

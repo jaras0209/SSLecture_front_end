@@ -107,7 +107,6 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import AppToast from '@/components/AppToast.vue'
-import '@/assets/styles/main.css'
 
 const router = useRouter()
 const authStore = useAuthStore()

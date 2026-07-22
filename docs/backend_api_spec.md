@@ -1,7 +1,7 @@
 # SSLecture 後端 API 規格文件
 
-> **文件版本**：v1.3.0  
-> **最後更新**：2026-06-30  
+> **文件版本**：v1.4.0  
+> **最後更新**：2026-07-22  
 > **前端版本**：Vue 3 + TypeScript（目前以 localStorage 模擬，待串接）  
 > **目標後端技術**：RESTful API（Node.js / Python / 任意語言均可）
 
