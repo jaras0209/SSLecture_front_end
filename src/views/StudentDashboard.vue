@@ -67,903 +67,91 @@
 
     <!-- TAB 1: Sermons Center -->
     <div v-if="activeDashboardTab === 'sermons'" class="dashboard-body no-print">
-      <!-- Course Section -->
-      <section class="courses-section">
-        <div class="section-title-row">
-          <h3>📖 課程與講座清單</h3>
-          <div class="filter-tabs">
-            <button 
-              v-for="tab in filterTabs" 
-              :key="tab"
-              :class="['filter-btn', { active: currentFilter === tab }]"
-              @click="currentFilter = tab"
-            >
-              {{ tab === 'all' ? '全部項目' : tab === 'bible' ? '聖經課程' : '專題講座' }}
-            </button>
-          </div>
-        </div>
-
-        <div class="courses-grid">
-          <div 
-            v-for="course in filteredCourses" 
-            :key="course.id" 
-            class="course-card glass-panel"
-            :class="{ 'card-selected': selectedCourse?.id === course.id }"
-            @click="selectCourse(course)"
-          >
-            <div class="card-cover" :style="{ background: course.coverColor }">
-              <span class="category-badge">{{ course.category === 'bible' ? '聖經' : '講座' }}</span>
-              <span v-if="getRecord(course.id).completed" class="completed-check">✓ 已完成</span>
-            </div>
-            <div class="card-content">
-              <h4 class="course-title">{{ course.title }}</h4>
-              <p class="course-desc">{{ course.description }}</p>
-              
-              <!-- Status info on card -->
-              <div class="card-status-info mt-2">
-                <!-- Listen count badge -->
-                <span 
-                  class="badge" 
-                  :class="getRecord(course.id).completed ? 'badge-teacher' : 'badge-student'"
-                >
-                  <template v-if="getRecord(course.id).sessions.length > 0">
-                    🎧 已聽 {{ getRecord(course.id).sessions.length }} 次
-                  </template>
-                  <template v-else>
-                    📝 尚未登記
-                  </template>
-                </span>
-                <!-- Show latest session lecturer -->
-                <span 
-                  class="lecturer-tag text-xs text-muted mt-1" 
-                  v-if="getRecord(course.id).sessions.length > 0"
-                  style="display: block;"
-                >
-                  🎤 講師：{{ getRecord(course.id).sessions[getRecord(course.id).sessions.length - 1].lecturer || '未填寫' }}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Course Notes Form Section -->
-      <section class="player-section">
-        <div v-if="selectedCourse" class="glass-panel sticky-panel">
-          <h3 class="panel-header">📝 聽課與講座學習紀錄</h3>
-          
-          <!-- Course banner -->
-          <div class="course-banner-card mt-4" :style="{ background: selectedCourse.coverColor, padding: '1.5rem', borderRadius: 'var(--radius-md)', color: 'white', boxShadow: 'var(--shadow-sm)' }">
-            <h4 style="color: white; font-size: 1.2rem; margin-bottom: 0.25rem; font-weight: 700;">{{ selectedCourse.title }}</h4>
-            <p style="color: rgba(255,255,255,0.85); font-size: 0.9rem; margin-bottom: 0;">{{ selectedCourse.description }}</p>
-          </div>
-
-          <!-- ── COMPLETED STATE ── -->
-          <template v-if="currentRecord?.completed">
-
-            <!-- Session history timeline -->
-            <div class="session-history mt-4">
-              <h4 class="section-sub-title">📋 聽課紀錄歷程（共 {{ currentRecord?.sessions.length ?? 0 }} 次）</h4>
-              <div class="timeline">
-                <div 
-                  v-for="(session, idx) in [...(currentRecord?.sessions ?? [])].reverse()" 
-                  :key="session.id" 
-                  class="timeline-item"
-                >
-                  <div class="timeline-dot" :class="idx === 0 ? 'dot-latest' : 'dot-past'"></div>
-                  <div class="timeline-content glass-panel-sm">
-
-                    <!-- View mode header -->
-                    <div class="timeline-header">
-                      <span class="timeline-count">第 {{ (currentRecord?.sessions.length ?? 0) - idx }} 次</span>
-                      <div class="timeline-actions">
-                        <span class="timeline-date">{{ session.listenedAt ? session.listenedAt.replace('T', ' ') : session.createdAt }}</span>
-                        <button 
-                          class="btn-edit-session" 
-                          @click="startEditSession(session)"
-                          v-if="editingSessionId !== session.id"
-                          title="編輯此筆紀錄"
-                        >✏️</button>
-                      </div>
-                    </div>
-
-                    <!-- View mode body -->
-                    <template v-if="editingSessionId !== session.id">
-                      <p class="timeline-lecturer">🎤 {{ session.lecturer || '（未填寫講師）' }}</p>
-                      <p class="timeline-notes" v-if="session.notes">{{ session.notes }}</p>
-                      <p class="timeline-notes text-muted" v-else><em>（無心得）</em></p>
-                    </template>
-
-                    <!-- Edit mode (inline) -->
-                    <template v-else>
-                      <div class="edit-session-form mt-2">
-                        <div class="form-group mb-2">
-                          <label class="form-label form-label-sm">🎤 授課講師：</label>
-                          <select v-model="editSessionDraft.lecturer" class="form-input form-input-sm">
-                            <option value="">-- 請選擇 --</option>
-                            <option 
-                              v-for="lec in availableLecturers" 
-                              :key="lec.id" 
-                              :value="lec.name + ' ' + lec.title"
-                            >
-                              {{ lec.name }} ({{ lec.title }})
-                            </option>
-                          </select>
-                        </div>
-                        <div class="form-group mb-2">
-                          <label class="form-label form-label-sm">📅 聽課時間：</label>
-                          <input 
-                            v-model="editSessionDraft.listenedAt" 
-                            type="datetime-local" 
-                            class="form-input form-input-sm datetime-input" 
-                          />
-                        </div>
-                        <div class="form-group mb-2">
-                          <label class="form-label form-label-sm">✍️ 心得：</label>
-                          <textarea 
-                            v-model="editSessionDraft.notes"
-                            class="form-input form-input-sm text-area"
-                            rows="3"
-                            placeholder="修改你的心得..."
-                          ></textarea>
-                        </div>
-                        <div class="edit-session-actions">
-                          <button class="btn btn-primary btn-xs" @click="saveEditSession(session.id)">💾 儲存</button>
-                          <button class="btn btn-ghost btn-xs" @click="cancelEditSession">取消</button>
-                        </div>
-                      </div>
-                    </template>
-
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Collapsible review panel -->
-            <div class="review-section mt-4">
-              <button 
-                class="btn-review-toggle" 
-                @click="showReviewPanel = !showReviewPanel"
-              >
-                <span>{{ showReviewPanel ? '▲' : '▼' }}</span>
-                {{ showReviewPanel ? '收起複習紀錄' : '➕ 新增複習紀錄（再聽一次）' }}
-              </button>
-
-              <transition name="review-slide">
-                <div v-if="showReviewPanel" class="review-form mt-3">
-                  <div class="form-group mb-3">
-                    <label class="form-label" for="review-lecturer-select">🎤 本次授課講師：</label>
-                    <select v-model="selectedLecturer" id="review-lecturer-select" class="form-input">
-                      <option value="">-- 請選擇授課講師 --</option>
-                      <option 
-                        v-for="lec in availableLecturers" 
-                        :key="lec.id" 
-                        :value="lec.name + ' ' + lec.title"
-                      >
-                        {{ lec.name }} ({{ lec.title }})
-                      </option>
-                    </select>
-                  </div>
-
-                  <div class="form-group mb-3">
-                    <label class="form-label" for="review-listened-time">📅 本次聽課時間：</label>
-                    <input 
-                      v-model="listenedAt" 
-                      id="review-listened-time" 
-                      type="datetime-local" 
-                      class="form-input datetime-input" 
-                    />
-                  </div>
-
-                  <div class="form-group mb-3">
-                    <label class="form-label" for="review-notes-input">✍️ 本次複習心得：</label>
-                    <textarea 
-                      v-model="notesText" 
-                      id="review-notes-input"
-                      class="form-input text-area" 
-                      placeholder="這次複習有哪些新的體會或收穫？"
-                      rows="4"
-                    ></textarea>
-                  </div>
-
-                  <div class="save-row mt-3">
-                    <span class="save-status" v-if="saveStatus">{{ saveStatus }}</span>
-                    <button class="btn btn-secondary btn-sm" @click="saveNoteAndProgress">
-                      💾 儲存複習紀錄
-                    </button>
-                  </div>
-                </div>
-              </transition>
-            </div>
-          </template>
-
-          <!-- ── FIRST TIME STATE ── -->
-          <template v-else>
-            <div class="notes-container mt-4">
-              <div class="form-group mb-3">
-                <label class="form-label" for="lecturer-select">🎤 授課講師：</label>
-                <select 
-                  v-model="selectedLecturer" 
-                  id="lecturer-select" 
-                  class="form-input"
-                >
-                  <option value="">-- 請選擇授課講師 --</option>
-                  <option 
-                    v-for="lec in availableLecturers" 
-                    :key="lec.id" 
-                    :value="lec.name + ' ' + lec.title"
-                  >
-                    {{ lec.name }} ({{ lec.title }})
-                  </option>
-                </select>
-              </div>
-
-              <div class="form-group mb-3">
-                <label class="form-label" for="listened-time-input">📅 登記聽課時間：</label>
-                <input 
-                  v-model="listenedAt" 
-                  id="listened-time-input" 
-                  type="datetime-local" 
-                  class="form-input datetime-input" 
-                />
-              </div>
-
-              <label class="form-label" for="notes-input">✍️ 我的聽課心得與學習筆記</label>
-              <textarea 
-                v-model="notesText" 
-                id="notes-input"
-                class="form-input text-area" 
-                placeholder="寫下你的收穫、靈修心得，或任何你想對輔導教師說的話..."
-                rows="5"
-              ></textarea>
-              
-              <div class="save-row mt-4">
-                <span class="save-status" v-if="saveStatus">{{ saveStatus }}</span>
-                <button class="btn btn-secondary btn-sm" @click="saveNoteAndProgress">
-                  💾 儲存初次聽課紀錄（標記為已完成）
-                </button>
-              </div>
-            </div>
-          </template>
-        </div>
-        
-        <div v-else class="glass-panel sticky-panel empty-player-state text-center">
-          <div class="empty-emoji">⛪✨</div>
-          <h4>請選擇課程或講座</h4>
-          <p class="desc">點擊左側的課程卡片，開啟右側面板填報您的學習心得與授課講師。</p>
-        </div>
-      </section>
+      <StudentCourseGrid
+        :selected-course-id="selectedCourse?.id"
+        @select-course="selectedCourse = $event"
+      />
+      <StudentCourseDetail :selected-course="selectedCourse" />
     </div>
 
     <!-- TAB 2: SS Shining Project Dashboard -->
-    <div v-else-if="activeDashboardTab === 'shining'" class="shining-dashboard-body no-print">
-      <!-- Toolbar with export -->
-      <div class="shining-toolbar mb-4">
-        <h3>✨ SS 閃耀計畫自我檢視平台</h3>
-        <button class="btn btn-primary btn-sm" @click="triggerPrint">
-          🖨️ 匯出簽名檔案 (PDF/列印)
-        </button>
-      </div>
+    <StudentShiningDashboard v-else-if="activeDashboardTab === 'shining'" />
 
-      <div class="shining-grid">
-        <!-- Row 1: Basic Info & Phase 1 Checklist -->
-        <div class="shining-row-cols">
-          <!-- Basic Info Form -->
-          <div class="glass-panel shining-card-basic">
-            <h4 class="shining-card-title">📝 個人基本資料</h4>
-            <div class="basic-info-fields mt-4">
-              <div class="form-group-inline">
-                <span class="info-dot">✦</span>
-                <label class="info-lbl">姓名：</label>
-                <input v-model="basicInfo.name" type="text" class="form-input-clean" placeholder="請輸入姓名" />
-              </div>
-              <div class="form-group-inline">
-                <span class="info-dot">✦</span>
-                <label class="info-lbl">生日：</label>
-                <input v-model="basicInfo.birthday" type="date" class="form-input-clean" />
-              </div>
-              <div class="form-group-inline">
-                <span class="info-dot">✦</span>
-                <label class="info-lbl">教會：</label>
-                <input v-model="basicInfo.church" type="text" class="form-input-clean" placeholder="請輸入聚會教會" />
-              </div>
-              <div class="form-group-inline">
-                <span class="info-dot">✦</span>
-                <label class="info-lbl">學校/年級：</label>
-                <input v-model="basicInfo.schoolGrade" type="text" class="form-input-clean" placeholder="例如: 師大附中 高一" />
-              </div>
-              <div class="text-right mt-2">
-                <button class="btn btn-secondary btn-sm" @click="saveBasicInfo">儲存個人資料</button>
-                <span v-if="basicSaveMsg" class="save-alert-msg">{{ basicSaveMsg }}</span>
-              </div>
-            </div>
-          </div>
 
-          <!-- Phase 1 Checklist -->
-          <div class="glass-panel checklist-card">
-            <h4 class="shining-card-title">🌟 信仰指標 Phase 1</h4>
-            <div class="checklist-items mt-4">
-              <label 
-                v-for="(label, key) in phase1Labels" 
-                :key="key" 
-                class="check-item-row"
-              >
-                <div class="check-box-wrapper">
-                  <input 
-                    type="checkbox"
-                    :checked="shiningProject.faithPhase1[key]"
-                    @change="toggleCheck('faithPhase1', key)"
-                  />
-                  <span class="styled-checkbox"></span>
-                </div>
-                <span class="check-label-text">{{ label }}</span>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <!-- Row 2: Phase 2 & Advanced Challenges -->
-        <div class="shining-row-cols mt-4">
-          <!-- Phase 2 Checklist -->
-          <div class="glass-panel checklist-card">
-            <h4 class="shining-card-title">🔥 信仰指標 Phase 2</h4>
-            <div class="checklist-items mt-4">
-              <template v-for="(label, key) in phase2Labels" :key="key">
-                <label 
-                  class="check-item-row"
-                  :class="{ 'special-progress-row': key === 'courses30' }"
-                >
-                  <div class="check-box-wrapper">
-                    <input 
-                      type="checkbox"
-                      :checked="shiningProject.faithPhase2[key]"
-                      @change="toggleCheck('faithPhase2', key)"
-                    />
-                    <span class="styled-checkbox"></span>
-                  </div>
-                  <div class="check-label-text-progress" v-if="key === 'courses30'">
-                    <span>我已經聽完 30 個論</span>
-                    <span class="progress-sub">{{ completedCount }}/30 堂課已聽完</span>
-                  </div>
-                  <span class="check-label-text" v-else>{{ label }}</span>
-                </label>
-              </template>
-            </div>
-          </div>
-
-          <!-- Advanced Challenges Checklist -->
-          <div class="glass-panel checklist-card">
-            <h4 class="shining-card-title">🏆 進階挑戰</h4>
-            <div class="checklist-items mt-4">
-              <label 
-                v-for="(label, key) in advancedLabels" 
-                :key="key" 
-                class="check-item-row"
-              >
-                <div class="check-box-wrapper">
-                  <input 
-                    type="checkbox"
-                    :checked="shiningProject.advancedChallenges[key]"
-                    @change="toggleCheck('advancedChallenges', key)"
-                  />
-                  <span class="styled-checkbox"></span>
-                </div>
-                <!-- Custom item template -->
-                <span v-if="key === 'custom'" class="custom-challenge-wrap">
-                  <input 
-                    type="text" 
-                    v-model="customChallengeText" 
-                    class="form-input-clean-custom" 
-                    placeholder="按此填寫您的自訂挑戰..." 
-                    @blur="saveCustomChallengeText"
-                  />
-                </span>
-                <span v-else class="check-label-text">{{ label }}</span>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <!-- Row 3: Special Lectures Tables -->
-        <div class="shining-row-cols-tables mt-4">
-          <!-- Character Lectures Table -->
-          <div class="glass-panel table-card">
-            <div class="table-card-header">
-              <h4 class="shining-card-title">📖 不分階專題課：品格力</h4>
-              <p class="table-sub-lbl">&lt;言語和行動&gt;會展現「人格」，在「人格」之上才有「信仰」和「主的話語」。</p>
-            </div>
-            <table class="shining-lecture-table mt-4">
-              <thead>
-                <tr>
-                  <th style="width: 40%">主題</th>
-                  <th style="width: 30%">講師</th>
-                  <th style="width: 30%">上課日期</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(theme, index) in characterThemes" :key="index">
-                  <td class="theme-title-cell">✦ {{ theme }}</td>
-                  <td>
-                    <span v-if="shiningProject.characterLectures[theme]?.speaker">
-                      {{ shiningProject.characterLectures[theme].speaker }}
-                    </span>
-                    <span v-else class="empty-input-cell">（待教師登錄）</span>
-                  </td>
-                  <td>
-                    <span v-if="shiningProject.characterLectures[theme]?.date">
-                      {{ shiningProject.characterLectures[theme].date }}
-                    </span>
-                    <span v-else class="empty-input-cell">（待教師登錄）</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Coming of Age Lectures Table -->
-          <div class="glass-panel table-card mt-4">
-            <div class="table-card-header">
-              <h4 class="shining-card-title">🎓 成年禮必修專題課</h4>
-              <p class="table-sub-lbl">向我學習後，也像這樣絕對相信、堅定地生活吧！</p>
-            </div>
-            <table class="shining-lecture-table mt-4">
-              <thead>
-                <tr>
-                  <th style="width: 40%">主題</th>
-                  <th style="width: 30%">講師</th>
-                  <th style="width: 30%">上課日期</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(theme, index) in comingOfAgeThemes" :key="index">
-                  <td class="theme-title-cell">✦ {{ theme }}</td>
-                  <td>
-                    <span v-if="shiningProject.comingOfAgeTopics[theme]?.speaker">
-                      {{ shiningProject.comingOfAgeTopics[theme].speaker }}
-                    </span>
-                    <span v-else class="empty-input-cell">（待教師登錄）</span>
-                  </td>
-                  <td>
-                    <span v-if="shiningProject.comingOfAgeTopics[theme]?.date">
-                      {{ shiningProject.comingOfAgeTopics[theme].date }}
-                    </span>
-                    <span v-else class="empty-input-cell">（待教師登錄）</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Signature boxes preview in UI -->
-        <div class="glass-panel signatures-card mt-4">
-          <h4 class="shining-card-title">📝 審核與簽章（實體匯出後供師長簽名）</h4>
-          <div class="signature-box-preview-container mt-4">
-            <div class="sig-box-preview">
-              <span class="sig-title-p">✦ 教師 ✦</span>
-              <div class="sig-circle-p">簽名處</div>
-            </div>
-            <div class="sig-box-preview">
-              <span class="sig-title-p">✦ 牧者 ✦</span>
-              <div class="sig-circle-p">簽名處</div>
-            </div>
-            <div class="sig-box-preview">
-              <span class="sig-title-p">✦ SS中央 ✦</span>
-              <div class="sig-circle-p">簽名處</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- DEDICATED HIGH-FIDELITY HTML PRINT TEMPLATE (Hidden on screen, displayed in print media) -->
-    <div class="print-page-layout print-only">
-      <div class="print-container">
-        <!-- Banner Header -->
-        <div class="print-banner">
-          <div class="print-banner-logo">SS閃耀計畫</div>
-          <div class="print-banner-sub">SHINING PROJECT</div>
-        </div>
-
-        <!-- Grid Row 1: Basic Info & Phase 1 Check list -->
-        <div class="print-flex-row mt-4">
-          <!-- Basic Info Box -->
-          <div class="print-box print-w-45">
-            <h4 class="print-box-title">【基本資料】</h4>
-            <div class="print-box-content">
-              <p class="print-info-line"><span>✦ 姓名：</span><strong>{{ shiningProject.name || '____________' }}</strong></p>
-              <p class="print-info-line"><span>✦ 生日：</span><strong>{{ shiningProject.birthday || '____________' }}</strong></p>
-              <p class="print-info-line"><span>✦ 教會：</span><strong>{{ shiningProject.church || '____________' }}</strong></p>
-              <p class="print-info-line"><span>✦ 學校/年級：</span><strong>{{ shiningProject.schoolGrade || '____________' }}</strong></p>
-            </div>
-          </div>
-
-          <!-- Phase 1 Checklist Box -->
-          <div class="print-box print-w-50">
-            <h4 class="print-box-title">【信仰指標 PHASE 1】</h4>
-            <div class="print-box-content print-checklist">
-              <div 
-                v-for="(label, key) in phase1Labels" 
-                :key="key" 
-                class="print-check-line"
-              >
-                <span class="print-check-circle" :class="{ checked: shiningProject.faithPhase1[key] }">
-                  {{ shiningProject.faithPhase1[key] ? '✓' : '' }}
-                </span>
-                <span class="print-check-text">{{ label }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Grid Row 2: Phase 2 Checklist & Advanced Challenges -->
-        <div class="print-flex-row mt-4">
-          <!-- Phase 2 Checklist Box -->
-          <div class="print-box print-w-48">
-            <h4 class="print-box-title">【信仰指標 PHASE 2】</h4>
-            <div class="print-box-content print-checklist">
-              <template v-for="(label, key) in phase2Labels" :key="key">
-                <div class="print-check-line">
-                  <span class="print-check-circle" :class="{ checked: shiningProject.faithPhase2[key] }">
-                    {{ shiningProject.faithPhase2[key] ? '✓' : '' }}
-                  </span>
-                  <span class="print-check-text" v-if="key === 'courses30'">
-                    我已經聽完 30 個論 (聽課數: {{ completedCount }}/30)
-                  </span>
-                  <span class="print-check-text" v-else>{{ label }}</span>
-                </div>
-              </template>
-            </div>
-          </div>
-
-          <!-- Advanced Challenges Box -->
-          <div class="print-box print-w-48">
-            <h4 class="print-box-title">【進階挑戰】</h4>
-            <div class="print-box-content print-checklist">
-              <div 
-                v-for="(label, key) in advancedLabels" 
-                :key="key" 
-                class="print-check-line"
-              >
-                <span class="print-check-circle" :class="{ checked: shiningProject.advancedChallenges[key] }">
-                  {{ shiningProject.advancedChallenges[key] ? '✓' : '' }}
-                </span>
-                <span class="print-check-text" v-if="key === 'custom'">
-                  {{ shiningProject.customChallenge || '自訂挑戰項目（未填寫）' }}
-                </span>
-                <span class="print-check-text" v-else>{{ label }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Table 1: Character -->
-        <div class="print-table-box mt-4">
-          <h4 class="print-box-title">【不分階專題課：品格力】</h4>
-          <p class="print-box-subtitle">&lt;言語和行動&gt;會展現「人格」。在「人格」之上才有「信仰」和「主的話語」。</p>
-          
-          <table class="print-table">
-            <thead>
-              <tr>
-                <th>主題</th>
-                <th>講師</th>
-                <th>上課日期</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(theme, index) in characterThemes" :key="index">
-                <td>✦ {{ theme }}</td>
-                <td>{{ shiningProject.characterLectures[theme]?.speaker || '' }}</td>
-                <td>{{ shiningProject.characterLectures[theme]?.date || '' }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Table 2: Coming of Age -->
-        <div class="print-table-box mt-4">
-          <h4 class="print-box-title">【成年禮必修專題課】</h4>
-          <p class="print-box-subtitle">向我學習後，也像這樣絕對相信、堅定地生活吧！</p>
-          
-          <table class="print-table">
-            <thead>
-              <tr>
-                <th>主題</th>
-                <th>講師</th>
-                <th>上課日期</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(theme, index) in comingOfAgeThemes" :key="index">
-                <td>✦ {{ theme }}</td>
-                <td>{{ shiningProject.comingOfAgeTopics[theme]?.speaker || '' }}</td>
-                <td>{{ shiningProject.comingOfAgeTopics[theme]?.date || '' }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Bottom Signatures row -->
-        <div class="print-signatures-box mt-4">
-          <h4 class="print-box-title">【審核簽名】</h4>
-          <div class="print-signatures-row mt-2">
-            <div class="print-sig-col">
-              <span class="print-sig-lbl">✦ 教師</span>
-              <div class="print-sig-space">{{ assignedTeacher }}</div>
-            </div>
-            <div class="print-sig-col">
-              <span class="print-sig-lbl">✦ 牧者</span>
-              <div class="print-sig-space">{{ assignedPastor }}</div>
-            </div>
-            <div class="print-sig-col">
-              <span class="print-sig-lbl">✦ 家長/導師</span>
-              <div class="print-sig-space">{{ assignedParent }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div><!-- end shining tab -->
 
     <!-- TAB 3: 我的預約 -->
-    <div v-if="activeDashboardTab === 'bookings'" class="dashboard-body no-print">
-      <section class="glass-panel student-bookings-panel">
-        <div class="panel-header-row">
-          <h3 class="section-title">📅 我的聽課預約</h3>
-        </div>
-
-        <!-- 即將到來 -->
-        <div class="booking-section mt-4">
-          <h4 class="booking-section-title">⏰ 即將到來的預約</h4>
-          <div class="booking-list">
-            <div
-              v-for="item in studentUpcomingSessions"
-              :key="item.session.id"
-              class="student-booking-card glass-card"
-            >
-              <div class="sbc-header">
-                <div class="sbc-status-row">
-                  <span :class="['booking-status-badge', `status-${item.session.status}`]">
-                    {{ studentBookingStatusLabel(item.session.status) }}
-                  </span>
-                  <span v-if="item.session.isGroupSession" class="booking-group-badge">👥 團體課</span>
-                </div>
-              </div>
-
-              <div class="sbc-info mt-2">
-                <div class="sbc-info-item">
-                  <span class="sbc-label">📚 課程</span>
-                  <span class="sbc-value">{{ item.session.courseTitle }}</span>
-                </div>
-                <div class="sbc-info-item">
-                  <span class="sbc-label">🎤 講師</span>
-                  <span class="sbc-value">{{ item.session.lecturerTitle }} {{ item.session.lecturerName }}</span>
-                </div>
-                <div class="sbc-info-item">
-                  <span class="sbc-label">🕐 時間</span>
-                  <span class="sbc-value">{{ formatStudentBookingTime(item.session) }}</span>
-                </div>
-                <div class="sbc-info-item" v-if="item.session.durationMinutes">
-                  <span class="sbc-label">⏱ 時長</span>
-                  <span class="sbc-value">{{ item.session.durationMinutes }} 分鐘</span>
-                </div>
-              </div>
-
-              <!-- 預習內容（若有） -->
-              <div
-                v-if="item.session.prep.scriptures.length || item.session.prep.readingNotes || item.session.prep.materials"
-                class="sbc-prep mt-3"
-              >
-                <div class="sbc-prep-title">📖 預習內容</div>
-                <div v-if="item.session.prep.scriptures.length" class="sbc-prep-row">
-                  <strong>📜 預習經文：</strong>
-                  <span v-for="(s, i) in item.session.prep.scriptures" :key="i" class="scripture-chip">{{ s }}</span>
-                </div>
-                <div v-if="item.session.prep.readingNotes" class="sbc-prep-row">
-                  <strong>📝 準備說明：</strong>{{ item.session.prep.readingNotes }}
-                </div>
-                <div v-if="item.session.prep.materials" class="sbc-prep-row">
-                  <strong>📎 補充材料：</strong>{{ item.session.prep.materials }}
-                </div>
-              </div>
-            </div>
-
-            <div v-if="studentUpcomingSessions.length === 0" class="empty-booking-hint">
-              目前沒有即將到來的預約 🎉
-            </div>
-          </div>
-        </div>
-
-        <!-- 歷史紀錄 -->
-        <div class="booking-section mt-5">
-          <h4 class="booking-section-title">📁 歷史預約紀錄</h4>
-          <div class="booking-list">
-            <div
-              v-for="item in studentPastSessions"
-              :key="item.session.id"
-              class="student-booking-card glass-card"
-              :class="{ 'card-completed': item.session.status === 'completed' }"
-            >
-              <div class="sbc-header">
-                <div class="sbc-status-row">
-                  <span :class="['booking-status-badge', `status-${item.session.status}`]">
-                    {{ studentBookingStatusLabel(item.session.status) }}
-                  </span>
-                  <span :class="['att-chip', `att-${item.attendee.attendanceStatus}`]">
-                    {{ item.attendee.attendanceStatus === 'attended' ? '✅ 已出席'
-                      : item.attendee.attendanceStatus === 'absent' ? '❌ 缺席'
-                      : '📩 已邀請' }}
-                  </span>
-                </div>
-                <button
-                  v-if="item.session.status === 'completed' && !item.attendee.studentFeedback"
-                  class="btn btn-sm btn-outline"
-                  @click="openFeedbackModal(item)"
-                  :id="`btn-feedback-${item.session.id}`"
-                >✍️ 填寫心得</button>
-                <button
-                  v-else-if="item.session.status === 'completed' && item.attendee.studentFeedback"
-                  class="btn btn-sm btn-ghost"
-                  @click="openFeedbackModal(item)"
-                >📝 查看/修改心得</button>
-              </div>
-
-              <div class="sbc-info mt-2">
-                <div class="sbc-info-item">
-                  <span class="sbc-label">📚 課程</span>
-                  <span class="sbc-value">{{ item.session.courseTitle }}</span>
-                </div>
-                <div class="sbc-info-item">
-                  <span class="sbc-label">🎤 講師</span>
-                  <span class="sbc-value">{{ item.session.lecturerTitle }} {{ item.session.lecturerName }}</span>
-                </div>
-                <div class="sbc-info-item">
-                  <span class="sbc-label">🕐 時間</span>
-                  <span class="sbc-value">{{ formatStudentBookingTime(item.session) }}</span>
-                </div>
-              </div>
-
-              <!-- 教師回饋（若有） -->
-              <div v-if="item.attendee.teacherFeedback" class="sbc-teacher-feedback mt-2">
-                <strong>💬 教師回饋：</strong>{{ item.attendee.teacherFeedback }}
-              </div>
-
-              <!-- 我的心得 -->
-              <div v-if="item.attendee.studentFeedback" class="sbc-my-feedback mt-2">
-                <strong>✍️ 我的心得：</strong>{{ item.attendee.studentFeedback }}
-              </div>
-            </div>
-
-            <div v-if="studentPastSessions.length === 0" class="empty-booking-hint">
-              還沒有歷史預約紀錄
-            </div>
-          </div>
-        </div>
-      </section>
-    </div><!-- end bookings tab -->
+    <StudentBookingList
+      v-if="activeDashboardTab === 'bookings'"
+      @open-feedback="openFeedbackModal"
+    /><!-- end bookings tab -->
 
     <!-- ─── Modal: 學員填寫心得 ────────────────────────────────────── -->
-    <Teleport to="body">
-      <div v-if="showStudentFeedbackModal" class="modal-overlay" @click.self="showStudentFeedbackModal = false">
-        <div class="glass-panel modal-card" style="max-width:480px; width:92%; padding:1.75rem;">
-          <h3>✍️ 課後心得</h3>
-          <p class="text-muted text-sm mt-1" v-if="feedbackItem">
-            {{ feedbackItem.session.courseTitle }} ／
-            {{ feedbackItem.session.lecturerTitle }} {{ feedbackItem.session.lecturerName }} ／
-            {{ formatStudentBookingTime(feedbackItem.session) }}
-          </p>
-          <div class="form-group mt-4">
-            <label class="form-label">📝 我的課後心得與感想</label>
-            <textarea
-              v-model="studentFeedbackText"
-              class="form-input"
-              rows="5"
-              placeholder="記錄這次聽課的收穫、感動或想法..."
-              id="student-feedback-textarea"
-            ></textarea>
-          </div>
-          <div class="modal-footer mt-4">
-            <button class="btn btn-outline" @click="showStudentFeedbackModal = false">取消</button>
-            <button class="btn btn-primary" @click="submitStudentFeedback" id="btn-submit-student-feedback">儲存心得</button>
-          </div>
-        </div>
-      </div>
-    </Teleport>
+    <StudentFeedbackModal
+      v-model="showStudentFeedbackModal"
+      :session="feedbackItem?.session ?? null"
+      :initial-feedback="feedbackItem?.attendee.studentFeedback ?? ''"
+      @submit="submitStudentFeedback"
+    />
 
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, reactive, watch } from 'vue'
+import { ref, computed } from 'vue'
+import { useToast } from '@/composables/useToast'
+const { toast } = useToast()
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
-import type { Course, ListenSession } from '@/stores/courses'
+import type { Course } from '@/stores/courses'
 import { useBookingsStore } from '@/stores/bookings'
 import type { BookingSession, BookingAttendee } from '@/stores/bookings'
 import ProfileDialog from '@/components/ProfileDialog.vue'
+import StudentFeedbackModal from '@/components/student/StudentFeedbackModal.vue'
+import StudentShiningDashboard from '@/components/student/StudentShiningDashboard.vue'
+import StudentBookingList from '@/components/student/StudentBookingList.vue'
+import StudentCourseGrid from '@/components/student/StudentCourseGrid.vue'
+import StudentCourseDetail from '@/components/student/StudentCourseDetail.vue'
+import type { FeedbackItem } from '@/components/student/StudentBookingList.vue'
 
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
 const bookingsStore = useBookingsStore()
 
-// ─── Student Booking Logic ────────────────────────────────────────────────────
+// ─── Student Booking (for tab badge only - detail handled in StudentBookingList) ────
 
-const studentUpcomingSessions = computed(() => {
+const upcomingBookingsCount = computed(() => {
   const me = authStore.currentUser
-  if (!me) return []
-  return bookingsStore.getUpcomingSessions(me.username)
+  if (!me) return 0
+  return bookingsStore.getUpcomingSessions(me.username).length
 })
 
-const studentPastSessions = computed(() => {
-  const me = authStore.currentUser
-  if (!me) return []
-  return bookingsStore.getPastSessions(me.username)
-})
+// ── Student Feedback Modal (kept in parent to work with StudentBookingList event) ──
 
-const upcomingBookingsCount = computed(() => studentUpcomingSessions.value.length)
-
-function studentBookingStatusLabel(status: string): string {
-  const map: Record<string, string> = {
-    pending: '⏳ 待確認',
-    confirmed: '📅 已確認',
-    completed: '✅ 已完成',
-    cancelled: '❌ 已取消'
-  }
-  return map[status] || status
-}
-
-function formatStudentBookingTime(session: { proposedAt: string; confirmedAt?: string; status: string }): string {
-  const dt = session.confirmedAt || session.proposedAt
-  if (!dt) return '—'
-  const d = new Date(dt)
-  const dateStr = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`
-  const timeStr = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
-  const isPending = !session.confirmedAt && session.status === 'pending'
-  return `${dateStr} ${timeStr}${isPending ? '（提議）' : ''}`
-}
-
-// ── Student Feedback Modal ───────────────────────────────────────────────────
-
-interface FeedbackItem { session: BookingSession; attendee: BookingAttendee }
+interface FeedbackItemLocal { session: BookingSession; attendee: BookingAttendee }
 
 const showStudentFeedbackModal = ref(false)
-const feedbackItem = ref<FeedbackItem | null>(null)
-const studentFeedbackText = ref('')
+const feedbackItem = ref<FeedbackItemLocal | null>(null)
 
-function openFeedbackModal(item: FeedbackItem) {
-  feedbackItem.value = item
-  studentFeedbackText.value = item.attendee.studentFeedback || ''
+function openFeedbackModal(item: FeedbackItem | FeedbackItemLocal) {
+  feedbackItem.value = item as FeedbackItemLocal
   showStudentFeedbackModal.value = true
 }
 
-function submitStudentFeedback() {
+function submitStudentFeedback(feedback: string) {
   const item = feedbackItem.value
   if (!item) return
   bookingsStore.updateAttendee(item.session.id, item.attendee.studentUsername, {
-    studentFeedback: studentFeedbackText.value
+    studentFeedback: feedback
   })
-  showStudentFeedbackModal.value = false
-  alert('✅ 心得已儲存！')
+  // TODO: Replace alert with in-app notification
+  toast('✅ 心得已儲存！')
 }
 
-const characterThemes = computed(() => {
-  const church = authStore.currentUser?.church || '愛與話語'
-  return coursesStore.getThemesByChurch('character', church)
-})
-const comingOfAgeThemes = computed(() => {
-  const church = authStore.currentUser?.church || '愛與話語'
-  return coursesStore.getThemesByChurch('comingOfAge', church)
-})
 
 const activeDashboardTab = ref<'sermons' | 'shining' | 'bookings'>('sermons')
-const currentFilter = ref<'all' | 'bible' | 'lecture'>('all')
-const filterTabs = ['all', 'bible', 'lecture'] as const
 const selectedCourse = ref<Course | null>(null)
-const selectedLecturer = ref('')
-const notesText = ref('')
-const listenedAt = ref(new Date().toISOString().slice(0, 16))
-const saveStatus = ref('')
-const showReviewPanel = ref(false)
 const showProfileDialog = ref(false)
+
 
 // Display name: use nickname if set, else username
 const displayName = computed(() => {
@@ -988,34 +176,8 @@ const motivationText = computed(() => {
 })
 
 
-// Edit session state
-const editingSessionId = ref<string | null>(null)
-const editSessionDraft = reactive({ lecturer: '', listenedAt: '', notes: '' })
+// Edit session state is now managed by StudentCourseDetail
 
-const shiningProject = computed(() => {
-  const username = authStore.currentUser?.username || ''
-  return coursesStore.getShiningProject(username)
-})
-
-const basicInfo = reactive({
-  name: '',
-  birthday: '',
-  church: '',
-  schoolGrade: ''
-})
-
-const customChallengeText = ref('')
-const basicSaveMsg = ref('')
-
-watch(shiningProject, (newProj) => {
-  if (newProj) {
-    basicInfo.name = newProj.name || ''
-    basicInfo.birthday = newProj.birthday || ''
-    basicInfo.church = newProj.church || ''
-    basicInfo.schoolGrade = newProj.schoolGrade || ''
-    customChallengeText.value = newProj.customChallenge || ''
-  }
-}, { immediate: true })
 
 const assignedTeacher = computed(() => {
   const username = authStore.currentUser?.username || ''
@@ -1032,11 +194,6 @@ const assignedParent = computed(() => {
   return coursesStore.getStudentCaretaker(username, 'parent')
 })
 
-const filteredCourses = computed(() => {
-  if (currentFilter.value === 'all') return coursesStore.courses
-  return coursesStore.courses.filter(c => c.category === currentFilter.value)
-})
-
 const completedCount = computed(() => {
   const username = authStore.currentUser?.username || ''
   const userRecords = coursesStore.progressDb[username]
@@ -1049,136 +206,9 @@ const overallProgressPercent = computed(() => {
   return Math.round((completedCount.value / coursesStore.courses.length) * 100)
 })
 
-function getRecord(courseId: string) {
-  const username = authStore.currentUser?.username || ''
-  return coursesStore.getStudentProgress(username, courseId)
-}
-
-// Reactive record for the currently selected course (drives the panel UI)
-const currentRecord = computed(() => {
-  if (!selectedCourse.value) return null
-  return getRecord(selectedCourse.value.id)
-})
-
-const availableLecturers = computed(() => {
-  if (!selectedCourse.value) return []
-  const courseId = selectedCourse.value.id
-  const church = authStore.currentUser?.church || '愛與話語'
-  const churchLecturers = coursesStore.getLecturersByChurch(church)
-  const list = churchLecturers.filter(l => l.courseIds.includes(courseId))
-  return list.length > 0 ? list : churchLecturers
-})
-
-function selectCourse(course: Course) {
-  selectedCourse.value = course
-  // Reset the form for a fresh entry (don't pre-fill from old data)
-  selectedLecturer.value = ''
-  notesText.value = ''
-  listenedAt.value = new Date().toISOString().slice(0, 16)
-  saveStatus.value = ''
-  showReviewPanel.value = false
-}
-
-function saveNoteAndProgress() {
-  if (!selectedCourse.value || !authStore.currentUser) return
-
-  coursesStore.addListenSession(
-    authStore.currentUser.username,
-    selectedCourse.value.id,
-    {
-      lecturer: selectedLecturer.value,
-      listenedAt: listenedAt.value,
-      notes: notesText.value
-    }
-  )
-
-  saveStatus.value = '✓ 已成功儲存聽課紀錄！'
-  // Reset the form fields after saving
-  selectedLecturer.value = ''
-  notesText.value = ''
-  listenedAt.value = new Date().toISOString().slice(0, 16)
-  showReviewPanel.value = false
-  setTimeout(() => {
-    saveStatus.value = ''
-  }, 3000)
-}
-
-// ── Session inline edit handlers ──
-function startEditSession(session: ListenSession) {
-  editingSessionId.value = session.id
-  editSessionDraft.lecturer = session.lecturer
-  editSessionDraft.listenedAt = session.listenedAt
-  editSessionDraft.notes = session.notes
-}
-
-function saveEditSession(sessionId: string) {
-  if (!selectedCourse.value || !authStore.currentUser) return
-  coursesStore.updateListenSession(
-    authStore.currentUser.username,
-    selectedCourse.value.id,
-    sessionId,
-    {
-      lecturer: editSessionDraft.lecturer,
-      listenedAt: editSessionDraft.listenedAt,
-      notes: editSessionDraft.notes
-    }
-  )
-  editingSessionId.value = null
-}
-
-function cancelEditSession() {
-  editingSessionId.value = null
-}
+// ── Session inline edit handlers moved to StudentCourseDetail ──
 
 
-function saveBasicInfo() {
-  const username = authStore.currentUser?.username || ''
-  coursesStore.updateShiningBasicInfo(username, basicInfo)
-  basicSaveMsg.value = '✓ 儲存成功！'
-  setTimeout(() => {
-    basicSaveMsg.value = ''
-  }, 3000)
-}
-
-function toggleCheck(category: 'faithPhase1' | 'faithPhase2' | 'advancedChallenges', key: any) {
-  const username = authStore.currentUser?.username || ''
-  const checklist = shiningProject.value[category] as Record<string, boolean>
-  const currentValue = checklist[key]
-  coursesStore.updateShiningChecklist(username, category, key, !currentValue)
-}
-
-function saveCustomChallengeText() {
-  const username = authStore.currentUser?.username || ''
-  coursesStore.updateShiningCustomChallenge(username, customChallengeText.value)
-}
-
-function triggerPrint() {
-  window.print()
-}
-
-const phase1Labels = {
-  worship: '我每週都有持守主日禮拜',
-  prayer: '我每天都會禱告至少 10-15 分鐘',
-  independent: '我不會依賴父母，會自主參與信仰',
-  reply: '我會主動聯絡教師並回覆訊息',
-  share: '我願意分享我的體會和經歷'
-}
-
-const phase2Labels = {
-  courses30: '我已經聽完 30 個論',
-  prayerLong: '我每天都會禱告至少 20-30 分鐘',
-  morningWorship: '我每週都至少參與一次清晨禮拜',
-  readBible: '我已經讀完一遍新約和舊約',
-  churchService: '我有參與教會服事或領受使命'
-}
-
-const advancedLabels = {
-  wednesday: '定期參與週三禮拜',
-  shareFaith: '願意和同學分享信仰',
-  copySermon: '抄寫一篇主日話語',
-  morningProverb: '每天閱讀清晨箴言',
-  custom: '自訂挑戰：'
-}
 </script>
 
 <style scoped>

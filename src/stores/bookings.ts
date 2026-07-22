@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
+import { safeGet, safeSet } from '@/utils/storage'
 
 // ─── Interfaces ──────────────────────────────────────────────────────────────
 
@@ -80,21 +81,21 @@ export const useBookingsStore = defineStore('bookings', () => {
   // ── State ──────────────────────────────────────────────────────────────────
 
   const sessionsDb = ref<BookingSessionsDb>(
-    JSON.parse(localStorage.getItem('superstart_booking_sessions_db') || '{}')
+    safeGet<BookingSessionsDb>('superstart_booking_sessions_db', {}, { clearOnError: true })
   )
 
   const attendeesDb = ref<BookingAttendeesDb>(
-    JSON.parse(localStorage.getItem('superstart_booking_attendees_db') || '{}')
+    safeGet<BookingAttendeesDb>('superstart_booking_attendees_db', {}, { clearOnError: true })
   )
 
   // ── Persistence ────────────────────────────────────────────────────────────
 
   watch(sessionsDb, (val) => {
-    localStorage.setItem('superstart_booking_sessions_db', JSON.stringify(val))
+    safeSet('superstart_booking_sessions_db', val)
   }, { deep: true })
 
   watch(attendeesDb, (val) => {
-    localStorage.setItem('superstart_booking_attendees_db', JSON.stringify(val))
+    safeSet('superstart_booking_attendees_db', val)
   }, { deep: true })
 
   // ── Getters ────────────────────────────────────────────────────────────────

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
+import { safeGet, safeSet } from '@/utils/storage'
 
 export interface Course {
   id: string
@@ -168,86 +169,77 @@ export const useCoursesStore = defineStore('courses', () => {
   )
 
   // Progress database (persistent)
-  const progressDb = ref<UserProgressDb>({})
-  const savedProgress = localStorage.getItem('superstart_progress_db')
-  if (savedProgress) {
-    progressDb.value = JSON.parse(savedProgress)
-  }
+  const progressDb = ref<UserProgressDb>(
+    safeGet<UserProgressDb>('superstart_progress_db', {}, { clearOnError: true })
+  )
 
   // Page restrictions database (persistent)
-  const restrictionsDb = ref<PageRestrictionsDb>({})
-  const savedRestrictions = localStorage.getItem('superstart_restrictions_db')
-  if (savedRestrictions) {
-    restrictionsDb.value = JSON.parse(savedRestrictions)
-  }
+  const restrictionsDb = ref<PageRestrictionsDb>(
+    safeGet<PageRestrictionsDb>('superstart_restrictions_db', {}, { clearOnError: true })
+  )
 
   // Student-Teacher care assignments mapping database (persistent)
   const studentTeacherDb = ref<StudentTeacherDb>({})
-  const savedStudentTeacher = localStorage.getItem('superstart_student_teacher_db')
-  if (savedStudentTeacher) {
+  const _rawStudentTeacher = safeGet<Record<string, unknown>>('superstart_student_teacher_db', {}, { clearOnError: true })
+  if (Object.keys(_rawStudentTeacher).length > 0) {
     try {
-      const parsed = JSON.parse(savedStudentTeacher)
       const migrated: StudentTeacherDb = {}
-      Object.keys(parsed).forEach(studentKey => {
-        const val = parsed[studentKey]
+      Object.keys(_rawStudentTeacher).forEach(studentKey => {
+        const val = _rawStudentTeacher[studentKey]
         if (typeof val === 'string') {
           migrated[studentKey] = { teacher: val }
         } else if (val && typeof val === 'object') {
-          migrated[studentKey] = val
+          migrated[studentKey] = val as StudentCaretakers
         }
       })
       studentTeacherDb.value = migrated
     } catch (e) {
-      console.error('Failed to parse and migrate studentTeacherDb:', e)
+      console.error('Failed to migrate studentTeacherDb:', e)
       studentTeacherDb.value = {}
     }
   }
 
   // Shining Project database (persistent)
-  const shiningProjectDb = ref<ShiningProjectDb>({})
-  const savedShining = localStorage.getItem('superstart_shining_project_db')
-  if (savedShining) {
-    shiningProjectDb.value = JSON.parse(savedShining)
-  }
+  const shiningProjectDb = ref<ShiningProjectDb>(
+    safeGet<ShiningProjectDb>('superstart_shining_project_db', {}, { clearOnError: true })
+  )
 
   // Dynamic themes (persistent)
   const characterThemesDb = ref<Record<string, string[]>>({
     '愛與話語': ['品格力 - 自律', '品格力 - 感謝', '品格力 - 勇氣', '品格力 - 正直']
   })
-  const savedCharThemes = localStorage.getItem('superstart_character_themes_db')
-  if (savedCharThemes) {
+  const _rawCharThemes = safeGet<unknown>('superstart_character_themes_db', null)
+  if (_rawCharThemes !== null) {
     try {
-      const parsed = JSON.parse(savedCharThemes)
-      if (Array.isArray(parsed)) {
-        // Migrate old array
-        characterThemesDb.value['愛與話語'] = parsed
+      if (Array.isArray(_rawCharThemes)) {
+        // Migrate old array format
+        characterThemesDb.value['愛與話語'] = _rawCharThemes as string[]
       } else {
-        characterThemesDb.value = parsed
+        characterThemesDb.value = _rawCharThemes as Record<string, string[]>
       }
-    } catch (e) {}
+    } catch (e) { /* ignore */ }
   }
 
   const comingOfAgeThemesDb = ref<Record<string, string[]>>({
     '愛與話語': ['基督教歷史', '台灣攝理歷史', '情感教育', 'R的使命與精神']
   })
-  const savedAgeThemes = localStorage.getItem('superstart_coming_of_age_themes_db')
-  if (savedAgeThemes) {
+  const _rawAgeThemes = safeGet<unknown>('superstart_coming_of_age_themes_db', null)
+  if (_rawAgeThemes !== null) {
     try {
-      const parsed = JSON.parse(savedAgeThemes)
-      if (Array.isArray(parsed)) {
-        // Migrate old array
-        comingOfAgeThemesDb.value['愛與話語'] = parsed
+      if (Array.isArray(_rawAgeThemes)) {
+        // Migrate old array format
+        comingOfAgeThemesDb.value['愛與話語'] = _rawAgeThemes as string[]
       } else {
-        comingOfAgeThemesDb.value = parsed
+        comingOfAgeThemesDb.value = _rawAgeThemes as Record<string, string[]>
       }
-    } catch (e) {}
+    } catch (e) { /* ignore */ }
   }
 
-  // Lecturers list (persistent)
-  const lecturers = ref<Lecturer[]>([])
-  const savedLecturers = localStorage.getItem('superstart_lecturers_db')
-  if (savedLecturers) {
-    lecturers.value = JSON.parse(savedLecturers)
+  // Lecturers list (persistent) — migrate existing entries to have church
+  const lecturers = ref<Lecturer[]>(
+    safeGet<Lecturer[]>('superstart_lecturers_db', [], { clearOnError: true })
+  )
+  if (lecturers.value.length > 0) {
     // Migrate existing to have church
     lecturers.value.forEach(l => {
       if (!l.church) l.church = '愛與話語'
@@ -262,47 +254,41 @@ export const useCoursesStore = defineStore('courses', () => {
   }
 
   // Teaching Stats database (persistent)
-  const teachingStatsDb = ref<TeachingStatsDb>({})
-  const savedTeachingStats = localStorage.getItem('superstart_teaching_stats_db')
-  if (savedTeachingStats) {
-    try {
-      teachingStatsDb.value = JSON.parse(savedTeachingStats)
-    } catch (e) {
-      teachingStatsDb.value = {}
-    }
-  }
+  const teachingStatsDb = ref<TeachingStatsDb>(
+    safeGet<TeachingStatsDb>('superstart_teaching_stats_db', {}, { clearOnError: true })
+  )
 
   // Watchers to persist state
   watch(progressDb, (newDb) => {
-    localStorage.setItem('superstart_progress_db', JSON.stringify(newDb))
+    safeSet('superstart_progress_db', newDb)
   }, { deep: true })
 
   watch(restrictionsDb, (newDb) => {
-    localStorage.setItem('superstart_restrictions_db', JSON.stringify(newDb))
+    safeSet('superstart_restrictions_db', newDb)
   }, { deep: true })
 
   watch(studentTeacherDb, (newDb) => {
-    localStorage.setItem('superstart_student_teacher_db', JSON.stringify(newDb))
+    safeSet('superstart_student_teacher_db', newDb)
   }, { deep: true })
 
   watch(shiningProjectDb, (newDb) => {
-    localStorage.setItem('superstart_shining_project_db', JSON.stringify(newDb))
+    safeSet('superstart_shining_project_db', newDb)
   }, { deep: true })
 
   watch(characterThemesDb, (newThemes) => {
-    localStorage.setItem('superstart_character_themes_db', JSON.stringify(newThemes))
+    safeSet('superstart_character_themes_db', newThemes)
   }, { deep: true })
 
   watch(comingOfAgeThemesDb, (newThemes) => {
-    localStorage.setItem('superstart_coming_of_age_themes_db', JSON.stringify(newThemes))
+    safeSet('superstart_coming_of_age_themes_db', newThemes)
   }, { deep: true })
 
   watch(lecturers, (newLecturers) => {
-    localStorage.setItem('superstart_lecturers_db', JSON.stringify(newLecturers))
+    safeSet('superstart_lecturers_db', newLecturers)
   }, { deep: true })
 
   watch(teachingStatsDb, (newStats) => {
-    localStorage.setItem('superstart_teaching_stats_db', JSON.stringify(newStats))
+    safeSet('superstart_teaching_stats_db', newStats)
   }, { deep: true })
 
   // Blank template initializer

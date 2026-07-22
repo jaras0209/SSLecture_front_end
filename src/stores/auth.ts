@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
-import { ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
+import { safeGet, safeSet, safeRemove } from '@/utils/storage'
 
 export type UserRole = 'student' | 'teacher' | 'admin' | 'parent' | 'pastor'
 
@@ -24,10 +25,11 @@ export interface User {
 
 export const useAuthStore = defineStore('auth', () => {
   // Load initial state from LocalStorage if available
-  const savedUser = localStorage.getItem('superstart_user')
-  
-  const currentUser = ref<User | null>(savedUser ? JSON.parse(savedUser) : null)
-  const isAuthenticated = ref<boolean>(!!currentUser.value)
+  const currentUser = ref<User | null>(
+    safeGet<User | null>('superstart_user', null, { clearOnError: true })
+  )
+  // Derived synchronously — always matches currentUser
+  const isAuthenticated = computed<boolean>(() => currentUser.value !== null)
   const isAuthenticating = ref<boolean>(false)
 
   // Pre-configured mock accounts database
@@ -50,9 +52,14 @@ export const useAuthStore = defineStore('auth', () => {
 
 
   // Load registered users from localStorage if exists
-  const savedDb = localStorage.getItem('superstart_users_db')
-  if (savedDb) {
-    usersDb.value = JSON.parse(savedDb)
+  const savedDb = safeGet<typeof usersDb.value>(
+    'superstart_users_db',
+    {},
+    { clearOnError: true }
+  )
+  if (Object.keys(savedDb).length > 0) {
+    // Merge to preserve default mock accounts while applying saved data
+    usersDb.value = { ...usersDb.value, ...savedDb }
   }
 
   // Migrate old accounts: add default church if missing
@@ -66,16 +73,14 @@ export const useAuthStore = defineStore('auth', () => {
   // Watchers to persist state
   watch(currentUser, (newUser) => {
     if (newUser) {
-      localStorage.setItem('superstart_user', JSON.stringify(newUser))
-      isAuthenticated.value = true
+      safeSet('superstart_user', newUser)
     } else {
-      localStorage.removeItem('superstart_user')
-      isAuthenticated.value = false
+      safeRemove('superstart_user')
     }
   })
 
   watch(usersDb, (newDb) => {
-    localStorage.setItem('superstart_users_db', JSON.stringify(newDb))
+    safeSet('superstart_users_db', newDb)
   }, { deep: true })
 
   // Actions

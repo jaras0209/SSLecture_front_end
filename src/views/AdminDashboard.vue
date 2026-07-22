@@ -340,6 +340,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
+import { useToast } from '@/composables/useToast'
+const { confirm, toast } = useToast()
 import { useAuthStore, CHURCHES } from '@/stores/auth'
 import type { UserRole } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
@@ -454,13 +456,15 @@ function toggleRestriction(username: string, page: string) {
   coursesStore.toggleRestriction(username, page)
 }
 
-function deleteUser(username: string) {
-  if (confirm(`確定要刪除使用者 ${username} 嗎？此動作無法復原！`)) {
+async function deleteUser(username: string) {
+  const ok = await confirm(`確定要刪除使用者 ${username} 嗎？此動作無法復原！`)
+  if (ok) {
     delete authStore.usersDb[username]
     // Clean up restrictions as well
     if (coursesStore.restrictionsDb[username]) {
       delete coursesStore.restrictionsDb[username]
     }
+    toast(`使用者 ${username} 已刪除`, 'info')
   }
 }
 
