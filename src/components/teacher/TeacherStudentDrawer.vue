@@ -404,10 +404,10 @@ function saveLectureRow(username: string, type: 'character' | 'comingOfAge', the
   toast(`✓ ${theme} 登記成功！`)
 }
 
-function triggerPrint(username: string) {
-  console.log('Printing project for student:', username)
+function triggerPrint(_username: string) {
   window.print()
 }
+
 
 // ── Static Checklist Labels ───────────────────────────────────────────────────
 

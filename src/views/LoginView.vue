@@ -53,6 +53,11 @@
           />
         </div>
         <button type="submit" class="btn btn-primary w-full">登入平台</button>
+        <div class="forgot-pwd-row">
+          <button type="button" class="forgot-pwd-link" @click="showForgotModal = true">
+            🔐 忘記密碼？
+          </button>
+        </div>
       </form>
 
       <!-- Register Form -->
@@ -225,6 +230,34 @@
       </div>
     </div>
 
+    <!-- Forgot Password Modal -->
+    <div v-if="showForgotModal" class="modal-overlay" @click.self="showForgotModal = false">
+      <div class="glass-panel modal-card text-center">
+        <div class="forgot-modal-icon">🔑</div>
+        <h3 class="modal-title">忘記密碼</h3>
+        <p class="modal-desc">
+          目前系統由教會 SS 中央管理員進行帳號管理。
+          <br />
+          請聯絡您的輔導教師或 SS 中央，請求幫您重設密碼。
+        </p>
+        <div class="forgot-modal-steps">
+          <div class="forgot-step">
+            <span class="step-num">1</span>
+            <span>聯絡您的輔導教師或 SS 中央管理員</span>
+          </div>
+          <div class="forgot-step">
+            <span class="step-num">2</span>
+            <span>由管理員在後台將您的密碼重設為預設密碼</span>
+          </div>
+          <div class="forgot-step">
+            <span class="step-num">3</span>
+            <span>使用預設密碼登入後，即可到「修改密碼」更改新密碼</span>
+          </div>
+        </div>
+        <button @click="showForgotModal = false" class="btn btn-primary w-full mt-4">我瞭解了</button>
+      </div>
+    </div>
+
     <!-- OAuth Simulation Modal -->
     <div v-if="showOAuthModal" class="modal-overlay">
       <div class="glass-panel modal-card text-center">
@@ -307,6 +340,7 @@ const authStore = useAuthStore()
 const activeTab = ref<'login' | 'register'>('login')
 const alertMessage = ref('')
 const alertType = ref<'success' | 'error'>('success')
+const showForgotModal = ref(false)
 
 // OAuth Modal State
 const showOAuthModal = ref(false)
@@ -919,4 +953,79 @@ async function confirmOAuthLogin() {
 .pwd-rules-list li.rule-ok {
   color: #059669;
 }
+
+/* Forgot Password */
+.forgot-pwd-row {
+  text-align: center;
+  margin-top: 0.75rem;
+}
+
+.forgot-pwd-link {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-family: var(--font-family);
+  font-weight: 600;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+  padding: 0;
+}
+
+.forgot-pwd-link:hover {
+  color: var(--primary);
+}
+
+.forgot-modal-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.modal-desc {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.7;
+  margin-bottom: 1.25rem;
+}
+
+.forgot-modal-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  text-align: left;
+  margin-bottom: 0.5rem;
+}
+
+.forgot-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.step-num {
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.mt-4 { margin-top: 1rem; }
+
 </style>

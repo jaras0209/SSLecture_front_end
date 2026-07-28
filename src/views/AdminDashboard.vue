@@ -91,6 +91,7 @@
                 <th>角色身分變更</th>
                 <th>限制瀏覽 /student</th>
                 <th>限制瀏覽 /teacher</th>
+                <th>重設密碼</th>
                 <th>刪除</th>
               </tr>
             </thead>
@@ -143,6 +144,16 @@
                     />
                     <span class="checkmark"></span>
                   </label>
+                </td>
+                <td>
+                  <button
+                    @click="resetUserPassword(user.username)"
+                    class="reset-pwd-btn"
+                    :disabled="user.username === authStore.currentUser?.username"
+                    title="重設為預設密碼"
+                  >
+                    🔑
+                  </button>
                 </td>
                 <td>
                   <button 
@@ -342,7 +353,7 @@
 import { ref, reactive, computed } from 'vue'
 import { useToast } from '@/composables/useToast'
 const { confirm, toast } = useToast()
-import { useAuthStore, CHURCHES } from '@/stores/auth'
+import { useAuthStore, CHURCHES, DEFAULT_RESET_PASSWORD } from '@/stores/auth'
 import type { UserRole } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import ProfileDialog from '@/components/ProfileDialog.vue'
@@ -465,6 +476,17 @@ async function deleteUser(username: string) {
       delete coursesStore.restrictionsDb[username]
     }
     toast(`使用者 ${username} 已刪除`, 'info')
+  }
+}
+
+async function resetUserPassword(username: string) {
+  const ok = await confirm(`確定將「${username}」的密碼重設為預設密碼（${DEFAULT_RESET_PASSWORD}）？`)
+  if (!ok) return
+  const result = authStore.adminResetPassword(username)
+  if (result.success) {
+    toast(`✅ ${username} 密碼已重設為「${DEFAULT_RESET_PASSWORD}」`, 'success')
+  } else {
+    toast(result.message, 'error')
   }
 }
 
@@ -812,7 +834,27 @@ function getChurchTeacherList(church: string): string[] {
   transform: rotate(45deg);
 }
 
+.reset-pwd-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 0.25rem;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast);
+}
+
+.reset-pwd-btn:hover:not(:disabled) {
+  background-color: #FEF3C7;
+}
+
+.reset-pwd-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
 .delete-btn {
+
   background: transparent;
   border: none;
   cursor: pointer;

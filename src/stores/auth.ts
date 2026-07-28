@@ -4,6 +4,9 @@ import { safeGet, safeSet, safeRemove } from '@/utils/storage'
 
 export type UserRole = 'student' | 'teacher' | 'admin' | 'parent' | 'pastor'
 
+/** Mock 環境下的預設重設密碼（未來串接後端時由後端發送 Email 重設連結取代） */
+export const DEFAULT_RESET_PASSWORD = '123456'
+
 export const CHURCHES = [
   '愛與話語', '主大明', '主勝利', '主生命', '主和睦光',
   '台北主話語', '聖靈', '永明', '主希望光', '實踐',
@@ -186,6 +189,19 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
+   * Admin-only: reset any user's password to the default value.
+   * In production this would trigger an email with a reset link instead.
+   */
+  function adminResetPassword(username: string): { success: boolean; message: string } {
+    const user = usersDb.value[username]
+    if (!user) {
+      return { success: false, message: '找不到此帳號。' }
+    }
+    user.passwordHash = DEFAULT_RESET_PASSWORD
+    return { success: true, message: `帳號 ${username} 的密碼已重設為預設值。` }
+  }
+
+  /**
    * Update profile (displayName and/or avatarUrl).
    * Syncs both currentUser and usersDb for persistence.
    */
@@ -228,6 +244,7 @@ export const useAuthStore = defineStore('auth', () => {
     loginWithThirdParty,
     logout,
     updatePassword,
+    adminResetPassword,
     updateProfile
   }
 })
