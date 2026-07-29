@@ -37,20 +37,26 @@
             id="login-username" 
             type="text" 
             class="form-input" 
-            placeholder="請輸入您的帳號 (例如: student, teacher, admin, parent, pastor)" 
+            placeholder="請輸入您的帳號" 
             required 
           />
         </div>
         <div class="form-group">
           <label class="form-label" for="login-password">密碼</label>
-          <input 
-            v-model="loginForm.password" 
-            id="login-password" 
-            type="password" 
-            class="form-input" 
-            placeholder="請輸入密碼 (預設: 123456)" 
-            required 
-          />
+          <div class="pwd-input-wrap">
+            <input 
+              v-model="loginForm.password" 
+              id="login-password" 
+              :type="showLoginPwd ? 'text' : 'password'" 
+              class="form-input" 
+              placeholder="請輸入密碼" 
+              required 
+            />
+            <button type="button" class="pwd-eye-btn" @click="showLoginPwd = !showLoginPwd" :title="showLoginPwd ? '隱藏密碼' : '顯示密碼'">
+              <svg v-if="!showLoginPwd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
         </div>
         <button type="submit" class="btn btn-primary w-full">登入平台</button>
         <div class="forgot-pwd-row">
@@ -75,14 +81,20 @@
         </div>
         <div class="form-group">
           <label class="form-label" for="reg-password">設定密碼</label>
-          <input 
-            v-model="registerForm.password" 
-            id="reg-password" 
-            type="password" 
-            class="form-input" 
-            placeholder="至少 8 字元，含大小寫、數字" 
-            required 
-          />
+          <div class="pwd-input-wrap">
+            <input 
+              v-model="registerForm.password" 
+              id="reg-password" 
+              :type="showRegPwd ? 'text' : 'password'" 
+              class="form-input" 
+              placeholder="至少 8 字元，含大小寫、數字" 
+              required 
+            />
+            <button type="button" class="pwd-eye-btn" @click="showRegPwd = !showRegPwd" :title="showRegPwd ? '隱藏密碼' : '顯示密碼'">
+              <svg v-if="!showRegPwd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
           <!-- Password Strength Indicator -->
           <div v-if="registerForm.password" class="pwd-strength-section">
             <div class="pwd-bars-row">
@@ -341,6 +353,8 @@ const activeTab = ref<'login' | 'register'>('login')
 const alertMessage = ref('')
 const alertType = ref<'success' | 'error'>('success')
 const showForgotModal = ref(false)
+const showLoginPwd = ref(false)
+const showRegPwd = ref(false)
 
 // OAuth Modal State
 const showOAuthModal = ref(false)
@@ -954,8 +968,44 @@ async function confirmOAuthLogin() {
   color: #059669;
 }
 
+/* Password show/hide wrapper */
+.pwd-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.pwd-input-wrap .form-input {
+  padding-right: 2.75rem;
+  width: 100%;
+}
+
+.pwd-eye-btn {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  transition: color var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.pwd-eye-btn:hover {
+  color: var(--primary);
+}
+
+.pwd-eye-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
 /* Forgot Password */
 .forgot-pwd-row {
+
   text-align: center;
   margin-top: 0.75rem;
 }

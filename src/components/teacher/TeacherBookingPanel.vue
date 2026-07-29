@@ -248,6 +248,32 @@
         </div>
       </div>
     </Teleport>
+
+    <!-- ─── Modal: 取消預約（含原因）─── -->
+    <Teleport to="body">
+      <div v-if="showCancelModal" class="modal-overlay" @click.self="showCancelModal = false">
+        <div class="glass-panel modal-card" style="max-width: 440px;">
+          <h3 style="margin-bottom: 0.5rem;">❌ 取消預約</h3>
+          <p v-if="cancelTargetSession" style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+            確定要取消「{{ cancelTargetSession.courseTitle }}」的預約嗎？
+          </p>
+          <div class="form-group">
+            <label class="form-label">取消原因（選填）</label>
+            <textarea
+              v-model="cancelReasonText"
+              class="form-input"
+              rows="3"
+              placeholder="例如：時間衝突、課程調整…（可留白）"
+              style="resize: vertical;"
+            ></textarea>
+          </div>
+          <div class="modal-footer mt-4">
+            <button class="btn btn-outline" @click="showCancelModal = false">返回</button>
+            <button class="btn btn-danger" @click="confirmCancelBooking" id="btn-confirm-cancel">確認取消預約</button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -259,7 +285,7 @@ import { useBookingsStore } from '@/stores/bookings'
 import type { BookingSession, BookingAttendee, AttendanceStatus } from '@/stores/bookings'
 import { useToast } from '@/composables/useToast'
 
-const { toast, confirm } = useToast()
+const { toast } = useToast()
 
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
@@ -436,12 +462,25 @@ function submitCompleteBooking() {
   toast('✅ 課後回饋已儲存，場次標記為完成！')
 }
 
-// ── Cancel ────────────────────────────────────────────────────────────────────
+// ── Cancel Modal ──────────────────────────────────────────────────────────────
 
-async function cancelBooking(session: BookingSession) {
-  const ok = await confirm(`確定取消這場預約嗎？`)
-  if (!ok) return
-  bookingsStore.updateSessionStatus(session.id, 'cancelled', { cancelReason: '' })
+const showCancelModal = ref(false)
+const cancelTargetSession = ref<BookingSession | null>(null)
+const cancelReasonText = ref('')
+
+function cancelBooking(session: BookingSession) {
+  cancelTargetSession.value = session
+  cancelReasonText.value = ''
+  showCancelModal.value = true
+}
+
+function confirmCancelBooking() {
+  if (!cancelTargetSession.value) return
+  bookingsStore.updateSessionStatus(cancelTargetSession.value.id, 'cancelled', {
+    cancelReason: cancelReasonText.value.trim()
+  })
+  showCancelModal.value = false
+  cancelTargetSession.value = null
   toast('預約已取消', 'info')
 }
 
