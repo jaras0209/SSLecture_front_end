@@ -143,7 +143,6 @@ function submitStudentFeedback(feedback: string) {
   bookingsStore.updateAttendee(item.session.id, item.attendee.studentUsername, {
     studentFeedback: feedback
   })
-  // TODO: Replace alert with in-app notification
   toast('✅ 心得已儲存！')
 }
 

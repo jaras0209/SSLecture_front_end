@@ -105,6 +105,13 @@ export interface TeachingStats {
 // key = `${teacherUsername}_${year}`
 export type TeachingStatsDb = Record<string, TeachingStats>
 
+/** All possible checklist keys across ShiningProject faith phases and advanced challenges */
+export type ShiningChecklistKey =
+  | 'worship' | 'prayer' | 'independent' | 'reply' | 'share'
+  | 'courses30' | 'prayerLong' | 'morningWorship' | 'readBible'
+  | 'churchService' | 'wednesday' | 'shareFaith' | 'copySermon'
+  | 'morningProverb' | 'custom'
+
 
 export const useCoursesStore = defineStore('courses', () => {
   // Pre-configured cover colors gradients cyclic list
@@ -632,7 +639,7 @@ export const useCoursesStore = defineStore('courses', () => {
   function updateShiningChecklist(
     username: string, 
     category: 'faithPhase1' | 'faithPhase2' | 'advancedChallenges', 
-    key: 'worship' | 'prayer' | 'independent' | 'reply' | 'share' | 'courses30' | 'prayerLong' | 'morningWorship' | 'readBible' | 'churchService' | 'wednesday' | 'shareFaith' | 'copySermon' | 'morningProverb' | 'custom', 
+    key: ShiningChecklistKey,
     value: boolean
   ): void {
     const project = getShiningProject(username)

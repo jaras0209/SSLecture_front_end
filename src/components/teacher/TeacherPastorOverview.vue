@@ -164,6 +164,7 @@
 import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
+import type { ProgressRecord } from '@/stores/courses'
 
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
@@ -193,7 +194,7 @@ const totalNotesSubmitted = computed(() => {
   for (const username of pastorChurchStudents.value) {
     const userRecords = coursesStore.progressDb[username]
     if (!userRecords) continue
-    total += Object.values(userRecords).filter((r: any) => r.notes && String(r.notes).trim()).length
+    total += Object.values(userRecords).filter((r: ProgressRecord) => r.notes && String(r.notes).trim()).length
   }
   return total
 })

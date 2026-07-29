@@ -371,6 +371,7 @@
 import { ref, computed, reactive, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
+import type { ShiningChecklistKey } from '@/stores/courses'
 
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
@@ -448,7 +449,7 @@ function saveBasicInfo() {
   setTimeout(() => { basicSaveMsg.value = '' }, 3000)
 }
 
-function toggleCheck(category: 'faithPhase1' | 'faithPhase2' | 'advancedChallenges', key: any) {
+function toggleCheck(category: 'faithPhase1' | 'faithPhase2' | 'advancedChallenges', key: ShiningChecklistKey) {
   const username = authStore.currentUser?.username || ''
   const checklist = shiningProject.value[category] as Record<string, boolean>
   const currentValue = checklist[key]

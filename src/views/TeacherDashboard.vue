@@ -232,6 +232,8 @@ import TeacherBookingPanel from '@/components/teacher/TeacherBookingPanel.vue'
 import TeacherStudentList from '@/components/teacher/TeacherStudentList.vue'
 import type { StudentProgressSummary } from '@/components/teacher/TeacherStudentList.vue'
 import TeacherStudentDrawer from '@/components/teacher/TeacherStudentDrawer.vue'
+import type { Lecturer } from '@/stores/courses'
+import type { BookingSession } from '@/stores/bookings'
 
 // Local type for studentsList computed (records per student)
 interface StudentRecordDetail {
@@ -273,7 +275,7 @@ const activeMainTab = ref<'care' | 'settings' | 'pastor-overview' | 'bookings'>(
 const bookingPendingCount = computed(() => {
   const me = authStore.currentUser
   if (!me) return 0
-  return bookingsStore.getSessionsByTeacher(me.username).filter((s: any) => s.status === 'pending').length
+  return bookingsStore.getSessionsByTeacher(me.username).filter((s: BookingSession) => s.status === 'pending').length
 })
 
 // Lecturer Form Modal States
@@ -281,10 +283,10 @@ const showLecturerModal = ref(false)
 const editingLecturerId = ref<string | null>(null)
 const lecturerForm = ref({
   name: '',
-  title: '??寡',
+  title: '牧師',
   courseIds: [] as string[],
-  linkedUsername: '',   // '' = ????軋???
-  linkMode: 'custom' as 'link' | 'custom'  // 'link'=??????, 'custom'=???
+  linkedUsername: '',   // '' = 未連結輔導教師帳號
+  linkMode: 'custom' as 'link' | 'custom'  // 'link'=連結帳號, 'custom'=自訂
 })
 
 // Teachers available in current church for the link-account dropdown
@@ -371,7 +373,7 @@ function openAddLecturer() {
   showLecturerModal.value = true
 }
 
-function openEditLecturer(lec: any) {
+function openEditLecturer(lec: Lecturer) {
   editingLecturerId.value = lec.id
   lecturerForm.value = {
     name: lec.name,
