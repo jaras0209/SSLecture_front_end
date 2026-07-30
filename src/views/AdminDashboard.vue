@@ -346,6 +346,92 @@
         </table>
       </div>
     </section>
+
+    <!-- ─── Invite Code Management ─── -->
+    <section class="admin-section glass-panel mt-6">
+      <div class="section-header">
+        <h3>🎟️ 邀請碼管理</h3>
+        <p class="section-desc">產生適用特定角色的一次性邀請碼，發給被邀請者完成註冊。</p>
+      </div>
+
+      <!-- Generate Form -->
+      <div class="invite-generate-bar glass-card">
+        <div class="invite-generate-fields">
+          <div class="form-group">
+            <label class="form-label">角色</label>
+            <select v-model="inviteForm.role" class="form-input select-input" id="invite-role-select">
+              <option value="student">🎒 SS 學員</option>
+              <option value="teacher">👨‍🏫 輔導教師</option>
+              <option value="pastor">⛪ 分區牧者</option>
+              <option value="parent">👨‍👩‍👦 關懷家長</option>
+              <option value="admin">👑 SS 中央</option>
+            </select>
+          </div>
+          <div class="form-group" v-if="inviteForm.role !== 'admin'">
+            <label class="form-label">指定教會</label>
+            <select v-model="inviteForm.church" class="form-input select-input" id="invite-church-select">
+              <option v-for="c in CHURCHES" :key="c" :value="c">{{ c }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">有效天數</label>
+            <select v-model="inviteForm.expiryDays" class="form-input select-input" id="invite-expiry-select">
+              <option :value="3">3 天</option>
+              <option :value="7">7 天</option>
+              <option :value="14">14 天</option>
+              <option :value="30">30 天</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary" @click="generateInviteCode" id="btn-generate-invite">
+          ✨ 產生邀請碼
+        </button>
+
+        <!-- Generated Code Display -->
+        <div v-if="lastGeneratedCode" class="generated-code-display">
+          <span class="generated-code-text">{{ lastGeneratedCode }}</span>
+          <button class="btn btn-outline btn-sm" @click="copyInviteCode(lastGeneratedCode)" id="btn-copy-invite">
+            📋 複製
+          </button>
+        </div>
+      </div>
+
+      <!-- Invite Codes List -->
+      <div class="invite-list mt-4">
+        <div v-if="allInviteCodes.length === 0" class="text-center text-muted py-4">
+          目前尚無邀請碼。
+        </div>
+        <table v-else class="invite-table">
+          <thead>
+            <tr>
+              <th>邀請碼</th>
+              <th>角色</th>
+              <th>教會</th>
+              <th>到期日</th>
+              <th>狀態</th>
+              <th>作廢</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="code in allInviteCodes" :key="code.code" :class="inviteRowClass(code)">
+              <td><code class="invite-code-cell">{{ code.code }}</code></td>
+              <td>{{ inviteRoleLabel(code.role) }}</td>
+              <td>{{ code.church || '—' }}</td>
+              <td>{{ formatInviteDate(code.expiresAt) }}</td>
+              <td><span :class="['invite-status-badge', inviteStatusClass(code)]">{{ inviteStatusLabel(code) }}</span></td>
+              <td>
+                <button
+                  v-if="!code.usedBy && !code.revoked"
+                  class="btn btn-danger btn-sm"
+                  @click="revokeCode(code.code)"
+                >作廢</button>
+                <span v-else class="text-muted" style="font-size:0.75rem;">—</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -354,7 +440,7 @@ import { ref, reactive, computed } from 'vue'
 import { useToast } from '@/composables/useToast'
 const { confirm, toast } = useToast()
 import { useAuthStore, CHURCHES, DEFAULT_RESET_PASSWORD } from '@/stores/auth'
-import type { UserRole } from '@/stores/auth'
+import type { UserRole, InviteCode } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import ProfileDialog from '@/components/ProfileDialog.vue'
 
@@ -377,6 +463,77 @@ const newUser = reactive({
 
 const alertMsg = ref('')
 const alertType = ref<'success' | 'error'>('success')
+
+// ── Invite Code State ──────────────────────────────────────────────────────────────
+
+const inviteForm = reactive({
+  role: 'teacher' as UserRole,
+  church: '愛與話語',
+  expiryDays: 7
+})
+const lastGeneratedCode = ref('')
+
+const allInviteCodes = computed(() => authStore.getInviteCodes())
+
+function generateInviteCode() {
+  const me = authStore.currentUser
+  if (!me) return
+  const church = inviteForm.role !== 'admin' ? inviteForm.church : undefined
+  const code = authStore.generateInviteCode(inviteForm.role, church, me.username, inviteForm.expiryDays)
+  lastGeneratedCode.value = code
+  toast(`邀請碼 ${code} 已產生！`, 'success')
+}
+
+async function revokeCode(code: string) {
+  const ok = await confirm(`確定要作廢邀請碼 ${code} 嗎？`)
+  if (!ok) return
+  const result = authStore.revokeInviteCode(code)
+  toast(result.message, result.success ? 'success' : 'error')
+}
+
+function copyInviteCode(code: string) {
+  navigator.clipboard.writeText(code).then(() => {
+    toast('已複製邀請碼！', 'success')
+  }).catch(() => {
+    toast(`請手動複製：${code}`, 'info')
+  })
+}
+
+const INVITE_ROLE_LABELS: Record<UserRole, string> = {
+  student: '🎒 學員',
+  teacher: '👨‍🏫 輔導教師',
+  pastor: '⛪ 牧者',
+  parent: '👨‍👩‍👦 家長',
+  admin: '👑 中央'
+}
+
+function inviteRoleLabel(role: UserRole): string {
+  return INVITE_ROLE_LABELS[role] || role
+}
+
+function formatInviteDate(iso: string): string {
+  const d = new Date(iso)
+  return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`
+}
+
+function inviteStatusLabel(code: InviteCode): string {
+  if (code.revoked) return '已作廢'
+  if (code.usedBy) return `已使用 (${code.usedBy})`
+  if (new Date() > new Date(code.expiresAt)) return '已過期'
+  return '有效'
+}
+
+function inviteStatusClass(code: InviteCode): string {
+  if (code.revoked || new Date() > new Date(code.expiresAt)) return 'status-revoked'
+  if (code.usedBy) return 'status-used'
+  return 'status-active'
+}
+
+function inviteRowClass(code: InviteCode): string {
+  if (code.revoked || new Date() > new Date(code.expiresAt)) return 'row-inactive'
+  if (code.usedBy) return 'row-used'
+  return ''
+}
 
 // Transform db object into array
 const usersList = computed(() => {
@@ -1123,6 +1280,129 @@ function getChurchTeacherList(church: string): string[] {
 }
 
 .mt-4 { margin-top: 1rem; }
+.mt-6 { margin-top: 1.5rem; }
+
+/* Invite Code Management */
+.admin-section {
+  padding: 1.5rem;
+}
+
+.section-header {
+  margin-bottom: 1rem;
+}
+
+.section-header h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.section-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.invite-generate-bar {
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.invite-generate-fields {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.invite-generate-fields .form-group {
+  flex: 1;
+  min-width: 120px;
+  margin-bottom: 0;
+}
+
+.generated-code-display {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px dashed rgba(99, 102, 241, 0.4);
+}
+
+.generated-code-text {
+  font-family: 'Courier New', monospace;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--primary);
+  flex: 1;
+}
+
+.invite-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.invite-table th,
+.invite-table td {
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(99, 102, 241, 0.08);
+}
+
+.invite-table th {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.invite-code-cell {
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--primary);
+}
+
+.invite-status-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+}
+
+.status-active {
+  background: rgba(5, 150, 105, 0.12);
+  color: #059669;
+  border: 1px solid rgba(5, 150, 105, 0.3);
+}
+
+.status-used {
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--primary);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+}
+
+.status-revoked {
+  background: rgba(107, 114, 128, 0.1);
+  color: var(--text-muted);
+  border: 1px solid rgba(107, 114, 128, 0.2);
+}
+
+.row-inactive td {
+  opacity: 0.45;
+}
+
+.row-used td {
+  opacity: 0.7;
+}
+
 
 /* ══════════════════════════════════════════
    AdminDashboard — Mobile RWD (640px)

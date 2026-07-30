@@ -7,6 +7,27 @@ export type UserRole = 'student' | 'teacher' | 'admin' | 'parent' | 'pastor'
 /** Mock 環境下的預設重設密碼（未來串接後端時由後端發送 Email 重設連結取代） */
 export const DEFAULT_RESET_PASSWORD = '123456'
 
+/** 邀請碼前綴（用於產生易讀的邀請碼） */
+const ROLE_CODE_PREFIX: Record<UserRole, string> = {
+  student: 'STU',
+  teacher: 'TCH',
+  pastor: 'PST',
+  parent: 'PAR',
+  admin: 'ADM'
+}
+
+export interface InviteCode {
+  code: string          // e.g. "SS-TCH-A3F7"
+  role: UserRole        // 指定註冊角色
+  church?: string       // 指定教會（admin 可為空）
+  createdBy: string     // 產生者 username
+  createdAt: string     // 產生時間
+  expiresAt: string     // 到期時間
+  usedBy?: string       // 使用者 username（使用後填入）
+  usedAt?: string       // 使用時間
+  revoked?: boolean     // 是否已作廢
+}
+
 export const CHURCHES = [
   '愛與話語', '主大明', '主勝利', '主生命', '主和睦光',
   '台北主話語', '聖靈', '永明', '主希望光', '實踐',
@@ -84,6 +105,16 @@ export const useAuthStore = defineStore('auth', () => {
 
   watch(usersDb, (newDb) => {
     safeSet('superstart_users_db', newDb)
+  }, { deep: true })
+
+  // ── Invite Codes DB ──────────────────────────────────────────────────────────
+
+  const inviteCodesDb = ref<Record<string, InviteCode>>(
+    safeGet<Record<string, InviteCode>>('superstart_invite_codes', {}, { clearOnError: true })
+  )
+
+  watch(inviteCodesDb, (newCodes) => {
+    safeSet('superstart_invite_codes', newCodes)
   }, { deep: true })
 
   // Actions
@@ -234,17 +265,94 @@ export const useAuthStore = defineStore('auth', () => {
     return { success: true, message: '個人資料已更新！' }
   }
 
+  // ── Invite Code Actions ───────────────────────────────────────────────────────
+
+  /**
+   * Generate a one-time invite code for a specific role.
+   * Format: SS-{ROLE_PREFIX}-{4 random uppercase hex chars}
+   */
+  function generateInviteCode(
+    role: UserRole,
+    church: string | undefined,
+    createdBy: string,
+    expiryDays = 7
+  ): string {
+    const prefix = ROLE_CODE_PREFIX[role]
+    const rand = Math.random().toString(16).substring(2, 6).toUpperCase()
+    const code = `SS-${prefix}-${rand}`
+    const now = new Date()
+    const expires = new Date(now.getTime() + expiryDays * 86400000)
+    inviteCodesDb.value[code] = {
+      code,
+      role,
+      church: role === 'admin' ? undefined : church,
+      createdBy,
+      createdAt: now.toISOString(),
+      expiresAt: expires.toISOString(),
+      revoked: false
+    }
+    return code
+  }
+
+  /**
+   * Validate an invite code. Returns the InviteCode if valid, null otherwise.
+   */
+  function validateInviteCode(code: string): InviteCode | null {
+    const invite = inviteCodesDb.value[code.toUpperCase()]
+    if (!invite) return null
+    if (invite.revoked) return null
+    if (invite.usedBy) return null
+    if (new Date() > new Date(invite.expiresAt)) return null
+    return invite
+  }
+
+  /**
+   * Mark an invite code as used after successful registration.
+   */
+  function consumeInviteCode(code: string, username: string): void {
+    const invite = inviteCodesDb.value[code.toUpperCase()]
+    if (!invite) return
+    invite.usedBy = username
+    invite.usedAt = new Date().toISOString()
+  }
+
+  /**
+   * Admin: revoke (invalidate) an invite code that hasn't been used yet.
+   */
+  function revokeInviteCode(code: string): { success: boolean; message: string } {
+    const invite = inviteCodesDb.value[code.toUpperCase()]
+    if (!invite) return { success: false, message: '找不到此邀請碼。' }
+    if (invite.usedBy) return { success: false, message: '此邀請碼已被使用，無法作廢。' }
+    invite.revoked = true
+    return { success: true, message: `邀請碼 ${code} 已作廢。` }
+  }
+
+  /**
+   * Get all invite codes (for Admin dashboard display).
+   */
+  function getInviteCodes(): InviteCode[] {
+    return Object.values(inviteCodesDb.value).sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )
+  }
+
   return {
     currentUser,
     isAuthenticated,
     isAuthenticating,
     usersDb,
+    inviteCodesDb,
     login,
     register,
     loginWithThirdParty,
     logout,
     updatePassword,
     adminResetPassword,
-    updateProfile
+    updateProfile,
+    generateInviteCode,
+    validateInviteCode,
+    consumeInviteCode,
+    revokeInviteCode,
+    getInviteCodes
   }
 })

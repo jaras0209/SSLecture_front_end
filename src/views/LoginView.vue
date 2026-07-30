@@ -68,27 +68,65 @@
 
       <!-- Register Form -->
       <form v-else @submit.prevent="handleRegister" class="auth-form">
+
+        <!-- Step 1: Invite Code (optional) -->
+        <div class="form-group">
+          <label class="form-label" for="reg-invite-code">
+            🎫 邀請碼
+            <span class="field-hint-inline">（選填，非學員身分需要）</span>
+          </label>
+          <div class="invite-code-wrap">
+            <input
+              v-model="inviteCodeInput"
+              id="reg-invite-code"
+              type="text"
+              class="form-input"
+              placeholder="例如：SS-TCH-A3F7"
+              @input="onInviteCodeInput"
+              autocomplete="off"
+              style="text-transform: uppercase; letter-spacing: 0.1em;"
+            />
+            <span v-if="inviteCodeStatus === 'valid'" class="invite-badge valid">✅ 有效</span>
+            <span v-else-if="inviteCodeStatus === 'invalid'" class="invite-badge invalid">❌ 無效</span>
+          </div>
+          <!-- Validated invite info -->
+          <div v-if="validatedInvite" class="invite-info-row">
+            <span class="invite-tag role-tag">{{ roleLabel(validatedInvite.role) }}</span>
+            <span v-if="validatedInvite.church" class="invite-tag church-tag">⛪ {{ validatedInvite.church }}</span>
+            <span class="invite-expiry">有效期至 {{ formatExpiry(validatedInvite.expiresAt) }}</span>
+          </div>
+          <p v-if="inviteCodeStatus === 'invalid'" class="field-hint error-hint">
+            邀請碼無效、已過期或已被使用，請向管理員重新取得。
+          </p>
+        </div>
+
+        <!-- Divider -->
+        <div class="form-section-divider"></div>
+
+        <!-- Username -->
         <div class="form-group">
           <label class="form-label" for="reg-username">設定使用者帳號</label>
-          <input 
-            v-model="registerForm.username" 
-            id="reg-username" 
-            type="text" 
-            class="form-input" 
-            placeholder="請輸入帳號" 
-            required 
+          <input
+            v-model="registerForm.username"
+            id="reg-username"
+            type="text"
+            class="form-input"
+            placeholder="請輸入帳號"
+            required
           />
         </div>
+
+        <!-- Password -->
         <div class="form-group">
           <label class="form-label" for="reg-password">設定密碼</label>
           <div class="pwd-input-wrap">
-            <input 
-              v-model="registerForm.password" 
-              id="reg-password" 
-              :type="showRegPwd ? 'text' : 'password'" 
-              class="form-input" 
-              placeholder="至少 8 字元，含大小寫、數字" 
-              required 
+            <input
+              v-model="registerForm.password"
+              id="reg-password"
+              :type="showRegPwd ? 'text' : 'password'"
+              class="form-input"
+              placeholder="至少 8 字元，含大小寫、數字"
+              required
             />
             <button type="button" class="pwd-eye-btn" @click="showRegPwd = !showRegPwd" :title="showRegPwd ? '隱藏密碼' : '顯示密碼'">
               <svg v-if="!showRegPwd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -122,53 +160,31 @@
             </ul>
           </div>
         </div>
+
+        <!-- Role: locked by invite, or fixed to student -->
         <div class="form-group">
-          <label class="form-label">選擇我的角色身分</label>
-          <div class="role-selector flex-wrap gap-2">
-            <label class="role-option">
-              <input type="radio" v-model="registerForm.role" value="student" />
-              <div class="role-card">
-                <span class="role-emoji">🎒</span>
-                <span>SS 學員</span>
-              </div>
-            </label>
-            <label class="role-option">
-              <input type="radio" v-model="registerForm.role" value="teacher" />
-              <div class="role-card">
-                <span class="role-emoji">👨‍🏫</span>
-                <span>輔導教師</span>
-              </div>
-            </label>
-            <label class="role-option">
-              <input type="radio" v-model="registerForm.role" value="parent" />
-              <div class="role-card">
-                <span class="role-emoji">👨‍👩‍👦</span>
-                <span>關懷家長</span>
-              </div>
-            </label>
-            <label class="role-option">
-              <input type="radio" v-model="registerForm.role" value="pastor" />
-              <div class="role-card">
-                <span class="role-emoji">⛪</span>
-                <span>分區牧者</span>
-              </div>
-            </label>
-            <label class="role-option">
-              <input type="radio" v-model="registerForm.role" value="admin" />
-              <div class="role-card">
-                <span class="role-emoji">👑</span>
-                <span>SS 中央</span>
-              </div>
-            </label>
+          <label class="form-label">角色身分</label>
+          <div v-if="validatedInvite" class="locked-field-display">
+            {{ roleLabel(validatedInvite.role) }}
+            <span class="locked-badge">🔒 由邀請碼指定</span>
+          </div>
+          <div v-else class="locked-field-display student-only">
+            🎒 SS 學員
+            <span class="locked-badge">其他身分需要邀請碼</span>
           </div>
         </div>
 
-        <!-- Church Selector (hidden for admin) -->
-        <div class="form-group" v-if="registerForm.role !== 'admin'">
+        <!-- Church: locked by invite (or selectable for student without invite) -->
+        <div class="form-group" v-if="!validatedInvite || validatedInvite.role !== 'admin'">
           <label class="form-label" for="reg-church">⛪ 所屬教會</label>
-          <select 
-            v-model="registerForm.church" 
-            id="reg-church" 
+          <div v-if="validatedInvite && validatedInvite.church" class="locked-field-display">
+            {{ validatedInvite.church }}
+            <span class="locked-badge">🔒 由邀請碼指定</span>
+          </div>
+          <select
+            v-else
+            v-model="registerForm.church"
+            id="reg-church"
             class="form-input select-input"
             required
           >
@@ -176,21 +192,21 @@
           </select>
         </div>
 
-        <!-- Parent: Student Binding (only for parent role) -->
-        <div class="form-group" v-if="registerForm.role === 'parent'">
+        <!-- Parent: Student Binding (only when invite is parent role) -->
+        <div class="form-group" v-if="effectiveRole === 'parent'">
           <label class="form-label">👶 綁定我的孩子（SS學員帳號）</label>
           <div v-if="registerAvailableStudents.length === 0" class="alert-box error">
-            ⚠️ 目前 {{ registerForm.church }} 教會尚無任何 SS學員帳號，請先由 SS學員 完成帳號註冊後，再回來建立家長帳號。
+            ⚠️ 目前 {{ effectiveChurch }} 教會尚無任何 SS學員帳號，請先由 SS學員 完成帳號註冊後，再回來建立家長帳號。
           </div>
           <div v-else class="student-binding-list">
-            <label 
-              v-for="std in registerAvailableStudents" 
-              :key="std" 
+            <label
+              v-for="std in registerAvailableStudents"
+              :key="std"
               class="student-binding-option"
             >
-              <input 
-                type="checkbox" 
-                :value="std" 
+              <input
+                type="checkbox"
+                :value="std"
                 v-model="registerForm.childUsernames"
               />
               <span>🎒 {{ std }}</span>
@@ -344,7 +360,7 @@
 import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore, CHURCHES } from '@/stores/auth'
-import type { UserRole } from '@/stores/auth'
+import type { UserRole, InviteCode } from '@/stores/auth'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -355,6 +371,61 @@ const alertType = ref<'success' | 'error'>('success')
 const showForgotModal = ref(false)
 const showLoginPwd = ref(false)
 const showRegPwd = ref(false)
+
+// ── Invite Code State ─────────────────────────────────────────────────────────
+const inviteCodeInput = ref('')
+const inviteCodeStatus = ref<'idle' | 'valid' | 'invalid'>('idle')
+const validatedInvite = ref<InviteCode | null>(null)
+
+function onInviteCodeInput() {
+  const code = inviteCodeInput.value.trim().toUpperCase()
+  if (!code) {
+    inviteCodeStatus.value = 'idle'
+    validatedInvite.value = null
+    return
+  }
+  // Only validate when code looks complete (e.g. SS-TCH-XXXX = 11 chars)
+  if (code.length < 8) {
+    inviteCodeStatus.value = 'idle'
+    validatedInvite.value = null
+    return
+  }
+  const result = authStore.validateInviteCode(code)
+  if (result) {
+    inviteCodeStatus.value = 'valid'
+    validatedInvite.value = result
+  } else {
+    inviteCodeStatus.value = 'invalid'
+    validatedInvite.value = null
+  }
+}
+
+// The role that will actually be used during registration
+const effectiveRole = computed<UserRole>(() =>
+  validatedInvite.value ? validatedInvite.value.role : 'student'
+)
+
+// The church that will be used (invite-specified, or form-selected)
+const effectiveChurch = computed(() =>
+  validatedInvite.value?.church || registerForm.church
+)
+
+const ROLE_LABELS: Record<UserRole, string> = {
+  student: '🎒 SS 學員',
+  teacher: '👨‍🏫 輔導教師',
+  pastor: '⛪ 分區牧者',
+  parent: '👨‍👩‍👦 關懷家長',
+  admin: '👑 SS 中央'
+}
+
+function roleLabel(role: UserRole): string {
+  return ROLE_LABELS[role] || role
+}
+
+function formatExpiry(iso: string): string {
+  const d = new Date(iso)
+  return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`
+}
 
 // OAuth Modal State
 const showOAuthModal = ref(false)
@@ -377,11 +448,11 @@ const registerForm = reactive({
   childUsernames: [] as string[]
 })
 
-// Compute available students for parent binding
+// Compute available students for parent binding (uses effectiveChurch)
 const registerAvailableStudents = computed(() => {
   return Object.keys(authStore.usersDb).filter(
     username => authStore.usersDb[username].role === 'student' &&
-                authStore.usersDb[username].church === registerForm.church
+                authStore.usersDb[username].church === effectiveChurch.value
   )
 })
 
@@ -456,13 +527,15 @@ function handleRegister() {
     showAlert('密碼強度不足，請設定中等以上強度的密碼（需 8 字元以上，並含數字或特殊符號）', 'error')
     return
   }
-  if (registerForm.role !== 'admin' && !registerForm.church) {
+  const role = effectiveRole.value
+  const church = effectiveChurch.value
+  if (role !== 'admin' && !church) {
     showAlert('請選擇所屬教會！', 'error')
     return
   }
-  if (registerForm.role === 'parent') {
+  if (role === 'parent') {
     if (registerAvailableStudents.value.length === 0) {
-      showAlert(`目前 ${registerForm.church} 教會尚無任何 SS學員帳號，請先由學員完成帳號建立！`, 'error')
+      showAlert(`目前 ${church} 教會尚無任何 SS學員帳號，請先由學員完成帳號建立！`, 'error')
       return
     }
     if (registerForm.childUsernames.length === 0) {
@@ -473,11 +546,15 @@ function handleRegister() {
   const result = authStore.register(
     registerForm.username,
     registerForm.password,
-    registerForm.role,
-    registerForm.role !== 'admin' ? registerForm.church : undefined,
-    registerForm.role === 'parent' ? registerForm.childUsernames : undefined
+    role,
+    role !== 'admin' ? church : undefined,
+    role === 'parent' ? registerForm.childUsernames : undefined
   )
   if (result.success) {
+    // Consume invite code if one was used
+    if (validatedInvite.value) {
+      authStore.consumeInviteCode(validatedInvite.value.code, registerForm.username)
+    }
     showAlert(result.message, 'success')
     setTimeout(() => {
       router.push('/')
@@ -968,8 +1045,121 @@ async function confirmOAuthLogin() {
   color: #059669;
 }
 
+/* Invite Code UI */
+.invite-code-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.invite-code-wrap .form-input {
+  flex: 1;
+}
+
+.invite-badge {
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.invite-badge.valid {
+  background: rgba(5, 150, 105, 0.12);
+  color: #059669;
+  border: 1px solid rgba(5, 150, 105, 0.3);
+}
+
+.invite-badge.invalid {
+  background: rgba(239, 68, 68, 0.1);
+  color: #DC2626;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.invite-info-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.invite-tag {
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+}
+
+.invite-tag.role-tag {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: white;
+}
+
+.invite-tag.church-tag {
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--primary);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.invite-expiry {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.locked-field-display {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.875rem;
+  border-radius: var(--radius-sm);
+  background: rgba(99, 102, 241, 0.06);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.locked-field-display.student-only {
+  background: rgba(107, 114, 128, 0.06);
+  border-color: rgba(107, 114, 128, 0.2);
+}
+
+.locked-badge {
+  margin-left: auto;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: rgba(107, 114, 128, 0.1);
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+}
+
+.form-section-divider {
+  height: 1px;
+  background: rgba(99, 102, 241, 0.12);
+  margin: 0.25rem 0;
+}
+
+.field-hint-inline {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-left: 0.25rem;
+}
+
+.error-hint {
+  color: var(--danger, #DC2626);
+  font-size: 0.8rem;
+  margin-top: 0.35rem;
+}
+
 /* Password show/hide wrapper */
 .pwd-input-wrap {
+
   position: relative;
   display: flex;
   align-items: center;
