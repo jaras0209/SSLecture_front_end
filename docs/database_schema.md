@@ -28,6 +28,7 @@
    - [teaching_stats（年度教學統計）](#214-teaching_stats-年度教學統計)
    - [booking_sessions（預約場次）](#215-booking_sessions-預約場次) ⭐ NEW
    - [booking_attendees（場次學員）](#216-booking_attendees-場次學員) ⭐ NEW
+   - [invite_codes（邀請碼）](#217-invite_codes-邀請碼) ⭐ NEW
 3. [索引設計](#3-索引設計)
 4. [資料關聯圖（文字版）](#4-資料關聯圖文字版)
 5. [設計決策與說明](#5-設計決策與說明)
@@ -967,6 +968,49 @@ CREATE TABLE booking_attendees (
 CREATE INDEX idx_booking_attendees_session ON booking_attendees(session_id);
 CREATE INDEX idx_booking_attendees_student ON booking_attendees(student_id);
 CREATE INDEX idx_booking_attendees_status  ON booking_attendees(attendance_status);
+```
+
+---
+
+### 2.17 `invite_codes` 邀請碼 ⭐
+
+> **對應前端**：`auth.ts` → `InviteCode` interface，`superstart_invite_codes` localStorage key  
+> **新增於**：v1.4.0（2026-07-30）
+
+| 欄位名 | 資料型別 | 限制 | 說明 |
+|--------|----------|------|------|
+| `code` | `VARCHAR(20)` | PK, NOT NULL | 邀請碼（例：`SS-TCH-A3F7`） |
+| `role` | `ENUM` | NOT NULL | 允許註冊的角色 |
+| `church_id` | `UUID` | FK → churches.id, NULL | 指定教會（admin為NULL） |
+| `created_by` | `UUID` | FK → users.id, NOT NULL | 產生此邀請碼的管理員 ID |
+| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
+| `expires_at` | `TIMESTAMPTZ` | NOT NULL | 到期時間 |
+| `used_by` | `UUID` | FK → users.id, NULL | 使用此邀請碼註冊的帳號 ID |
+| `used_at` | `TIMESTAMPTZ` | NULL | 使用時間 |
+| `revoked` | `BOOLEAN` | NOT NULL, DEFAULT FALSE | 是否已被管理員作廢 |
+
+**設計說明**：
+- `code` 為主鍵，具唯一性
+- 透過 `role` 和 `church_id` 來鎖定使用者註冊時可獲得的權限
+- 若 `used_by` 有值或 `revoked` 為 true，或當前時間大於 `expires_at`，則此邀請碼失效
+
+**SQL DDL**：
+```sql
+CREATE TABLE invite_codes (
+  code                     VARCHAR(20) PRIMARY KEY,
+  role                     VARCHAR(20) NOT NULL
+                             CHECK (role IN ('student','teacher','pastor','parent','admin')),
+  church_id                UUID REFERENCES churches(id) ON DELETE CASCADE,
+  created_by               UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at               TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  expires_at               TIMESTAMPTZ NOT NULL,
+  used_by                  UUID REFERENCES users(id) ON DELETE SET NULL,
+  used_at                  TIMESTAMPTZ,
+  revoked                  BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+CREATE INDEX idx_invite_codes_created_by ON invite_codes(created_by);
+CREATE INDEX idx_invite_codes_used_by ON invite_codes(used_by);
 ```
 
 ---

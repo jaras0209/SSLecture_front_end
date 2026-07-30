@@ -118,6 +118,63 @@ Authorization: Bearer <access_token>
 
 ---
 
+### `POST /auth/register` ⭐ NEW
+**說明**：註冊新帳號。若有提供邀請碼（`inviteCode`），系統將驗證該邀請碼，並依邀請碼綁定的角色及教會配發權限。若未提供邀請碼，則強制註冊為一般學員（`student`），且必須指定所屬教會。
+
+**權限**：公開
+
+**Request Body**：
+```json
+{
+  "username": "new_user",
+  "password": "123456",
+  "church": "愛與話語",          // 若無邀請碼或邀請碼未指定教會時必填
+  "inviteCode": "SS-TCH-A3F7" // 可選
+}
+```
+
+**Response**：
+```json
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": "u_002",
+      "username": "new_user",
+      "role": "teacher",
+      "church": "愛與話語"
+    }
+  }
+}
+```
+
+**錯誤**：
+- `400 INVALID_INVITE_CODE`：邀請碼無效、過期或已作廢
+- `409 USERNAME_EXISTS`：帳號已存在
+
+---
+
+### `POST /auth/reset-password` ⭐ NEW
+**說明**：修改密碼。
+
+**權限**：需登入（修改自己的密碼）或 Admin（重設他人密碼）
+
+**Request Body**：
+```json
+{
+  "username": "student01", // 可選，Admin 重設他人密碼時必填
+  "oldPassword": "old_password", // 可選，若是修改自己密碼則必填
+  "newPassword": "new_password"
+}
+```
+
+**Response**：
+```json
+{ "success": true }
+```
+
+---
+
 ### `POST /auth/refresh`
 **說明**：使用 Refresh Token 換發新的 Access Token
 
@@ -750,6 +807,76 @@ Authorization: Bearer <access_token>
 ```json
 { "page": "/shining" }
 ```
+
+---
+
+### `GET /admin/invite-codes` ⭐ NEW
+**說明**：取得系統中所有的邀請碼清單
+
+**權限**：`admin`
+
+**Response**：
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "code": "SS-TCH-A3F7",
+      "role": "teacher",
+      "church": "愛與話語",
+      "createdBy": "admin01",
+      "createdAt": "2026-07-30T10:00:00Z",
+      "expiresAt": "2026-08-06T10:00:00Z",
+      "usedBy": null,
+      "usedAt": null,
+      "revoked": false
+    }
+  ]
+}
+```
+
+---
+
+### `POST /admin/invite-codes` ⭐ NEW
+**說明**：產生一組新邀請碼
+
+**權限**：`admin`
+
+**Request Body**：
+```json
+{
+  "role": "teacher",
+  "church": "愛與話語", // admin 角色時可為 null
+  "expiryDays": 7
+}
+```
+
+**Response**：
+```json
+{
+  "success": true,
+  "data": {
+    "code": "SS-TCH-A3F7",
+    "expiresAt": "2026-08-06T10:00:00Z"
+  }
+}
+```
+
+---
+
+### `DELETE /admin/invite-codes/:code` ⭐ NEW
+**說明**：作廢一組尚未被使用的邀請碼
+
+**權限**：`admin`
+
+**Response**：
+```json
+{ "success": true }
+```
+
+**錯誤**：
+- `400 ALREADY_USED`：邀請碼已被使用，無法作廢
+- `404 NOT_FOUND`：邀請碼不存在
 
 ---
 
