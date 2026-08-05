@@ -1,7 +1,7 @@
 # SSLecture 後端資料庫設計文件
 
-> **文件版本**：v1.4.0  
-> **最後更新**：2026-07-22  
+> **文件版本**：v1.5.0  
+> **最後更新**：2026-08-05  
 > **資料來源**：分析前端 `src/stores/auth.ts`、`src/stores/courses.ts`、`src/stores/bookings.ts`、localStorage 資料結構  
 > **建議資料庫**：PostgreSQL（主要）/ MySQL（可選）  
 > **ORM 建議**：Prisma（Node.js）/ SQLAlchemy（Python）
@@ -71,6 +71,7 @@
   page_restrictions    (頁面存取限制)
   refresh_tokens       (JWT Refresh Token 黑名單)
   teaching_stats       (年度教學統計)
+  invite_codes ⭐       (邀請碼，NEW) — created_by/used_by → users, church_id → churches
 ```
 
 ---
@@ -408,6 +409,12 @@ CREATE INDEX idx_booking_sessions_proposed ON booking_sessions(proposed_at DESC)
 CREATE INDEX idx_booking_attendees_session ON booking_attendees(session_id);
 CREATE INDEX idx_booking_attendees_student ON booking_attendees(student_id);
 CREATE INDEX idx_booking_attendees_status  ON booking_attendees(attendance_status);
+
+-- invite_codes 表 ⭐
+CREATE INDEX idx_invite_codes_created_by ON invite_codes(created_by);
+CREATE INDEX idx_invite_codes_used_by    ON invite_codes(used_by);
+CREATE INDEX idx_invite_codes_expires_at ON invite_codes(expires_at);
+CREATE INDEX idx_invite_codes_church     ON invite_codes(church_id);
 ```
 
 ---
@@ -436,6 +443,9 @@ churches (1) ──────────────────────�
                    courses        checklists lectures     ├──> student
                                                          └──> listen_sessions
                                                               (選填連結)
+
+invite_codes ⭐ (created_by → users, used_by → users, church_id → churches)
+  [code 為 PK，透過 role+church_id 鎖定可註冊的角色與教會]
 ```
 
 ---
@@ -493,9 +503,29 @@ WHERE student_id = $1
 
 ### 5.7 `booking_attendees` 的 `student_username` 為何冠餘儲存？
 
-- 前端將 `username` 作為準 Session 和 Attendee 的 ID 組成核心，孶存後方便前端直接顯示而不需 JOIN
-- 學員帳號一旦編輯（橪數少版本），需同步更新此冠餘欄位
+- 前端將 `username` 作為準 Session 和 Attendee 的 ID 組成核心，儲存後方便前端直接顯示而不需 JOIN
+- 學員帳號一旦編輯，需同步更新此冗餘欄位
 - 建議後端建立 trigger `after_update_users` 同步更新 `booking_attendees.student_username`
+
+### 5.8 `invite_codes` 的外鍵行為設計說明 ⭐
+
+| 欄位 | ON DELETE 行為 | 理由 |
+|------|----------------|------|
+| `church_id → churches` | `SET NULL` | 教會若被停用/刪除，邀請碼紀錄仍應保留以供稽核 |
+| `created_by → users` | `SET NULL` | 管理員帳號被刪除，不應連帶刪除該管理員建立的所有邀請碼歷史 |
+| `used_by → users` | `SET NULL` | 使用者帳號若被刪除，邀請碼仍保留紀錄供稽核，只是 `used_by` 置空 |
+
+> [!WARNING]
+> 不可對 `created_by` 或 `church_id` 使用 `ON DELETE CASCADE`，否則刪除教會或管理員帳號時會連帶刪除所有邀請碼歷史紀錄，違反稽核要求。
+
+### 5.9 `invite_codes` 的有效性判斷邏輯
+
+邀請碼「有效」需同時滿足以下三個條件：
+```sql
+WHERE revoked = FALSE
+  AND used_by IS NULL
+  AND expires_at > NOW()
+```
 
 ---
 
@@ -531,9 +561,11 @@ CREATE TABLE users (
   role          user_role    NOT NULL,
   church_id     UUID         REFERENCES churches(id) ON DELETE SET NULL,
   display_name  VARCHAR(100),
+  real_name     VARCHAR(100),
   avatar_url    VARCHAR(512),
   login_method  login_method NOT NULL DEFAULT 'credentials',
   is_active     BOOLEAN      NOT NULL DEFAULT TRUE,
+  last_login_at TIMESTAMPTZ,
   created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
   updated_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
@@ -982,7 +1014,7 @@ CREATE INDEX idx_booking_attendees_status  ON booking_attendees(attendance_statu
 | `code` | `VARCHAR(20)` | PK, NOT NULL | 邀請碼（例：`SS-TCH-A3F7`） |
 | `role` | `ENUM` | NOT NULL | 允許註冊的角色 |
 | `church_id` | `UUID` | FK → churches.id, NULL | 指定教會（admin為NULL） |
-| `created_by` | `UUID` | FK → users.id, NOT NULL | 產生此邀請碼的管理員 ID |
+| `created_by` | `UUID` | FK → users.id, NULL, ON DELETE SET NULL | 產生此邀請碼的管理員 ID（管理員被刪除後置 NULL） |
 | `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
 | `expires_at` | `TIMESTAMPTZ` | NOT NULL | 到期時間 |
 | `used_by` | `UUID` | FK → users.id, NULL | 使用此邀請碼註冊的帳號 ID |
@@ -992,25 +1024,27 @@ CREATE INDEX idx_booking_attendees_status  ON booking_attendees(attendance_statu
 **設計說明**：
 - `code` 為主鍵，具唯一性
 - 透過 `role` 和 `church_id` 來鎖定使用者註冊時可獲得的權限
-- 若 `used_by` 有值或 `revoked` 為 true，或當前時間大於 `expires_at`，則此邀請碼失效
+- 外鍵均使用 `ON DELETE SET NULL`，避免教會或管理員被刪除時連帶刪除邀請碼歷史（詳見 Section 5.8）
+- 有效判斷：`revoked = FALSE AND used_by IS NULL AND expires_at > NOW()`
 
 **SQL DDL**：
 ```sql
 CREATE TABLE invite_codes (
-  code                     VARCHAR(20) PRIMARY KEY,
-  role                     VARCHAR(20) NOT NULL
-                             CHECK (role IN ('student','teacher','pastor','parent','admin')),
-  church_id                UUID REFERENCES churches(id) ON DELETE CASCADE,
-  created_by               UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  created_at               TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  expires_at               TIMESTAMPTZ NOT NULL,
-  used_by                  UUID REFERENCES users(id) ON DELETE SET NULL,
-  used_at                  TIMESTAMPTZ,
-  revoked                  BOOLEAN NOT NULL DEFAULT FALSE
+  code       VARCHAR(20)  PRIMARY KEY,
+  role       user_role    NOT NULL,
+  church_id  UUID         REFERENCES churches(id) ON DELETE SET NULL,
+  created_by UUID         REFERENCES users(id)    ON DELETE SET NULL,
+  created_at TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+  expires_at TIMESTAMPTZ  NOT NULL,
+  used_by    UUID         REFERENCES users(id)    ON DELETE SET NULL,
+  used_at    TIMESTAMPTZ,
+  revoked    BOOLEAN      NOT NULL DEFAULT FALSE
 );
 
 CREATE INDEX idx_invite_codes_created_by ON invite_codes(created_by);
-CREATE INDEX idx_invite_codes_used_by ON invite_codes(used_by);
+CREATE INDEX idx_invite_codes_used_by    ON invite_codes(used_by);
+CREATE INDEX idx_invite_codes_expires_at ON invite_codes(expires_at);
+CREATE INDEX idx_invite_codes_church     ON invite_codes(church_id);
 ```
 
 ---
