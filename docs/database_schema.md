@@ -34,6 +34,7 @@
 5. [設計決策與說明](#5-設計決策與說明)
 6. [SQL 建表語句（PostgreSQL）](#6-sql-建表語句postgresql)
 7. [種子資料（Seed Data）](#7-種子資料seed-data)
+8. [Mermaid ERD 關聯圖](#8-mermaid-erd-關聯圖)
 
 ---
 
@@ -830,6 +831,311 @@ INSERT INTO users (username, password_hash, role, church_id, display_name) VALUE
 ---
 
 *本文件由前端分析自動生成，後端工程師可直接參考此 SQL 進行資料庫建置。如有結構調整需求，請同步更新 `backend_api_spec.md` 文件。*
+
+---
+
+## 8. Mermaid ERD 關聯圖
+
+> 此圖展示全部 17 張資料表的欄位、主鍵（PK）、外鍵（FK）以及關聯性（一對一 / 一對多 / 多對多）。
+
+```mermaid
+erDiagram
+
+  %% ════════════════════════════════════
+  %% 核心表
+  %% ════════════════════════════════════
+
+  churches {
+    UUID        id         PK
+    VARCHAR     name       UK "NOT NULL UNIQUE"
+    VARCHAR     region
+    BOOLEAN     is_active  "DEFAULT TRUE"
+    TIMESTAMPTZ created_at
+  }
+
+  users {
+    UUID        id            PK
+    VARCHAR     username      UK "UNIQUE NOT NULL"
+    VARCHAR     password_hash    "NOT NULL"
+    user_role   role             "ENUM"
+    UUID        church_id     FK "-> churches.id SET NULL"
+    VARCHAR     display_name
+    VARCHAR     real_name
+    VARCHAR     avatar_url
+    login_method login_method    "ENUM, DEFAULT credentials"
+    BOOLEAN     is_active        "DEFAULT TRUE"
+    TIMESTAMPTZ last_login_at
+    TIMESTAMPTZ created_at
+    TIMESTAMPTZ updated_at
+  }
+
+  courses {
+    VARCHAR         id               PK  "bible-01..lecture-15"
+    VARCHAR         title               "NOT NULL"
+    course_category category            "ENUM"
+    TEXT            description
+    VARCHAR         cover_color
+    INTEGER         duration_seconds    "DEFAULT 0"
+    INTEGER         sort_order          "DEFAULT 0"
+    BOOLEAN         is_active           "DEFAULT TRUE"
+    TIMESTAMPTZ     created_at
+  }
+
+  lecturers {
+    UUID        id             PK
+    VARCHAR     name              "NOT NULL"
+    VARCHAR     title             "NOT NULL"
+    UUID        church_id      FK "-> churches.id SET NULL"
+    UUID        linked_user_id FK "-> users.id SET NULL"
+    BOOLEAN     is_active
+    TIMESTAMPTZ created_at
+    TIMESTAMPTZ updated_at
+  }
+
+  %% ════════════════════════════════════
+  %% 講師 × 課程（多對多）
+  %% ════════════════════════════════════
+
+  lecturer_courses {
+    UUID    lecturer_id PK,FK "-> lecturers.id CASCADE"
+    VARCHAR course_id   PK,FK "-> courses.id CASCADE"
+  }
+
+  %% ════════════════════════════════════
+  %% 聽課紀錄
+  %% ════════════════════════════════════
+
+  listen_sessions {
+    UUID        id            PK
+    UUID        student_id    FK "-> users.id CASCADE"
+    VARCHAR     course_id     FK "-> courses.id"
+    VARCHAR     lecturer_name    "自由文字（不用FK）"
+    TIMESTAMPTZ listened_at      "NOT NULL"
+    TEXT        notes
+    TIMESTAMPTZ created_at
+    TIMESTAMPTZ updated_at
+  }
+
+  %% ════════════════════════════════════
+  %% 關怀配對
+  %% ════════════════════════════════════
+
+  student_assignments {
+    UUID        id         PK
+    UUID        student_id FK,UK "-> users.id CASCADE (UNIQUE)"
+    UUID        teacher_id FK    "-> users.id SET NULL"
+    UUID        pastor_id  FK    "-> users.id SET NULL"
+    UUID        parent_id  FK    "-> users.id SET NULL"
+    TIMESTAMPTZ updated_at
+  }
+
+  %% ════════════════════════════════════
+  %% 閃耀計畫
+  %% ════════════════════════════════════
+
+  shining_projects {
+    UUID        id               PK
+    UUID        student_id       FK,UK "-> users.id CASCADE (UNIQUE)"
+    VARCHAR     name
+    DATE        birthday
+    VARCHAR     church_name
+    VARCHAR     school_grade
+    TEXT        custom_challenge
+    TIMESTAMPTZ created_at
+    TIMESTAMPTZ updated_at
+  }
+
+  shining_faith_checklists {
+    UUID               id                 PK
+    UUID               shining_project_id FK "-> shining_projects.id CASCADE"
+    checklist_category category              "ENUM"
+    VARCHAR            item_key
+    BOOLEAN            is_checked            "DEFAULT FALSE"
+    TIMESTAMPTZ        updated_at
+  }
+
+  shining_lectures {
+    UUID         id                 PK
+    UUID         shining_project_id FK "-> shining_projects.id CASCADE"
+    lecture_type type                  "ENUM: character / coming_of_age"
+    VARCHAR      theme_name            "NOT NULL"
+    VARCHAR      speaker_name
+    DATE         lecture_date
+    TIMESTAMPTZ  created_at
+    TIMESTAMPTZ  updated_at
+  }
+
+  %% ════════════════════════════════════
+  %% 動態專題大綱
+  %% ════════════════════════════════════
+
+  themes {
+    UUID        id         PK
+    UUID        church_id  FK "-> churches.id CASCADE"
+    theme_type  type          "ENUM: character / coming_of_age"
+    VARCHAR     name          "NOT NULL"
+    INTEGER     sort_order
+    BOOLEAN     is_active
+    TIMESTAMPTZ created_at
+  }
+
+  %% ════════════════════════════════════
+  %% 頁面限制 / JWT Token
+  %% ════════════════════════════════════
+
+  page_restrictions {
+    UUID        id         PK
+    UUID        user_id    FK "-> users.id CASCADE"
+    VARCHAR     page_path
+    TIMESTAMPTZ created_at
+  }
+
+  refresh_tokens {
+    UUID        id           PK
+    UUID        user_id      FK "-> users.id CASCADE"
+    VARCHAR     token_hash   UK "UNIQUE"
+    TIMESTAMPTZ expires_at
+    BOOLEAN     is_revoked      "DEFAULT FALSE"
+    TIMESTAMPTZ created_at
+    TIMESTAMPTZ last_used_at
+  }
+
+  %% ════════════════════════════════════
+  %% 教學統計
+  %% ════════════════════════════════════
+
+  teaching_stats {
+    UUID        id                   PK
+    UUID        teacher_id           FK "-> users.id CASCADE"
+    SMALLINT    year                    "CHECK >= 2020"
+    INTEGER     one_on_one_30
+    INTEGER     one_to_many_30
+    INTEGER     one_on_one_shining
+    INTEGER     one_to_many_shining
+    TIMESTAMPTZ submitted_at
+    TIMESTAMPTZ created_at
+    TIMESTAMPTZ updated_at
+  }
+
+  %% ════════════════════════════════════
+  %% 預約系統
+  %% ════════════════════════════════════
+
+  booking_sessions {
+    VARCHAR     id                      PK  "sess_${timestamp}"
+    UUID        teacher_id              FK  "-> users.id CASCADE"
+    UUID        church_id               FK  "-> churches.id SET NULL"
+    VARCHAR     course_id               FK  "-> courses.id SET NULL"
+    VARCHAR     course_title               "NOT NULL （冗餘）"
+    VARCHAR     lecturer_id             FK  "-> lecturers.id SET NULL"
+    VARCHAR     lecturer_name              "NOT NULL （冗餘）"
+    VARCHAR     lecturer_title
+    TIMESTAMPTZ proposed_at
+    TIMESTAMPTZ confirmed_at
+    SMALLINT    duration_minutes
+    VARCHAR     status                     "pending/confirmed/completed/cancelled"
+    TEXT        cancel_reason
+    TEXT        teacher_session_notes
+    BOOLEAN     is_group_session            "DEFAULT FALSE"
+    TEXT_ARR    prep_scriptures
+    TEXT        prep_reading_notes
+    TEXT        prep_materials
+    TIMESTAMPTZ created_at
+    TIMESTAMPTZ updated_at
+  }
+
+  booking_attendees {
+    VARCHAR     id                       PK  "att_${sessionId}_${username}"
+    VARCHAR     session_id               FK  "-> booking_sessions.id CASCADE"
+    UUID        student_id               FK  "-> users.id CASCADE"
+    VARCHAR     student_username            "冗餘儲存"
+    VARCHAR     attendance_status           "invited/attended/absent"
+    TEXT        student_feedback
+    TEXT        teacher_feedback
+    TIMESTAMPTZ feedback_at
+    VARCHAR     linked_listen_session_id FK  "-> listen_sessions.id SET NULL"
+    TIMESTAMPTZ created_at
+    TIMESTAMPTZ updated_at
+  }
+
+  %% ════════════════════════════════════
+  %% 邀請碼
+  %% ════════════════════════════════════
+
+  invite_codes {
+    VARCHAR     code       PK  "SS-TCH-A3F7"
+    user_role   role           "ENUM"
+    UUID        church_id  FK  "-> churches.id SET NULL"
+    UUID        created_by FK  "-> users.id SET NULL"
+    TIMESTAMPTZ created_at
+    TIMESTAMPTZ expires_at    "NOT NULL"
+    UUID        used_by    FK  "-> users.id SET NULL"
+    TIMESTAMPTZ used_at
+    BOOLEAN     revoked       "DEFAULT FALSE"
+  }
+
+  %% ════════════════════════════════════
+  %% 關聯性定義
+  %% ════════════════════════════════════
+
+  %% churches <-> users
+  churches ||--o{ users : "church_id (SET NULL)"
+
+  %% users <-> lecturers
+  churches ||--o{ lecturers : "church_id (SET NULL)"
+  users    ||--o| lecturers : "linked_user_id（可空）"
+
+  %% 講師 × 課程（M:N）
+  lecturers ||--o{ lecturer_courses : "lecturer_id (CASCADE)"
+  courses   ||--o{ lecturer_courses : "course_id (CASCADE)"
+
+  %% 聽課紀錄
+  users   ||--o{ listen_sessions : "student_id (CASCADE)"
+  courses ||--o{ listen_sessions : "course_id"
+
+  %% 關怀配對（1:1）
+  users ||--o| student_assignments : "student_id UK (CASCADE)"
+  users ||--o{ student_assignments : "teacher_id (SET NULL)"
+  users ||--o{ student_assignments : "pastor_id (SET NULL)"
+  users ||--o{ student_assignments : "parent_id (SET NULL)"
+
+  %% 閃耀計畫（1:1 + 1:N）
+  users            ||--o| shining_projects        : "student_id UK (CASCADE)"
+  shining_projects ||--o{ shining_faith_checklists : "shining_project_id (CASCADE)"
+  shining_projects ||--o{ shining_lectures         : "shining_project_id (CASCADE)"
+
+  %% 專題大綱
+  churches ||--o{ themes : "church_id (CASCADE)"
+
+  %% 頁面限制 / Token
+  users ||--o{ page_restrictions : "user_id (CASCADE)"
+  users ||--o{ refresh_tokens    : "user_id (CASCADE)"
+
+  %% 教學統計
+  users ||--o{ teaching_stats : "teacher_id (CASCADE)"
+
+  %% 預約系統
+  users             ||--o{ booking_sessions  : "teacher_id (CASCADE)"
+  churches          ||--o{ booking_sessions  : "church_id (SET NULL)"
+  courses           ||--o{ booking_sessions  : "course_id (SET NULL)"
+  lecturers         ||--o{ booking_sessions  : "lecturer_id (SET NULL)"
+  booking_sessions  ||--o{ booking_attendees : "session_id (CASCADE)"
+  users             ||--o{ booking_attendees : "student_id (CASCADE)"
+  listen_sessions   ||--o| booking_attendees : "linked_listen_session_id (SET NULL)"
+
+  %% 邀請碼
+  churches ||--o{ invite_codes : "church_id (SET NULL)"
+  users    ||--o{ invite_codes : "created_by (SET NULL)"
+  users    ||--o{ invite_codes : "used_by (SET NULL)"
+```
+
+> [!NOTE]
+> **關聯符號說明**：
+> - `||--o{` ：一對多（Zero or Many）
+> - `||--o|` ：一對零或一（Zero or One）
+> - PK = Primary Key， FK = Foreign Key， UK = Unique Key
+> - `CASCADE`：父表刪除時連帶刪除
+> - `SET NULL`：父表刪除時將欄位置為 NULL（保留子表紀錄）
 
 ---
 
