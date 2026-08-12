@@ -1,16 +1,16 @@
 # SSLecture 後端 API 規格文件
 
-> **文件版本**：v1.4.0  
-> **最後更新**：2026-07-22  
-> **前端版本**：Vue 3 + TypeScript（目前以 localStorage 模擬，待串接）  
-> **目標後端技術**：RESTful API（Node.js / Python / 任意語言均可）
+> **文件版本**：v1.5.0
+> **最後更新**：2026-08-12
+> **前端版本**：Vue 3 + TypeScript（目前以 localStorage 模擬，待串接）
+> **目標後端技術**：Spring Boot 3.x + Spring Security 6.x（OAuth2 Client + JWT）
 
 ---
 
 ## 目錄
 
 1. [通用規範](#1-通用規範)
-2. [認證 Auth](#2-認證-auth)
+2. [認證 Auth](#2-認證-auth)（含 OAuth2 社群登入）
 3. [課程 Courses](#3-課程-courses)
 4. [聽課紀錄 Listen Sessions](#4-聽課紀錄-listen-sessions)
 5. [講師管理 Lecturers](#5-講師管理-lecturers)
@@ -18,12 +18,16 @@
 7. [閃耀計畫 Shining Project](#7-閃耀計畫-shining-project)
 8. [管理員 Admin](#8-管理員-admin)
 9. [年度教學統計 Teaching Stats](#9-年度教學統計-teaching-stats)
-10. [聽課預約 Booking System](#10-聽課預約-booking-system) ⭐ NEW
+10. [聽課預約 Booking System](#10-聽課預約-booking-system) ⭐
 11. [資料模型定義](#11-資料模型定義)
 12. [錯誤碼一覽](#12-錯誤碼一覽)
 13. [前端串接遷移指南](#13-前端串接遷移指南)
 
+> **OAuth2 社群登入詳細設計**：請參閱 [`docs/oauth2_social_login_spec.md`](./oauth2_social_login_spec.md)，
+> 內含 Google / LINE 完整流程、Spring Boot SecurityConfig、前端 LoginCallback、onboarding 流程等。
+
 ---
+
 
 ## 1. 通用規範
 
@@ -230,6 +234,112 @@ Authorization: Bearer <access_token>
   }
 }
 ```
+
+---
+
+### OAuth2 社群登入端點（Spring Boot 自動提供）⭐ NEW
+
+> 完整設計請見 [`docs/oauth2_social_login_spec.md`](./oauth2_social_login_spec.md)
+
+| 端點 | 說明 | 呼叫方 |
+|------|------|--------|
+| `GET /oauth2/authorization/google` | 啟動 Google 授權流程（Redirect）| 前端 `window.location.href` |
+| `GET /oauth2/authorization/line` | 啟動 LINE 授權流程（Redirect）| 前端 `window.location.href` |
+| `GET /login/oauth2/code/google` | Google 授權碼回調（Spring 自動處理）| Google 伺服器 |
+| `GET /login/oauth2/code/line` | LINE 授權碼回調（Spring 自動處理）| LINE 伺服器 |
+
+### `POST /auth/exchange` ⭐ NEW
+**說明**：OAuth2 成功後，前端用短效一次性 code（60 秒）換取 JWT
+
+**權限**：公開
+
+**Request Body**：
+```json
+{ "code": "550e8400-e29b-41d4-a716-446655440000" }
+```
+
+**Response**：
+```json
+{
+  "success": true,
+  "data": {
+    "accessToken": "eyJhbGci...",
+    "refreshToken": "eyJhbGci...",
+    "expiresIn": 3600,
+    "needsOnboarding": false,
+    "user": {
+      "id": "uuid-001",
+      "displayName": "王小明",
+      "role": "student",
+      "churchId": null,
+      "avatarUrl": "https://..."
+    }
+  }
+}
+```
+
+**錯誤**：
+- `400 INVALID_CODE`：code 不存在或已過期
+- `400 CODE_ALREADY_USED`：code 已被使用
+
+---
+
+### `PUT /auth/complete-profile` ⭐ NEW
+**說明**：首次社群登入後補充所屬教會、username、邀請碼
+
+**權限**：需 JWT（onboarding 狀態下呼叫）
+
+**Request Body**：
+```json
+{
+  "churchId": "uuid-church-001",
+  "username": "wangxiaoming",
+  "inviteCode": "SS-TCH-A3F7"
+}
+```
+
+**Response**：
+```json
+{
+  "success": true,
+  "data": {
+    "user": { "id": "...", "username": "wangxiaoming", "role": "teacher", "church": "愛與話語" }
+  }
+}
+```
+
+**錯誤**：
+- `400 CHURCH_REQUIRED`：教會為必填
+- `400 INVALID_INVITE_CODE`：邀請碼無效
+- `409 USERNAME_TAKEN`：username 已存在
+
+---
+
+### `GET /auth/social-accounts` ⭐ NEW
+**說明**：取得目前使用者已綁定的社群帳號列表
+
+**權限**：需 JWT
+
+**Response**：
+```json
+{
+  "success": true,
+  "data": [
+    { "provider": "google", "linkedAt": "2026-08-12T10:00:00Z" },
+    { "provider": "line",   "linkedAt": "2026-08-12T11:00:00Z" }
+  ]
+}
+```
+
+---
+
+### `DELETE /auth/social-accounts/{provider}` ⭐ NEW
+**說明**：解除社群帳號綁定（至少須保留一種登入方式）
+
+**權限**：需 JWT
+
+**錯誤**：
+- `400 CANNOT_UNLINK_ONLY_LOGIN`：此為唯一登入方式，無法解除
 
 ---
 
