@@ -227,21 +227,23 @@
 
       <!-- Third Party Logins -->
       <div class="social-login-grid">
-        <button 
-          @click="openOAuthModal('google')" 
-          type="button" 
+        <button
+          @click="loginWithGoogle"
+          type="button"
           class="social-btn google-btn"
+          :disabled="isRedirecting"
         >
           <img src="https://cdn-icons-png.flaticon.com/512/300/300221.png" alt="Google" class="social-icon" />
-          Google 登入
+          {{ isRedirecting && redirectTarget === 'google' ? '連線中...' : 'Google 登入' }}
         </button>
-        <button 
-          @click="openOAuthModal('line')" 
-          type="button" 
+        <button
+          @click="loginWithLine"
+          type="button"
           class="social-btn line-btn"
+          :disabled="isRedirecting"
         >
           <img src="https://cdn-icons-png.flaticon.com/512/124/124027.png" alt="LINE" class="social-icon" />
-          LINE 登入
+          {{ isRedirecting && redirectTarget === 'line' ? '連線中...' : 'LINE 登入' }}
         </button>
       </div>
 
@@ -286,73 +288,6 @@
       </div>
     </div>
 
-    <!-- OAuth Simulation Modal -->
-    <div v-if="showOAuthModal" class="modal-overlay">
-      <div class="glass-panel modal-card text-center">
-        <!-- Step 1: Role select -->
-        <div v-if="oauthStep === 'role-select'">
-          <h3 class="modal-title">選擇社群登入對應的身分</h3>
-          <p class="modal-desc">為了方便模擬體驗，您可以指定本次社群登入所要使用的權限角色：</p>
-          
-          <div class="modal-roles">
-            <button @click="oauthSelectRole('student')" class="btn btn-outline btn-block">
-              🎒 模擬為 SS 學員
-            </button>
-            <button @click="oauthSelectRole('teacher')" class="btn btn-outline btn-block">
-              👨‍🏫 模擬為 輔導教師
-            </button>
-            <button @click="oauthSelectRole('parent')" class="btn btn-outline btn-block">
-              👨‍👩‍👦 模擬為 關懷家長
-            </button>
-            <button @click="oauthSelectRole('pastor')" class="btn btn-outline btn-block">
-              ⛪ 模擬為 分區牧者
-            </button>
-            <button @click="oauthSelectRole('admin')" class="btn btn-outline btn-block">
-              👑 模擬為 SS 中央
-            </button>
-          </div>
-          
-          <button @click="showOAuthModal = false" class="btn btn-outline btn-sm mt-4">取消</button>
-        </div>
-
-        <!-- Step 2: Church select (for non-admin) -->
-        <div v-else-if="oauthStep === 'church-select'">
-          <h3 class="modal-title">選擇所屬教會</h3>
-          <p class="modal-desc">請選擇您所屬的教會：</p>
-          <select v-model="oauthChurch" class="form-input select-input mb-4">
-            <option v-for="church in CHURCHES" :key="church" :value="church">{{ church }}</option>
-          </select>
-          <button @click="oauthProceedAfterChurch" class="btn btn-primary w-full">下一步</button>
-          <button @click="showOAuthModal = false" class="btn btn-outline btn-sm mt-2">取消</button>
-        </div>
-
-        <!-- Step 3: Student binding (for parent only) -->
-        <div v-else-if="oauthStep === 'student-bind'">
-          <h3 class="modal-title">綁定孩子的帳號</h3>
-          <p class="modal-desc">請選擇您孩子的 SS學員帳號：</p>
-          <div v-if="oauthAvailableStudents.length === 0" class="alert-box error mb-4">
-            ⚠️ 目前 {{ oauthChurch }} 教會尚無任何 SS學員帳號
-          </div>
-          <div v-else class="student-binding-list mb-4">
-            <label v-for="std in oauthAvailableStudents" :key="std" class="student-binding-option">
-              <input type="checkbox" :value="std" v-model="oauthChildUsernames" />
-              <span>🎒 {{ std }}</span>
-            </label>
-          </div>
-          <button @click="confirmOAuthLogin()" class="btn btn-primary w-full" :disabled="oauthAvailableStudents.length > 0 && oauthChildUsernames.length === 0">完成登入</button>
-          <button @click="showOAuthModal = false" class="btn btn-outline btn-sm mt-2">取消</button>
-        </div>
-
-        <!-- Processing state -->
-        <div v-else class="loading-state">
-          <div class="spinner"></div>
-          <h3 class="modal-title mt-4">
-            正在透過 {{ oauthProvider === 'google' ? 'Google' : 'LINE' }} 請求安全授權...
-          </h3>
-          <p class="modal-desc">請勿關閉視窗，正在建立安全的加密連結通訊。</p>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -427,13 +362,9 @@ function formatExpiry(iso: string): string {
   return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`
 }
 
-// OAuth Modal State
-const showOAuthModal = ref(false)
-const oauthProvider = ref<'google' | 'line' | null>(null)
-const oauthStep = ref<'role-select' | 'church-select' | 'student-bind' | 'processing'>('role-select')
-const oauthSelectedRole = ref<UserRole>('student')
-const oauthChurch = ref('愛與話語')
-const oauthChildUsernames = ref<string[]>([])
+// OAuth redirect 狀態
+const isRedirecting = ref(false)
+const redirectTarget = ref<'google' | 'line' | null>(null)
 
 const loginForm = reactive({
   username: '',
@@ -456,12 +387,6 @@ const registerAvailableStudents = computed(() => {
   )
 })
 
-const oauthAvailableStudents = computed(() => {
-  return Object.keys(authStore.usersDb).filter(
-    username => authStore.usersDb[username].role === 'student' &&
-                authStore.usersDb[username].church === oauthChurch.value
-  )
-})
 
 function showAlert(message: string, type: 'success' | 'error' = 'success') {
   alertMessage.value = message
@@ -570,49 +495,17 @@ function fillDemo(role: string) {
   showAlert(`已自動帶入 ${role} 測試資料`, 'success')
 }
 
-// OAuth process
-function openOAuthModal(provider: 'google' | 'line') {
-  oauthProvider.value = provider
-  oauthStep.value = 'role-select'
-  oauthChurch.value = '愛與話語'
-  oauthChildUsernames.value = []
-  showOAuthModal.value = true
+// OAuth 真實 redirect 函式
+function loginWithGoogle() {
+  isRedirecting.value = true
+  redirectTarget.value = 'google'
+  window.location.href = `${import.meta.env.VITE_API_BASE_URL}/oauth2/authorization/google`
 }
 
-function oauthSelectRole(role: UserRole) {
-  oauthSelectedRole.value = role
-  if (role === 'admin') {
-    confirmOAuthLogin()
-  } else {
-    oauthStep.value = 'church-select'
-  }
-}
-
-function oauthProceedAfterChurch() {
-  if (oauthSelectedRole.value === 'parent') {
-    oauthStep.value = 'student-bind'
-  } else {
-    confirmOAuthLogin()
-  }
-}
-
-async function confirmOAuthLogin() {
-  oauthStep.value = 'processing'
-  try {
-    if (oauthProvider.value) {
-      await authStore.loginWithThirdParty(
-        oauthProvider.value,
-        oauthSelectedRole.value,
-        oauthSelectedRole.value !== 'admin' ? oauthChurch.value : undefined,
-        oauthSelectedRole.value === 'parent' ? oauthChildUsernames.value : undefined
-      )
-      showOAuthModal.value = false
-      router.push('/')
-    }
-  } catch (error) {
-    showAlert('模擬第三方登入失敗，請重試。', 'error')
-    showOAuthModal.value = false
-  }
+function loginWithLine() {
+  isRedirecting.value = true
+  redirectTarget.value = 'line'
+  window.location.href = `${import.meta.env.VITE_API_BASE_URL}/oauth2/authorization/line`
 }
 </script>
 
@@ -811,6 +704,27 @@ async function confirmOAuthLogin() {
 .social-icon {
   width: 18px;
   height: 18px;
+}
+
+/* Google / LINE 品牌色 */
+.google-btn:hover {
+  border-color: #4285F4;
+  color: #4285F4;
+  background: rgba(66, 133, 244, 0.06);
+  transform: translateY(-1px);
+}
+
+.line-btn:hover {
+  border-color: #06C755;
+  color: #06C755;
+  background: rgba(6, 199, 85, 0.06);
+  transform: translateY(-1px);
+}
+
+.social-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 /* Demo chip list */

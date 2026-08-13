@@ -2,6 +2,10 @@ import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import { safeGet, safeSet, safeRemove } from '@/utils/storage'
 
+// TODO: 後端就緒後，在 exchangeOAuthCode / completeProfile 的 fetch 呼叫中，
+// 將 `${import.meta.env.VITE_API_BASE_URL}` 替換為此常數：
+// const API_BASE = (import.meta.env.VITE_API_BASE_URL as string) ?? ''
+
 export type UserRole = 'student' | 'teacher' | 'admin' | 'parent' | 'pastor'
 
 /** Mock 環境下的預設重設密碼（未來串接後端時由後端發送 Email 重設連結取代） */
@@ -175,6 +179,11 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   // Mock third-party logins with short simulated latency
+  /**
+   * @deprecated 後端串接後，請改為點擊按鈕直接 redirect 到
+   *             /oauth2/authorization/google 或 /oauth2/authorization/line。
+   *             此函式僅保留以備純前端 Mock 測試使用。
+   */
   async function loginWithThirdParty(
     method: 'google' | 'line',
     customRole: UserRole = 'student',
@@ -201,6 +210,106 @@ export const useAuthStore = defineStore('auth', () => {
     }
     
     isAuthenticating.value = false
+  }
+
+  /**
+   * 用短效一次性 code 換取 JWT。
+   * OAuth2 授權成功後，後端 Redirect 到 /login/callback?code=XXX，
+   * 前端再呼叫此函式換取真正的 JWT。
+   *
+   * TODO（後端就緒後）：
+   *   1. 移除下方「=== 開發期 mock ===」區塊
+   *   2. 取消註解 fetch 呼叫區塊（已預先寫好，被 TODO 包圈）
+   *   3. 確認 safeSet token 和 currentUser.value 欄位對應
+   */
+  async function exchangeOAuthCode(
+    _code: string
+  ): Promise<{ success: boolean; needsOnboarding: boolean; message: string }> {
+    // TODO: 後端就緒後，移除 mock，取消註解以下 fetch 呼叫
+    // try {
+    //   const res = await fetch(`${API_BASE}/auth/exchange`, {
+    //     method: 'POST',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify({ code })
+    //   })
+    //   const data = await res.json()
+    //   if (!data.success) return { success: false, needsOnboarding: false, message: data.error?.message ?? '登入失敗' }
+    //   safeSet('superstart_access_token', data.data.accessToken)
+    //   safeSet('superstart_refresh_token', data.data.refreshToken)
+    //   currentUser.value = data.data.user
+    //   return { success: true, needsOnboarding: data.data.needsOnboarding, message: 'ok' }
+    // } catch (err) {
+    //   return { success: false, needsOnboarding: false, message: '網路錯誤，請稍後再試' }
+    // }
+
+    // === 開發期 mock（後端就緒後移除）===
+    console.warn('[AUTH] exchangeOAuthCode: Using dev mock — 後端就緒後請替換為真實 API 呼叫')
+    isAuthenticating.value = true
+    await new Promise(r => setTimeout(r, 1000))
+    isAuthenticating.value = false
+    currentUser.value = {
+      username: `oauth_${Date.now()}`,
+      role: 'student',
+      loginMethod: 'google',
+      church: undefined,
+      displayName: 'OAuth 測試使用者',
+      avatarUrl: 'https://cdn-icons-png.flaticon.com/512/300/300221.png'
+    }
+    return { success: true, needsOnboarding: true, message: 'ok' }
+  }
+
+  /**
+   * 首次社群登入後，補充所屬教會、username、邀請碼。
+   *
+   * TODO（後端就緒後）：
+   *   1. 移除下方「=== 開發期 mock ===」區塊
+   *   2. 取消註解 fetch PUT /auth/complete-profile 呼叫區塊
+   *   3. 成功後更新 currentUser.value 為後端回傳的最新使用者資料
+   */
+  async function completeProfile(payload: {
+    churchId: string
+    username?: string
+    inviteCode?: string
+  }): Promise<{ success: boolean; message: string }> {
+    // TODO: 後端就緒後，移除 mock，取消註解以下 fetch 呼叫
+    // try {
+    //   const token = safeGet<string>('superstart_access_token', '')
+    //   const res = await fetch(`${API_BASE}/auth/complete-profile`, {
+    //     method: 'PUT',
+    //     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    //     body: JSON.stringify(payload)
+    //   })
+    //   const data = await res.json()
+    //   if (data.success) currentUser.value = data.data.user
+    //   return { success: data.success, message: data.error?.message ?? '完成' }
+    // } catch (err) {
+    //   return { success: false, message: '網路錯誤，請稍後再試' }
+    // }
+
+    // === 開發期 mock（後端就緒後移除）===
+    console.warn('[AUTH] completeProfile: Using dev mock — 後端就緒後請替換為真實 API 呼叫')
+    if (!currentUser.value) return { success: false, message: '未登入' }
+    if (payload.inviteCode) {
+      const invite = validateInviteCode(payload.inviteCode)
+      if (invite) {
+        currentUser.value = {
+          ...currentUser.value,
+          role: invite.role,
+          church: payload.churchId,
+          username: payload.username || currentUser.value.username
+        }
+        consumeInviteCode(payload.inviteCode, currentUser.value.username)
+      } else {
+        return { success: false, message: '邀請碼無效' }
+      }
+    } else {
+      currentUser.value = {
+        ...currentUser.value,
+        church: payload.churchId,
+        username: payload.username || currentUser.value.username
+      }
+    }
+    return { success: true, message: '完成！' }
   }
 
   function logout() {
@@ -344,7 +453,9 @@ export const useAuthStore = defineStore('auth', () => {
     inviteCodesDb,
     login,
     register,
-    loginWithThirdParty,
+    loginWithThirdParty, // @deprecated 後端就緒後請移除
+    exchangeOAuthCode,
+    completeProfile,
     logout,
     updatePassword,
     adminResetPassword,
