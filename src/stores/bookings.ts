@@ -2,77 +2,26 @@ import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 import { safeGet, safeSet } from '@/utils/storage'
 
-// ─── Interfaces ──────────────────────────────────────────────────────────────
+// 型別定義集中至 src/types/bookings.ts—從這裡 re-export 保持向下相容
+export type {
+  BookingStatus,
+  AttendanceStatus,
+  BookingPrep,
+  BookingSession,
+  BookingAttendee,
+  BookingSessionsDb,
+  BookingAttendeesDb
+} from '@/types/bookings'
 
-export type BookingStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled'
-export type AttendanceStatus = 'invited' | 'attended' | 'absent'
+// 引入型別供 store 內部使用
+import type {
+  BookingStatus,
+  BookingSession,
+  BookingAttendee,
+  BookingSessionsDb,
+  BookingAttendeesDb
+} from '@/types/bookings'
 
-export interface BookingPrep {
-  scriptures: string[]    // 預習經文，如 ["約翰福音 1:1-18"]
-  readingNotes: string    // 閱讀/準備說明
-  materials: string       // 補充材料說明
-}
-
-export interface BookingSession {
-  id: string
-
-  // 課程
-  courseId: string
-  courseTitle: string      // 冗餘，方便顯示
-
-  // 講師
-  lecturerId: string
-  lecturerName: string
-  lecturerTitle: string    // 牧師/傳道/長老等
-
-  // 發起教師
-  teacherUsername: string
-
-  // 時間
-  proposedAt: string       // ISO8601，如 "2025-06-25T14:00"
-  confirmedAt?: string     // 最終確認時間（講師確認後填）
-  durationMinutes: number  // 預計時長（分鐘），如 90
-
-  // 狀態
-  status: BookingStatus
-  cancelReason?: string
-
-  // 預習內容
-  prep: BookingPrep
-
-  // 完成後場次整體記錄（教師填）
-  teacherSessionNotes: string
-
-  // 系統
-  church: string
-  isGroupSession: boolean
-  createdAt: string
-  updatedAt: string
-}
-
-export interface BookingAttendee {
-  id: string               // `att_${sessionId}_${studentUsername}`
-  sessionId: string
-
-  studentUsername: string
-
-  // 出席狀態（教師事後填）
-  attendanceStatus: AttendanceStatus
-
-  // 課後回饋
-  studentFeedback: string  // 學員心得（學員或教師代填）
-  teacherFeedback: string  // 教師對此學員的個別回饋
-  feedbackAt?: string
-
-  // 手動連結聽課紀錄（選填）
-  linkedListenSessionId?: string
-
-  createdAt: string
-  updatedAt: string
-}
-
-export type BookingSessionsDb = Record<string, BookingSession>
-export type BookingAttendeesDb = Record<string, BookingAttendee>
 
 // ─── Store ───────────────────────────────────────────────────────────────────
 

@@ -2,115 +2,39 @@ import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 import { safeGet, safeSet } from '@/utils/storage'
 
-export interface Course {
-  id: string
-  title: string
-  category: 'bible' | 'lecture'
-  speaker: string
-  duration: number // in seconds
-  description: string
-  coverColor: string // CSS color code or gradient for card styling
-}
+// 型別定義集中至 src/types/courses.ts—從這裡 re-export 保持向下相容
+export type {
+  Course,
+  ListenSession,
+  ProgressRecord,
+  UserProgressDb,
+  PageRestrictionsDb,
+  StudentCaretakers,
+  StudentTeacherDb,
+  ShiningProject,
+  ShiningProjectDb,
+  Lecturer,
+  TeachingStats,
+  TeachingStatsDb,
+  ShiningChecklistKey
+} from '@/types/courses'
 
-export interface ListenSession {
-  id: string           // unique session ID (timestamp-based)
-  lecturer: string     // student-selected lecturer for this session
-  listenedAt: string   // student-registered datetime (YYYY-MM-DDTHH:mm)
-  notes: string        // personal notes for this session
-  createdAt: string    // system timestamp when this record was saved
-}
-
-export interface ProgressRecord {
-  courseId: string
-  completed: boolean
-  notes: string               // kept for backward compatibility (legacy field)
-  lastUpdated: string
-  sessions: ListenSession[]   // all listening sessions (new multi-record support)
-  // legacy fields — kept for migration only
-  durationListened?: number
-  listenedAt?: string
-  lecturer?: string
-}
-
-// Maps username to their course records
-export type UserProgressDb = Record<string, Record<string, ProgressRecord>>
-
-// Maps username to restricted pages they cannot access
-export type PageRestrictionsDb = Record<string, string[]>
-
-export interface StudentCaretakers {
-  teacher?: string
-  pastor?: string
-  parent?: string
-}
-
-// Maps studentUsername -> caretakers
-export type StudentTeacherDb = Record<string, StudentCaretakers>
-
-// Shining Project structures
-export interface ShiningProject {
-  name: string
-  birthday: string
-  church: string
-  schoolGrade: string
-  faithPhase1: {
-    worship: boolean
-    prayer: boolean
-    independent: boolean
-    reply: boolean
-    share: boolean
-  }
-  faithPhase2: {
-    courses30: boolean
-    prayerLong: boolean
-    morningWorship: boolean
-    readBible: boolean
-    churchService: boolean
-  }
-  advancedChallenges: {
-    wednesday: boolean
-    shareFaith: boolean
-    copySermon: boolean
-    morningProverb: boolean
-    custom: boolean
-  }
-  customChallenge: string
-  characterLectures: Record<string, { speaker: string; date: string }>
-  comingOfAgeTopics: Record<string, { speaker: string; date: string }>
-}
-
-export type ShiningProjectDb = Record<string, ShiningProject>
-
-export interface Lecturer {
-  id: string
-  name: string
-  title: string
-  courseIds: string[]
-  church?: string
-  linkedUsername?: string   // 連結的教師帳號 username（選填，無則為自訂講師）
-}
-
-/** 年度教學人次申報 (by teacher, by year) */
-export interface TeachingStats {
-  teacherUsername: string
-  year: number                   // e.g. 2025
-  church: string
-  oneOnOne30: number             // 1對1講「三十個論」人次
-  oneToMany30: number            // 1對多講「三十個論」人次
-  oneOnOneShining: number        // 1對1講「閃耀計畫課程」人次
-  oneToManyShining: number       // 1對多講「閃耀計畫課程」人次
-  submittedAt?: string           // 最後更新時間
-}
-
-// key = `${teacherUsername}_${year}`
-export type TeachingStatsDb = Record<string, TeachingStats>
-
-/** All possible checklist keys across ShiningProject faith phases and advanced challenges */
-export type ShiningChecklistKey =
-  | 'worship' | 'prayer' | 'independent' | 'reply' | 'share'
-  | 'courses30' | 'prayerLong' | 'morningWorship' | 'readBible'
-  | 'churchService' | 'wednesday' | 'shareFaith' | 'copySermon'
-  | 'morningProverb' | 'custom'
+// 引入型別供 store 內部使用
+import type {
+  Course,
+  ListenSession,
+  ProgressRecord,
+  UserProgressDb,
+  PageRestrictionsDb,
+  StudentCaretakers,
+  StudentTeacherDb,
+  ShiningProject,
+  ShiningProjectDb,
+  Lecturer,
+  TeachingStats,
+  TeachingStatsDb,
+  ShiningChecklistKey
+} from '@/types/courses'
 
 
 export const useCoursesStore = defineStore('courses', () => {
