@@ -1,7 +1,7 @@
 # SSLecture 後端資料庫設計文件
 
-> **文件版本**：v1.5.0  
-> **最後更新**：2026-08-05  
+> **文件版本**：v1.6.0  
+> **最後更新**：2026-08-14  
 > **資料來源**：分析前端 `src/stores/auth.ts`、`src/stores/courses.ts`、`src/stores/bookings.ts`、localStorage 資料結構  
 > **建議資料庫**：PostgreSQL（主要）/ MySQL（可選）  
 > **ORM 建議**：Prisma（Node.js）/ SQLAlchemy（Python）
@@ -28,7 +28,8 @@
    - [teaching_stats（年度教學統計）](#214-teaching_stats-年度教學統計)
    - [booking_sessions（預約場次）](#215-booking_sessions-預約場次) ⭐ NEW
    - [booking_attendees（場次學員）](#216-booking_attendees-場次學員) ⭐ NEW
-   - [invite_codes（邀請碼）](#217-invite_codes-邀請碼) ⭐ NEW
+   - [invite_codes（邀請碼）](#217-invite_codes-邀請碼) ⭐
+   - [social_accounts（社群帳號綁定）](#218-social_accounts-社群帳號綁定) ⭐ NEW
 3. [索引設計](#3-索引設計)
 4. [資料關聯圖（文字版）](#4-資料關聯圖文字版)
 5. [設計決策與說明](#5-設計決策與說明)
@@ -1127,6 +1128,9 @@ erDiagram
   churches ||--o{ invite_codes : "church_id (SET NULL)"
   users    ||--o{ invite_codes : "created_by (SET NULL)"
   users    ||--o{ invite_codes : "used_by (SET NULL)"
+
+  %% 社群帳號綁定
+  users ||--o{ social_accounts : "user_id (CASCADE)"
 ```
 
 > [!NOTE]
@@ -1351,6 +1355,63 @@ CREATE INDEX idx_invite_codes_created_by ON invite_codes(created_by);
 CREATE INDEX idx_invite_codes_used_by    ON invite_codes(used_by);
 CREATE INDEX idx_invite_codes_expires_at ON invite_codes(expires_at);
 CREATE INDEX idx_invite_codes_church     ON invite_codes(church_id);
+```
+
+---
+
+### 2.18 `social_accounts` 社群帳號綁定 ⭐ NEW
+
+> **新增於**：v1.6.0（2026-08-14）  
+> **用途**：儲存使用者透過 Google / LINE OAuth2 登入後的第三方帳號綁定資料。一個使用者可以綁定多個社群平台帳號。
+
+| 欄位名 | 資料型別 | 限制 | 說明 |
+|--------|----------|------|------|
+| `id` | `UUID` | PK, DEFAULT gen_random_uuid() | 主鍵 |
+| `user_id` | `UUID` | FK → users.id, NOT NULL, ON DELETE CASCADE | 對應的使用者 |
+| `provider` | `VARCHAR(20)` | NOT NULL | 第三方平台（`google` / `line`） |
+| `provider_user_id` | `VARCHAR(255)` | NOT NULL | 第三方平台的使用者唯一 ID |
+| `email` | `VARCHAR(255)` | NULL | 從第三方取得的 email（LINE 不一定有） |
+| `display_name` | `VARCHAR(255)` | NULL | 第三方顯示名稱 |
+| `avatar_url` | `TEXT` | NULL | 第三方頭像 URL |
+| `access_token` | `TEXT` | NULL | 第三方 Access Token（加密儲存） |
+| `refresh_token` | `TEXT` | NULL | 第三方 Refresh Token（加密儲存，若有） |
+| `token_expires_at` | `TIMESTAMPTZ` | NULL | Access Token 到期時間 |
+| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 首次綁定時間 |
+| `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 最近更新時間（Token 更新時） |
+
+**Unique 約束**：
+- `UNIQUE (provider, provider_user_id)`：同一平台的使用者 ID 全域唯一（防止同帳號綁定多個本地使用者）
+- `UNIQUE (user_id, provider)`：一個使用者在同平台只能綁定一次
+
+**設計說明**：
+- `ON DELETE CASCADE`：本地使用者帳號被刪除時，自動刪除所有關聯的社群綁定記錄
+- `provider_user_id` 是從 OAuth2 Provider 取得的 `sub`（Google）或 `userId`（LINE）
+- 相同 email 的不同 provider 可自動合併到同一 `user_id`（由後端 `SocialAccountService` 處理）
+- `access_token` / `refresh_token` 建議使用 AES-256 加密後儲存，在 `application.yml` 設定密鑰
+
+**SQL DDL**：
+```sql
+CREATE TABLE social_accounts (
+  id                UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id           UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  provider          VARCHAR(20)  NOT NULL,
+  provider_user_id  VARCHAR(255) NOT NULL,
+  email             VARCHAR(255),
+  display_name      VARCHAR(255),
+  avatar_url        TEXT,
+  access_token      TEXT,
+  refresh_token     TEXT,
+  token_expires_at  TIMESTAMPTZ,
+  created_at        TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+  updated_at        TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+
+  CONSTRAINT uq_social_provider_uid UNIQUE (provider, provider_user_id),
+  CONSTRAINT uq_user_provider       UNIQUE (user_id, provider)
+);
+
+CREATE INDEX idx_social_accounts_user_id         ON social_accounts(user_id);
+CREATE INDEX idx_social_accounts_provider_uid    ON social_accounts(provider, provider_user_id);
+CREATE INDEX idx_social_accounts_email           ON social_accounts(email);
 ```
 
 ---

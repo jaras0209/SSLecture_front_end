@@ -178,39 +178,7 @@ export const useAuthStore = defineStore('auth', () => {
     return { success: true, message: '註冊成功！' }
   }
 
-  // Mock third-party logins with short simulated latency
-  /**
-   * @deprecated 後端串接後，請改為點擊按鈕直接 redirect 到
-   *             /oauth2/authorization/google 或 /oauth2/authorization/line。
-   *             此函式僅保留以備純前端 Mock 測試使用。
-   */
-  async function loginWithThirdParty(
-    method: 'google' | 'line',
-    customRole: UserRole = 'student',
-    church?: string,
-    childUsernames?: string[]
-  ): Promise<void> {
-    isAuthenticating.value = true
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    
-    const randomSuffix = Math.floor(Math.random() * 900) + 100
-    const username = method === 'google' 
-      ? `GoogleSS學員_${randomSuffix}` 
-      : `LineSS學員_${randomSuffix}`
-      
-    currentUser.value = {
-      username,
-      role: customRole,
-      loginMethod: method,
-      avatarUrl: method === 'google'
-        ? 'https://cdn-icons-png.flaticon.com/512/300/300221.png'
-        : 'https://cdn-icons-png.flaticon.com/512/124/124027.png',
-      church: customRole === 'admin' ? undefined : (church || '愛與話語'),
-      childUsernames: customRole === 'parent' ? (childUsernames || []) : undefined
-    }
-    
-    isAuthenticating.value = false
-  }
+
 
   /**
    * 用短效一次性 code 換取 JWT。
@@ -453,7 +421,6 @@ export const useAuthStore = defineStore('auth', () => {
     inviteCodesDb,
     login,
     register,
-    loginWithThirdParty, // @deprecated 後端就緒後請移除
     exchangeOAuthCode,
     completeProfile,
     logout,
