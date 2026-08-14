@@ -23,6 +23,7 @@ export interface User {
   realName?: string          // 真實姓名（管理端顯示用）
   email?: string             // Email（社群登入時從第三方取得）
   needsOnboarding?: boolean  // 首次社群登入，尚未完成 onboarding 流程
+  lastLoginAt?: string       // 上次登入時間
 }
 
 /** 邀請碼 */

@@ -18,6 +18,7 @@ export { CHURCHES, DEFAULT_RESET_PASSWORD } from '@/types/auth'
 
 // 引入型別供 store 內部使用
 import type { UserRole, User, InviteCode } from '@/types/auth'
+import { CHURCHES, DEFAULT_RESET_PASSWORD } from '@/types/auth'
 
 /** 邀請碼前綴（用於產生易讀的邀請碼） */
 const ROLE_CODE_PREFIX: Record<UserRole, string> = {
