@@ -105,13 +105,16 @@ import { useCoursesStore } from '@/stores/courses'
 import type { Course } from '@/stores/courses'
 import { useBookingsStore } from '@/stores/bookings'
 import type { BookingSession, BookingAttendee } from '@/stores/bookings'
-import ProfileDialog from '@/components/ProfileDialog.vue'
-import StudentFeedbackModal from '@/components/student/StudentFeedbackModal.vue'
-import StudentShiningDashboard from '@/components/student/StudentShiningDashboard.vue'
-import StudentBookingList from '@/components/student/StudentBookingList.vue'
-import StudentCourseGrid from '@/components/student/StudentCourseGrid.vue'
-import StudentCourseDetail from '@/components/student/StudentCourseDetail.vue'
+import { defineAsyncComponent } from 'vue'
 import type { FeedbackItem } from '@/components/student/StudentBookingList.vue'
+
+// --- 大型子元件：改用 defineAsyncComponent 按需載入，縮短首次渲染時間 ---
+const ProfileDialog          = defineAsyncComponent(() => import('@/components/ProfileDialog.vue'))
+const StudentFeedbackModal   = defineAsyncComponent(() => import('@/components/student/StudentFeedbackModal.vue'))
+const StudentShiningDashboard = defineAsyncComponent(() => import('@/components/student/StudentShiningDashboard.vue'))
+const StudentBookingList     = defineAsyncComponent(() => import('@/components/student/StudentBookingList.vue'))
+const StudentCourseGrid      = defineAsyncComponent(() => import('@/components/student/StudentCourseGrid.vue'))
+const StudentCourseDetail    = defineAsyncComponent(() => import('@/components/student/StudentCourseDetail.vue'))
 
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()

@@ -440,9 +440,12 @@ import { ref, reactive, computed } from 'vue'
 import { useToast } from '@/composables/useToast'
 const { confirm, toast } = useToast()
 import { useAuthStore, CHURCHES, DEFAULT_RESET_PASSWORD } from '@/stores/auth'
+import { defineAsyncComponent } from 'vue'
 import type { UserRole, InviteCode } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
-import ProfileDialog from '@/components/ProfileDialog.vue'
+
+// 大型 Dialog 元件：按需載入
+const ProfileDialog = defineAsyncComponent(() => import('@/components/ProfileDialog.vue'))
 
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()

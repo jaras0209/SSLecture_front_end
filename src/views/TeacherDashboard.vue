@@ -224,14 +224,17 @@ import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import { useBookingsStore } from '@/stores/bookings'
 import ProfileDialog from '@/components/ProfileDialog.vue'
-import TeacherNotesDialog from '@/components/teacher/TeacherNotesDialog.vue'
-import TeacherPastorOverview from '@/components/teacher/TeacherPastorOverview.vue'
-import TeacherSettingsPanel from '@/components/teacher/TeacherSettingsPanel.vue'
-import TeacherStatsReport from '@/components/teacher/TeacherStatsReport.vue'
-import TeacherBookingPanel from '@/components/teacher/TeacherBookingPanel.vue'
-import TeacherStudentList from '@/components/teacher/TeacherStudentList.vue'
+import { defineAsyncComponent } from 'vue'
 import type { StudentProgressSummary } from '@/components/teacher/TeacherStudentList.vue'
-import TeacherStudentDrawer from '@/components/teacher/TeacherStudentDrawer.vue'
+
+// --- 大型子元件：改用 defineAsyncComponent 按需載入，縮短首次渲染時間 ---
+const TeacherNotesDialog    = defineAsyncComponent(() => import('@/components/teacher/TeacherNotesDialog.vue'))
+const TeacherPastorOverview = defineAsyncComponent(() => import('@/components/teacher/TeacherPastorOverview.vue'))
+const TeacherSettingsPanel  = defineAsyncComponent(() => import('@/components/teacher/TeacherSettingsPanel.vue'))
+const TeacherStatsReport    = defineAsyncComponent(() => import('@/components/teacher/TeacherStatsReport.vue'))
+const TeacherBookingPanel   = defineAsyncComponent(() => import('@/components/teacher/TeacherBookingPanel.vue'))
+const TeacherStudentList    = defineAsyncComponent(() => import('@/components/teacher/TeacherStudentList.vue'))
+const TeacherStudentDrawer  = defineAsyncComponent(() => import('@/components/teacher/TeacherStudentDrawer.vue'))
 import type { Lecturer } from '@/stores/courses'
 import type { BookingSession } from '@/stores/bookings'
 
