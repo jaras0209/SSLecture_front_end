@@ -17,14 +17,14 @@
     "vue-router": "^5.1.0"
   },
   "devDependencies": {
-    "@pinia/testing": "^0.1.6",
+    "@pinia/testing": "^2.0.1",
     "@types/node": "^25.9.5",
     "@vitejs/plugin-vue": "^5.2.3",
     "@vue/tsconfig": "^0.7.0",
-    "happy-dom": "^16.8.1",
+    "happy-dom": "^20.11.2",
     "typescript": "~5.8.3",
     "vite": "^6.3.5",
-    "vitest": "^2.1.9",
+    "vitest": "^3.2.7",
     "vue-tsc": "^2.2.8"
   }
 }
