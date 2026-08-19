@@ -16,7 +16,6 @@ export type {
 // 引入型別供 store 內部使用
 import type {
   BookingStatus,
-  AttendanceStatus,
   BookingPrep,
   BookingSession,
   BookingAttendee,
