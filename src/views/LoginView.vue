@@ -3,7 +3,7 @@
     <div class="glass-panel login-card">
       <div class="brand-header text-center">
         <span class="logo-orb">✨</span>
-        <h1 class="brand-title">SuperStart</h1>
+        <h1 class="brand-title">Shining Star</h1>
         <p class="brand-tagline">聆聽神的話語，開啟智慧的全新一天</p>
       </div>
 

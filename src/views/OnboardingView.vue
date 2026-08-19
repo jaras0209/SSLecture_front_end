@@ -12,7 +12,7 @@
         />
         <div v-else class="user-avatar-placeholder">👤</div>
 
-        <h1 class="onboarding-title">歡迎加入 SuperStart！</h1>
+        <h1 class="onboarding-title">歡迎加入 Shining Star！</h1>
         <p class="onboarding-greeting">
           嗨，<strong>{{ authStore.currentUser?.displayName || authStore.currentUser?.username || '新成員' }}</strong>！<br />
           請填寫以下資料以完成帳號設定。

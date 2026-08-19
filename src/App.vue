@@ -5,7 +5,7 @@
       <div class="navbar-top-row">
         <router-link to="/" class="navbar-brand">
           <span class="navbar-logo-dot"></span>
-          <span>SuperStart</span>
+          <span>Shining Star</span>
         </router-link>
 
         <!-- Hamburger Button (mobile only) -->
