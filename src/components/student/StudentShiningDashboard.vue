@@ -220,8 +220,10 @@
     </div>
   </div>
 
-  <!-- DEDICATED HIGH-FIDELITY HTML PRINT TEMPLATE (Hidden on screen, displayed in print media) -->
-  <div class="print-page-layout print-only">
+  <!-- DEDICATED HIGH-FIDELITY HTML PRINT TEMPLATE -->
+  <!-- Teleport 到 body 以避免被 #app-container display:none 遮蔽 -->
+  <Teleport to="body">
+    <div class="print-page-layout print-only">
     <div class="print-container">
       <!-- Banner Header -->
       <div class="print-banner">
@@ -364,7 +366,8 @@
         </div>
       </div>
     </div>
-  </div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
@@ -491,3 +494,18 @@ const advancedLabels = {
   custom: '自訂挑戰：'
 }
 </script>
+
+<!-- 不加 scoped：Teleport 將 print-only 移至 body，scoped 樣式無法跨越 -->
+<style>
+/* 螢幕上隱藏列印模板 */
+.print-page-layout.print-only {
+  display: none;
+}
+
+/* 列印時顯示 */
+@media print {
+  .print-page-layout.print-only {
+    display: block !important;
+  }
+}
+</style>
