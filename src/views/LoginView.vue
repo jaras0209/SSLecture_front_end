@@ -287,7 +287,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, toRef } from 'vue'
+import { ref, reactive, toRef, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore, CHURCHES } from '@/stores/auth'
 import type { UserRole, InviteCode } from '@/stores/auth'
