@@ -1,4 +1,4 @@
-﻿/**
+/**
  * src/utils/api.ts
  * ─────────────────────────────────────────────────────────────────────────────
  * 集中式 API 請求工具
@@ -20,7 +20,7 @@
  *   3. 各 store 的 mock fetch 替換為此工具的 apiPost / apiPut 等
  */
 
-import { safeGet, safeSet, safeRemove } from '@/utils/storage'
+import { safeGet, safeRemove } from '@/utils/storage'
 
 // ─── 常數 ────────────────────────────────────────────────────────────────────
 
@@ -40,13 +40,14 @@ export interface ApiResponse<T = unknown> {
 
 /** API 呼叫失敗時拋出的錯誤 */
 export class ApiError extends Error {
-  constructor(
-    public readonly status: number,
-    public readonly code: string,
-    message: string
-  ) {
+  readonly status: number
+  readonly code: string
+
+  constructor(status: number, code: string, message: string) {
     super(message)
     this.name = 'ApiError'
+    this.status = status
+    this.code = code
   }
 }
 
@@ -77,7 +78,7 @@ async function refreshToken(): Promise<boolean> {
   // const rt = safeGet<string>('superstart_refresh_token', '')
   // if (!rt) return false
   // try {
-  //   const res = await fetch(${API_BASE}/auth/refresh, {
+  //   const res = await fetch(API_BASE + '/auth/refresh', {
   //     method: 'POST',
   //     headers: { 'Content-Type': 'application/json' },
   //     body: JSON.stringify({ refreshToken: rt })
@@ -115,12 +116,12 @@ async function request<T>(
   body?: unknown,
   options: { skipAuth?: boolean; isRetry?: boolean } = {}
 ): Promise<T> {
-  const url = ${API_BASE}
+  const url = API_BASE + path
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
 
   if (!options.skipAuth) {
     const token = getAccessToken()
-    if (token) headers['Authorization'] = Bearer 
+    if (token) headers['Authorization'] = 'Bearer ' + token
   }
 
   const res = await fetch(url, {
@@ -149,7 +150,7 @@ async function request<T>(
     throw new ApiError(
       res.status,
       data.error?.code ?? 'UNKNOWN',
-      data.error?.message ?? HTTP 
+      data.error?.message ?? 'HTTP ' + res.status
     )
   }
 
