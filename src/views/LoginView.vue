@@ -23,11 +23,6 @@
         </button>
       </div>
 
-      <!-- Alert Message -->
-      <div v-if="alertMessage" :class="['alert-box', alertType]">
-        {{ alertMessage }}
-      </div>
-
       <!-- Login Form -->
       <form v-if="activeTab === 'login'" @submit.prevent="handleLogin" class="auth-form">
         <div class="form-group">
@@ -292,17 +287,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, toRef } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore, CHURCHES } from '@/stores/auth'
 import type { UserRole, InviteCode } from '@/stores/auth'
+import { useToast } from '@/composables/useToast'
+import { usePasswordStrength } from '@/composables/usePasswordStrength'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const { toast } = useToast()
 
 const activeTab = ref<'login' | 'register'>('login')
-const alertMessage = ref('')
-const alertType = ref<'success' | 'error'>('success')
 const showForgotModal = ref(false)
 const showLoginPwd = ref(false)
 const showRegPwd = ref(false)
@@ -387,84 +383,46 @@ const registerAvailableStudents = computed(() => {
   )
 })
 
-
-function showAlert(message: string, type: 'success' | 'error' = 'success') {
-  alertMessage.value = message
-  alertType.value = type
-  setTimeout(() => {
-    alertMessage.value = ''
-  }, 4000)
-}
-
 function handleLogin() {
   if (!loginForm.username || !loginForm.password) {
-    showAlert('請填寫所有欄位！', 'error')
+    toast('請填寫所有欄位！', 'error')
     return
   }
   const result = authStore.login(loginForm.username, loginForm.password)
   if (result.success) {
-    showAlert(result.message, 'success')
-    setTimeout(() => {
-      router.push('/')
-    }, 500)
+    toast(result.message, 'success')
+    setTimeout(() => { router.push('/') }, 500)
   } else {
-    showAlert(result.message, 'error')
+    toast(result.message, 'error')
   }
 }
 
 // ── Password strength (register form) ──
-function calcRegPwdStrength(p: string): number {
-  if (p.length < 6) return 0
-  let score = 1
-  if (p.length >= 8) score++
-  if (/[A-Z]/.test(p) && /[a-z]/.test(p)) score++
-  if (/[0-9]/.test(p)) score++
-  if (/[^A-Za-z0-9]/.test(p)) score++
-  return Math.min(score - 1, 3)
-}
-
-const regPwdStrength = computed(() => calcRegPwdStrength(registerForm.password))
-
-function regPwdBarClass(idx: number): string {
-  const s = regPwdStrength.value
-  if (s === 0) return idx === 0 ? 'bar-weak' : 'bar-empty'
-  if (s === 1) return idx <= 0 ? 'bar-fair' : 'bar-empty'
-  if (s === 2) return idx <= 1 ? 'bar-medium' : 'bar-empty'
-  return 'bar-strong'
-}
-
-const regPwdStrengthLabel = computed(() => {
-  const labels = ['弱密碼', '普通', '中等強度', '強密碼']
-  return labels[regPwdStrength.value]
-})
-
-const regPwdStrengthTextClass = computed(() => {
-  const cls = ['text-weak', 'text-fair', 'text-medium', 'text-strong']
-  return cls[regPwdStrength.value]
-})
+const { strength: regPwdStrength, label: regPwdStrengthLabel, textClass: regPwdStrengthTextClass, barClass: regPwdBarClass } =
+  usePasswordStrength(toRef(registerForm, 'password'))
 
 function handleRegister() {
   if (!registerForm.username || !registerForm.password) {
-    showAlert('請填寫所有欄位！', 'error')
+    toast('請填寫所有欄位！', 'error')
     return
   }
   if (regPwdStrength.value < 2) {
-    showAlert('密碼強度不足，請設定中等以上強度的密碼（需 8 字元以上，並含數字或特殊符號）', 'error')
+    toast('密碼強度不足，請設定中等以上強度的密碼（需 8 字元以上，並含數字或特殊符號）', 'error')
     return
   }
   const role = effectiveRole.value
   const church = effectiveChurch.value
   if (role !== 'admin' && !church) {
-    showAlert('請選擇所屬教會！', 'error')
+    toast('請選擇所屬教會！', 'error')
     return
   }
   if (role === 'parent') {
     if (registerAvailableStudents.value.length === 0) {
-      showAlert(`目前 ${church} 教會尚無任何 SS學員帳號，請先由學員完成帳號建立！`, 'error')
+      toast(`目前 ${church} 教會尚無任何 SS學員帳號，請先由學員完成帳號建立！`, 'error')
       return
     }
     if (registerForm.childUsernames.length === 0) {
-      showAlert('家長帳號必須至少綁定一位 SS學員！', 'error')
+      toast('家長帳號必須至少綁定一位 SS學員！', 'error')
       return
     }
   }
@@ -476,23 +434,20 @@ function handleRegister() {
     role === 'parent' ? registerForm.childUsernames : undefined
   )
   if (result.success) {
-    // Consume invite code if one was used
     if (validatedInvite.value) {
       authStore.consumeInviteCode(validatedInvite.value.code, registerForm.username)
     }
-    showAlert(result.message, 'success')
-    setTimeout(() => {
-      router.push('/')
-    }, 500)
+    toast(result.message, 'success')
+    setTimeout(() => { router.push('/') }, 500)
   } else {
-    showAlert(result.message, 'error')
+    toast(result.message, 'error')
   }
 }
 
 function fillDemo(role: string) {
   loginForm.username = role
   loginForm.password = '123456'
-  showAlert(`已自動帶入 ${role} 測試資料`, 'success')
+  toast(`已自動帶入 ${role} 測試資料`, 'success')
 }
 
 // OAuth 真實 redirect 函式

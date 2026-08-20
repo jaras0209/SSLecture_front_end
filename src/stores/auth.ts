@@ -2,9 +2,8 @@ import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import { safeGet, safeSet, safeRemove } from '@/utils/storage'
 
-// TODO: 後端就緒後，在 exchangeOAuthCode / completeProfile 的 fetch 呼叫中，
-// 將 `${import.meta.env.VITE_API_BASE_URL}` 替換為此常數：
-// const API_BASE = (import.meta.env.VITE_API_BASE_URL as string) ?? ''
+// 後端就緒後，在 exchangeOAuthCode / completeProfile 中：
+// 移除 mock 區塊，改用 src/utils/api.ts 的 apiPost / apiPut 取代 fetch 呼叫
 
 // 型別定義集中至 src/types/auth.ts—從這裡 re-export 保持向下相容
 export type {

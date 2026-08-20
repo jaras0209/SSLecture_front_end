@@ -12,6 +12,7 @@ export default defineConfig({
     }
   },
   build: {
+    target: 'es2022', // 現代瀏覽器，對應 Node.js v22 開發環境
     rollupOptions: {
       output: {
         /**
