@@ -1,4 +1,4 @@
-﻿# TODO：OAuth2 後端串接待辦清單
+# TODO：OAuth2 後端串接待辦清單
 
 > **建立時間**：2026-08-12
 > **目的**：追蹤前端 OAuth2 Mock 實作中，待後端 Spring Boot 就緒後需替換的所有項目
@@ -68,11 +68,18 @@
 - [ ] 測試教會選擇正確寫入後端 DB
 - [ ] 測試邀請碼升級角色後，重新取得 JWT（角色已更新）
 
-### loginWithThirdParty（可移除）
+### loginWithThirdParty（已完成）
 
-- [ ] 確認沒有任何地方仍在呼叫 loginWithThirdParty
-- [ ] 移除整個 loginWithThirdParty 函式（已標記 @deprecated）
-- [ ] 從 return 物件中移除 loginWithThirdParty export
+- [x] 確認沒有任何地方仍在呼叫 loginWithThirdParty
+- [x] 移除整個 loginWithThirdParty 函式（已標記 @deprecated）
+- [x] 從 return 物件中移除 loginWithThirdParty export
+
+### 統一 API Fetch Wrapper（已完成）
+
+- [x] 建立 `src/utils/api.ts`：集中 HTTP 請求、JWT header 注入、401 refresh 骨架
+  - `apiGet / apiPost / apiPut / apiPatch / apiDelete` 已備妥
+  - `refreshToken()` 已預寫，後端就緒後取消註解即可
+  - `ApiError` 型別已定義，供 store 使用
 
 ---
 

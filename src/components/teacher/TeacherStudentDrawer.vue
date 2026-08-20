@@ -205,7 +205,9 @@
   </section>
 
   <!-- HIGH-FIDELITY PRINT LAYOUT (Hidden on screen) -->
-  <div v-if="student" class="print-page-layout print-only">
+  <!-- Teleport 到 body 以避免被 #app-container display:none 遮蔽 -->
+  <Teleport to="body">
+    <div v-if="student" class="print-page-layout print-only">
     <div class="print-container">
       <!-- Banner Header -->
       <div class="print-banner">
@@ -324,8 +326,22 @@
         </div>
       </div>
     </div>
-  </div>
+    </div>
+  </Teleport>
 </template>
+
+<style>
+/* 螢幕上隱藏列印模板 */
+.print-page-layout.print-only {
+  display: none;
+}
+/* 列印時顯示（Teleport 到 body 後可正常運作） */
+@media print {
+  .print-page-layout.print-only {
+    display: block !important;
+  }
+}
+</style>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
