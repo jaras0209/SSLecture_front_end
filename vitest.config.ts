@@ -14,5 +14,16 @@ export default defineConfig({
   test: {
     environment: 'happy-dom',
     globals: true,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html', 'lcov'],
+      include: ['src/**/*.ts', 'src/**/*.vue'],
+      exclude: [
+        'src/**/*.spec.ts',
+        'src/**/*.d.ts',
+        'src/main.ts',       // 入口檔案，無法在單元測試中有效覆蓋
+        'src/router/**',     // 路由守衛邏輯依賴瀏覽器環境
+      ]
+    }
   }
 })

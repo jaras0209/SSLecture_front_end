@@ -20,6 +20,7 @@
     "@pinia/testing": "^2.0.1",
     "@types/node": "^25.9.5",
     "@vitejs/plugin-vue": "^5.2.3",
+    "@vitest/coverage-v8": "^4.1.11",
     "@vue/tsconfig": "^0.7.0",
     "happy-dom": "^20.11.2",
     "typescript": "~5.8.3",

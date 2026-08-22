@@ -1,6 +1,6 @@
-# SSLecture - SuperStart 課程學習與關懷配對管理系統 🌟
+# SSLecture - Shining Star 課程學習與關懷配對管理系統 🌟
 
-SSLecture 是一個基於 **Vue 3 + TypeScript + Vite** 技術棄開發的現代化課程學習與輔導配對管理系統原型。目前前端採用 **Pinia** 全狀態管理配合 **LocalStorage** 持久化，年後將串接 **Spring Boot** 後端實現完整 OAuth2 JWT 架構。
+SSLecture 是一個基於 **Vue 3 + TypeScript + Vite** 技術棧開發的現代化課程學習與輔導配對管理系統原型。目前前端採用 **Pinia** 全狀態管理配合 **LocalStorage** 持久化，後端將串接 **Spring Boot** 實現完整 OAuth2 JWT 架構。
 
 ---
 
@@ -19,7 +19,7 @@ SSLecture 是一個基於 **Vue 3 + TypeScript + Vite** 技術棄開發的現代
 *   **前端核心**：Vue 3 (Composition API, `<script setup>`)
 *   **建置工具**：Vite 6
 *   **狀態管理**：Pinia 3 (模組化設計：`auth` 權限模組、`courses` 課程與進度模組)
-*   **路由管理**：Vue Router 5 (HTML5 History 模式，內建導航守衛，防止未授權與被限制之頁面存取)
+*   **路由管理**：Vue Router（v5.x）(HTML5 History 模式，內建導航守衛，防止未授權與被限制之頁面存取)
 *   **樣式設計**：Vanilla CSS (響應式排版，完美適配行動端與桌面端)
 *   **程式語言**：TypeScript 5
 
@@ -31,36 +31,53 @@ SSLecture 是一個基於 **Vue 3 + TypeScript + Vite** 技術棄開發的現代
 SSLecture/
 ├── public/                 # 靜態資源
 ├── docs/                   # 開發文件
-│   ├── backend_api_spec.md       # 後端 API 該規格（v1.5.0）
+│   ├── backend_api_spec.md       # 後端 API 規格（v1.5.0）
 │   ├── database_schema.md        # 資料庫設計文件（PostgreSQL DDL + ERD）
 │   └── oauth2_social_login_spec.md  # OAuth2 Google/LINE 登入架構設計
 ├── src/
-│   ├── assets/             # 圖片、Logo 等靜態資源
-│   ├── components/         # 共享元件
+│   ├── assets/             # 圖片、樣式等靜態資源
+│   │   └── styles/main.css # 全域 CSS（漸層、玻璃擬態、通用工具類）
+│   ├── components/         # 可複用元件
+│   │   ├── student/        # 學員專屬元件
+│   │   └── teacher/        # 教師專屬元件
+│   ├── composables/        # 可複用邏輯（Composition API）
+│   │   ├── useToast.ts     # 全域 Toast / Confirm 通知系統
+│   │   └── usePasswordStrength.ts  # 密碼強度計算
 │   ├── router/
-│   │   └── index.ts        # 路由配置與導航守衛邏輯（HTML5 History 模式）
-│   ├── stores/
-│   │   ├── auth.ts         # 使用者驗證與帳號儲存（含 OAuth2 actions）
-│   │   └── courses.ts      # 課程、學習進度與配對關係儲存
+│   │   └── index.ts        # 路由配置與導航守衛（lazy loading、角色守衛）
+│   ├── stores/             # Pinia 狀態管理
+│   │   ├── auth.ts         # 使用者驗證與帳號（含 OAuth2 actions）
+│   │   ├── courses.ts      # 課程、學習進度與配對關係
+│   │   └── bookings.ts     # 課程預約與出席紀錄
+│   ├── types/              # TypeScript 型別集中管理
+│   │   ├── auth.ts         # User、UserRole、InviteCode 等
+│   │   ├── courses.ts      # Course、CourseSession 等
+│   │   ├── bookings.ts     # Booking、AttendanceRecord 等
+│   │   └── index.ts        # 統一 barrel export
+│   ├── utils/
+│   │   ├── storage.ts      # localStorage 安全包裝工具
+│   │   └── api.ts          # 集中式 API fetch wrapper（含 JWT 注入、401 refresh）
 │   ├── views/              # 各角色的控制面板主頁面
 │   │   ├── AdminDashboard.vue      # 系統管理員後台
 │   │   ├── LoginView.vue           # 登入與註冊介面（含 Google/LINE 登入按鈕）
-│   │   ├── LoginCallback.vue       # OAuth2 回調頁（換取 JWT）
+│   │   ├── LoginCallback.vue       # OAuth2 回調頁（換取 JWT、錯誤處理）
+│   │   ├── NotFoundView.vue        # 404 找不到頁面
 │   │   ├── OnboardingView.vue      # 首次社群登入補充資料頁
-│   │   ├── StudentDashboard.vue    # 學員個人學習面版 & 發光計畫
+│   │   ├── StudentDashboard.vue    # 學員個人學習面板 & 發光計畫
 │   │   ├── TeacherDashboard.vue    # 輔導教師 / 分區牧者 / 家長共用控制面板
 │   │   └── UnauthorizedView.vue    # 未授權提示頁
-│   ├── utils/
-│   │   └── storage.ts      # localStorage 安全包裝工具
-│   ├── App.vue             # 根元件
-│   └── main.ts             # 專案入口檔案
-├── .env.development        # 開發環境變數（VITE_API_BASE_URL）
+│   ├── App.vue             # 根元件（導航、Toast Provider、密碼修改 Modal）
+│   ├── main.ts             # 專案入口（全域錯誤捕獲）
+│   └── vite-env.d.ts       # Vite 環境變數型別宣告
+├── .env.example            # 環境變數範本（複製為 .env.development 使用）
+├── .env.development        # 開發環境變數（VITE_API_BASE_URL 等）
 ├── .env.production         # 生產環境變數
 ├── TODO.md                 # 後端串接待辦清單
 ├── index.html              # HTML 模板入口
 ├── package.json            # 依賴套件與指令腳本
 ├── tsconfig.json           # TypeScript 配置
-└── vite.config.ts          # Vite 建置配置
+├── vitest.config.ts        # Vitest 測試配置（含 coverage）
+└── vite.config.ts          # Vite 建置配置（含 vendor chunk splitting）
 ```
 
 ---
@@ -109,7 +126,7 @@ SSLecture/
 
 ## 🚀 快速上手與環境設定
 
-若要於本機環境執行此專案，請確保電腦已安裝 **Node.js** (建議 v18.0.0 以上版本) 與 npm 包管理器。
+若要於本機環境執行此專案，請確保電腦已安裝 **Node.js v22 LTS** 以上版本（本專案開發環境為 Node.js v22.19.0）與 npm 包管理器。
 
 ### 1. 安裝專案依賴
 

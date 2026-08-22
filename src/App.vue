@@ -62,7 +62,7 @@
       <div class="glass-panel modal-card">
         <div class="modal-header">
           <h3>修改密碼</h3>
-          <button @click="closePasswordModal" class="close-btn">&times;</button>
+          <button @click="closePasswordModal" class="close-btn" aria-label="關閉">&times;</button>
         </div>
         <form @submit.prevent="handlePasswordChange" class="mt-4">
           <div v-if="pwdAlertMsg" :class="['alert-box', pwdAlertType]">

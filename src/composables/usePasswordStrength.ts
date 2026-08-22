@@ -1,4 +1,4 @@
-﻿/**
+/**
  * usePasswordStrength.ts
  * 密碼強度計算 composable
  *
@@ -36,8 +36,8 @@ const BAR_CLASSES = ['bar-weak', 'bar-fair', 'bar-medium', 'bar-strong'] as cons
  */
 export function usePasswordStrength(password: Ref<string>) {
   const strength = computed(() => calcPasswordStrength(password.value))
-  const label = computed(() => LABELS[strength.value])
-  const textClass = computed(() => TEXT_CLASSES[strength.value])
+  const label     = computed(() => LABELS[strength.value]       ?? LABELS[0])
+  const textClass = computed(() => TEXT_CLASSES[strength.value] ?? TEXT_CLASSES[0])
 
   /** 回傳第 idx 格強度 bar 的 CSS class（共 3 格，idx = 0/1/2） */
   function barClass(idx: number): string {
