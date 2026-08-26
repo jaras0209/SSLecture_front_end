@@ -1,0 +1,280 @@
+{
+  "common": {
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "close": "Close",
+    "save": "Save",
+    "submit": "Submit",
+    "loading": "Loading...",
+    "back": "Back",
+    "backToHome": "Back to Home",
+    "goHome": "Go to My Dashboard",
+    "relogin": "Sign in again",
+    "showPwd": "Show password",
+    "hidePwd": "Hide password",
+    "understood": "Got it"
+  },
+  "nav": {
+    "studentLink": "Learning & Review",
+    "teacherLink": "Care & Review",
+    "adminLink": "SS Central Console",
+    "changePassword": "Change Password",
+    "logout": "Logout",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "langLabel": "Language"
+  },
+  "passwordModal": {
+    "title": "Change Password",
+    "oldPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm New Password",
+    "oldPlaceholder": "Enter your current password",
+    "newPlaceholder": "Enter new password",
+    "confirmPlaceholder": "Re-enter new password",
+    "submitBtn": "Confirm Change",
+    "cancelBtn": "Cancel"
+  },
+  "auth": {
+    "tagline": "Listen to God's Word and start every day with wisdom",
+    "tabs": {
+      "login": "Sign In",
+      "register": "Register"
+    },
+    "login": {
+      "username": "Username",
+      "usernamePlaceholder": "Enter your username",
+      "password": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "submit": "Sign In",
+      "forgotPassword": "Forgot password?"
+    },
+    "register": {
+      "inviteCode": "Invite Code",
+      "inviteCodeHint": "(Optional, required for non-student roles)",
+      "inviteCodeBadgeValid": "✅ Valid",
+      "inviteCodeBadgeInvalid": "❌ Invalid",
+      "inviteExpiry": "Valid until {date}",
+      "inviteInvalidHint": "Invite code is invalid, expired, or already used. Please request a new one from the admin.",
+      "inviteLockedBadge": "🔒 Set by invite code",
+      "username": "Set Username",
+      "usernamePlaceholder": "Enter username",
+      "password": "Set Password",
+      "passwordPlaceholder": "At least 8 chars, upper/lower/digits",
+      "role": "Role",
+      "studentRole": "🎒 SS Student",
+      "studentRoleHint": "Other roles require an invite code",
+      "church": "Home Church",
+      "churchLockedBadge": "🔒 Set by invite code",
+      "bindChildren": "Bind my children (SS student accounts)",
+      "noStudentsAlert": "No SS student accounts found in {church} church. Please have students register first.",
+      "atLeastOneStudent": "Please select at least one student to create a parent account.",
+      "submit": "Complete Registration & Sign In"
+    },
+    "passwordRules": {
+      "minLength": "At least 8 characters",
+      "uppercase": "Contains uppercase letters",
+      "lowercase": "Contains lowercase letters",
+      "number": "Contains numbers",
+      "special": "Contains special characters (!@#$%^&*)"
+    },
+    "social": {
+      "divider": "Or sign in with a social platform",
+      "google": "Sign in with Google",
+      "line": "Sign in with LINE",
+      "connecting": "Connecting..."
+    },
+    "demo": {
+      "title": "Quick test accounts (password: 123456)"
+    },
+    "forgotModal": {
+      "title": "Forgot Password",
+      "desc1": "Account management is handled by the SS Central admin of your church.",
+      "desc2": "Please contact your mentor teacher or SS Central to request a password reset.",
+      "step1": "Contact your mentor teacher or SS Central admin",
+      "step2": "Admin will reset your password to the default in the backend",
+      "step3": "After logging in with the default password, go to Change Password to set a new one",
+      "understood": "Got it"
+    }
+  },
+  "passwordStrength": {
+    "weak": "Weak",
+    "fair": "Fair",
+    "medium": "Medium",
+    "strong": "Strong"
+  },
+  "onboarding": {
+    "title": "Welcome to Shining Star!",
+    "greeting": "Hi, {name}!",
+    "greetingDesc": "Please complete your profile to finish account setup.",
+    "church": "Home Church",
+    "churchPlaceholder": "Select your church",
+    "username": "Custom Username",
+    "usernameHint": "(Optional, defaults to social display name)",
+    "inviteCode": "Invite Code",
+    "inviteCodeHint": "(Optional, required for non-student roles)",
+    "inviteValid": "✅ Valid",
+    "inviteInvalid": "❌ Invalid",
+    "inviteRoleInfo": "You will complete setup as {role}",
+    "submitLoading": "Setting up...",
+    "submit": "Complete Account Setup",
+    "avatarAlt": "User",
+    "defaultName": "New Member"
+  },
+  "callback": {
+    "loadingTitle": "Completing Sign In",
+    "loadingDesc": "Please wait, securely verifying your identity...",
+    "errorTitle": "Sign In Failed",
+    "countdown": "Returning to login in {n} seconds...",
+    "goToLogin": "Return to Login Now",
+    "errorDenied": "Login rejected: {error}",
+    "errorNoCode": "No authorization code received. Please try signing in again.",
+    "errorGeneral": "Login verification failed. Please try again."
+  },
+  "notFound": {
+    "title": "Page Not Found",
+    "desc": "The URL you entered does not exist or has been removed.",
+    "goHome": "Back to Home"
+  },
+  "unauthorized": {
+    "title": "Access Denied!",
+    "subtitle": "Oops! This page is currently restricted for your account, or your role does not support viewing this section.",
+    "helper": "If you have questions, please contact SS Central (Admin) or your mentor teacher.",
+    "goHome": "Go to My Dashboard",
+    "relogin": "Sign in again"
+  },
+  "student": {
+    "header": {
+      "hello": "Hello, {name}! 👋",
+      "lastLogin": "Last login: {time}",
+      "teacher": "Mentor Teacher: ",
+      "pastor": "District Pastor: ",
+      "parent": "Care Parent: ",
+      "noCaretaker": "💬 No caretaker assigned yet",
+      "completedCourses": "Courses Completed",
+      "overallProgress": "Overall Progress",
+      "profileCard": "Profile"
+    },
+    "tabs": {
+      "sermons": "Learning Center",
+      "shining": "Shining Plan Dashboard",
+      "bookings": "My Bookings"
+    },
+    "motivation": {
+      "start": "Take your first step! 🌱",
+      "low": "Great start, keep going! 💪",
+      "mid": "More than halfway there, amazing! 🔥",
+      "high": "Almost done, one last push! ⭐",
+      "done": "Congratulations! All courses completed! 🎉"
+    },
+    "feedbackSaved": "✅ Feedback saved!"
+  },
+  "teacher": {
+    "header": {
+      "pastorTitle": "District Pastor Management Center",
+      "adminTitle": "SS System Admin Backend",
+      "teacherTitle": "Teacher Care & Guidance Center 👨‍🏫",
+      "welcome": "{name}, welcome back to SS! Thank you for your service and care.",
+      "lastLogin": "Last login: {time}",
+      "totalStudents": "Total Students",
+      "myStudents": "My Students",
+      "notesSubmitted": "Notes Submitted"
+    },
+    "tabs": {
+      "careTeacher": "Student Care & Guidance",
+      "carePastor": "District Student Care",
+      "careAdmin": "Student Overview",
+      "pastorOverview": "District Church Overview",
+      "settings": "Lecturer Mgmt / Settings",
+      "bookings": "Booking Management"
+    },
+    "lecturer": {
+      "addTitle": "Add Lecturer",
+      "editTitle": "Edit Lecturer",
+      "linkMode": "Link System Account",
+      "customMode": "Custom Name Lecturer",
+      "selectAccount": "Select Linked Account",
+      "selectPlaceholder": "Please select an account",
+      "noTeachersHint": "Note: No lecturer accounts set up in this church yet",
+      "linkedChip": "Linked @{username}",
+      "autoFillHint": "Name will be auto-filled",
+      "displayName": "Lecturer Display Name",
+      "autoFillNote": "(Auto-filled in link mode)",
+      "namePlaceholder": "Enter lecturer name",
+      "titleLabel": "Select Lecturer Title",
+      "courses": "Assign Courses (multi-select)",
+      "coursesHint": "Assigned lecturers will appear in the course student list",
+      "cancelBtn": "Cancel",
+      "saveBtn": "Save"
+    }
+  },
+  "admin": {
+    "header": {
+      "title": "Security & Permission Control Center ⚙️",
+      "desc": "{name} | SS Central: Change user roles, set page access permissions, and add test users.",
+      "lastLogin": "Last login: {time}"
+    },
+    "createUser": {
+      "title": "Add User Manually",
+      "desc": "Quickly create test accounts for any role:",
+      "username": "Username",
+      "usernamePlaceholder": "Enter username",
+      "password": "Password",
+      "passwordPlaceholder": "Default password",
+      "role": "Assign Role",
+      "church": "Home Church",
+      "submit": "Create User"
+    },
+    "userList": {
+      "title": "Member List & Permission Matrix",
+      "count": "{n} members total",
+      "colName": "Name / Username",
+      "colRole": "Change Role",
+      "colRestrictStudent": "Restrict /student",
+      "colRestrictTeacher": "Restrict /teacher",
+      "colResetPwd": "Reset Password",
+      "colDelete": "Delete",
+      "me": "(You)"
+    },
+    "roles": {
+      "student": "SS Student (SS)",
+      "teacher": "Mentor Teacher (Teacher)",
+      "parent": "Care Parent (Parent)",
+      "pastor": "District Pastor (Pastor)",
+      "admin": "SS Central (Admin)"
+    }
+  },
+  "roleLabel": {
+    "student": "SS Student",
+    "teacher": "Mentor Teacher",
+    "pastor": "District Pastor",
+    "parent": "Care Parent",
+    "admin": "SS Central"
+  },
+  "stores": {
+    "auth": {
+      "accountNotFound": "Account not found. Please register first.",
+      "wrongPassword": "Incorrect password. Please try again.",
+      "loginSuccess": "Signed in successfully!",
+      "usernameTaken": "Username already taken. Please choose another.",
+      "registerSuccess": "Account created successfully!",
+      "notLoggedIn": "Not signed in",
+      "invalidInviteCode": "Invalid invite code",
+      "profileComplete": "Done!",
+      "accountNotFoundShort": "Account not found.",
+      "wrongOldPassword": "Incorrect current password. Please try again.",
+      "passwordChanged": "Password changed successfully!",
+      "passwordReset": "Password for {username} has been reset to the default.",
+      "profileUpdated": "Profile updated successfully!"
+    },
+    "bookings": {
+      "sessionFull": "This session is full or not open for booking",
+      "bookingSuccess": "Booking confirmed",
+      "bookingNotFound": "Booking record not found",
+      "cancelSuccess": "Booking cancelled successfully",
+      "invalidStudent": "Please verify a valid student identity before this action",
+      "attendanceRecorded": "Attendance recorded successfully",
+      "attendanceUpdated": "Attendance status updated successfully"
+    }
+  }
+}

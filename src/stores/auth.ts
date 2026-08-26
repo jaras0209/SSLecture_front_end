@@ -1,6 +1,11 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import { safeGet, safeSet, safeRemove } from '@/utils/storage'
+import { i18n } from '@/i18n'
+// Store-level t() wrapper — 在 store 函式被呼叫時（i18n 已就緒）才執行翻譯
+const t = (key: string, values?: Record<string, unknown>): string =>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (i18n.global.t as any)(key, values ?? {}) as string
 
 // 後端就緒後，在 exchangeOAuthCode / completeProfile 中：
 // 移除 mock 區塊，改用 src/utils/api.ts 的 apiPost / apiPut 取代 fetch 呼叫
@@ -103,10 +108,10 @@ export const useAuthStore = defineStore('auth', () => {
   function login(username: string, passwordHash: string): { success: boolean; message: string } {
     const user = usersDb.value[username]
     if (!user) {
-      return { success: false, message: '找不到此帳號，請先註冊。' }
+      return { success: false, message: t('stores.auth.accountNotFound') }
     }
     if (user.passwordHash !== passwordHash) {
-      return { success: false, message: '密碼錯誤，請再試一次。' }
+      return { success: false, message: t('stores.auth.wrongPassword') }
     }
     
     const now = new Date().toLocaleString('zh-TW', { hour12: false })
@@ -124,7 +129,7 @@ export const useAuthStore = defineStore('auth', () => {
       realName: user.realName,
       lastLoginAt: now
     }
-    return { success: true, message: '登入成功！' }
+    return { success: true, message: t('stores.auth.loginSuccess') }
   }
 
   function register(
@@ -135,7 +140,7 @@ export const useAuthStore = defineStore('auth', () => {
     childUsernames?: string[]
   ): { success: boolean; message: string } {
     if (usersDb.value[username]) {
-      return { success: false, message: '帳號已被使用，請更換名稱。' }
+      return { success: false, message: t('stores.auth.usernameTaken') }
     }
     
     usersDb.value[username] = {
@@ -153,7 +158,7 @@ export const useAuthStore = defineStore('auth', () => {
       church: role === 'admin' ? undefined : (church || '愛與話語'),
       childUsernames: role === 'parent' ? (childUsernames || []) : undefined
     }
-    return { success: true, message: '註冊成功！' }
+    return { success: true, message: t('stores.auth.registerSuccess') }
   }
 
 
@@ -234,7 +239,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     // === 開發期 mock（後端就緒後移除）===
     console.warn('[AUTH] completeProfile: Using dev mock — 後端就緒後請替換為真實 API 呼叫')
-    if (!currentUser.value) return { success: false, message: '未登入' }
+    if (!currentUser.value) return { success: false, message: t('stores.auth.notLoggedIn') }
     if (payload.inviteCode) {
       const invite = validateInviteCode(payload.inviteCode)
       if (invite) {
@@ -246,7 +251,7 @@ export const useAuthStore = defineStore('auth', () => {
         }
         consumeInviteCode(payload.inviteCode, currentUser.value.username)
       } else {
-        return { success: false, message: '邀請碼無效' }
+        return { success: false, message: t('stores.auth.invalidInviteCode') }
       }
     } else {
       currentUser.value = {
@@ -255,7 +260,7 @@ export const useAuthStore = defineStore('auth', () => {
         username: payload.username || currentUser.value.username
       }
     }
-    return { success: true, message: '完成！' }
+    return { success: true, message: t('stores.auth.profileComplete') }
   }
 
   function logout() {
@@ -265,13 +270,13 @@ export const useAuthStore = defineStore('auth', () => {
   function updatePassword(username: string, oldPasswordHash: string, newPasswordHash: string): { success: boolean; message: string } {
     const user = usersDb.value[username]
     if (!user) {
-      return { success: false, message: '找不到此帳號。' }
+      return { success: false, message: t('stores.auth.accountNotFoundShort') }
     }
     if (user.passwordHash !== oldPasswordHash) {
-      return { success: false, message: '原密碼錯誤，請再試一次。' }
+      return { success: false, message: t('stores.auth.wrongOldPassword') }
     }
     user.passwordHash = newPasswordHash
-    return { success: true, message: '密碼修改成功！' }
+    return { success: true, message: t('stores.auth.passwordChanged') }
   }
 
   /**
@@ -281,10 +286,10 @@ export const useAuthStore = defineStore('auth', () => {
   function adminResetPassword(username: string): { success: boolean; message: string } {
     const user = usersDb.value[username]
     if (!user) {
-      return { success: false, message: '找不到此帳號。' }
+      return { success: false, message: t('stores.auth.accountNotFoundShort') }
     }
     user.passwordHash = DEFAULT_RESET_PASSWORD
-    return { success: true, message: `帳號 ${username} 的密碼已重設為預設值。` }
+    return { success: true, message: t('stores.auth.passwordReset', { username }) }
   }
 
   /**
@@ -317,7 +322,7 @@ export const useAuthStore = defineStore('auth', () => {
         avatarUrl: dbUser.avatarUrl || currentUser.value.avatarUrl
       }
     }
-    return { success: true, message: '個人資料已更新！' }
+    return { success: true, message: t('stores.auth.profileUpdated') }
   }
 
   // ── Invite Code Actions ───────────────────────────────────────────────────────

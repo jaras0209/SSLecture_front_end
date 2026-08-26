@@ -1,0 +1,280 @@
+{
+  "common": {
+    "confirm": "確認",
+    "cancel": "取消",
+    "close": "關閉",
+    "save": "儲存",
+    "submit": "送出",
+    "loading": "載入中...",
+    "back": "返回",
+    "backToHome": "回到首頁",
+    "goHome": "返回我的首頁",
+    "relogin": "重新登入",
+    "showPwd": "顯示密碼",
+    "hidePwd": "隱藏密碼",
+    "understood": "我瞭解了"
+  },
+  "nav": {
+    "studentLink": "學習與檢視",
+    "teacherLink": "關懷與審查",
+    "adminLink": "SS中央控制台",
+    "changePassword": "修改密碼",
+    "logout": "登出",
+    "openMenu": "開啟選單",
+    "closeMenu": "關閉選單",
+    "langLabel": "語言"
+  },
+  "passwordModal": {
+    "title": "修改密碼",
+    "oldPassword": "目前密碼",
+    "newPassword": "新密碼",
+    "confirmPassword": "確認新密碼",
+    "oldPlaceholder": "請輸入目前的密碼",
+    "newPlaceholder": "請輸入新密碼",
+    "confirmPlaceholder": "請再次輸入新密碼",
+    "submitBtn": "確認修改",
+    "cancelBtn": "取消"
+  },
+  "auth": {
+    "tagline": "聆聽神的話語，開啟智慧的全新一天",
+    "tabs": {
+      "login": "登入帳號",
+      "register": "註冊新成員"
+    },
+    "login": {
+      "username": "使用者帳號",
+      "usernamePlaceholder": "請輸入您的帳號",
+      "password": "密碼",
+      "passwordPlaceholder": "請輸入密碼",
+      "submit": "登入平台",
+      "forgotPassword": "忘記密碼？"
+    },
+    "register": {
+      "inviteCode": "邀請碼",
+      "inviteCodeHint": "（選填，非學員身分需要）",
+      "inviteCodeBadgeValid": "✅ 有效",
+      "inviteCodeBadgeInvalid": "❌ 無效",
+      "inviteExpiry": "有效期至 {date}",
+      "inviteInvalidHint": "邀請碼無效、已過期或已被使用，請向管理員重新取得。",
+      "inviteLockedBadge": "🔒 由邀請碼指定",
+      "username": "設定使用者帳號",
+      "usernamePlaceholder": "請輸入帳號",
+      "password": "設定密碼",
+      "passwordPlaceholder": "至少 8 字元，含大小寫、數字",
+      "role": "角色身分",
+      "studentRole": "🎒 SS 學員",
+      "studentRoleHint": "其他身分需要邀請碼",
+      "church": "所屬教會",
+      "churchLockedBadge": "🔒 由邀請碼指定",
+      "bindChildren": "綁定我的孩子（SS學員帳號）",
+      "noStudentsAlert": "目前 {church} 教會尚無任何 SS學員帳號，請先由 SS學員 完成帳號註冊後，再回來建立家長帳號。",
+      "atLeastOneStudent": "請至少勾選一位學員，才能建立家長帳號。",
+      "submit": "完成註冊並登入"
+    },
+    "passwordRules": {
+      "minLength": "至少 8 個字元",
+      "uppercase": "包含英文大寫字母",
+      "lowercase": "包含英文小寫字母",
+      "number": "包含數字",
+      "special": "包含特殊符號（!@#$%^&*）"
+    },
+    "social": {
+      "divider": "或者透過社群平台快速登入",
+      "google": "Google 登入",
+      "line": "LINE 登入",
+      "connecting": "連線中..."
+    },
+    "demo": {
+      "title": "快速測試帳號 (密碼皆為 123456)"
+    },
+    "forgotModal": {
+      "title": "忘記密碼",
+      "desc1": "目前系統由教會 SS 中央管理員進行帳號管理。",
+      "desc2": "請聯絡您的輔導教師或 SS 中央，請求幫您重設密碼。",
+      "step1": "聯絡您的輔導教師或 SS 中央管理員",
+      "step2": "由管理員在後台將您的密碼重設為預設密碼",
+      "step3": "使用預設密碼登入後，即可到「修改密碼」更改新密碼",
+      "understood": "我瞭解了"
+    }
+  },
+  "passwordStrength": {
+    "weak": "弱密碼",
+    "fair": "普通",
+    "medium": "中等強度",
+    "strong": "強密碼"
+  },
+  "onboarding": {
+    "title": "歡迎加入 Shining Star！",
+    "greeting": "嗨，{name}！",
+    "greetingDesc": "請填寫以下資料以完成帳號設定。",
+    "church": "所屬教會",
+    "churchPlaceholder": "請選擇您所屬的教會",
+    "username": "自訂帳號名稱",
+    "usernameHint": "（選填，預設使用社群顯示名稱）",
+    "inviteCode": "邀請碼",
+    "inviteCodeHint": "（選填，非學員身分需要）",
+    "inviteValid": "✅ 有效",
+    "inviteInvalid": "❌ 無效",
+    "inviteRoleInfo": "將以 {role} 身分完成設定",
+    "submitLoading": "設定中...",
+    "submit": "完成帳號設定",
+    "avatarAlt": "使用者",
+    "defaultName": "新成員"
+  },
+  "callback": {
+    "loadingTitle": "正在完成登入",
+    "loadingDesc": "請稍候，正在安全驗證您的身分...",
+    "errorTitle": "登入發生錯誤",
+    "countdown": "{n} 秒後自動返回登入頁...",
+    "goToLogin": "立即返回登入頁",
+    "errorDenied": "登入被拒絕：{error}",
+    "errorNoCode": "未取得授權碼，請重新嘗試登入。",
+    "errorGeneral": "登入驗證失敗，請重新嘗試。"
+  },
+  "notFound": {
+    "title": "找不到這個頁面",
+    "desc": "您輸入的網址不存在，或頁面已被移除。",
+    "goHome": "回到首頁"
+  },
+  "unauthorized": {
+    "title": "權限不夠喔！",
+    "subtitle": "哎呀！此頁面目前對你處於限制狀態，或是你的角色不支援瀏覽該區塊。",
+    "helper": "若有疑問，請與本平台的 SS中央 (Admin) 或輔導教師聯絡喔！",
+    "goHome": "返回我的首頁",
+    "relogin": "重新登入"
+  },
+  "student": {
+    "header": {
+      "hello": "哈囉，{name}！ 👋",
+      "lastLogin": "上次登入：{time}",
+      "teacher": "輔導教師：",
+      "pastor": "分區牧者：",
+      "parent": "關懷家長：",
+      "noCaretaker": "💬 尚未分配輔導關懷人員",
+      "completedCourses": "已完成聽課",
+      "overallProgress": "總體完成度",
+      "profileCard": "個人資料"
+    },
+    "tabs": {
+      "sermons": "聽課學習中心",
+      "shining": "SS 閃耀計畫 Dashboard",
+      "bookings": "我的預約"
+    },
+    "motivation": {
+      "start": "開始你的第一步吧！🌱",
+      "low": "很好的開始，繼續加油！💪",
+      "mid": "已完成超過一半，你很厲害！🔥",
+      "high": "快到終點了，再一把勁！⭐",
+      "done": "恭喜你！完成全部課程！🎉"
+    },
+    "feedbackSaved": "✅ 心得已儲存！"
+  },
+  "teacher": {
+    "header": {
+      "pastorTitle": "分區牧者管理中心",
+      "adminTitle": "SS 系統管理員後台",
+      "teacherTitle": "教師關懷輔導中心 👨‍🏫",
+      "welcome": "{name}，歡迎回到 SS 系統！感謝您的服事與牧養。",
+      "lastLogin": "上次登入：{time}",
+      "totalStudents": "學員總人數",
+      "myStudents": "我負責的學員",
+      "notesSubmitted": "已提交心得"
+    },
+    "tabs": {
+      "careTeacher": "學員關懷輔導",
+      "carePastor": "分區學員關懷",
+      "careAdmin": "學員總覽",
+      "pastorOverview": "分區教會總覽",
+      "settings": "講師管理 / 系統設定",
+      "bookings": "預約管理"
+    },
+    "lecturer": {
+      "addTitle": "新增講師",
+      "editTitle": "編輯講師資料",
+      "linkMode": "關聯系統帳號",
+      "customMode": "自訂名稱講師",
+      "selectAccount": "選擇關聯帳號",
+      "selectPlaceholder": "請選擇帳號",
+      "noTeachersHint": "提示：目前所在教會尚未設定講師帳號",
+      "linkedChip": "已連結 @{username}",
+      "autoFillHint": "名字將自動帶入",
+      "displayName": "講師顯示名稱",
+      "autoFillNote": "（連結模式下將自動帶入）",
+      "namePlaceholder": "請輸入講師姓名",
+      "titleLabel": "選擇講師職稱",
+      "courses": "課程指定（可多選）",
+      "coursesHint": "指定後將在此課程的導生順序名單列出此講師",
+      "cancelBtn": "取消",
+      "saveBtn": "儲存"
+    }
+  },
+  "admin": {
+    "header": {
+      "title": "安全權限控制中心 ⚙️",
+      "desc": "{name}｜SS中央專用：變更使用者角色、設定頁面存取權限，以及新增測試人員。",
+      "lastLogin": "上次登入：{time}"
+    },
+    "createUser": {
+      "title": "手動新增使用者",
+      "desc": "可在此快速建立各個身份的測試帳號：",
+      "username": "使用者帳號",
+      "usernamePlaceholder": "輸入帳號",
+      "password": "密碼",
+      "passwordPlaceholder": "預設密碼",
+      "role": "指定角色",
+      "church": "所屬教會",
+      "submit": "建立使用者"
+    },
+    "userList": {
+      "title": "成員清單與權限設定矩陣",
+      "count": "共 {n} 名成員",
+      "colName": "姓名 / 帳號",
+      "colRole": "角色身分變更",
+      "colRestrictStudent": "限制瀏覽 /student",
+      "colRestrictTeacher": "限制瀏覽 /teacher",
+      "colResetPwd": "重設密碼",
+      "colDelete": "刪除",
+      "me": "（你）"
+    },
+    "roles": {
+      "student": "SS學員（SS）",
+      "teacher": "輔導教師（Teacher）",
+      "parent": "關懷家長（Parent）",
+      "pastor": "分區牧者（Pastor）",
+      "admin": "SS中央（Admin）"
+    }
+  },
+  "roleLabel": {
+    "student": "SS 學員",
+    "teacher": "輔導教師",
+    "pastor": "分區牧者",
+    "parent": "關懷家長",
+    "admin": "SS 中央"
+  },
+  "stores": {
+    "auth": {
+      "accountNotFound": "找不到此帳號，請先註冊。",
+      "wrongPassword": "密碼錯誤，請再試一次。",
+      "loginSuccess": "登入成功！",
+      "usernameTaken": "帳號已被使用，請更換名稱。",
+      "registerSuccess": "註冊成功！",
+      "notLoggedIn": "未登入",
+      "invalidInviteCode": "邀請碼無效",
+      "profileComplete": "完成！",
+      "accountNotFoundShort": "找不到此帳號。",
+      "wrongOldPassword": "原密碼錯誤，請再試一次。",
+      "passwordChanged": "密碼修改成功！",
+      "passwordReset": "帳號 {username} 的密碼已重設為預設值。",
+      "profileUpdated": "個人資料已更新！"
+    },
+    "bookings": {
+      "sessionFull": "此時段已額滿或不開放預約",
+      "bookingSuccess": "已成功預約",
+      "bookingNotFound": "找不到預約紀錄",
+      "cancelSuccess": "取消預約成功",
+      "invalidStudent": "請先確認有效的學員身分後再執行此操作",
+      "attendanceRecorded": "已成功記錄出席",
+      "attendanceUpdated": "出席狀態更新成功"
+    }
+  }
+}

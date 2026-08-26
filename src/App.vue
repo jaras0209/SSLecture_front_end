@@ -9,7 +9,7 @@
         </router-link>
 
         <!-- Hamburger Button (mobile only) -->
-        <button class="hamburger-btn" @click="mobileMenuOpen = !mobileMenuOpen" :aria-label="mobileMenuOpen ? '關閉選單' : '開啟選單'">
+        <button class="hamburger-btn" @click="mobileMenuOpen = !mobileMenuOpen" :aria-label="mobileMenuOpen ? $t('nav.closeMenu') : $t('nav.openMenu')">
           <span class="hamburger-line" :class="{ open: mobileMenuOpen }"></span>
           <span class="hamburger-line" :class="{ open: mobileMenuOpen }"></span>
           <span class="hamburger-line" :class="{ open: mobileMenuOpen }"></span>
@@ -21,15 +21,15 @@
         <ul class="navbar-menu">
           <!-- Student Link (hidden if restricted) -->
           <li v-if="canAccess('/student')">
-            <router-link to="/student" class="navbar-link" @click="mobileMenuOpen = false">🎒 學習與檢視</router-link>
+            <router-link to="/student" class="navbar-link" @click="mobileMenuOpen = false">🎒 {{ $t('nav.studentLink') }}</router-link>
           </li>
           <!-- Teacher Link (hidden if restricted) -->
           <li v-if="canAccess('/teacher')">
-            <router-link to="/teacher" class="navbar-link" @click="mobileMenuOpen = false">👨‍🏫 關懷與審查</router-link>
+            <router-link to="/teacher" class="navbar-link" @click="mobileMenuOpen = false">👨‍🏫 {{ $t('nav.teacherLink') }}</router-link>
           </li>
           <!-- Admin Link -->
           <li v-if="canAccess('/admin')">
-            <router-link to="/admin" class="navbar-link" @click="mobileMenuOpen = false">⚙️ SS中央控制台</router-link>
+            <router-link to="/admin" class="navbar-link" @click="mobileMenuOpen = false">⚙️ {{ $t('nav.adminLink') }}</router-link>
           </li>
         </ul>
 
@@ -47,11 +47,16 @@
               </span>
             </div>
           </div>
+          <!-- Language Switcher -->
+          <select class="lang-switcher" :value="currentLocale" @change="onLocaleChange" :aria-label="$t('nav.langLabel')">
+            <option value="zh-TW">繁中</option>
+            <option value="en">EN</option>
+          </select>
           <button @click="showPasswordModal = true" class="btn btn-outline btn-sm action-btn">
-            🔒 修改密碼
+            🔒 {{ $t('nav.changePassword') }}
           </button>
           <button @click="handleLogout" class="btn btn-outline btn-sm action-btn logout-btn">
-            登出 ➔
+            {{ $t('nav.logout') }} ➔
           </button>
         </div>
       </div>
@@ -61,7 +66,7 @@
     <div v-if="showPasswordModal" class="modal-overlay">
       <div class="glass-panel modal-card">
         <div class="modal-header">
-          <h3>修改密碼</h3>
+          <h3>{{ $t('passwordModal.title') }}</h3>
           <button @click="closePasswordModal" class="close-btn" aria-label="關閉">&times;</button>
         </div>
         <form @submit.prevent="handlePasswordChange" class="mt-4">
@@ -69,20 +74,20 @@
             {{ pwdAlertMsg }}
           </div>
           <div class="form-group">
-            <label class="form-label">目前密碼</label>
-            <input v-model="pwdForm.oldPassword" type="password" class="form-input" required placeholder="請輸入目前的密碼" />
+            <label class="form-label">{{ $t('passwordModal.oldPassword') }}</label>
+            <input v-model="pwdForm.oldPassword" type="password" class="form-input" required :placeholder="$t('passwordModal.oldPlaceholder')" />
           </div>
           <div class="form-group">
-            <label class="form-label">新密碼</label>
-            <input v-model="pwdForm.newPassword" type="password" class="form-input" required placeholder="請輸入新密碼" />
+            <label class="form-label">{{ $t('passwordModal.newPassword') }}</label>
+            <input v-model="pwdForm.newPassword" type="password" class="form-input" required :placeholder="$t('passwordModal.newPlaceholder')" />
           </div>
           <div class="form-group">
-            <label class="form-label">確認新密碼</label>
-            <input v-model="pwdForm.confirmPassword" type="password" class="form-input" required placeholder="請再次輸入新密碼" />
+            <label class="form-label">{{ $t('passwordModal.confirmPassword') }}</label>
+            <input v-model="pwdForm.confirmPassword" type="password" class="form-input" required :placeholder="$t('passwordModal.confirmPlaceholder')" />
           </div>
           <div class="modal-actions mt-4 flex gap-2">
-            <button type="submit" class="btn btn-primary w-full">確認修改</button>
-            <button type="button" @click="closePasswordModal" class="btn btn-outline w-full">取消</button>
+            <button type="submit" class="btn btn-primary w-full">{{ $t('passwordModal.submitBtn') }}</button>
+            <button type="button" @click="closePasswordModal" class="btn btn-outline w-full">{{ $t('passwordModal.cancelBtn') }}</button>
           </div>
         </form>
       </div>
@@ -102,15 +107,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
+import { useI18n } from 'vue-i18n'
+import { setLocale } from '@/i18n'
+import type { SupportedLocale } from '@/i18n'
 import AppToast from '@/components/AppToast.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
+const { locale } = useI18n()
+
+// 語系切換
+const currentLocale = computed(() => locale.value as SupportedLocale)
+function onLocaleChange(e: Event) {
+  setLocale((e.target as HTMLSelectElement).value as SupportedLocale)
+}
 
 // Password Change State
 const mobileMenuOpen = ref(false)
@@ -483,5 +498,21 @@ function getRoleLabel(role?: string) {
     font-size: 0.75rem;
     padding: 0.35rem 0.75rem;
   }
+}
+
+/* Language Switcher */
+.lang-switcher {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  color: inherit;
+  font-size: 0.75rem;
+  padding: 0.3rem 0.5rem;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.lang-switcher:focus {
+  outline: 2px solid var(--color-primary, #6366f1);
+  outline-offset: 2px;
 }
 </style>

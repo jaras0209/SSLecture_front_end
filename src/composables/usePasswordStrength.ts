@@ -14,6 +14,7 @@
 
 import { computed } from 'vue'
 import type { Ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 /** 計算密碼分數（純函式，可獨立測試） */
 export function calcPasswordStrength(p: string): number {
@@ -26,25 +27,38 @@ export function calcPasswordStrength(p: string): number {
   return Math.min(score - 1, 3)
 }
 
-const LABELS = ['弱密碼', '普通', '中等強度', '強密碼'] as const
+// i18n keys 對應強度等級 0-3
+const LABEL_KEYS = [
+  'passwordStrength.weak',
+  'passwordStrength.fair',
+  'passwordStrength.medium',
+  'passwordStrength.strong',
+] as const
+
 const TEXT_CLASSES = ['text-weak', 'text-fair', 'text-medium', 'text-strong'] as const
-const BAR_CLASSES = ['bar-weak', 'bar-fair', 'bar-medium', 'bar-strong'] as const
+const BAR_CLASSES  = ['bar-weak',  'bar-fair',  'bar-medium',  'bar-strong']  as const
 
 /**
  * 密碼強度 composable
  * @param password - 密碼的 ref 或 computed（響應式字串）
  */
 export function usePasswordStrength(password: Ref<string>) {
+  const { t } = useI18n()
   const strength = computed(() => calcPasswordStrength(password.value))
-  const label     = computed(() => LABELS[strength.value]       ?? LABELS[0])
+  const label     = computed(() => {
+    const key = LABEL_KEYS[strength.value] ?? LABEL_KEYS[0]
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (t as any)(key) as string
+  })
   const textClass = computed(() => TEXT_CLASSES[strength.value] ?? TEXT_CLASSES[0])
 
   /** 回傳第 idx 格強度 bar 的 CSS class（共 3 格，idx = 0/1/2） */
   function barClass(idx: number): string {
     const s = strength.value
     if (idx > s - 1) return 'bar-empty'
-    return BAR_CLASSES[s]
+    return BAR_CLASSES[s] ?? 'bar-empty'
   }
 
   return { strength, label, textClass, barClass }
 }
+

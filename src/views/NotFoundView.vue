@@ -1,11 +1,11 @@
-﻿<template>
+<template>
   <div class="notfound-wrapper">
     <div class="glass-panel notfound-card text-center">
       <div class="notfound-emoji">🌌</div>
       <h1 class="notfound-code">404</h1>
-      <h2 class="notfound-title">找不到這個頁面</h2>
-      <p class="notfound-desc">您輸入的網址不存在，或頁面已被移除。</p>
-      <button class="btn btn-primary mt-4" @click="goHome">回到首頁</button>
+      <h2 class="notfound-title">{{ $t('notFound.title') }}</h2>
+      <p class="notfound-desc">{{ $t('notFound.desc') }}</p>
+      <button class="btn btn-primary mt-4" @click="goHome">{{ $t('notFound.goHome') }}</button>
     </div>
   </div>
 </template>

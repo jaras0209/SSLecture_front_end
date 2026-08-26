@@ -2,20 +2,16 @@
   <div class="unauthorized-container text-center">
     <div class="glass-panel unauthorized-card">
       <div class="emoji-illustration">🔒😅</div>
-      <h1 class="title">權限不夠喔！</h1>
-      <p class="subtitle">
-        哎呀！此頁面目前對你處於限制狀態，或是你的角色不支援瀏覽該區塊。
-      </p>
-      <p class="helper-text">
-        若有疑問，請與本平台的 SS中央 (Admin) 或輔導教師聯絡喔！
-      </p>
-      
+      <h1 class="title">{{ $t('unauthorized.title') }}</h1>
+      <p class="subtitle">{{ $t('unauthorized.subtitle') }}</p>
+      <p class="helper-text">{{ $t('unauthorized.helper') }}</p>
+
       <div class="actions">
         <button class="btn btn-primary" @click="goHome">
-          返回我的首頁
+          {{ $t('unauthorized.goHome') }}
         </button>
         <button class="btn btn-outline" @click="handleLogout">
-          重新登入
+          {{ $t('unauthorized.relogin') }}
         </button>
       </div>
     </div>

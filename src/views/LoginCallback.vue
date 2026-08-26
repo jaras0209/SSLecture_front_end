@@ -1,20 +1,20 @@
-﻿<template>
+<template>
   <div class="callback-wrapper">
     <div class="glass-panel callback-card text-center">
       <!-- Loading 狀態 -->
       <div v-if="status === 'loading'" class="callback-loading">
         <div class="spinner-ring"></div>
-        <h2 class="callback-title">正在完成登入</h2>
-        <p class="callback-desc">請稍候，正在安全驗證您的身分...</p>
+        <h2 class="callback-title">{{ $t('callback.loadingTitle') }}</h2>
+        <p class="callback-desc">{{ $t('callback.loadingDesc') }}</p>
       </div>
 
       <!-- 錯誤狀態 -->
       <div v-else-if="status === 'error'" class="callback-error">
         <div class="error-icon">⚠️</div>
-        <h2 class="callback-title">登入發生錯誤</h2>
+        <h2 class="callback-title">{{ $t('callback.errorTitle') }}</h2>
         <p class="callback-desc">{{ errorMessage }}</p>
-        <p class="callback-countdown">{{ countdown }} 秒後自動返回登入頁...</p>
-        <button @click="goToLogin" class="btn btn-primary mt-4">立即返回登入頁</button>
+        <p class="callback-countdown">{{ $t('callback.countdown', { n: countdown }) }}</p>
+        <button @click="goToLogin" class="btn btn-primary mt-4">{{ $t('callback.goToLogin') }}</button>
       </div>
     </div>
   </div>
@@ -24,11 +24,13 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useI18n } from 'vue-i18n'
 import type { UserRole } from '@/stores/auth'
 
 const router = useRouter()
 const route  = useRoute()
 const authStore = useAuthStore()
+const { t } = useI18n()
 
 const status = ref<'loading' | 'error'>('loading')
 const errorMessage = ref('')
@@ -62,8 +64,8 @@ onMounted(async () => {
   if (error || !code) {
     status.value = 'error'
     errorMessage.value = error
-      ? `登入被拒絕：${error}`
-      : '未取得授權碼，請重新嘗試登入。'
+      ? t('callback.errorDenied', { error })
+      : t('callback.errorNoCode')
     startCountdown()
     return
   }
@@ -73,7 +75,7 @@ onMounted(async () => {
 
   if (!result.success) {
     status.value = 'error'
-    errorMessage.value = result.message || '登入驗證失敗，請重新嘗試。'
+    errorMessage.value = result.message || t('callback.errorGeneral')
     startCountdown()
     return
   }
