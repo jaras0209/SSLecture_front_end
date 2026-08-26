@@ -7,21 +7,18 @@
         <img
           v-if="authStore.currentUser?.avatarUrl"
           :src="authStore.currentUser!.avatarUrl"
-          :alt="authStore.currentUser!.displayName || '使用者'"
+          :alt="$t('onboarding.avatarAlt')"
           class="user-avatar"
         />
         <div v-else class="user-avatar-placeholder">👤</div>
 
-        <h1 class="onboarding-title">歡迎加入 Shining Star！</h1>
+        <h1 class="onboarding-title">{{ $t('onboarding.title') }}</h1>
         <p class="onboarding-greeting">
-          嗨，<strong>{{ authStore.currentUser?.displayName || authStore.currentUser?.username || '新成員' }}</strong>！<br />
-          請填寫以下資料以完成帳號設定。
+          <i18n-t keypath="onboarding.greeting">
+            <template #name><strong>{{ displayName }}</strong></template>
+          </i18n-t>
+          <br />{{ $t('onboarding.greetingDesc') }}
         </p>
-      </div>
-
-      <!-- Alert -->
-      <div v-if="alertMessage" :class="['alert-box', alertType]">
-        {{ alertMessage }}
       </div>
 
       <!-- Form -->
@@ -30,7 +27,7 @@
         <!-- 教會選擇（必填） -->
         <div class="form-group">
           <label class="form-label" for="ob-church">
-            ⛪ 所屬教會
+            ⛪ {{ $t('onboarding.church') }}
             <span class="field-required">*</span>
           </label>
           <select
@@ -39,7 +36,7 @@
             class="form-input select-input"
             required
           >
-            <option value="" disabled>請選擇您所屬的教會</option>
+            <option value="" disabled>{{ $t('onboarding.churchPlaceholder') }}</option>
             <option v-for="church in CHURCHES" :key="church" :value="church">
               {{ church }}
             </option>
@@ -49,15 +46,15 @@
         <!-- 自訂 username（可選） -->
         <div class="form-group">
           <label class="form-label" for="ob-username">
-            👤 自訂帳號名稱
-            <span class="field-hint-inline">（選填，預設使用社群顯示名稱）</span>
+            👤 {{ $t('onboarding.username') }}
+            <span class="field-hint-inline">{{ $t('onboarding.usernameHint') }}</span>
           </label>
           <input
             v-model="customUsername"
             id="ob-username"
             type="text"
             class="form-input"
-            :placeholder="authStore.currentUser?.displayName || '留空則使用社群顯示名稱'"
+            :placeholder="authStore.currentUser?.displayName || displayName"
             autocomplete="username"
           />
         </div>
@@ -65,8 +62,8 @@
         <!-- 邀請碼（可選，升級角色） -->
         <div class="form-group">
           <label class="form-label" for="ob-invite-code">
-            🎫 邀請碼
-            <span class="field-hint-inline">（選填，非學員身分需要）</span>
+            🎫 {{ $t('onboarding.inviteCode') }}
+            <span class="field-hint-inline">{{ $t('onboarding.inviteCodeHint') }}</span>
           </label>
           <div class="invite-code-wrap">
             <input
@@ -79,14 +76,15 @@
               autocomplete="off"
               style="text-transform: uppercase; letter-spacing: 0.1em;"
             />
-            <span v-if="inviteCodeStatus === 'valid'" class="invite-badge valid">✅ 有效</span>
-            <span v-else-if="inviteCodeStatus === 'invalid'" class="invite-badge invalid">❌ 無效</span>
+            <span v-if="inviteCodeStatus === 'valid'" class="invite-badge valid">{{ $t('onboarding.inviteValid') }}</span>
+            <span v-else-if="inviteCodeStatus === 'invalid'" class="invite-badge invalid">{{ $t('onboarding.inviteInvalid') }}</span>
           </div>
           <!-- 邀請碼有效時顯示角色與教會資訊 -->
           <div v-if="inviteCodeStatus === 'valid' && validatedInvite" class="invite-info">
-            🎉 將以
-            <strong>{{ ROLE_LABELS[validatedInvite.role] }}</strong>
-            身分完成設定
+            🎉
+            <i18n-t keypath="onboarding.inviteRoleInfo">
+              <template #role><strong>{{ getRoleLabel(validatedInvite.role) }}</strong></template>
+            </i18n-t>
             <span v-if="validatedInvite.church">（{{ validatedInvite.church }}）</span>
           </div>
         </div>
@@ -96,7 +94,7 @@
           class="btn btn-primary w-full"
           :disabled="isSubmitting || !selectedChurch"
         >
-          {{ isSubmitting ? '設定中...' : '完成帳號設定' }}
+          {{ isSubmitting ? $t('onboarding.submitLoading') : $t('onboarding.submit') }}
         </button>
       </form>
     </div>
@@ -104,36 +102,37 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore, CHURCHES } from '@/stores/auth'
+import { useToast } from '@/composables/useToast'
 import type { UserRole, InviteCode } from '@/stores/auth'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const { toast } = useToast()
+const { t } = useI18n()
 
-const ROLE_LABELS: Record<UserRole, string> = {
-  student: 'SS 學員',
-  teacher: '輔導教師',
-  pastor:  '分區牧者',
-  parent:  '關懷家長',
-  admin:   'SS 中央'
+/** 顯示名稱（顯示於 greeting） */
+const displayName = computed(() =>
+  authStore.currentUser?.displayName ||
+  authStore.currentUser?.username ||
+  t('onboarding.defaultName')
+)
+
+/** 角色標籤（i18n 版） */
+function getRoleLabel(role: UserRole): string {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (t as any)(`roleLabel.${role}`) as string
 }
 
-const selectedChurch = ref('')
+const selectedChurch  = ref('')
 const customUsername  = ref('')
 const inviteCodeInput = ref('')
 const inviteCodeStatus = ref<'idle' | 'valid' | 'invalid'>('idle')
 const validatedInvite  = ref<InviteCode | null>(null)
-const isSubmitting = ref(false)
-const alertMessage = ref('')
-const alertType    = ref<'success' | 'error'>('success')
-
-function showAlert(msg: string, type: 'success' | 'error' = 'success') {
-  alertMessage.value = msg
-  alertType.value = type
-  setTimeout(() => { alertMessage.value = '' }, 4000)
-}
+const isSubmitting     = ref(false)
 
 function getRoleRedirectPath(role?: UserRole | string): string {
   if (role === 'student') return '/student'
@@ -164,11 +163,11 @@ function onInviteCodeInput() {
 
 async function handleComplete() {
   if (!selectedChurch.value) {
-    showAlert('請選擇所屬教會！', 'error')
+    toast(t('onboarding.validation.selectChurch'), 'error')
     return
   }
   if (inviteCodeInput.value && inviteCodeStatus.value !== 'valid') {
-    showAlert('邀請碼無效，請確認後重試。', 'error')
+    toast(t('onboarding.validation.inviteInvalid'), 'error')
     return
   }
 
@@ -181,12 +180,12 @@ async function handleComplete() {
   isSubmitting.value = false
 
   if (result.success) {
-    showAlert('帳號設定完成！', 'success')
+    toast(t('onboarding.validation.complete'), 'success')
     setTimeout(() => {
       router.replace(getRoleRedirectPath(authStore.currentUser?.role))
     }, 500)
   } else {
-    showAlert(result.message || '設定失敗，請重試。', 'error')
+    toast(result.message || t('onboarding.validation.failed'), 'error')
   }
 }
 

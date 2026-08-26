@@ -85,7 +85,14 @@
       "connecting": "Connecting..."
     },
     "demo": {
-      "title": "Quick test accounts (password: 123456)"
+      "title": "Quick test accounts (password: 123456)",
+      "filled": "Auto-filled {role} test account"
+    },
+    "validation": {
+      "fillAll": "Please fill in all fields.",
+      "pwdTooWeak": "Password is too weak. Please use at least 8 characters including numbers or special symbols.",
+      "selectChurch": "Please select your church.",
+      "parentBindStudent": "Parent account must bind at least one SS student."
     },
     "forgotModal": {
       "title": "Forgot Password",
@@ -119,7 +126,13 @@
     "submitLoading": "Setting up...",
     "submit": "Complete Account Setup",
     "avatarAlt": "User",
-    "defaultName": "New Member"
+    "defaultName": "New Member",
+    "validation": {
+      "selectChurch": "Please select your church.",
+      "inviteInvalid": "Invalid invite code. Please verify and try again.",
+      "complete": "Account setup complete!",
+      "failed": "Setup failed. Please try again."
+    }
   },
   "callback": {
     "loadingTitle": "Completing Sign In",

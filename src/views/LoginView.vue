@@ -4,7 +4,7 @@
       <div class="brand-header text-center">
         <span class="logo-orb">✨</span>
         <h1 class="brand-title">Shining Star</h1>
-        <p class="brand-tagline">聆聽神的話語，開啟智慧的全新一天</p>
+        <p class="brand-tagline">{{ $t('auth.tagline') }}</p>
       </div>
 
       <!-- Tab Buttons -->
@@ -13,50 +13,50 @@
           :class="['tab-btn', { active: activeTab === 'login' }]"
           @click="activeTab = 'login'"
         >
-          登入帳號
+          {{ $t('auth.tabs.login') }}
         </button>
         <button 
           :class="['tab-btn', { active: activeTab === 'register' }]"
           @click="activeTab = 'register'"
         >
-          註冊新成員
+          {{ $t('auth.tabs.register') }}
         </button>
       </div>
 
       <!-- Login Form -->
       <form v-if="activeTab === 'login'" @submit.prevent="handleLogin" class="auth-form">
         <div class="form-group">
-          <label class="form-label" for="login-username">使用者帳號</label>
+          <label class="form-label" for="login-username">{{ $t('auth.login.username') }}</label>
           <input 
             v-model="loginForm.username" 
             id="login-username" 
             type="text" 
             class="form-input" 
-            placeholder="請輸入您的帳號" 
+            :placeholder="$t('auth.login.usernamePlaceholder')" 
             required 
           />
         </div>
         <div class="form-group">
-          <label class="form-label" for="login-password">密碼</label>
+          <label class="form-label" for="login-password">{{ $t('auth.login.password') }}</label>
           <div class="pwd-input-wrap">
             <input 
               v-model="loginForm.password" 
               id="login-password" 
               :type="showLoginPwd ? 'text' : 'password'" 
               class="form-input" 
-              placeholder="請輸入密碼" 
+              :placeholder="$t('auth.login.passwordPlaceholder')" 
               required 
             />
-            <button type="button" class="pwd-eye-btn" @click="showLoginPwd = !showLoginPwd" :title="showLoginPwd ? '隱藏密碼' : '顯示密碼'">
+            <button type="button" class="pwd-eye-btn" @click="showLoginPwd = !showLoginPwd" :title="showLoginPwd ? $t('common.hidePwd') : $t('common.showPwd')">
               <svg v-if="!showLoginPwd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
               <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
             </button>
           </div>
         </div>
-        <button type="submit" class="btn btn-primary w-full">登入平台</button>
+        <button type="submit" class="btn btn-primary w-full">{{ $t('auth.login.submit') }}</button>
         <div class="forgot-pwd-row">
           <button type="button" class="forgot-pwd-link" @click="showForgotModal = true">
-            🔐 忘記密碼？
+            🔐 {{ $t('auth.login.forgotPassword') }}
           </button>
         </div>
       </form>
@@ -67,8 +67,8 @@
         <!-- Step 1: Invite Code (optional) -->
         <div class="form-group">
           <label class="form-label" for="reg-invite-code">
-            🎫 邀請碼
-            <span class="field-hint-inline">（選填，非學員身分需要）</span>
+            🎫 {{ $t('auth.register.inviteCode') }}
+            <span class="field-hint-inline">{{ $t('auth.register.inviteCodeHint') }}</span>
           </label>
           <div class="invite-code-wrap">
             <input
@@ -81,17 +81,17 @@
               autocomplete="off"
               style="text-transform: uppercase; letter-spacing: 0.1em;"
             />
-            <span v-if="inviteCodeStatus === 'valid'" class="invite-badge valid">✅ 有效</span>
-            <span v-else-if="inviteCodeStatus === 'invalid'" class="invite-badge invalid">❌ 無效</span>
+            <span v-if="inviteCodeStatus === 'valid'" class="invite-badge valid">{{ $t('auth.register.inviteCodeBadgeValid') }}</span>
+            <span v-else-if="inviteCodeStatus === 'invalid'" class="invite-badge invalid">{{ $t('auth.register.inviteCodeBadgeInvalid') }}</span>
           </div>
           <!-- Validated invite info -->
           <div v-if="validatedInvite" class="invite-info-row">
             <span class="invite-tag role-tag">{{ roleLabel(validatedInvite.role) }}</span>
             <span v-if="validatedInvite.church" class="invite-tag church-tag">⛪ {{ validatedInvite.church }}</span>
-            <span class="invite-expiry">有效期至 {{ formatExpiry(validatedInvite.expiresAt) }}</span>
+            <span class="invite-expiry">{{ $t('auth.register.inviteExpiry', { date: formatExpiry(validatedInvite.expiresAt) }) }}</span>
           </div>
           <p v-if="inviteCodeStatus === 'invalid'" class="field-hint error-hint">
-            邀請碼無效、已過期或已被使用，請向管理員重新取得。
+            {{ $t('auth.register.inviteInvalidHint') }}
           </p>
         </div>
 
@@ -100,30 +100,30 @@
 
         <!-- Username -->
         <div class="form-group">
-          <label class="form-label" for="reg-username">設定使用者帳號</label>
+          <label class="form-label" for="reg-username">{{ $t('auth.register.username') }}</label>
           <input
             v-model="registerForm.username"
             id="reg-username"
             type="text"
             class="form-input"
-            placeholder="請輸入帳號"
+            :placeholder="$t('auth.register.usernamePlaceholder')"
             required
           />
         </div>
 
         <!-- Password -->
         <div class="form-group">
-          <label class="form-label" for="reg-password">設定密碼</label>
+          <label class="form-label" for="reg-password">{{ $t('auth.register.password') }}</label>
           <div class="pwd-input-wrap">
             <input
               v-model="registerForm.password"
               id="reg-password"
               :type="showRegPwd ? 'text' : 'password'"
               class="form-input"
-              placeholder="至少 8 字元，含大小寫、數字"
+              :placeholder="$t('auth.register.passwordPlaceholder')"
               required
             />
-            <button type="button" class="pwd-eye-btn" @click="showRegPwd = !showRegPwd" :title="showRegPwd ? '隱藏密碼' : '顯示密碼'">
+            <button type="button" class="pwd-eye-btn" @click="showRegPwd = !showRegPwd" :title="showRegPwd ? $t('common.hidePwd') : $t('common.showPwd')">
               <svg v-if="!showRegPwd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
               <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
             </button>
@@ -138,19 +138,19 @@
             </div>
             <ul class="pwd-rules-list">
               <li :class="{ 'rule-ok': registerForm.password.length >= 8 }">
-                {{ registerForm.password.length >= 8 ? '✅' : '❌' }} 至少 8 個字元
+                {{ registerForm.password.length >= 8 ? '✅' : '❌' }} {{ $t('auth.passwordRules.minLength') }}
               </li>
               <li :class="{ 'rule-ok': /[A-Z]/.test(registerForm.password) }">
-                {{ /[A-Z]/.test(registerForm.password) ? '✅' : '❌' }} 包含英文大寫字母
+                {{ /[A-Z]/.test(registerForm.password) ? '✅' : '❌' }} {{ $t('auth.passwordRules.uppercase') }}
               </li>
               <li :class="{ 'rule-ok': /[a-z]/.test(registerForm.password) }">
-                {{ /[a-z]/.test(registerForm.password) ? '✅' : '❌' }} 包含英文小寫字母
+                {{ /[a-z]/.test(registerForm.password) ? '✅' : '❌' }} {{ $t('auth.passwordRules.lowercase') }}
               </li>
               <li :class="{ 'rule-ok': /[0-9]/.test(registerForm.password) }">
-                {{ /[0-9]/.test(registerForm.password) ? '✅' : '❌' }} 包含數字
+                {{ /[0-9]/.test(registerForm.password) ? '✅' : '❌' }} {{ $t('auth.passwordRules.number') }}
               </li>
               <li :class="{ 'rule-ok': /[^A-Za-z0-9]/.test(registerForm.password) }">
-                {{ /[^A-Za-z0-9]/.test(registerForm.password) ? '✅' : '❌' }} 包含特殊符號（!@#$%^&*）
+                {{ /[^A-Za-z0-9]/.test(registerForm.password) ? '✅' : '❌' }} {{ $t('auth.passwordRules.special') }}
               </li>
             </ul>
           </div>
@@ -158,23 +158,23 @@
 
         <!-- Role: locked by invite, or fixed to student -->
         <div class="form-group">
-          <label class="form-label">角色身分</label>
+          <label class="form-label">{{ $t('auth.register.role') }}</label>
           <div v-if="validatedInvite" class="locked-field-display">
             {{ roleLabel(validatedInvite.role) }}
-            <span class="locked-badge">🔒 由邀請碼指定</span>
+            <span class="locked-badge">🔒 {{ $t('auth.register.inviteLockedBadge') }}</span>
           </div>
           <div v-else class="locked-field-display student-only">
-            🎒 SS 學員
-            <span class="locked-badge">其他身分需要邀請碼</span>
+            🎒 {{ $t('auth.register.studentRole') }}
+            <span class="locked-badge">{{ $t('auth.register.studentRoleHint') }}</span>
           </div>
         </div>
 
         <!-- Church: locked by invite (or selectable for student without invite) -->
         <div class="form-group" v-if="!validatedInvite || validatedInvite.role !== 'admin'">
-          <label class="form-label" for="reg-church">⛪ 所屬教會</label>
+          <label class="form-label" for="reg-church">⛪ {{ $t('auth.register.church') }}</label>
           <div v-if="validatedInvite && validatedInvite.church" class="locked-field-display">
             {{ validatedInvite.church }}
-            <span class="locked-badge">🔒 由邀請碼指定</span>
+            <span class="locked-badge">🔒 {{ $t('auth.register.churchLockedBadge') }}</span>
           </div>
           <select
             v-else
@@ -189,9 +189,9 @@
 
         <!-- Parent: Student Binding (only when invite is parent role) -->
         <div class="form-group" v-if="effectiveRole === 'parent'">
-          <label class="form-label">👶 綁定我的孩子（SS學員帳號）</label>
+          <label class="form-label">👶 {{ $t('auth.register.bindChildren') }}</label>
           <div v-if="registerAvailableStudents.length === 0" class="alert-box error">
-            ⚠️ 目前 {{ effectiveChurch }} 教會尚無任何 SS學員帳號，請先由 SS學員 完成帳號註冊後，再回來建立家長帳號。
+            ⚠️ {{ $t('auth.register.noStudentsAlert', { church: effectiveChurch }) }}
           </div>
           <div v-else class="student-binding-list">
             <label
@@ -208,16 +208,16 @@
             </label>
           </div>
           <p v-if="registerForm.childUsernames.length === 0 && registerAvailableStudents.length > 0" class="field-hint">
-            請至少勾選一位學員，才能建立家長帳號。
+            {{ $t('auth.register.atLeastOneStudent') }}
           </p>
         </div>
 
-        <button type="submit" class="btn btn-secondary w-full">完成註冊並登入</button>
+        <button type="submit" class="btn btn-secondary w-full">{{ $t('auth.register.submit') }}</button>
       </form>
 
       <!-- Divider -->
       <div class="divider">
-        <span class="divider-text">或者透過社群平台快速登入</span>
+        <span class="divider-text">{{ $t('auth.social.divider') }}</span>
       </div>
 
       <!-- Third Party Logins -->
@@ -229,7 +229,7 @@
           :disabled="isRedirecting"
         >
           <img src="https://cdn-icons-png.flaticon.com/512/300/300221.png" alt="Google" class="social-icon" />
-          {{ isRedirecting && redirectTarget === 'google' ? '連線中...' : 'Google 登入' }}
+          {{ isRedirecting && redirectTarget === 'google' ? $t('auth.social.connecting') : $t('auth.social.google') }}
         </button>
         <button
           @click="loginWithLine"
@@ -238,13 +238,13 @@
           :disabled="isRedirecting"
         >
           <img src="https://cdn-icons-png.flaticon.com/512/124/124027.png" alt="LINE" class="social-icon" />
-          {{ isRedirecting && redirectTarget === 'line' ? '連線中...' : 'LINE 登入' }}
+          {{ isRedirecting && redirectTarget === 'line' ? $t('auth.social.connecting') : $t('auth.social.line') }}
         </button>
       </div>
 
       <!-- Quick Demo Access Helper -->
       <div class="demo-helper">
-        <p class="demo-title">💡 快速測試帳號 (密碼皆為 123456)</p>
+        <p class="demo-title">💡 {{ $t('auth.demo.title') }}</p>
         <div class="demo-chips">
           <span class="demo-chip" @click="fillDemo('student')">SS學員 (student)</span>
           <span class="demo-chip" @click="fillDemo('teacher')">輔導教師 (teacher)</span>
@@ -259,27 +259,27 @@
     <div v-if="showForgotModal" class="modal-overlay" @click.self="showForgotModal = false">
       <div class="glass-panel modal-card text-center">
         <div class="forgot-modal-icon">🔑</div>
-        <h3 class="modal-title">忘記密碼</h3>
+        <h3 class="modal-title">{{ $t('auth.forgotModal.title') }}</h3>
         <p class="modal-desc">
-          目前系統由教會 SS 中央管理員進行帳號管理。
+          {{ $t('auth.forgotModal.desc1') }}
           <br />
-          請聯絡您的輔導教師或 SS 中央，請求幫您重設密碼。
+          {{ $t('auth.forgotModal.desc2') }}
         </p>
         <div class="forgot-modal-steps">
           <div class="forgot-step">
             <span class="step-num">1</span>
-            <span>聯絡您的輔導教師或 SS 中央管理員</span>
+            <span>{{ $t('auth.forgotModal.step1') }}</span>
           </div>
           <div class="forgot-step">
             <span class="step-num">2</span>
-            <span>由管理員在後台將您的密碼重設為預設密碼</span>
+            <span>{{ $t('auth.forgotModal.step2') }}</span>
           </div>
           <div class="forgot-step">
             <span class="step-num">3</span>
-            <span>使用預設密碼登入後，即可到「修改密碼」更改新密碼</span>
+            <span>{{ $t('auth.forgotModal.step3') }}</span>
           </div>
         </div>
-        <button @click="showForgotModal = false" class="btn btn-primary w-full mt-4">我瞭解了</button>
+        <button @click="showForgotModal = false" class="btn btn-primary w-full mt-4">{{ $t('auth.forgotModal.understood') }}</button>
       </div>
     </div>
 
@@ -289,6 +289,7 @@
 <script setup lang="ts">
 import { ref, reactive, toRef, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore, CHURCHES } from '@/stores/auth'
 import type { UserRole, InviteCode } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
@@ -297,6 +298,7 @@ import { usePasswordStrength } from '@/composables/usePasswordStrength'
 const router = useRouter()
 const authStore = useAuthStore()
 const { toast } = useToast()
+const { t } = useI18n()
 
 const activeTab = ref<'login' | 'register'>('login')
 const showForgotModal = ref(false)
@@ -341,16 +343,10 @@ const effectiveChurch = computed(() =>
   validatedInvite.value?.church || registerForm.church
 )
 
-const ROLE_LABELS: Record<UserRole, string> = {
-  student: '🎒 SS 學員',
-  teacher: '👨‍🏫 輔導教師',
-  pastor: '⛪ 分區牧者',
-  parent: '👨‍👩‍👦 關懷家長',
-  admin: '👑 SS 中央'
-}
-
+/** 角色標籤（i18n 版） */
 function roleLabel(role: UserRole): string {
-  return ROLE_LABELS[role] || role
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (t as any)(`roleLabel.${role}`) as string
 }
 
 function formatExpiry(iso: string): string {
@@ -385,7 +381,7 @@ const registerAvailableStudents = computed(() => {
 
 function handleLogin() {
   if (!loginForm.username || !loginForm.password) {
-    toast('請填寫所有欄位！', 'error')
+    toast(t('auth.validation.fillAll'), 'error')
     return
   }
   const result = authStore.login(loginForm.username, loginForm.password)
@@ -403,26 +399,26 @@ const { strength: regPwdStrength, label: regPwdStrengthLabel, textClass: regPwdS
 
 function handleRegister() {
   if (!registerForm.username || !registerForm.password) {
-    toast('請填寫所有欄位！', 'error')
+    toast(t('auth.validation.fillAll'), 'error')
     return
   }
   if (regPwdStrength.value < 2) {
-    toast('密碼強度不足，請設定中等以上強度的密碼（需 8 字元以上，並含數字或特殊符號）', 'error')
+    toast(t('auth.validation.pwdTooWeak'), 'error')
     return
   }
   const role = effectiveRole.value
   const church = effectiveChurch.value
   if (role !== 'admin' && !church) {
-    toast('請選擇所屬教會！', 'error')
+    toast(t('auth.validation.selectChurch'), 'error')
     return
   }
   if (role === 'parent') {
     if (registerAvailableStudents.value.length === 0) {
-      toast(`目前 ${church} 教會尚無任何 SS學員帳號，請先由學員完成帳號建立！`, 'error')
+      toast(t('auth.register.noStudentsAlert', { church }), 'error')
       return
     }
     if (registerForm.childUsernames.length === 0) {
-      toast('家長帳號必須至少綁定一位 SS學員！', 'error')
+      toast(t('auth.validation.parentBindStudent'), 'error')
       return
     }
   }
@@ -447,7 +443,7 @@ function handleRegister() {
 function fillDemo(role: string) {
   loginForm.username = role
   loginForm.password = '123456'
-  toast(`已自動帶入 ${role} 測試資料`, 'success')
+  toast(t('auth.demo.filled', { role }), 'success')
 }
 
 // OAuth 真實 redirect 函式

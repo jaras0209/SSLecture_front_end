@@ -85,7 +85,14 @@
       "connecting": "連線中..."
     },
     "demo": {
-      "title": "快速測試帳號 (密碼皆為 123456)"
+      "title": "快速測試帳號 (密碼皆為 123456)",
+      "filled": "已自動帶入 {role} 測試資料"
+    },
+    "validation": {
+      "fillAll": "請填寫所有欄位！",
+      "pwdTooWeak": "密碼強度不足，請設定中等以上強度的密碼（需 8 字元以上，並含數字或特殊符號）",
+      "selectChurch": "請選擇所屬教會！",
+      "parentBindStudent": "家長帳號必須至少綁定一位 SS學員！"
     },
     "forgotModal": {
       "title": "忘記密碼",
@@ -119,7 +126,13 @@
     "submitLoading": "設定中...",
     "submit": "完成帳號設定",
     "avatarAlt": "使用者",
-    "defaultName": "新成員"
+    "defaultName": "新成員",
+    "validation": {
+      "selectChurch": "請選擇所屬教會！",
+      "inviteInvalid": "邀請碼無效，請確認後重試。",
+      "complete": "帳號設定完成！",
+      "failed": "設定失敗，請重試。"
+    }
   },
   "callback": {
     "loadingTitle": "正在完成登入",
