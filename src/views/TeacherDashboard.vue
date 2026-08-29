@@ -4,31 +4,31 @@
     <header class="dashboard-header glass-panel no-print">
       <div class="header-intro">
         <div class="header-user-row">
-          <div class="teacher-avatar-wrap" @click="showProfileDialog = true" title="點擊編輯個人資料">
+          <div class="teacher-avatar-wrap" @click="showProfileDialog = true" :title="$t('common.editProfileHint')">
             <img :src="authStore.currentUser?.avatarUrl" alt="avatar" class="teacher-avatar-sm" />
             <span class="teacher-role-badge">{{ teacherRoleBadge }}</span>
           </div>
           <div>
-            <h2 v-if="authStore.currentUser?.role === 'pastor'">分區牧者管理中心</h2>
-            <h2 v-else-if="authStore.currentUser?.role === 'admin'">SS 系統管理員後台</h2>
-            <h2 v-else>教師關懷輔導中心 👨‍🏫</h2>
-            <p>{{ teacherDisplayName }}，歡迎回到 SS 系統！感謝您的服事與牧養。</p>
-            <p v-if="authStore.currentUser?.lastLoginAt" class="last-login-hint-sm">🕐 上次登入：{{ authStore.currentUser?.lastLoginAt }}</p>
+            <h2 v-if="authStore.currentUser?.role === 'pastor'">{{ $t('teacher.header.pastorTitle') }}</h2>
+            <h2 v-else-if="authStore.currentUser?.role === 'admin'">{{ $t('teacher.header.adminTitle') }}</h2>
+            <h2 v-else>{{ $t('teacher.header.teacherTitle') }}</h2>
+            <p>{{ $t('teacher.header.welcome', { name: teacherDisplayName }) }}</p>
+            <p v-if="authStore.currentUser?.lastLoginAt" class="last-login-hint-sm">🕐 {{ $t('teacher.header.lastLogin', { time: authStore.currentUser?.lastLoginAt }) }}</p>
           </div>
         </div>
       </div>
       <div class="stats-grid">
         <div class="stat-box">
           <span class="stat-val">{{ studentsList.length }}</span>
-          <span class="stat-lbl">學員總人數</span>
+          <span class="stat-lbl">{{ $t('teacher.header.totalStudents') }}</span>
         </div>
         <div class="stat-box">
           <span class="stat-val">{{ myStudentsCount }}</span>
-          <span class="stat-lbl">我負責的學員</span>
+          <span class="stat-lbl">{{ $t('teacher.header.myStudents') }}</span>
         </div>
         <div class="stat-box">
           <span class="stat-val">{{ totalNotesSubmitted }}</span>
-          <span class="stat-lbl">已提交心得</span>
+          <span class="stat-lbl">{{ $t('teacher.header.notesSubmitted') }}</span>
         </div>
       </div>
     </header>
@@ -42,9 +42,9 @@
         :class="['main-tab-btn', { active: activeMainTab === 'care' }]"
         @click="activeMainTab = 'care'"
       >
-        <span v-if="authStore.currentUser?.role === 'pastor'">👋 分區學員關懷</span>
-        <span v-else-if="authStore.currentUser?.role === 'admin'">🎓 學員總覽</span>
-        <span v-else>👨‍🏫 學員關懷輔導</span>
+        <span v-if="authStore.currentUser?.role === 'pastor'">👋 {{ $t('teacher.tabs.carePastor') }}</span>
+        <span v-else-if="authStore.currentUser?.role === 'admin'">🎓 {{ $t('teacher.tabs.careAdmin') }}</span>
+        <span v-else>👨‍🏫 {{ $t('teacher.tabs.careTeacher') }}</span>
       </button>
       <!-- Pastor-only: Church Overview Tab -->
       <button 
@@ -52,13 +52,13 @@
         :class="['main-tab-btn', { active: activeMainTab === 'pastor-overview' }]"
         @click="activeMainTab = 'pastor-overview'"
       >
-        ⛪ 分區教會總覽
+        ⛪ {{ $t('teacher.tabs.pastorOverview') }}
       </button>
       <button 
         :class="['main-tab-btn', { active: activeMainTab === 'settings' }]"
         @click="activeMainTab = 'settings'"
       >
-        ⚙️ 講師管理 / 系統設定
+        ⚙️ {{ $t('teacher.tabs.settings') }}
       </button>
       <!-- Booking Tab: teacher + admin -->
       <button
@@ -67,7 +67,7 @@
         @click="activeMainTab = 'bookings'"
         id="tab-bookings"
       >
-        📅 預約管理
+        📅 {{ $t('teacher.tabs.bookings') }}
         <span v-if="bookingPendingCount > 0" class="tab-badge">{{ bookingPendingCount }}</span>
       </button>
     </div>
@@ -219,6 +219,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
@@ -256,6 +257,7 @@ const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
 const bookingsStore = useBookingsStore()
 const { toast } = useToast()
+const { t } = useI18n()
 
 const showProfileDialog = ref(false)
 
@@ -390,7 +392,7 @@ function openEditLecturer(lec: Lecturer) {
 
 function saveLecturer() {
   if (!lecturerForm.value.name.trim()) {
-    toast('請填寫講師姓名！', 'warning')
+    toast(t('teacher.lecturer.nameRequired'), 'warning')
     return
   }
   const linkedUsername = lecturerForm.value.linkMode === 'link'
@@ -416,7 +418,7 @@ function saveLecturer() {
     )
   }
   showLecturerModal.value = false
-  toast('講師資料已儲存！')
+  toast(t('teacher.lecturer.savedToast'))
 }
 
 // Generate the students progress summary list from databases

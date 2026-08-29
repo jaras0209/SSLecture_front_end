@@ -12,7 +12,8 @@
     "relogin": "重新登入",
     "showPwd": "顯示密碼",
     "hidePwd": "隱藏密碼",
-    "understood": "我瞭解了"
+    "understood": "我瞭解了",
+    "editProfileHint": "點擊編輯個人資料"
   },
   "nav": {
     "studentLink": "學習與檢視",
@@ -218,7 +219,9 @@
       "courses": "課程指定（可多選）",
       "coursesHint": "指定後將在此課程的導生順序名單列出此講師",
       "cancelBtn": "取消",
-      "saveBtn": "儲存"
+      "saveBtn": "儲存",
+      "nameRequired": "請填寫講師姓名！",
+      "savedToast": "講師資料已儲存！"
     }
   },
   "admin": {
@@ -236,7 +239,9 @@
       "passwordPlaceholder": "預設密碼",
       "role": "指定角色",
       "church": "所屬教會",
-      "submit": "建立使用者"
+      "submit": "建立使用者",
+      "usernameTaken": "帳號已被佔用！",
+      "successMsg": "已成功建立用戶 {username}！"
     },
     "userList": {
       "title": "成員清單與權限設定矩陣",
@@ -247,7 +252,11 @@
       "colRestrictTeacher": "限制瀏覽 /teacher",
       "colResetPwd": "重設密碼",
       "colDelete": "刪除",
-      "me": "（你）"
+      "me": "（你）",
+      "deleteConfirm": "確定要刪除使用者 {username} 嗎？此動作無法復原！",
+      "deletedToast": "使用者 {username} 已刪除",
+      "resetPwdConfirm": "確定將「{username}」的密碼重設為預設密碼（{pwd}）？",
+      "resetPwdSuccess": "✅ {username} 密碼已重設為「{pwd}」"
     },
     "roles": {
       "student": "SS學員（SS）",

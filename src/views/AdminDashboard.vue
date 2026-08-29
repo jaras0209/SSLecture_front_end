@@ -3,14 +3,14 @@
     <!-- Header banner -->
     <header class="dashboard-header glass-panel">
       <div class="admin-header-user-row">
-        <div class="admin-avatar-wrap" @click="showProfileDialog = true" title="點擊編輯個人資料">
+        <div class="admin-avatar-wrap" @click="showProfileDialog = true" :title="$t('common.editProfileHint')">
           <img :src="authStore.currentUser?.avatarUrl" alt="avatar" class="admin-avatar-sm" />
           <span class="admin-role-badge">👑</span>
         </div>
         <div>
-          <h2>安全權限控制中心 ⚙️</h2>
-          <p>{{ adminDisplayName }}｜SS中央專用：變更使用者角色、設定頁面存取權限，以及新增測試人員。</p>
-          <p v-if="authStore.currentUser?.lastLoginAt" style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">🕐 上次登入：{{ authStore.currentUser?.lastLoginAt }}</p>
+          <h2>{{ $t('admin.header.title') }}</h2>
+          <p>{{ $t('admin.header.desc', { name: adminDisplayName }) }}</p>
+          <p v-if="authStore.currentUser?.lastLoginAt" style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">🕐 {{ $t('admin.header.lastLogin', { time: authStore.currentUser?.lastLoginAt }) }}</p>
         </div>
       </div>
     </header>
@@ -21,52 +21,52 @@
     <div class="dashboard-body">
       <!-- Create New User Panel -->
       <section class="admin-sidebar glass-panel">
-        <h3>➕ 手動新增使用者</h3>
-        <p class="section-desc mb-4">可在此快速建立各個身份的測試帳號：</p>
+        <h3>➕ {{ $t('admin.createUser.title') }}</h3>
+        <p class="section-desc mb-4">{{ $t('admin.createUser.desc') }}</p>
 
         <form @submit.prevent="createUser" class="create-form">
           <div class="form-group">
-            <label class="form-label" for="new-username">使用者帳號</label>
+            <label class="form-label" for="new-username">{{ $t('admin.createUser.username') }}</label>
             <input 
               v-model="newUser.username" 
               id="new-username"
               type="text" 
               class="form-input" 
-              placeholder="輸入帳號" 
+              :placeholder="$t('admin.createUser.usernamePlaceholder')" 
               required
             />
           </div>
           <div class="form-group">
-            <label class="form-label" for="new-password">密碼</label>
+            <label class="form-label" for="new-password">{{ $t('admin.createUser.password') }}</label>
             <input 
               v-model="newUser.password" 
               id="new-password"
               type="password" 
               class="form-input" 
-              placeholder="預設密碼" 
+              :placeholder="$t('admin.createUser.passwordPlaceholder')" 
               required
             />
           </div>
           <div class="form-group">
-            <label class="form-label" for="new-role">指定角色</label>
+            <label class="form-label" for="new-role">{{ $t('admin.createUser.role') }}</label>
             <select v-model="newUser.role" id="new-role" class="form-input select-input">
-              <option value="student">🎒 SS學員 (SS)</option>
-              <option value="teacher">👨‍🏫 輔導教師 (Teacher)</option>
-              <option value="parent">👨‍👩‍👦 關懷家長 (Parent)</option>
-              <option value="pastor">⛪ 分區牧者 (Pastor)</option>
-              <option value="admin">👑 SS中央 (Admin)</option>
+              <option value="student">🎒 {{ $t('admin.roles.student') }}</option>
+              <option value="teacher">👨‍🏫 {{ $t('admin.roles.teacher') }}</option>
+              <option value="parent">👨‍👩‍👦 {{ $t('admin.roles.parent') }}</option>
+              <option value="pastor">⛪ {{ $t('admin.roles.pastor') }}</option>
+              <option value="admin">👑 {{ $t('admin.roles.admin') }}</option>
             </select>
           </div>
           
           <div class="form-group" v-if="newUser.role !== 'admin'">
-            <label class="form-label" for="new-church">所屬教會</label>
+            <label class="form-label" for="new-church">{{ $t('admin.createUser.church') }}</label>
             <select v-model="newUser.church" id="new-church" class="form-input select-input">
               <option v-for="church in CHURCHES" :key="church" :value="church">{{ church }}</option>
             </select>
           </div>
           
           <button type="submit" class="btn btn-secondary btn-block mt-4">
-            建立使用者
+            {{ $t('admin.createUser.submit') }}
           </button>
         </form>
 
@@ -79,20 +79,20 @@
       <!-- Users Management Table -->
       <section class="admin-main glass-panel">
         <div class="main-header">
-          <h3>👥 成員清單與權限設定矩陣</h3>
-          <span class="user-count-badge">共 {{ usersList.length }} 名成員</span>
+          <h3>👥 {{ $t('admin.userList.title') }}</h3>
+          <span class="user-count-badge">{{ $t('admin.userList.count', { n: usersList.length }) }}</span>
         </div>
 
         <div class="table-container mt-4">
           <table class="admin-table">
             <thead>
               <tr>
-                <th>姓名 / 帳號</th>
-                <th>角色身分變更</th>
-                <th>限制瀏覽 /student</th>
-                <th>限制瀏覽 /teacher</th>
-                <th>重設密碼</th>
-                <th>刪除</th>
+                <th>{{ $t('admin.userList.colName') }}</th>
+                <th>{{ $t('admin.userList.colRole') }}</th>
+                <th>{{ $t('admin.userList.colRestrictStudent') }}</th>
+                <th>{{ $t('admin.userList.colRestrictTeacher') }}</th>
+                <th>{{ $t('admin.userList.colResetPwd') }}</th>
+                <th>{{ $t('admin.userList.colDelete') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -104,7 +104,7 @@
                     <span v-if="user.realName" class="admin-id-tag">@{{ user.username }}</span>
                     <span v-if="user.church" class="admin-church-tag">{{ user.church }}</span>
                   </div>
-                  <span v-if="user.username === authStore.currentUser?.username" class="me-tag">(你)</span>
+                  <span v-if="user.username === authStore.currentUser?.username" class="me-tag">{{ $t('admin.userList.me') }}</span>
                 </td>
                 <td>
                   <!-- Dynamic Role Selector -->
@@ -114,11 +114,11 @@
                     class="form-input table-select-input"
                     :disabled="user.username === authStore.currentUser?.username"
                   >
-                    <option value="student">🎒 SS學員</option>
-                    <option value="teacher">👨‍🏫 輔導教師</option>
-                    <option value="parent">👨‍👩‍👦 關懷家長</option>
-                    <option value="pastor">⛪ 分區牧者</option>
-                    <option value="admin">👑 SS中央</option>
+                    <option value="student">🎒 {{ $t('admin.roles.student') }}</option>
+                    <option value="teacher">👨‍🏫 {{ $t('admin.roles.teacher') }}</option>
+                    <option value="parent">👨‍👩‍👦 {{ $t('admin.roles.parent') }}</option>
+                    <option value="pastor">⛪ {{ $t('admin.roles.pastor') }}</option>
+                    <option value="admin">👑 {{ $t('admin.roles.admin') }}</option>
                   </select>
                 </td>
                 <td class="text-center">
@@ -150,7 +150,7 @@
                     @click="resetUserPassword(user.username)"
                     class="reset-pwd-btn"
                     :disabled="user.username === authStore.currentUser?.username"
-                    title="重設為預設密碼"
+                    :title="$t('admin.userList.colResetPwd')"
                   >
                     🔑
                   </button>
@@ -437,8 +437,10 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useToast } from '@/composables/useToast'
 const { confirm, toast } = useToast()
+const { t } = useI18n()
 import { useAuthStore, CHURCHES, DEFAULT_RESET_PASSWORD } from '@/stores/auth'
 import { defineAsyncComponent } from 'vue'
 import type { UserRole, InviteCode } from '@/stores/auth'
@@ -595,12 +597,12 @@ function showAlert(msg: string, type: 'success' | 'error' = 'success') {
 
 function createUser() {
   if (!newUser.username || !newUser.password) {
-    showAlert('請填寫所有欄位！', 'error')
+    showAlert(t('auth.validation.fillAll'), 'error')
     return
   }
   
   if (authStore.usersDb[newUser.username]) {
-    showAlert('帳號已被佔用！', 'error')
+    showAlert(t('admin.createUser.usernameTaken'), 'error')
     return
   }
 
@@ -610,7 +612,7 @@ function createUser() {
     church: newUser.role !== 'admin' ? newUser.church : undefined
   }
 
-  showAlert(`已成功建立用戶 ${newUser.username}！`, 'success')
+  showAlert(t('admin.createUser.successMsg', { username: newUser.username }), 'success')
   newUser.username = ''
   newUser.password = ''
   newUser.role = 'student'
@@ -628,23 +630,23 @@ function toggleRestriction(username: string, page: string) {
 }
 
 async function deleteUser(username: string) {
-  const ok = await confirm(`確定要刪除使用者 ${username} 嗎？此動作無法復原！`)
+  const ok = await confirm(t('admin.userList.deleteConfirm', { username }))
   if (ok) {
     delete authStore.usersDb[username]
     // Clean up restrictions as well
     if (coursesStore.restrictionsDb[username]) {
       delete coursesStore.restrictionsDb[username]
     }
-    toast(`使用者 ${username} 已刪除`, 'info')
+    toast(t('admin.userList.deletedToast', { username }), 'info')
   }
 }
 
 async function resetUserPassword(username: string) {
-  const ok = await confirm(`確定將「${username}」的密碼重設為預設密碼（${DEFAULT_RESET_PASSWORD}）？`)
+  const ok = await confirm(t('admin.userList.resetPwdConfirm', { username, pwd: DEFAULT_RESET_PASSWORD }))
   if (!ok) return
   const result = authStore.adminResetPassword(username)
   if (result.success) {
-    toast(`✅ ${username} 密碼已重設為「${DEFAULT_RESET_PASSWORD}」`, 'success')
+    toast(t('admin.userList.resetPwdSuccess', { username, pwd: DEFAULT_RESET_PASSWORD }), 'success')
   } else {
     toast(result.message, 'error')
   }

@@ -3,37 +3,37 @@
     <!-- Header Summary Panel -->
     <header class="dashboard-header glass-panel no-print">
       <div class="user-greeting">
-        <div class="avatar-clickable" @click="showProfileDialog = true" title="點擊編輯個人資料">
+        <div class="avatar-clickable" @click="showProfileDialog = true" :title="$t('common.editProfileHint')">
           <img :src="authStore.currentUser?.avatarUrl" alt="Avatar" class="avatar-lg" />
           <span class="avatar-edit-hint">✏️</span>
           <div class="role-badge-overlay">{{ roleBadge }}</div>
         </div>
         <div>
-          <h2>哈囉，{{ displayName }}！ 👋</h2>
+          <h2>{{ $t('student.header.hello', { name: displayName }) }}</h2>
           <p class="motivation-text">{{ motivationText }}</p>
           <p v-if="authStore.currentUser?.lastLoginAt" class="last-login-hint">
-            🕐 上次登入：{{ authStore.currentUser?.lastLoginAt }}
+            🕐 {{ $t('student.header.lastLogin', { time: authStore.currentUser?.lastLoginAt }) }}
           </p>
           <div class="flex flex-wrap gap-2 mt-2">
-            <span v-if="assignedTeacher" class="assigned-teacher-label">🛡️ 輔導教師：<strong>{{ assignedTeacher }}</strong></span>
-            <span v-if="assignedPastor" class="assigned-teacher-label" style="background: rgba(139, 92, 246, 0.08); color: var(--info);">⛪ 分區牧者：<strong>{{ assignedPastor }}</strong></span>
-            <span v-if="assignedParent" class="assigned-teacher-label" style="background: rgba(59, 130, 246, 0.08); color: var(--primary);">👨‍👩‍👦 關懷家長：<strong>{{ assignedParent }}</strong></span>
-            <span v-if="!assignedTeacher && !assignedPastor && !assignedParent" class="no-teacher-hint">💬 尚未分配輔導關懷人員</span>
+            <span v-if="assignedTeacher" class="assigned-teacher-label">🛡️ {{ $t('student.header.teacher') }}<strong>{{ assignedTeacher }}</strong></span>
+            <span v-if="assignedPastor" class="assigned-teacher-label" style="background: rgba(139, 92, 246, 0.08); color: var(--info);">⛪ {{ $t('student.header.pastor') }}<strong>{{ assignedPastor }}</strong></span>
+            <span v-if="assignedParent" class="assigned-teacher-label" style="background: rgba(59, 130, 246, 0.08); color: var(--primary);">👨‍👩‍👦 {{ $t('student.header.parent') }}<strong>{{ assignedParent }}</strong></span>
+            <span v-if="!assignedTeacher && !assignedPastor && !assignedParent" class="no-teacher-hint">{{ $t('student.header.noCaretaker') }}</span>
           </div>
         </div>
       </div>
       <div class="progress-summary">
         <div class="summary-card">
           <span class="summary-num">{{ completedCount }}/{{ coursesStore.courses.length }}</span>
-          <span class="summary-label">已完成聽課</span>
+          <span class="summary-label">{{ $t('student.header.completedCourses') }}</span>
         </div>
         <div class="summary-card">
           <span class="summary-num">{{ overallProgressPercent }}%</span>
-          <span class="summary-label">總體完成度</span>
+          <span class="summary-label">{{ $t('student.header.overallProgress') }}</span>
         </div>
-        <div class="summary-card clickable-card" @click="showProfileDialog = true" title="編輯個人資料">
+        <div class="summary-card clickable-card" @click="showProfileDialog = true" :title="$t('common.editProfileHint')">
           <span class="summary-num" style="font-size: 1.4rem;">⚙️</span>
-          <span class="summary-label">個人資料</span>
+          <span class="summary-label">{{ $t('student.header.profileCard') }}</span>
         </div>
       </div>
     </header>
@@ -47,20 +47,20 @@
         :class="['main-tab-btn', { active: activeDashboardTab === 'sermons' }]"
         @click="activeDashboardTab = 'sermons'"
       >
-        🎧 聽課學習中心
+        🎧 {{ $t('student.tabs.sermons') }}
       </button>
       <button 
         :class="['main-tab-btn', { active: activeDashboardTab === 'shining' }]"
         @click="activeDashboardTab = 'shining'"
       >
-        ✨ SS 閃耀計畫 Dashboard
+        ✨ {{ $t('student.tabs.shining') }}
       </button>
       <button
         :class="['main-tab-btn', { active: activeDashboardTab === 'bookings' }]"
         @click="activeDashboardTab = 'bookings'"
         id="tab-my-bookings"
       >
-        📅 我的預約
+        📅 {{ $t('student.tabs.bookings') }}
         <span v-if="upcomingBookingsCount > 0" class="booking-badge">{{ upcomingBookingsCount }}</span>
       </button>
     </div>
@@ -98,8 +98,10 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useToast } from '@/composables/useToast'
 const { toast } = useToast()
+const { t } = useI18n()
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import type { Course } from '@/stores/courses'
@@ -146,7 +148,7 @@ function submitStudentFeedback(feedback: string) {
   bookingsStore.updateAttendee(item.session.id, item.attendee.studentUsername, {
     studentFeedback: feedback
   })
-  toast('✅ 心得已儲存！')
+  toast(t('student.feedbackSaved'))
 }
 
 
@@ -170,11 +172,11 @@ const roleBadge = computed(() => badgeMap[authStore.currentUser?.role || ''] || 
 // Motivational text based on progress percentage
 const motivationText = computed(() => {
   const pct = overallProgressPercent.value
-  if (pct === 0) return '開始你的第一步吧！🌱'
-  if (pct < 30) return '很好的開始，繼續加油！💪'
-  if (pct < 60) return '已完成超過一半，你很厲害！🔥'
-  if (pct < 100) return '快到終點了，再一把勁！⭐'
-  return '恭喜你！完成全部課程！🎉'
+  if (pct === 0) return t('student.motivation.start')
+  if (pct < 30)  return t('student.motivation.low')
+  if (pct < 60)  return t('student.motivation.mid')
+  if (pct < 100) return t('student.motivation.high')
+  return t('student.motivation.done')
 })
 
 

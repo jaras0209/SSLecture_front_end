@@ -8,11 +8,12 @@
     "loading": "Loading...",
     "back": "Back",
     "backToHome": "Back to Home",
-    "goHome": "Go to My Dashboard",
-    "relogin": "Sign in again",
-    "showPwd": "Show password",
-    "hidePwd": "Hide password",
-    "understood": "Got it"
+    "goHome": "Back to My Home",
+    "relogin": "Log In Again",
+    "showPwd": "Show Password",
+    "hidePwd": "Hide Password",
+    "understood": "Got it",
+    "editProfileHint": "Click to edit profile"
   },
   "nav": {
     "studentLink": "Learning & Review",
@@ -218,7 +219,9 @@
       "courses": "Assign Courses (multi-select)",
       "coursesHint": "Assigned lecturers will appear in the course student list",
       "cancelBtn": "Cancel",
-      "saveBtn": "Save"
+      "saveBtn": "Save",
+      "nameRequired": "Please enter the lecturer's name.",
+      "savedToast": "Lecturer info saved!"
     }
   },
   "admin": {
@@ -236,18 +239,24 @@
       "passwordPlaceholder": "Default password",
       "role": "Assign Role",
       "church": "Home Church",
-      "submit": "Create User"
+      "submit": "Create User",
+      "usernameTaken": "Username is already taken!",
+      "successMsg": "User {username} created successfully!"
     },
     "userList": {
       "title": "Member List & Permission Matrix",
-      "count": "{n} members total",
-      "colName": "Name / Username",
-      "colRole": "Change Role",
+      "count": "{n} members",
+      "colName": "Name / Account",
+      "colRole": "Role Change",
       "colRestrictStudent": "Restrict /student",
       "colRestrictTeacher": "Restrict /teacher",
       "colResetPwd": "Reset Password",
       "colDelete": "Delete",
-      "me": "(You)"
+      "me": "(You)",
+      "deleteConfirm": "Are you sure you want to delete user {username}? This cannot be undone!",
+      "deletedToast": "User {username} has been deleted",
+      "resetPwdConfirm": "Reset {username}'s password to the default ({pwd})?",
+      "resetPwdSuccess": "✅ {username}'s password has been reset to \"{pwd}\""
     },
     "roles": {
       "student": "SS Student (SS)",
