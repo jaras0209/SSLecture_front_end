@@ -3,6 +3,7 @@
     "confirm": "Confirm",
     "cancel": "Cancel",
     "close": "Close",
+    "dialog": "Dialog",
     "save": "Save",
     "submit": "Submit",
     "loading": "Loading...",
@@ -34,7 +35,8 @@
     "newPlaceholder": "Enter new password",
     "confirmPlaceholder": "Re-enter new password",
     "submitBtn": "Confirm Change",
-    "cancelBtn": "Cancel"
+    "cancelBtn": "Cancel",
+    "mismatch": "New password and confirmation do not match!"
   },
   "auth": {
     "tagline": "Listen to God's Word and start every day with wisdom",
@@ -159,29 +161,75 @@
   },
   "student": {
     "header": {
-      "hello": "Hello, {name}! 👋",
+      "hello": "Hello, {name} 👋",
       "lastLogin": "Last login: {time}",
-      "teacher": "Mentor Teacher: ",
-      "pastor": "District Pastor: ",
-      "parent": "Care Parent: ",
-      "noCaretaker": "💬 No caretaker assigned yet",
-      "completedCourses": "Courses Completed",
+      "teacher": "Mentor: {name}",
+      "pastor": "Pastor: {name}",
+      "parent": "Parent: {name}",
+      "noCaretaker": "No caretaker assigned",
+      "completedCourses": "Completed Courses",
       "overallProgress": "Overall Progress",
       "profileCard": "Profile"
     },
     "tabs": {
-      "sermons": "Learning Center",
-      "shining": "Shining Plan Dashboard",
-      "bookings": "My Bookings"
+      "sermons": "📖 Session Records",
+      "shining": "✨ Shining Plan",
+      "bookings": "📅 My Bookings"
     },
     "motivation": {
-      "start": "Take your first step! 🌱",
-      "low": "Great start, keep going! 💪",
-      "mid": "More than halfway there, amazing! 🔥",
-      "high": "Almost done, one last push! ⭐",
-      "done": "Congratulations! All courses completed! 🎉"
+      "start": "Start your learning journey!",
+      "low": "Great start, keep it up!",
+      "mid": "Over halfway there, keep going!",
+      "high": "Almost done, final push!",
+      "done": "Completed"
     },
-    "feedbackSaved": "✅ Feedback saved!"
+    "feedbackSaved": "✅ Reflection saved!",
+    "attendance": {
+      "attended": "✅ Attended",
+      "absent": "❌ Absent",
+      "invited": "📩 Invited",
+      "writeFeedback": "Write Reflection",
+      "viewFeedback": "View / Edit Reflection",
+      "teacherFeedback": "Teacher Feedback",
+      "myFeedback": "My Reflection",
+      "proposed": " (Proposed)"
+    },
+    "course": {
+      "listenCount": "🎧 Listened {n} time(s)",
+      "notRegistered": "📝 Not registered",
+      "lecturerLabel": "Lecturer",
+      "noLecturer": "Not filled",
+      "editLecturer": "🎤 Lecturer:",
+      "selectLecturer": "-- Select --",
+      "notes": "Personal Notes",
+      "notesPlaceholder": "Record your thoughts, takeaways or questions...",
+      "noNotes": "(No notes)",
+      "noLecturerFull": "(Lecturer not filled)",
+      "cancel": "Cancel",
+      "save": "Save Changes",
+      "recordSession": "Record This Session",
+      "sessionCount": "{n} session(s) recorded",
+      "sessionNo": "Session {n}",
+      "editTitle": "Edit this record",
+      "prepTitle": "📖 Prep Materials",
+      "scriptures": "Scriptures",
+      "readingNotes": "Reading Notes",
+      "materials": "Other Materials",
+      "cancelBooking": "Cancel this booking",
+      "groupSession": "👥 Group Session",
+      "course": "📚 Course",
+      "lecturer": "🎤 Lecturer",
+      "time": "🕐 Time",
+      "duration": "⏱ Duration",
+      "minutes": "{n} min",
+      "bookingsTitle": "📅 My Course Bookings",
+      "upcomingTitle": "⏰ Upcoming Bookings",
+      "feedbackTitle": "💌 Reflections & Feedback",
+      "feedbackLabel": "My Personal Reflection & Feedback",
+      "feedbackPlaceholder": "Record your thoughts, takeaways or reflections...",
+      "noUpcoming": "No upcoming bookings",
+      "noPast": "No past booking records"
+    }
   },
   "teacher": {
     "header": {
@@ -297,6 +345,74 @@
       "invalidStudent": "Please verify a valid student identity before this action",
       "attendanceRecorded": "Attendance recorded successfully",
       "attendanceUpdated": "Attendance status updated successfully"
+    }
+  },
+  "booking": {
+    "status": {
+      "pending":   "⏳ Pending",
+      "confirmed": "✅ Confirmed",
+      "completed": "🎉 Completed",
+      "cancelled": "❌ Cancelled"
+    }
+  },
+  "profile": {
+    "title": "Profile Settings",
+    "avatarAlt": "Current avatar",
+    "chooseStyle": "Choose avatar style",
+    "avatarUrl": "Or paste a custom image URL",
+    "nickname": "Display Name",
+    "nicknamePlaceholder": "Leave blank to use your username",
+    "charCount": "{n}/20 characters",
+    "realName": "Real Name",
+    "adminVisible": "Admin visible",
+    "realNamePlaceholder": "Enter your real name (shown to teachers and admins)",
+    "realNameNote": "This field is only visible to teachers, pastors, and admins for identification purposes.",
+    "infoUsername": "Username",
+    "infoRole": "Role",
+    "infoChurch": "Church",
+    "infoLastLogin": "Last Login",
+    "changePwd": "Change Password",
+    "oldPwd": "Current Password",
+    "oldPwdPlaceholder": "Enter your current password",
+    "newPwd": "New Password",
+    "newPwdPlaceholder": "Enter new password",
+    "confirmPwd": "Confirm New Password",
+    "confirmPwdPlaceholder": "Re-enter new password",
+    "pwdMismatch": "⚠️ Passwords do not match",
+    "updatePwdBtn": "Update Password",
+    "errFillAll": "Please fill in all password fields",
+    "errMismatch": "New passwords do not match",
+    "errWeak": "Password is too weak (at least medium strength required)",
+    "avatar": {
+      "funEmoji":   "Fun",
+      "lorelei":    "Portrait",
+      "bottts":     "Robot",
+      "adventurer": "Adventurer",
+      "pixelArt":   "Pixel",
+      "avataaars":  "Cartoon",
+      "micah":      "Minimal",
+      "notionists": "Illustration"
+    },
+    "course": {
+      "all": "All",
+      "bible": "Bible Courses",
+      "topic": "Topic Courses",
+      "bibleBadge": "Bible",
+      "topicBadge": "Course"
+    },
+    "student": {
+      "courseTitle": "Courses & Learning Progress",
+      "recordsTitle": "Session Records",
+      "sessionsCount": "{n} session(s) recorded",
+      "session": "Session {n}",
+      "bookingsTitle": "My Course Bookings",
+      "upcomingTitle": "Upcoming Bookings",
+      "feedbackTitle": "Reflections & Feedback",
+      "feedbackLabel": "My Personal Reflection & Feedback",
+      "feedbackPlaceholder": "Record your thoughts, takeaways or reflections from this session...",
+      "shiningTitle": "SS Shining Plan Personal Growth Portfolio",
+      "export": "Export This Page (PDF/Print)",
+      "basicInfo": "Basic Personal Info"
     }
   }
 }

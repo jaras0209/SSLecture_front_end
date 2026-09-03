@@ -2,7 +2,7 @@
   <!-- Course Section -->
   <section class="courses-section">
     <div class="section-title-row">
-      <h3>📖 課程與講座清單</h3>
+      <h3>📖 {{ $t('profile.student.courseTitle') }}</h3>
       <div class="filter-tabs">
         <button
           v-for="tab in filterTabs"
@@ -10,7 +10,7 @@
           :class="['filter-btn', { active: currentFilter === tab }]"
           @click="currentFilter = tab"
         >
-          {{ tab === 'all' ? '全部項目' : tab === 'bible' ? '聖經課程' : '專題講座' }}
+          {{ tab === 'all' ? $t('profile.course.all') : tab === 'bible' ? $t('profile.course.bible') : $t('profile.course.topic') }}
         </button>
       </div>
     </div>
@@ -24,8 +24,8 @@
         @click="emit('select-course', course)"
       >
         <div class="card-cover" :style="{ background: course.coverColor }">
-          <span class="category-badge">{{ course.category === 'bible' ? '聖經' : '講座' }}</span>
-          <span v-if="getRecord(course.id).completed" class="completed-check">✓ 已完成</span>
+          <span class="category-badge">{{ course.category === 'bible' ? $t('profile.course.bibleBadge') : $t('profile.course.topicBadge') }}</span>
+          <span v-if="getRecord(course.id).completed" class="completed-check">✓ {{ $t('student.motivation.done') }}</span>
         </div>
         <div class="card-content">
           <h4 class="course-title">{{ course.title }}</h4>
@@ -39,10 +39,10 @@
               :class="getRecord(course.id).completed ? 'badge-teacher' : 'badge-student'"
             >
               <template v-if="getRecord(course.id).sessions.length > 0">
-                🎧 已聽 {{ getRecord(course.id).sessions.length }} 次
+                🎧 {{ $t('student.course.listenCount', { n: getRecord(course.id).sessions.length }) }}
               </template>
               <template v-else>
-                📝 尚未登記
+                📝 {{ $t('student.course.notRegistered') }}
               </template>
             </span>
             <!-- Show latest session lecturer -->
@@ -51,7 +51,7 @@
               v-if="getRecord(course.id).sessions.length > 0"
               style="display: block;"
             >
-              🎤 講師：{{ getRecord(course.id).sessions[getRecord(course.id).sessions.length - 1].lecturer || '未填寫' }}
+              🎤 {{ $t('student.course.lecturerLabel') }}：{{ getRecord(course.id).sessions[getRecord(course.id).sessions.length - 1].lecturer || $t('student.course.noLecturer') }}
             </span>
           </div>
         </div>

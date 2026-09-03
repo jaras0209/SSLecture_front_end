@@ -2,7 +2,7 @@
   <!-- Course Notes Form Section -->
   <section class="player-section">
     <div v-if="selectedCourse" class="glass-panel sticky-panel">
-      <h3 class="panel-header">📝 聽課與講座學習紀錄</h3>
+      <h3 class="panel-header">📝 {{ $t('profile.student.recordsTitle') }}</h3>
 
       <!-- Course banner -->
       <div class="course-banner-card mt-4" :style="{ background: selectedCourse.coverColor, padding: '1.5rem', borderRadius: 'var(--radius-md)', color: 'white', boxShadow: 'var(--shadow-sm)' }">
@@ -15,7 +15,7 @@
 
         <!-- Session history timeline -->
         <div class="session-history mt-4">
-          <h4 class="section-sub-title">📋 聽課紀錄歷程（共 {{ currentRecord?.sessions.length ?? 0 }} 次）</h4>
+          <h4 class="section-sub-title">📋 {{ $t('profile.student.recordsTitle') }}（{{ $t('student.course.sessionCount', { n: currentRecord?.sessions.length ?? 0 }) }}）</h4>
           <div class="timeline">
             <div
               v-for="(session, idx) in [...(currentRecord?.sessions ?? [])].reverse()"
@@ -27,32 +27,32 @@
 
                 <!-- View mode header -->
                 <div class="timeline-header">
-                  <span class="timeline-count">第 {{ (currentRecord?.sessions.length ?? 0) - idx }} 次</span>
+                  <span class="timeline-count">{{ $t('student.course.sessionNo', { n: (currentRecord?.sessions.length ?? 0) - idx }) }}</span>
                   <div class="timeline-actions">
                     <span class="timeline-date">{{ session.listenedAt ? session.listenedAt.replace('T', ' ') : session.createdAt }}</span>
                     <button
                       class="btn-edit-session"
                       @click="startEditSession(session)"
                       v-if="editingSessionId !== session.id"
-                      title="編輯此筆紀錄"
+                      :title="$t('student.course.editTitle')"
                     >✏️</button>
                   </div>
                 </div>
 
                 <!-- View mode body -->
                 <template v-if="editingSessionId !== session.id">
-                  <p class="timeline-lecturer">🎤 {{ session.lecturer || '（未填寫講師）' }}</p>
+                  <p class="timeline-lecturer">🎤 {{ session.lecturer || $t('student.course.noLecturerFull') }}</p>
                   <p class="timeline-notes" v-if="session.notes">{{ session.notes }}</p>
-                  <p class="timeline-notes text-muted" v-else><em>（無心得）</em></p>
+                  <p class="timeline-notes text-muted" v-else><em>{{ $t('student.course.noNotes') }}</em></p>
                 </template>
 
                 <!-- Edit mode (inline) -->
                 <template v-else>
                   <div class="edit-session-form mt-2">
                     <div class="form-group mb-2">
-                      <label class="form-label form-label-sm">🎤 授課講師：</label>
+                      <label class="form-label form-label-sm">{{ $t('student.course.editLecturer') }}</label>
                       <select v-model="editSessionDraft.lecturer" class="form-input form-input-sm">
-                        <option value="">-- 請選擇 --</option>
+                        <option value="">{{ $t('student.course.selectLecturer') }}</option>
                         <option
                           v-for="lec in availableLecturers"
                           :key="lec.id"
@@ -71,17 +71,17 @@
                       />
                     </div>
                     <div class="form-group mb-2">
-                      <label class="form-label form-label-sm">✍️ 心得：</label>
+                      <label class="form-label form-label-sm">✍️ {{ $t('student.course.notes') }}：</label>
                       <textarea
                         v-model="editSessionDraft.notes"
                         class="form-input form-input-sm text-area"
                         rows="3"
-                        placeholder="修改你的心得..."
+                        :placeholder="$t('student.course.notesPlaceholder')"
                       ></textarea>
                     </div>
                     <div class="edit-session-actions">
-                      <button class="btn btn-primary btn-xs" @click="saveEditSession(session.id)">💾 儲存</button>
-                      <button class="btn btn-ghost btn-xs" @click="cancelEditSession">取消</button>
+                      <button class="btn btn-primary btn-xs" @click="saveEditSession(session.id)">💾 {{ $t('student.course.save') }}</button>
+                      <button class="btn btn-ghost btn-xs" @click="cancelEditSession">{{ $t('student.course.cancel') }}</button>
                     </div>
                   </div>
                 </template>
@@ -98,15 +98,15 @@
             @click="showReviewPanel = !showReviewPanel"
           >
             <span>{{ showReviewPanel ? '▲' : '▼' }}</span>
-            {{ showReviewPanel ? '收起複習紀錄' : '➕ 新增複習紀錄（再聽一次）' }}
+            {{ showReviewPanel ? $t('student.course.cancel') : '➕ ' + $t('student.course.recordSession') }}
           </button>
 
           <transition name="review-slide">
             <div v-if="showReviewPanel" class="review-form mt-3">
               <div class="form-group mb-3">
-                <label class="form-label" for="review-lecturer-select">🎤 本次授課講師：</label>
+                <label class="form-label" for="review-lecturer-select">{{ $t('student.course.editLecturer') }}</label>
                 <select v-model="selectedLecturer" id="review-lecturer-select" class="form-input">
-                  <option value="">-- 請選擇授課講師 --</option>
+                  <option value="">{{ $t('student.course.selectLecturer') }}</option>
                   <option
                     v-for="lec in availableLecturers"
                     :key="lec.id"
@@ -118,7 +118,7 @@
               </div>
 
               <div class="form-group mb-3">
-                <label class="form-label" for="review-listened-time">📅 本次聽課時間：</label>
+                <label class="form-label" for="review-listened-time">📅 聽課時間：</label>
                 <input
                   v-model="listenedAt"
                   id="review-listened-time"
@@ -128,12 +128,12 @@
               </div>
 
               <div class="form-group mb-3">
-                <label class="form-label" for="review-notes-input">✍️ 本次複習心得：</label>
+                <label class="form-label" for="review-notes-input">✍️ {{ $t('student.course.notes') }}：</label>
                 <textarea
                   v-model="notesText"
                   id="review-notes-input"
                   class="form-input text-area"
-                  placeholder="這次複習有哪些新的體會或收穫？"
+                  :placeholder="$t('student.course.notesPlaceholder')"
                   rows="4"
                 ></textarea>
               </div>
@@ -141,7 +141,7 @@
               <div class="save-row mt-3">
                 <span class="save-status" v-if="saveStatus">{{ saveStatus }}</span>
                 <button class="btn btn-secondary btn-sm" @click="saveNoteAndProgress">
-                  💾 儲存複習紀錄
+                  💾 {{ $t('student.course.save') }}
                 </button>
               </div>
             </div>
@@ -153,13 +153,13 @@
       <template v-else>
         <div class="notes-container mt-4">
           <div class="form-group mb-3">
-            <label class="form-label" for="lecturer-select">🎤 授課講師：</label>
+            <label class="form-label" for="lecturer-select">{{ $t('student.course.editLecturer') }}</label>
             <select
               v-model="selectedLecturer"
               id="lecturer-select"
               class="form-input"
             >
-              <option value="">-- 請選擇授課講師 --</option>
+              <option value="">{{ $t('student.course.selectLecturer') }}</option>
               <option
                 v-for="lec in availableLecturers"
                 :key="lec.id"
@@ -171,7 +171,7 @@
           </div>
 
           <div class="form-group mb-3">
-            <label class="form-label" for="listened-time-input">📅 登記聽課時間：</label>
+            <label class="form-label" for="listened-time-input">📅 聽課時間：</label>
             <input
               v-model="listenedAt"
               id="listened-time-input"
@@ -180,19 +180,19 @@
             />
           </div>
 
-          <label class="form-label" for="notes-input">✍️ 我的聽課心得與學習筆記</label>
+          <label class="form-label" for="notes-input">✍️ {{ $t('student.course.notes') }}</label>
           <textarea
             v-model="notesText"
             id="notes-input"
             class="form-input text-area"
-            placeholder="寫下你的收穫、靈修心得，或任何你想對輔導教師說的話..."
+            :placeholder="$t('student.course.notesPlaceholder')"
             rows="5"
           ></textarea>
 
           <div class="save-row mt-4">
             <span class="save-status" v-if="saveStatus">{{ saveStatus }}</span>
             <button class="btn btn-secondary btn-sm" @click="saveNoteAndProgress">
-              💾 儲存初次聽課紀錄（標記為已完成）
+              💾 {{ $t('student.course.recordSession') }}
             </button>
           </div>
         </div>
@@ -201,14 +201,15 @@
 
     <div v-else class="glass-panel sticky-panel empty-player-state text-center">
       <div class="empty-emoji">⛪✨</div>
-      <h4>請選擇課程或講座</h4>
-      <p class="desc">點擊左側的課程卡片，開啟右側面板填報您的學習心得與授課講師。</p>
+      <h4>{{ $t('student.course.noUpcoming') }}</h4>
+      <p class="desc">{{ $t('profile.student.courseTitle') }}</p>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, reactive, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import type { Course, ListenSession } from '@/stores/courses'
@@ -223,6 +224,7 @@ const props = defineProps<{
 
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
+const { t } = useI18n()
 
 // ── Form State ────────────────────────────────────────────────────────────────
 
@@ -279,7 +281,7 @@ function saveNoteAndProgress() {
     }
   )
 
-  saveStatus.value = '✓ 已成功儲存聽課紀錄！'
+  saveStatus.value = '✓ ' + t('student.course.save')
   selectedLecturer.value = ''
   notesText.value = ''
   listenedAt.value = new Date().toISOString().slice(0, 16)

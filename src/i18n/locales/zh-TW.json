@@ -3,6 +3,7 @@
     "confirm": "確認",
     "cancel": "取消",
     "close": "關閉",
+    "dialog": "對話框",
     "save": "儲存",
     "submit": "送出",
     "loading": "載入中...",
@@ -34,7 +35,8 @@
     "newPlaceholder": "請輸入新密碼",
     "confirmPlaceholder": "請再次輸入新密碼",
     "submitBtn": "確認修改",
-    "cancelBtn": "取消"
+    "cancelBtn": "取消",
+    "mismatch": "新密碼與確認新密碼不相符！"
   },
   "auth": {
     "tagline": "聆聽神的話語，開啟智慧的全新一天",
@@ -159,29 +161,75 @@
   },
   "student": {
     "header": {
-      "hello": "哈囉，{name}！ 👋",
+      "hello": "你好，{name} 👋",
       "lastLogin": "上次登入：{time}",
-      "teacher": "輔導教師：",
-      "pastor": "分區牧者：",
-      "parent": "關懷家長：",
-      "noCaretaker": "💬 尚未分配輔導關懷人員",
-      "completedCourses": "已完成聽課",
-      "overallProgress": "總體完成度",
+      "teacher": "輔導教師：{name}",
+      "pastor": "分區牧者：{name}",
+      "parent": "關懷家長：{name}",
+      "noCaretaker": "尚未指定關懷者",
+      "completedCourses": "完成課程",
+      "overallProgress": "整體進度",
       "profileCard": "個人資料"
     },
     "tabs": {
-      "sermons": "聽課學習中心",
-      "shining": "SS 閃耀計畫 Dashboard",
-      "bookings": "我的預約"
+      "sermons": "📖 聽道記錄",
+      "shining": "✨ 閃耀計畫",
+      "bookings": "📅 預約管理"
     },
     "motivation": {
-      "start": "開始你的第一步吧！🌱",
-      "low": "很好的開始，繼續加油！💪",
-      "mid": "已完成超過一半，你很厲害！🔥",
-      "high": "快到終點了，再一把勁！⭐",
-      "done": "恭喜你！完成全部課程！🎉"
+      "start": "開始你的學習旅程吧！",
+      "low": "繼續加油，你做得很好！",
+      "mid": "超過一半了！再接再厲！",
+      "high": "快完成了，衝刺吧！",
+      "done": "已完成"
     },
-    "feedbackSaved": "✅ 心得已儲存！"
+    "feedbackSaved": "✅ 心得已儲存！",
+    "attendance": {
+      "attended": "✅ 已出席",
+      "absent": "❌ 缺席",
+      "invited": "📩 已邀請",
+      "writeFeedback": "填寫心得",
+      "viewFeedback": "查看/修改心得",
+      "teacherFeedback": "教師回饋",
+      "myFeedback": "我的心得",
+      "proposed": "（提議）"
+    },
+    "course": {
+      "listenCount": "🎧 已聽 {n} 次",
+      "notRegistered": "📝 尚未登記",
+      "lecturerLabel": "講師",
+      "noLecturer": "未填寫",
+      "editLecturer": "🎤 授課講師：",
+      "selectLecturer": "-- 請選擇 --",
+      "notes": "個人心得筆記",
+      "notesPlaceholder": "記錄心得、感動或疑問...",
+      "noNotes": "（無心得）",
+      "noLecturerFull": "（未填寫講師）",
+      "cancel": "取消",
+      "save": "儲存修改",
+      "recordSession": "記錄這次聽課",
+      "sessionCount": "共 {n} 次課程記錄",
+      "sessionNo": "第 {n} 次",
+      "editTitle": "編輯此筆紀錄",
+      "prepTitle": "📖 預習內容",
+      "scriptures": "經文",
+      "readingNotes": "閱讀筆記",
+      "materials": "其他資料",
+      "cancelBooking": "取消此預約",
+      "groupSession": "👥 團體課",
+      "course": "📚 課程",
+      "lecturer": "🎤 講師",
+      "time": "🕐 時間",
+      "duration": "⏱ 時長",
+      "minutes": "{n} 分鐘",
+      "bookingsTitle": "📅 我的聽課預約",
+      "upcomingTitle": "⏰ 即將到來的預約",
+      "feedbackTitle": "💌 心得與回饋",
+      "feedbackLabel": "我的心得回饋與個人反思",
+      "feedbackPlaceholder": "記錄這堂課的心得、體會或想法...",
+      "noUpcoming": "目前沒有即將到來的預約",
+      "noPast": "目前沒有過去的預約紀錄"
+    }
   },
   "teacher": {
     "header": {
@@ -297,6 +345,74 @@
       "invalidStudent": "請先確認有效的學員身分後再執行此操作",
       "attendanceRecorded": "已成功記錄出席",
       "attendanceUpdated": "出席狀態更新成功"
+    }
+  },
+  "booking": {
+    "status": {
+      "pending":   "⏳ 待確認",
+      "confirmed": "✅ 已確認",
+      "completed": "🎉 已完成",
+      "cancelled": "❌ 已取消"
+    }
+  },
+  "profile": {
+    "title": "個人資料設定",
+    "avatarAlt": "目前頭像",
+    "chooseStyle": "選擇頭像風格",
+    "avatarUrl": "或貼上自訂圖片網址（URL）",
+    "nickname": "暱稱",
+    "nicknamePlaceholder": "留空則顯示帳號名稱",
+    "charCount": "{n}/20 字元",
+    "realName": "真實姓名",
+    "adminVisible": "管理端可見",
+    "realNamePlaceholder": "輸入你的真實姓名（教師、牧者管理時顯示）",
+    "realNameNote": "此欄位僅供輔導教師、牧者、管理員在管理介面識別你的身份，不對其他學員顯示。",
+    "infoUsername": "帳號",
+    "infoRole": "身份",
+    "infoChurch": "教會",
+    "infoLastLogin": "上次登入",
+    "changePwd": "修改密碼",
+    "oldPwd": "舊密碼",
+    "oldPwdPlaceholder": "請輸入目前密碼",
+    "newPwd": "新密碼",
+    "newPwdPlaceholder": "請輸入新密碼",
+    "confirmPwd": "確認新密碼",
+    "confirmPwdPlaceholder": "再次輸入新密碼",
+    "pwdMismatch": "⚠️ 兩次密碼不一致",
+    "updatePwdBtn": "更新密碼",
+    "errFillAll": "請填寫所有密碼欄位",
+    "errMismatch": "兩次新密碼不一致",
+    "errWeak": "新密碼強度不足（需中等以上）",
+    "avatar": {
+      "funEmoji":   "趣味",
+      "lorelei":    "人像",
+      "bottts":     "機器人",
+      "adventurer": "冒險家",
+      "pixelArt":   "像素風",
+      "avataaars":  "卡通",
+      "micah":      "簡約",
+      "notionists": "插畫"
+    },
+    "course": {
+      "all": "全部",
+      "bible": "聖經課程",
+      "topic": "專題課",
+      "bibleBadge": "聖經",
+      "topicBadge": "課"
+    },
+    "student": {
+      "courseTitle": "課程與學習進度",
+      "recordsTitle": "課堂記錄",
+      "sessionsCount": "共 {n} 次課程記錄",
+      "session": "第 {n} 堂",
+      "bookingsTitle": "我的課程預約",
+      "upcomingTitle": "即將到來的預約",
+      "feedbackTitle": "心得與回饋",
+      "feedbackLabel": "我的心得回饋與個人反思",
+      "feedbackPlaceholder": "記錄這堂課的心得、體會或想法...",
+      "shiningTitle": "SS 閃耀計畫個人成長檔案",
+      "export": "匯出本頁檔案 (PDF/列印)",
+      "basicInfo": "個人基本資料"
     }
   }
 }

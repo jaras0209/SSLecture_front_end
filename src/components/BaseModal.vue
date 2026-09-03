@@ -6,7 +6,7 @@
         class="bm-overlay"
         role="dialog"
         aria-modal="true"
-        :aria-label="title || '對話框'"
+        :aria-label="title || $t('common.dialog')"
         @click.self="closeOnBackdrop && close()"
       >
         <div
@@ -18,7 +18,7 @@
             <slot name="header">
               <h3 class="bm-title">{{ title }}</h3>
             </slot>
-            <button class="bm-close" aria-label="關閉" @click="close">✕</button>
+            <button class="bm-close" :aria-label="$t('common.close')" @click="close">✕</button>
           </div>
 
           <!-- Body -->

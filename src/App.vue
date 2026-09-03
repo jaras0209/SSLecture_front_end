@@ -48,10 +48,7 @@
             </div>
           </div>
           <!-- Language Switcher -->
-          <select class="lang-switcher" :value="currentLocale" @change="onLocaleChange" :aria-label="$t('nav.langLabel')">
-            <option value="zh-TW">繁中</option>
-            <option value="en">EN</option>
-          </select>
+          <LanguageSwitcher />
           <button @click="showPasswordModal = true" class="btn btn-outline btn-sm action-btn">
             🔒 {{ $t('nav.changePassword') }}
           </button>
@@ -107,25 +104,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import { useI18n } from 'vue-i18n'
-import { setLocale } from '@/i18n'
-import type { SupportedLocale } from '@/i18n'
 import AppToast from '@/components/AppToast.vue'
+import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
-const { locale } = useI18n()
-
-// 語系切換
-const currentLocale = computed(() => locale.value as SupportedLocale)
-function onLocaleChange(e: Event) {
-  setLocale((e.target as HTMLSelectElement).value as SupportedLocale)
-}
+const { t } = useI18n()
 
 // Password Change State
 const mobileMenuOpen = ref(false)
@@ -156,7 +146,7 @@ function showPwdAlert(msg: string, type: 'success' | 'error') {
 
 function handlePasswordChange() {
   if (pwdForm.newPassword !== pwdForm.confirmPassword) {
-    showPwdAlert('新密碼與確認新密碼不相符！', 'error')
+    showPwdAlert(t('passwordModal.mismatch'), 'error')
     return
   }
   if (!authStore.currentUser) return
@@ -207,11 +197,7 @@ function getBadgeClass(role?: string) {
 }
 
 function getRoleLabel(role?: string) {
-  if (role === 'admin') return 'SS中央'
-  if (role === 'teacher') return '輔導教師'
-  if (role === 'pastor') return '分區牧者'
-  if (role === 'parent') return '關懷家長'
-  return 'SS'
+  return t(`roleLabel.${role || 'student'}`)
 }
 </script>
 
@@ -498,21 +484,5 @@ function getRoleLabel(role?: string) {
     font-size: 0.75rem;
     padding: 0.35rem 0.75rem;
   }
-}
-
-/* Language Switcher */
-.lang-switcher {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 6px;
-  color: inherit;
-  font-size: 0.75rem;
-  padding: 0.3rem 0.5rem;
-  cursor: pointer;
-  flex: 0 0 auto;
-}
-.lang-switcher:focus {
-  outline: 2px solid var(--color-primary, #6366f1);
-  outline-offset: 2px;
 }
 </style>

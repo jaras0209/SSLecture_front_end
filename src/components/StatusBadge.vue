@@ -6,6 +6,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { BookingStatus } from '@/stores/bookings'
 
 const props = withDefaults(defineProps<{
@@ -17,14 +18,8 @@ const props = withDefaults(defineProps<{
   size: 'md',
 })
 
-const LABEL_MAP: Record<BookingStatus, string> = {
-  pending:   '⏳ 待確認',
-  confirmed: '✅ 已確認',
-  completed: '🎉 已完成',
-  cancelled: '❌ 已取消',
-}
-
-const label = computed(() => LABEL_MAP[props.status])
+const { t } = useI18n()
+const label = computed(() => t(`booking.status.${props.status}`))
 </script>
 
 <style scoped>

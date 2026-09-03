@@ -3,24 +3,24 @@
   <teleport to="body">
     <transition name="dialog-fade">
       <div v-if="modelValue" class="pd-overlay" @click.self="close">
-        <div class="pd-card glass-panel" role="dialog" aria-modal="true" aria-label="個人資料設定">
+        <div class="pd-card glass-panel" role="dialog" aria-modal="true" :aria-label="$t('profile.title')">
 
           <!-- ── Header ── -->
           <div class="pd-header">
-            <h3 class="pd-title">⚙️ 個人資料設定</h3>
-            <button class="pd-close" @click="close" aria-label="關閉">✕</button>
+            <h3 class="pd-title">⚙️ {{ $t('profile.title') }}</h3>
+            <button class="pd-close" @click="close" :aria-label="$t('common.close')">✕</button>
           </div>
 
           <!-- ── Avatar Section ── -->
           <div class="pd-avatar-section">
             <div class="pd-avatar-wrap">
-              <img :src="draftAvatarUrl" alt="目前頭像" class="pd-avatar-img" />
+              <img :src="draftAvatarUrl" :alt="$t('profile.avatarAlt')" class="pd-avatar-img" />
               <div class="pd-role-badge" :title="roleLabel">{{ roleBadge }}</div>
             </div>
 
             <!-- Preset styles -->
             <div class="pd-avatar-presets">
-              <p class="pd-label">選擇頭像風格</p>
+              <p class="pd-label">{{ $t('profile.chooseStyle') }}</p>
               <div class="pd-preset-grid">
                 <button
                   v-for="style in avatarStyles"
@@ -41,7 +41,7 @@
                   v-model="customAvatarUrl"
                   type="url"
                   class="form-input form-input-sm"
-                  placeholder="或貼上自訂圖片網址（URL）"
+                  :placeholder="$t('profile.avatarUrl')"
                   @input="applyCustomUrl"
                 />
               </div>
@@ -50,23 +50,23 @@
 
           <!-- ── Nickname ── -->
           <div class="form-group mt-4">
-            <label class="form-label" for="pd-nickname">✏️ 暱稱</label>
+            <label class="form-label" for="pd-nickname">✏️ {{ $t('profile.nickname') }}</label>
             <input
               v-model="draftDisplayName"
               id="pd-nickname"
               type="text"
               maxlength="20"
               class="form-input"
-              placeholder="留空則顯示帳號名稱"
+              :placeholder="$t('profile.nicknamePlaceholder')"
             />
-            <p class="pd-char-hint">{{ draftDisplayName.length }}/20 字元</p>
+            <p class="pd-char-hint">{{ $t('profile.charCount', { n: draftDisplayName.length }) }}</p>
           </div>
 
           <!-- ── Real Name ── -->
           <div class="form-group mt-3">
             <label class="form-label" for="pd-realname">
-              👤 真實姓名
-              <span class="pd-field-badge">管理端可見</span>
+              👤 {{ $t('profile.realName') }}
+              <span class="pd-field-badge">{{ $t('profile.adminVisible') }}</span>
             </label>
             <input
               v-model="draftRealName"
@@ -74,27 +74,27 @@
               type="text"
               maxlength="20"
               class="form-input"
-              placeholder="輸入你的真實姓名（教師、牧者管理時顯示）"
+              :placeholder="$t('profile.realNamePlaceholder')"
             />
-            <p class="pd-field-note">🔒 此欄位僅供輔導教師、牧者、管理員在管理介面識別你的身份，不對其他學員顯示。</p>
+            <p class="pd-field-note">🔒 {{ $t('profile.realNameNote') }}</p>
           </div>
 
           <!-- ── Info (readonly) ── -->
           <div class="pd-info-grid mt-3">
             <div class="pd-info-item">
-              <span class="pd-info-lbl">🆔 帳號</span>
+              <span class="pd-info-lbl">🆔 {{ $t('profile.infoUsername') }}</span>
               <span class="pd-info-val">{{ authStore.currentUser?.username }}</span>
             </div>
             <div class="pd-info-item">
-              <span class="pd-info-lbl">👤 身份</span>
+              <span class="pd-info-lbl">👤 {{ $t('profile.infoRole') }}</span>
               <span class="pd-info-val">{{ roleLabel }}</span>
             </div>
             <div class="pd-info-item" v-if="authStore.currentUser?.church">
-              <span class="pd-info-lbl">⛪ 教會</span>
+              <span class="pd-info-lbl">⛪ {{ $t('profile.infoChurch') }}</span>
               <span class="pd-info-val">{{ authStore.currentUser?.church }}</span>
             </div>
             <div class="pd-info-item" v-if="authStore.currentUser?.lastLoginAt">
-              <span class="pd-info-lbl">🕐 上次登入</span>
+              <span class="pd-info-lbl">🕐 {{ $t('profile.infoLastLogin') }}</span>
               <span class="pd-info-val">{{ authStore.currentUser?.lastLoginAt }}</span>
             </div>
           </div>
@@ -102,18 +102,18 @@
           <!-- ── Change Password (collapsible) ── -->
           <div class="pd-pwd-section mt-4">
             <button class="pd-pwd-toggle" @click="showPwd = !showPwd">
-              🔒 修改密碼
+              🔒 {{ $t('profile.changePwd') }}
               <span class="pd-toggle-arrow">{{ showPwd ? '▲' : '▼' }}</span>
             </button>
             <transition name="review-slide">
               <div v-if="showPwd" class="pd-pwd-form">
                 <div class="form-group mb-2">
-                  <label class="form-label form-label-sm">舊密碼</label>
-                  <input v-model="pwd.old" type="password" class="form-input form-input-sm" placeholder="請輸入目前密碼" />
+                  <label class="form-label form-label-sm">{{ $t('profile.oldPwd') }}</label>
+                  <input v-model="pwd.old" type="password" class="form-input form-input-sm" :placeholder="$t('profile.oldPwdPlaceholder')" />
                 </div>
                 <div class="form-group mb-2">
-                  <label class="form-label form-label-sm">新密碼</label>
-                  <input v-model="pwd.new1" type="password" class="form-input form-input-sm" placeholder="請輸入新密碼" />
+                  <label class="form-label form-label-sm">{{ $t('profile.newPwd') }}</label>
+                  <input v-model="pwd.new1" type="password" class="form-input form-input-sm" :placeholder="$t('profile.newPwdPlaceholder')" />
                   <!-- Strength bar (reuse same logic) -->
                   <div v-if="pwd.new1" class="pwd-strength-wrap mt-1">
                     <div class="pwd-bars">
@@ -125,13 +125,13 @@
                   </div>
                 </div>
                 <div class="form-group mb-3">
-                  <label class="form-label form-label-sm">確認新密碼</label>
-                  <input v-model="pwd.new2" type="password" class="form-input form-input-sm" placeholder="再次輸入新密碼" />
-                  <p v-if="pwd.new2 && pwd.new1 !== pwd.new2" class="pwd-mismatch">⚠️ 兩次密碼不一致</p>
+                  <label class="form-label form-label-sm">{{ $t('profile.confirmPwd') }}</label>
+                  <input v-model="pwd.new2" type="password" class="form-input form-input-sm" :placeholder="$t('profile.confirmPwdPlaceholder')" />
+                  <p v-if="pwd.new2 && pwd.new1 !== pwd.new2" class="pwd-mismatch">{{ $t('profile.pwdMismatch') }}</p>
                 </div>
                 <div class="save-row">
                   <span v-if="pwdMsg" :class="['save-status', pwdMsgType === 'error' ? 'text-error' : '']">{{ pwdMsg }}</span>
-                  <button class="btn btn-secondary btn-sm" @click="changePassword">更新密碼</button>
+                  <button class="btn btn-secondary btn-sm" @click="changePassword">{{ $t('profile.updatePwdBtn') }}</button>
                 </div>
               </div>
             </transition>
@@ -141,8 +141,8 @@
           <div class="pd-footer mt-4">
             <span v-if="saveMsg" class="save-status">{{ saveMsg }}</span>
             <div class="pd-footer-btns">
-              <button class="btn btn-ghost btn-sm" @click="close">取消</button>
-              <button class="btn btn-primary btn-sm" @click="saveProfile">💾 儲存資料</button>
+              <button class="btn btn-ghost btn-sm" @click="close">{{ $t('common.cancel') }}</button>
+              <button class="btn btn-primary btn-sm" @click="saveProfile">💾 {{ $t('common.save') }}</button>
             </div>
           </div>
 
@@ -154,12 +154,14 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 
 const props = defineProps<{ modelValue: boolean }>()
 const emit = defineEmits<{ (e: 'update:modelValue', val: boolean): void }>()
 
 const authStore = useAuthStore()
+const { t } = useI18n()
 
 // ── Draft state ──
 const draftDisplayName = ref('')
@@ -190,13 +192,6 @@ watch(() => props.modelValue, (open) => {
 })
 
 // ── Role display ──
-const roleMap: Record<string, string> = {
-  student: 'SS 學員',
-  teacher: '輔導教師',
-  pastor: '分區牧者',
-  parent: '關懷家長',
-  admin: 'SS 中央'
-}
 const badgeMap: Record<string, string> = {
   student: '🎒',
   teacher: '👨‍🏫',
@@ -205,21 +200,21 @@ const badgeMap: Record<string, string> = {
   admin: '👑'
 }
 
-const roleLabel = computed(() => roleMap[authStore.currentUser?.role || ''] || '')
+const roleLabel = computed(() => t(`roleLabel.${authStore.currentUser?.role || 'student'}`))
 const roleBadge = computed(() => badgeMap[authStore.currentUser?.role || ''] || '👤')
 
 // ── Avatar Presets ──
 const seed = computed(() => authStore.currentUser?.username || 'default')
 
 const avatarStyles = computed(() => [
-  { id: 'fun-emoji',   label: '趣味',    previewUrl: `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${seed.value}` },
-  { id: 'lorelei',     label: '人像',    previewUrl: `https://api.dicebear.com/7.x/lorelei/svg?seed=${seed.value}` },
-  { id: 'bottts',      label: '機器人',  previewUrl: `https://api.dicebear.com/7.x/bottts/svg?seed=${seed.value}` },
-  { id: 'adventurer',  label: '冒險家',  previewUrl: `https://api.dicebear.com/7.x/adventurer/svg?seed=${seed.value}` },
-  { id: 'pixel-art',   label: '像素風',  previewUrl: `https://api.dicebear.com/7.x/pixel-art/svg?seed=${seed.value}` },
-  { id: 'avataaars',   label: '卡通',    previewUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed.value}` },
-  { id: 'micah',       label: '簡約',    previewUrl: `https://api.dicebear.com/7.x/micah/svg?seed=${seed.value}` },
-  { id: 'notionists',  label: '插畫',    previewUrl: `https://api.dicebear.com/7.x/notionists/svg?seed=${seed.value}` },
+  { id: 'fun-emoji',   label: t('profile.avatar.funEmoji'),   previewUrl: `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${seed.value}` },
+  { id: 'lorelei',     label: t('profile.avatar.lorelei'),     previewUrl: `https://api.dicebear.com/7.x/lorelei/svg?seed=${seed.value}` },
+  { id: 'bottts',      label: t('profile.avatar.bottts'),      previewUrl: `https://api.dicebear.com/7.x/bottts/svg?seed=${seed.value}` },
+  { id: 'adventurer',  label: t('profile.avatar.adventurer'),  previewUrl: `https://api.dicebear.com/7.x/adventurer/svg?seed=${seed.value}` },
+  { id: 'pixel-art',   label: t('profile.avatar.pixelArt'),    previewUrl: `https://api.dicebear.com/7.x/pixel-art/svg?seed=${seed.value}` },
+  { id: 'avataaars',   label: t('profile.avatar.avataaars'),   previewUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed.value}` },
+  { id: 'micah',       label: t('profile.avatar.micah'),       previewUrl: `https://api.dicebear.com/7.x/micah/svg?seed=${seed.value}` },
+  { id: 'notionists',  label: t('profile.avatar.notionists'),  previewUrl: `https://api.dicebear.com/7.x/notionists/svg?seed=${seed.value}` },
 ])
 
 function applyPresetStyle(styleId: string) {
@@ -256,7 +251,12 @@ function pwdStrengthClass(idx: number): string {
 }
 
 const pwdStrengthLabel = computed(() => {
-  const labels = ['弱密碼', '普通', '中等強度', '強密碼']
+  const labels = [
+    t('passwordStrength.weak'),
+    t('passwordStrength.fair'),
+    t('passwordStrength.medium'),
+    t('passwordStrength.strong'),
+  ]
   return labels[newPwdStrength.value]
 })
 
@@ -285,17 +285,17 @@ function changePassword() {
   const username = authStore.currentUser?.username
   if (!username) return
   if (!pwd.value.old || !pwd.value.new1 || !pwd.value.new2) {
-    pwdMsg.value = '請填寫所有密碼欄位'
+    pwdMsg.value = t('profile.errFillAll')
     pwdMsgType.value = 'error'
     return
   }
   if (pwd.value.new1 !== pwd.value.new2) {
-    pwdMsg.value = '兩次新密碼不一致'
+    pwdMsg.value = t('profile.errMismatch')
     pwdMsgType.value = 'error'
     return
   }
   if (calcStrength(pwd.value.new1) < 2) {
-    pwdMsg.value = '新密碼強度不足（需中等以上）'
+    pwdMsg.value = t('profile.errWeak')
     pwdMsgType.value = 'error'
     return
   }

@@ -22,8 +22,8 @@
       <div class="confirm-dialog glass-panel">
         <p class="confirm-message">{{ confirmState.message }}</p>
         <div class="confirm-actions">
-          <button class="btn btn-outline btn-sm" @click="resolve(false)">取消</button>
-          <button class="btn btn-danger btn-sm" @click="resolve(true)">確定</button>
+          <button class="btn btn-outline btn-sm" @click="resolve(false)">{{ $t('common.cancel') }}</button>
+          <button class="btn btn-danger btn-sm" @click="resolve(true)">{{ $t('common.confirm') }}</button>
         </div>
       </div>
     </div>

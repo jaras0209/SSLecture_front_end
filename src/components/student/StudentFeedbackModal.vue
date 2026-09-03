@@ -7,29 +7,29 @@
         @click.self="close"
       >
         <div class="glass-panel modal-card" style="max-width: 480px; width: 92%; padding: 1.75rem;">
-          <h3>✍️ 課後心得</h3>
+          <h3>✍️ {{ $t('student.course.feedbackTitle') }}</h3>
           <p class="text-muted text-sm mt-1" v-if="session">
             {{ session.courseTitle }} ／
             {{ session.lecturerTitle }} {{ session.lecturerName }} ／
             {{ formatBookingTime(session) }}
           </p>
           <div class="form-group mt-4">
-            <label class="form-label">📝 我的課後心得與感想</label>
+            <label class="form-label">📝 {{ $t('student.course.feedbackLabel') }}</label>
             <textarea
               v-model="localFeedback"
               class="form-input"
               rows="5"
-              placeholder="記錄這次聽課的收穫、感動或想法..."
+              :placeholder="$t('student.course.feedbackPlaceholder')"
               id="student-feedback-textarea"
             ></textarea>
           </div>
           <div class="modal-footer mt-4">
-            <button class="btn btn-outline" @click="close">取消</button>
+            <button class="btn btn-outline" @click="close">{{ $t('common.cancel') }}</button>
             <button
               class="btn btn-primary"
               @click="submit"
               id="btn-submit-student-feedback"
-            >儲存心得</button>
+            >{{ $t('student.course.save') }}</button>
           </div>
         </div>
       </div>
