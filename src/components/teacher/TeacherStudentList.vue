@@ -8,25 +8,25 @@
           :class="['tab-btn', { active: currentTab === 'my-students' }]"
           @click="currentTab = 'my-students'"
         >
-          🛡️ 我負責的學員 ({{ myStudentsCount }})
+          {{ $t('teacher.studentList.myStudents', { n: myStudentsCount }) }}
         </button>
         <button
           :class="['tab-btn', { active: currentTab === 'all-students' }]"
           @click="currentTab = 'all-students'"
         >
-          👥 全體學員名冊
+          {{ $t('teacher.studentList.allStudents') }}
         </button>
       </div>
       <div v-else class="tab-selectors-parent-title">
         <h3 style="margin: 0; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem; color: var(--primary);">
-          👨‍👩‍👦 我的孩子進度一覽
+          {{ $t('teacher.studentList.childrenTitle') }}
         </h3>
       </div>
       <input
         v-model="searchQuery"
         type="text"
         class="form-input search-input"
-        placeholder="🔍 搜尋學員姓名..."
+        :placeholder="$t('teacher.studentList.searchPlaceholder')"
         v-if="authStore.currentUser?.role !== 'parent'"
       />
     </div>
@@ -35,11 +35,11 @@
       <table class="students-table">
         <thead>
           <tr>
-            <th>學員姓名</th>
-            <th>管理狀態</th>
-            <th>已聽完課堂</th>
-            <th>總聽課進度</th>
-            <th>操作項目</th>
+            <th>{{ $t('teacher.studentList.colName') }}</th>
+            <th>{{ $t('teacher.studentList.colStatus') }}</th>
+            <th>{{ $t('teacher.studentList.colCompleted') }}</th>
+            <th>{{ $t('teacher.studentList.colProgress') }}</th>
+            <th>{{ $t('teacher.studentList.colActions') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -78,7 +78,7 @@
                   @click="emit('view-student', student)"
                   class="btn btn-secondary btn-sm"
                 >
-                  🔍 檢視進度
+                  {{ $t('teacher.studentList.viewProgress') }}
                 </button>
 
                 <template v-if="authStore.currentUser?.role !== 'parent'">
@@ -87,14 +87,14 @@
                     @click="emit('unmanage-student', student.username)"
                     class="btn btn-danger btn-sm"
                   >
-                    ❌ 取消管理
+                    {{ $t('teacher.studentList.unmanage') }}
                   </button>
                   <button
                     v-else-if="!coursesStore.getStudentCaretaker(student.username, authStore.currentUser?.role as any) && authStore.currentUser?.role === 'teacher'"
                     @click="emit('manage-student', student.username)"
                     class="btn btn-primary btn-sm"
                   >
-                    🤝 加入管理
+                    {{ $t('teacher.studentList.manage') }}
                   </button>
                 </template>
               </div>
@@ -102,7 +102,7 @@
           </tr>
           <tr v-if="filteredStudents.length === 0">
             <td colspan="5" class="text-center empty-row">
-              目前列表沒有學員喔！
+              {{ $t('teacher.studentList.emptyList') }}
             </td>
           </tr>
         </tbody>
@@ -113,6 +113,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 
@@ -151,6 +152,7 @@ const emit = defineEmits<{
 
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
+const { t } = useI18n()
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
@@ -284,17 +286,23 @@ function isStudentManaged(studentUsername: string): boolean {
 function getCaretakerStatusText(studentUsername: string): string {
   const role = authStore.currentUser?.role
   if (role === 'teacher') {
-    const t = coursesStore.getStudentCaretaker(studentUsername, 'teacher')
-    return t === authStore.currentUser?.username ? '🛡️ 您負責輔導' : (t ? `由 ${t} 輔導` : '無管理輔導')
+    const tc = coursesStore.getStudentCaretaker(studentUsername, 'teacher')
+    return tc === authStore.currentUser?.username
+      ? t('teacher.studentList.youManage')
+      : (tc ? t('teacher.studentList.managedBy', { name: tc }) : t('teacher.studentList.noManager'))
   } else if (role === 'pastor') {
     const p = coursesStore.getStudentCaretaker(studentUsername, 'pastor')
-    return p === authStore.currentUser?.username ? '⛪ 您負責牧養' : (p ? `由 ${p} 牧養` : '無管理牧者')
+    return p === authStore.currentUser?.username
+      ? t('teacher.studentList.youPastor')
+      : (p ? t('teacher.studentList.pastoredBy', { name: p }) : t('teacher.studentList.noPastor'))
   } else if (role === 'parent') {
     const pa = coursesStore.getStudentCaretaker(studentUsername, 'parent')
-    return pa === authStore.currentUser?.username ? '👨‍👩‍👦 您負責關懷' : (pa ? `由 ${pa} 關懷` : '無管理家長')
+    return pa === authStore.currentUser?.username
+      ? t('teacher.studentList.youParent')
+      : (pa ? t('teacher.studentList.caredBy', { name: pa }) : t('teacher.studentList.noCarer'))
   }
-  const t = coursesStore.getStudentCaretaker(studentUsername, 'teacher')
-  return t ? `由 ${t} 輔導` : '無指派人員'
+  const tc = coursesStore.getStudentCaretaker(studentUsername, 'teacher')
+  return tc ? t('teacher.studentList.managedBy', { name: tc }) : t('teacher.studentList.noAssigned')
 }
 
 function getCaretakerBadgeClass(studentUsername: string): string {

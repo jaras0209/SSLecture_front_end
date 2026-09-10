@@ -6,10 +6,10 @@
         <img :src="student.avatarUrl" class="avatar-md" alt="Avatar" />
         <div>
           <h4>
-            {{ student.realName || student.username }} 的學習檔案
+            {{ student.realName || student.username }}
             <span v-if="student.realName" class="student-id-tag-sm">@{{ student.username }}</span>
           </h4>
-          <p>總進度完成率：{{ student.totalProgressPercent }}%</p>
+          <p>{{ $t('teacher.studentList.progress') }}：{{ student.totalProgressPercent }}%</p>
         </div>
       </div>
       <button @click="emit('close')" class="close-btn">×</button>
@@ -21,13 +21,13 @@
         class="drawer-tab-btn"
         @click="emit('open-notes', student)"
       >
-        📝 查看心得與筆記
+        {{ $t('teacher.drawer.openNotesBtn') }}
       </button>
       <button
         :class="['drawer-tab-btn', { active: activeDrawerTab === 'shining' }]"
         @click="activeDrawerTab = 'shining'"
       >
-        ✨ 閃耀計畫審查
+        {{ $t('teacher.drawer.shiningAuditBtn') }}
       </button>
     </div>
 
@@ -35,30 +35,30 @@
       <!-- Shining Audit Panel -->
       <div v-if="activeDrawerTab === 'shining'" class="shining-audit-panel">
         <div class="flex justify-between align-center mb-4">
-          <h5 class="section-title mb-0">✨ 閃耀計畫指標與進修專題</h5>
+          <h5 class="section-title mb-0">✨ {{ $t('teacher.drawer.shiningAuditBtn') }}</h5>
           <button class="btn btn-primary btn-sm" @click="triggerPrint(student.username)">
-            🖨️ 匯出 PDF/列印
+            {{ $t('teacher.drawer.printBtn') }}
           </button>
         </div>
 
         <!-- Read Only Basic Info -->
         <div class="basic-info-readonly-card mb-4">
-          <h6>📋 學員基本資料</h6>
+          <h6>📋 {{ $t('teacher.studentList.studentInfo') }}</h6>
           <div class="readonly-grid mt-2">
-            <div><span>姓名：</span><strong>{{ getShining(student.username).name || '未填寫' }}</strong></div>
-            <div><span>生日：</span><strong>{{ getShining(student.username).birthday || '未填寫' }}</strong></div>
-            <div><span>教會：</span><strong>{{ getShining(student.username).church || '未填寫' }}</strong></div>
-            <div><span>年級：</span><strong>{{ getShining(student.username).schoolGrade || '未填寫' }}</strong></div>
+            <div><span>{{ $t('profile.name') }}：</span><strong>{{ getShining(student.username).name || $t('teacher.booking.notFilled') }}</strong></div>
+            <div><span>{{ $t('profile.birthday') }}：</span><strong>{{ getShining(student.username).birthday || $t('teacher.booking.notFilled') }}</strong></div>
+            <div><span>{{ $t('profile.church') }}：</span><strong>{{ getShining(student.username).church || $t('teacher.booking.notFilled') }}</strong></div>
+            <div><span>{{ $t('profile.grade') }}：</span><strong>{{ getShining(student.username).schoolGrade || $t('teacher.booking.notFilled') }}</strong></div>
           </div>
         </div>
 
         <!-- Read Only Checklist Statuses -->
         <div class="checklists-readonly-container mb-4">
-          <h6>🌟 信仰自我檢視與挑戰</h6>
+          <h6>🌟 {{ $t('teacher.studentList.faithChallenge') }}</h6>
           <div class="checklist-grid mt-2">
             <!-- Phase 1 -->
             <div class="checklist-ro-column">
-              <div class="checklist-ro-title">信仰指標 Phase 1</div>
+              <div class="checklist-ro-title">{{ $t('teacher.studentList.faithPhase1') }}</div>
               <div class="checklist-ro-list">
                 <div
                   v-for="(label, key) in phase1Labels"
@@ -73,13 +73,13 @@
 
             <!-- Phase 2 -->
             <div class="checklist-ro-column">
-              <div class="checklist-ro-title">信仰指標 Phase 2</div>
+              <div class="checklist-ro-title">{{ $t('teacher.studentList.faithPhase2') }}</div>
               <div class="checklist-ro-list">
                 <template v-for="(label, key) in phase2Labels" :key="key">
                   <div :class="['ro-check-row', { active: getShining(student.username).faithPhase2[key] }]">
                     <span>{{ getShining(student.username).faithPhase2[key] ? '✅' : '❌' }}</span>
                     <span class="text-ro" v-if="key === 'courses30'">
-                      我已經聽完 30 個論 ({{ student.completedCount }}/30)
+                      {{ $t('teacher.studentList.completedCourses', { count: student.completedCount }) }}
                     </span>
                     <span class="text-ro" v-else>{{ label }}</span>
                   </div>
@@ -89,7 +89,7 @@
 
             <!-- Challenges -->
             <div class="checklist-ro-column">
-              <div class="checklist-ro-title">進階挑戰項目</div>
+              <div class="checklist-ro-title">{{ $t('teacher.studentList.advancedChallenges') }}</div>
               <div class="checklist-ro-list">
                 <div
                   v-for="(label, key) in advancedLabels"
@@ -98,7 +98,7 @@
                 >
                   <span>{{ getShining(student.username).advancedChallenges[key] ? '✅' : '❌' }}</span>
                   <span class="text-ro" v-if="key === 'custom'">
-                    自訂：{{ getShining(student.username).customChallenge || '未填寫自訂挑戰' }}
+                    {{ $t('teacher.studentList.customChallenge') }}{{ getShining(student.username).customChallenge || $t('teacher.booking.notFilled') }}
                   </span>
                   <span class="text-ro" v-else>{{ label }}</span>
                 </div>
@@ -111,7 +111,7 @@
         <div class="lectures-edit-section">
           <!-- Character Tables -->
           <div class="lecture-edit-group mb-4">
-            <h6>📖 品格力專題登記 (講師與日期)</h6>
+            <h6>📖 {{ $t('teacher.studentList.characterThemes') }}</h6>
             <div class="lecture-inputs-stack mt-2">
               <div
                 v-for="theme in characterThemes"
@@ -126,7 +126,7 @@
                     type="text"
                     v-model="lectureForms[theme].speaker"
                     class="form-input text-xs pt-1 pb-1"
-                    placeholder="講師名稱"
+                    :placeholder="$t('teacher.drawer.lecturerPlaceholder')"
                   />
                   <input
                     type="date"
@@ -137,15 +137,15 @@
                     @click="saveLectureRow(student.username, 'character', theme)"
                     class="btn btn-secondary btn-sm pt-1 pb-1"
                   >
-                    儲存
+                    {{ $t('teacher.drawer.saveLectureBtn') }}
                   </button>
                 </div>
 
                 <!-- Readonly row for parents -->
                 <div class="inputs-row-readonly text-sm" v-else>
-                  <span v-if="lectureForms[theme]?.speaker" class="mr-4">🎤 講師：<strong>{{ lectureForms[theme].speaker }}</strong></span>
-                  <span v-if="lectureForms[theme]?.date">📅 日期：<strong>{{ lectureForms[theme].date }}</strong></span>
-                  <span v-if="!lectureForms[theme]?.speaker && !lectureForms[theme]?.date" class="text-muted text-xs italic">（尚未登記）</span>
+                  <span v-if="lectureForms[theme]?.speaker" class="mr-4">{{ $t('teacher.drawer.lecturerLabel') }}<strong>{{ lectureForms[theme].speaker }}</strong></span>
+                  <span v-if="lectureForms[theme]?.date">{{ $t('teacher.drawer.dateLabel') }}<strong>{{ lectureForms[theme].date }}</strong></span>
+                  <span v-if="!lectureForms[theme]?.speaker && !lectureForms[theme]?.date" class="text-muted text-xs italic">{{ $t('teacher.drawer.notRegistered') }}</span>
                 </div>
               </div>
             </div>
@@ -153,7 +153,7 @@
 
           <!-- Coming of Age Tables -->
           <div class="lecture-edit-group mb-4">
-            <h6>🎓 成年禮必修專題登記</h6>
+            <h6>🎓 {{ $t('teacher.studentList.comingOfAgeThemes') }}</h6>
             <div class="lecture-inputs-stack mt-2">
               <div
                 v-for="theme in comingOfAgeThemes"
@@ -168,7 +168,7 @@
                     type="text"
                     v-model="lectureForms[theme].speaker"
                     class="form-input text-xs pt-1 pb-1"
-                    placeholder="講師名稱"
+                    :placeholder="$t('teacher.drawer.lecturerPlaceholder')"
                   />
                   <input
                     type="date"
@@ -179,15 +179,15 @@
                     @click="saveLectureRow(student.username, 'comingOfAge', theme)"
                     class="btn btn-secondary btn-sm pt-1 pb-1"
                   >
-                    儲存
+                    {{ $t('teacher.drawer.saveLectureBtn') }}
                   </button>
                 </div>
 
                 <!-- Readonly row for parents -->
                 <div class="inputs-row-readonly text-sm" v-else>
-                  <span v-if="lectureForms[theme]?.speaker" class="mr-4">🎤 講師：<strong>{{ lectureForms[theme].speaker }}</strong></span>
-                  <span v-if="lectureForms[theme]?.date">📅 日期：<strong>{{ lectureForms[theme].date }}</strong></span>
-                  <span v-if="!lectureForms[theme]?.speaker && !lectureForms[theme]?.date" class="text-muted text-xs italic">（尚未登記）</span>
+                  <span v-if="lectureForms[theme]?.speaker" class="mr-4">{{ $t('teacher.drawer.lecturerLabel') }}<strong>{{ lectureForms[theme].speaker }}</strong></span>
+                  <span v-if="lectureForms[theme]?.date">{{ $t('teacher.drawer.dateLabel') }}<strong>{{ lectureForms[theme].date }}</strong></span>
+                  <span v-if="!lectureForms[theme]?.speaker && !lectureForms[theme]?.date" class="text-muted text-xs italic">{{ $t('teacher.drawer.notRegistered') }}</span>
                 </div>
               </div>
             </div>
@@ -200,8 +200,8 @@
   <!-- Empty state when no student selected -->
   <section v-else class="student-details-drawer empty-drawer glass-panel text-center no-print">
     <div class="empty-illustration">👩‍🏫🎓</div>
-    <h4>學員進度與紀錄詳細資訊</h4>
-    <p>點擊左側學生清單的「檢視進度」按鈕，可以查看詳細的聽課時長、靈修心得與對其進行回饋。</p>
+    <h4>{{ $t('teacher.drawer.emptyTitle') }}</h4>
+    <p>{{ $t('teacher.drawer.emptyDesc') }}</p>
   </section>
 
   <!-- HIGH-FIDELITY PRINT LAYOUT (Hidden on screen) -->
@@ -345,8 +345,10 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useToast } from '@/composables/useToast'
 const { toast } = useToast()
+const { t } = useI18n()
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import type { StudentProgressSummary } from './TeacherStudentList.vue'
@@ -417,7 +419,7 @@ function saveLectureRow(username: string, type: 'character' | 'comingOfAge', the
   const row = lectureForms.value[theme]
   if (!row) return
   coursesStore.updateShiningLecture(username, type, theme, row.speaker, row.date)
-  toast(`✓ ${theme} 登記成功！`)
+  toast(`✓ ${theme} ${t('teacher.drawer.saveLectureBtn')}！`)
 }
 
 function triggerPrint(_username: string) {
@@ -427,27 +429,27 @@ function triggerPrint(_username: string) {
 
 // ── Static Checklist Labels ───────────────────────────────────────────────────
 
-const phase1Labels = {
-  worship: '我每週都有持守主日禮拜',
-  prayer: '我每天都會禱告至少 10-15 分鐘',
-  independent: '我不會依賴父母，會自主參與信仰',
-  reply: '我會主動聯絡教師並回覆訊息',
-  share: '我願意分享我的體會和經歷'
-}
+const phase1Labels = computed(() => ({
+  worship: t('teacher.studentList.phase1Worship'),
+  prayer: t('teacher.studentList.phase1Prayer'),
+  independent: t('teacher.studentList.phase1Independent'),
+  reply: t('teacher.studentList.phase1Reply'),
+  share: t('teacher.studentList.phase1Share')
+}))
 
-const phase2Labels = {
-  courses30: '我已經聽完 30 個論',
-  prayerLong: '我每天都會禱告至少 20-30 分鐘',
-  morningWorship: '我每週都至少參與一次清晨禮拜',
-  readBible: '我已經讀完一遍新約和舊約',
-  churchService: '我有參與教會服事或領受使命'
-}
+const phase2Labels = computed(() => ({
+  courses30: t('teacher.studentList.phase2Courses30'),
+  prayerLong: t('teacher.studentList.phase2PrayerLong'),
+  morningWorship: t('teacher.studentList.phase2MorningWorship'),
+  readBible: t('teacher.studentList.phase2ReadBible'),
+  churchService: t('teacher.studentList.phase2ChurchService')
+}))
 
-const advancedLabels = {
-  wednesday: '定期參與週三禮拜',
-  shareFaith: '願意和同學分享信仰',
-  copySermon: '抄寫一篇主日話語',
-  morningProverb: '每天閱讀清晨箴言',
-  custom: '自訂挑戰：'
-}
+const advancedLabels = computed(() => ({
+  wednesday: t('teacher.studentList.advWednesday'),
+  shareFaith: t('teacher.studentList.advShareFaith'),
+  copySermon: t('teacher.studentList.advCopySermon'),
+  morningProverb: t('teacher.studentList.advMorningProverb'),
+  custom: t('teacher.studentList.advCustom')
+}))
 </script>

@@ -3,34 +3,34 @@
     <div class="pastor-overview-grid">
       <!-- Church Stats Header -->
       <section class="glass-panel pastor-stats-panel">
-        <h3>⛪ {{ authStore.currentUser?.church }} — 教會總覽</h3>
+        <h3>{{ $t('teacher.pastor.churchOverviewTitle', { church: authStore.currentUser?.church }) }}</h3>
         <div class="pastor-stats-grid mt-4">
           <div class="stat-box">
             <span class="stat-val">{{ pastorChurchStudents.length }}</span>
-            <span class="stat-lbl">SS 學員總數</span>
+            <span class="stat-lbl">{{ $t('teacher.pastor.totalStudents') }}</span>
           </div>
           <div class="stat-box">
             <span class="stat-val">{{ pastorChurchTeachers.length }}</span>
-            <span class="stat-lbl">輔導教師數量</span>
+            <span class="stat-lbl">{{ $t('teacher.pastor.teacherCount') }}</span>
           </div>
           <div class="stat-box">
             <span class="stat-val">{{ totalNotesSubmitted }}</span>
-            <span class="stat-lbl">累計心得筆數</span>
+            <span class="stat-lbl">{{ $t('teacher.pastor.totalNotes') }}</span>
           </div>
         </div>
       </section>
 
       <!-- Caretaker Assignments Matching Panel -->
       <section class="glass-panel pastor-match-panel">
-        <h4 class="mb-4">📋 教會專屬配對管理板</h4>
-        <p class="section-desc mb-4 text-sm text-muted">分區牧者專用：直接為您教會內的學員指派專屬輔導教師</p>
+        <h4 class="mb-4">{{ $t('teacher.pastor.matchPanelTitle') }}</h4>
+        <p class="section-desc mb-4 text-sm text-muted">{{ $t('teacher.pastor.matchPanelDesc') }}</p>
         <div class="table-container">
           <table class="students-table match-table">
             <thead>
               <tr>
-                <th>SS學員</th>
-                <th>輔導教師</th>
-                <th>關懷家長</th>
+                <th>{{ $t('teacher.pastor.colStudent') }}</th>
+                <th>{{ $t('teacher.pastor.colTeacher') }}</th>
+                <th>{{ $t('teacher.pastor.colParent') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -54,7 +54,7 @@
                     @change="(e) => onSetCaretaker(stdUsername, 'teacher', (e.target as HTMLSelectElement).value)"
                     class="form-input text-sm"
                   >
-                    <option value="">-- 未指派 --</option>
+                    <option value="">{{ $t('teacher.pastor.noAssigned') }}</option>
                     <option v-for="t in pastorChurchTeachers" :key="t" :value="t">
                       {{ authStore.usersDb[t]?.realName || t }}
                       {{ authStore.usersDb[t]?.displayName ? `「${authStore.usersDb[t]?.displayName}」` : '' }}
@@ -67,7 +67,7 @@
                     @change="(e) => onSetCaretaker(stdUsername, 'parent', (e.target as HTMLSelectElement).value)"
                     class="form-input text-sm"
                   >
-                    <option value="">-- 未指派 --</option>
+                    <option value="">{{ $t('teacher.pastor.noAssigned') }}</option>
                     <option v-for="pa in pastorChurchParents" :key="pa" :value="pa">
                       {{ authStore.usersDb[pa]?.realName || pa }}
                       {{ authStore.usersDb[pa]?.displayName ? `「${authStore.usersDb[pa]?.displayName}」` : '' }}
@@ -76,7 +76,7 @@
                 </td>
               </tr>
               <tr v-if="pastorChurchStudents.length === 0">
-                <td colspan="3" class="text-center empty-row">目前教會中無學員帳號</td>
+                <td colspan="3" class="text-center empty-row">{{ $t('teacher.pastor.noStudents') }}</td>
               </tr>
             </tbody>
           </table>
@@ -85,14 +85,14 @@
 
       <!-- Teacher Management Overview Table -->
       <section class="glass-panel pastor-teacher-panel">
-        <h4 class="mb-4">👨‍🏫 教師管理概況</h4>
+        <h4 class="mb-4">{{ $t('teacher.pastor.teacherOverviewTitle') }}</h4>
         <div class="table-container">
           <table class="students-table">
             <thead>
               <tr>
-                <th>輔導教師</th>
-                <th>管理的 SS 數量</th>
-                <th>管理的 SS 學員</th>
+                <th>{{ $t('teacher.pastor.colTeacherName') }}</th>
+                <th>{{ $t('teacher.pastor.colStudentCount') }}</th>
+                <th>{{ $t('teacher.pastor.colStudents') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -111,7 +111,7 @@
                   </div>
                 </td>
                 <td>
-                  <span class="badge badge-teacher">{{ getTeacherManagedStudents(teacher).length }} 位</span>
+                  <span class="badge badge-teacher">{{ $t('teacher.pastor.countSuffix', { n: getTeacherManagedStudents(teacher).length }) }}</span>
                 </td>
                 <td>
                   <div class="managed-students-list">
@@ -119,14 +119,14 @@
                       v-for="s in getTeacherManagedStudents(teacher)"
                       :key="s"
                       class="badge badge-student mr-1"
-                      :title="`帳號：${s}`"
+                      :title="`@${s}`"
                     >🎒 {{ authStore.usersDb[s]?.realName || s }}</span>
-                    <span v-if="getTeacherManagedStudents(teacher).length === 0" class="text-muted text-xs italic">尚未管理任何學員</span>
+                    <span v-if="getTeacherManagedStudents(teacher).length === 0" class="text-muted text-xs italic">{{ $t('teacher.pastor.noManagedStudents') }}</span>
                   </div>
                 </td>
               </tr>
               <tr v-if="pastorChurchTeachers.length === 0">
-                <td colspan="3" class="text-center empty-row">目前教會中無輔導教師帳號</td>
+                <td colspan="3" class="text-center empty-row">{{ $t('teacher.pastor.noTeachers') }}</td>
               </tr>
             </tbody>
           </table>
@@ -135,22 +135,22 @@
 
       <!-- Lecturer Stats -->
       <section class="glass-panel pastor-lecturer-panel">
-        <h4 class="mb-4">📊 講師授課統計（本教會 SS）</h4>
+        <h4 class="mb-4">{{ $t('teacher.pastor.lecturerStatsTitle') }}</h4>
         <div class="table-container">
           <table class="students-table">
             <thead>
               <tr>
-                <th>講師姓名</th>
-                <th>授課次數</th>
+                <th>{{ $t('teacher.pastor.colLecturer') }}</th>
+                <th>{{ $t('teacher.pastor.colSessions') }}</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="stat in pastorLecturerStats" :key="stat.lecturerName">
                 <td><span class="student-name">🎤 {{ stat.lecturerName }}</span></td>
-                <td><span class="badge badge-teacher">{{ stat.sessionCount }} 次</span></td>
+                <td><span class="badge badge-teacher">{{ $t('teacher.pastor.sessionCountSuffix', { n: stat.sessionCount }) }}</span></td>
               </tr>
               <tr v-if="pastorLecturerStats.length === 0">
-                <td colspan="2" class="text-center empty-row">本教會學員尚未登記任何授課講師</td>
+                <td colspan="2" class="text-center empty-row">{{ $t('teacher.pastor.noLecturers') }}</td>
               </tr>
             </tbody>
           </table>

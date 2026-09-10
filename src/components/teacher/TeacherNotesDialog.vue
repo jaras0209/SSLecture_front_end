@@ -13,44 +13,44 @@
               <img :src="student.avatarUrl" class="avatar-md" alt="Avatar" />
               <div>
                 <h3>
-                  {{ student.realName || student.username }} 的心得與筆記
+                  {{ student.realName || student.username }}
                   <span v-if="student.realName" class="student-id-tag-sm">@{{ student.username }}</span>
                 </h3>
                 <p class="notes-dialog-subtitle">
-                  總完成 {{ student.completedCount }} / {{ totalCourses }} 堂課 · {{ student.totalProgressPercent }}%
+                  {{ $t('profile.student.sessionsCount', { n: student.completedCount }) }} / {{ totalCourses }} · {{ student.totalProgressPercent }}%
                 </p>
               </div>
             </div>
-            <button class="notes-close-btn" aria-label="關閉" @click="close">×</button>
+            <button class="notes-close-btn" :aria-label="$t('common.close')" @click="close">×</button>
           </div>
 
           <!-- Filter Bar -->
           <div class="notes-filter-bar">
-            <span class="filter-label">🔍 篩選顯示：</span>
+            <span class="filter-label">🔍 {{ $t('teacher.notes.studentLabel') }}</span>
             <div class="filter-btns">
               <button
                 :class="['filter-btn', { active: notesFilter === 'all' }]"
                 @click="notesFilter = 'all'"
               >
-                📚 全部 ({{ student.records.length }})
+                📚 {{ $t('profile.course.all') }} ({{ student.records.length }})
               </button>
               <button
                 :class="['filter-btn', { active: notesFilter === 'completed' }]"
                 @click="notesFilter = 'completed'"
               >
-                ✅ 已完成 ({{ student.records.filter(r => r.completed).length }})
+                ✅ {{ $t('teacher.drawer.completed') }} ({{ student.records.filter(r => r.completed).length }})
               </button>
               <button
                 :class="['filter-btn', { active: notesFilter === 'incomplete' }]"
                 @click="notesFilter = 'incomplete'"
               >
-                ⏳ 未完成 ({{ student.records.filter(r => !r.completed).length }})
+                ⏳ {{ $t('teacher.drawer.notCompleted') }} ({{ student.records.filter(r => !r.completed).length }})
               </button>
               <button
                 :class="['filter-btn', { active: notesFilter === 'has-notes' }]"
                 @click="notesFilter = 'has-notes'"
               >
-                📝 已有心得 ({{ student.records.filter(r => r.notes && r.notes.trim()).length }})
+                📝 {{ $t('teacher.notes.studentNotes') }} ({{ student.records.filter(r => r.notes && r.notes.trim()).length }})
               </button>
             </div>
           </div>
@@ -59,7 +59,7 @@
           <div class="notes-dialog-body">
             <div v-if="filteredRecords.length === 0" class="notes-empty-state">
               <div class="notes-empty-icon">💭</div>
-              <p>目前沒有符合條件的紀錄</p>
+              <p>{{ $t('teacher.notes.noRecord') }}</p>
             </div>
             <div
               v-for="record in filteredRecords"
@@ -77,25 +77,25 @@
                   <h5 class="notes-record-title">{{ record.courseTitle }}</h5>
                 </div>
                 <span :class="['notes-status-badge', record.completed ? 'status-done' : 'status-pending']">
-                  {{ record.completed ? '✅ 已聽完' : '⏳ 聽講中' }}
+                  {{ record.completed ? $t('teacher.drawer.completed') : $t('booking.status.pending') }}
                 </span>
               </div>
 
               <!-- Meta Info -->
               <div class="notes-record-meta">
-                <span class="meta-chip">🎤 {{ record.lecturer || '未指定講師' }}</span>
+                <span class="meta-chip">🎤 {{ record.lecturer || $t('student.course.noLecturerFull') }}</span>
                 <span class="meta-chip" v-if="record.listenedAt">📅 {{ formatDateTime(record.listenedAt) }}</span>
-                <span class="meta-chip" v-if="record.lastUpdated">📥 提交：{{ record.lastUpdated }}</span>
+                <span class="meta-chip" v-if="record.lastUpdated">📥 {{ $t('teacher.notes.lastUpdated') }}{{ record.lastUpdated }}</span>
               </div>
 
               <!-- Notes Content -->
               <div class="notes-record-content">
                 <div v-if="record.notes && record.notes.trim()" class="notes-text-box">
-                  <div class="notes-text-header">📝 學員心得日誌</div>
+                  <div class="notes-text-header">📝 {{ $t('teacher.notes.studentNotes') }}</div>
                   <div class="notes-text-body">{{ record.notes }}</div>
                 </div>
                 <div v-else class="notes-empty-note">
-                  <span>🌟 學員尚未填寫心得筆記</span>
+                  <span>🌟 {{ $t('teacher.notes.noRecord') }}</span>
                 </div>
               </div>
 
@@ -104,18 +104,18 @@
                 class="notes-feedback-area"
                 v-if="record.notes && canSendFeedback"
               >
-                <label class="feedback-label">💬 回覆給學員</label>
+                <label class="feedback-label">💬 {{ $t('teacher.drawer.notes') }}</label>
                 <div class="feedback-input-row">
                   <input
                     v-model="feedbackInputs[student.username + '_' + record.courseId]"
                     type="text"
                     class="form-input"
-                    placeholder="寫下鼓勵話語、心得回应..."
+                    :placeholder="$t('profile.student.feedbackPlaceholder')"
                   />
                   <button
                     class="btn btn-primary btn-sm"
                     @click="onSendFeedback(student.username, record.courseId)"
-                  >傳送</button>
+                  >{{ $t('teacher.notes.saveBtn') }}</button>
                 </div>
                 <p
                   v-if="feedbacksSent[student.username + '_' + record.courseId]"
@@ -134,6 +134,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 export interface StudentRecordDetail {
   courseTitle: string
@@ -200,7 +203,7 @@ function onSendFeedback(username: string, courseId: string) {
   const key = `${username}_${courseId}`
   const msg = feedbackInputs.value[key]?.trim()
   if (!msg) return
-  feedbacksSent.value[key] = `✅ 已傳送：「${msg}」`
+  feedbacksSent.value[key] = `✅ ${t('teacher.notes.savedLabel')}：「${msg}」`
   emit('feedback-sent', username, courseId, msg)
   feedbackInputs.value[key] = ''
 }
