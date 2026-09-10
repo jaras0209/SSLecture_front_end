@@ -174,8 +174,8 @@
     <!-- Church Statistics Overview Panel - Card Grid Style -->
     <section class="church-overview-panel glass-panel mt-4">
       <div class="main-header">
-        <h3>⛪ 各教會概況總覽</h3>
-        <span class="user-count-badge">共 {{ churchSummaries.length }} 間教會</span>
+        <h3>{{ $t('admin.churchOverview.title') }}</h3>
+        <span class="user-count-badge">{{ $t('admin.churchOverview.count', { n: churchSummaries.length }) }}</span>
       </div>
       <!-- Card Grid -->
       <div class="church-cards-grid mt-4">
@@ -197,12 +197,12 @@
           <div class="church-card-stats">
             <div class="church-stat-item">
               <span class="church-stat-val">{{ summary.teacherCount }}</span>
-              <span class="church-stat-lbl">👨‍🏫 輔導教師</span>
+              <span class="church-stat-lbl">{{ $t('admin.churchOverview.teacherLbl') }}</span>
             </div>
             <div class="church-stat-divider"></div>
             <div class="church-stat-item">
               <span class="church-stat-val">{{ summary.studentCount }}</span>
-              <span class="church-stat-lbl">🎒 SS學員</span>
+              <span class="church-stat-lbl">{{ $t('admin.churchOverview.studentLbl') }}</span>
             </div>
           </div>
 
@@ -212,35 +212,35 @@
             :class="{ active: expandedChurch === summary.church }"
             @click="toggleChurchExpand(summary.church)"
           >
-            {{ expandedChurch === summary.church ? '▲ 收起詳情' : '▼ 查看詳情' }}
+            {{ expandedChurch === summary.church ? $t('admin.churchOverview.collapse') : $t('admin.churchOverview.expand') }}
           </button>
 
           <!-- Expanded Detail -->
           <div v-if="expandedChurch === summary.church" class="church-card-detail">
             <!-- Teachers -->
             <div class="church-detail-section">
-              <div class="church-detail-label">👨‍🏫 輔導教師清單</div>
+              <div class="church-detail-label">{{ $t('admin.churchOverview.teacherListLabel') }}</div>
               <div class="church-chips-row">
                 <span 
                   v-for="t in getChurchTeacherList(summary.church)" 
                   :key="t" 
                   class="church-chip chip-teacher"
-                  :title="`帳號：${t}`"
+                  :title="`@${t}`"
                 >✍️ {{ authStore.usersDb[t]?.realName || t }}</span>
-                <span v-if="getChurchTeacherList(summary.church).length === 0" class="chip-empty">尚無輔導教師</span>
+                <span v-if="getChurchTeacherList(summary.church).length === 0" class="chip-empty">{{ $t('admin.churchOverview.noTeachers') }}</span>
               </div>
             </div>
             <!-- Students -->
             <div class="church-detail-section mt-2">
-              <div class="church-detail-label">🎒 SS 學員清單</div>
+              <div class="church-detail-label">{{ $t('admin.churchOverview.studentListLabel') }}</div>
               <div class="church-chips-row">
                 <span 
                   v-for="std in getChurchStudentList(summary.church)" 
                   :key="std" 
                   class="church-chip chip-student"
-                  :title="`帳號：${std}`"
+                  :title="`@${std}`"
                 >🎒 {{ authStore.usersDb[std]?.realName || std }}</span>
-                <span v-if="getChurchStudentList(summary.church).length === 0" class="chip-empty">尚無 SS 學員</span>
+                <span v-if="getChurchStudentList(summary.church).length === 0" class="chip-empty">{{ $t('admin.churchOverview.noStudents') }}</span>
               </div>
             </div>
           </div>
@@ -248,7 +248,7 @@
 
         <div v-if="churchSummaries.length === 0" class="church-empty-state">
           <div>🏛️</div>
-          <p>目前尚無教會資料</p>
+          <p>{{ $t('admin.churchOverview.empty') }}</p>
         </div>
       </div>
     </section>
@@ -256,12 +256,12 @@
     <!-- Annual Teaching Stats Overview — SS Central only -->
     <section class="admin-stats-overview glass-panel mt-4">
       <div class="main-header">
-        <h3>📊 年度教師教學人次統計總覽</h3>
+        <h3>{{ $t('admin.statsOverview.title') }}</h3>
         <div class="stats-header-controls">
           <select v-model="adminStatsYear" class="form-input select-input" style="min-width:120px;">
-            <option v-for="y in adminAvailableYears" :key="y" :value="y">{{ y }} 年度</option>
+            <option v-for="y in adminAvailableYears" :key="y" :value="y">{{ $t('admin.statsOverview.yearSuffix', { n: y }) }}</option>
           </select>
-          <span class="user-count-badge">共 {{ adminTeachingStats.length }} 筆</span>
+          <span class="user-count-badge">{{ $t('admin.statsOverview.recordCount', { n: adminTeachingStats.length }) }}</span>
         </div>
       </div>
 
@@ -269,15 +269,15 @@
         <table class="admin-table stats-table">
           <thead>
             <tr>
-              <th>教師姓名</th>
-              <th>所屬教會</th>
-              <th>講師資料庫</th>
-              <th>1對1<br/>三十個論</th>
-              <th>1對多<br/>三十個論</th>
-              <th>1對1<br/>閃耀計畫</th>
-              <th>1對多<br/>閃耀計畫</th>
-              <th>合計人次</th>
-              <th>最後更新</th>
+              <th>{{ $t('admin.statsOverview.colTeacher') }}</th>
+              <th>{{ $t('admin.statsOverview.colChurch') }}</th>
+              <th>{{ $t('admin.statsOverview.colLecturerDb') }}</th>
+              <th>1對1<br/>{{ $t('teacher.stats.sermonBlock') }}</th>
+              <th>1對多<br/>{{ $t('teacher.stats.sermonBlock') }}</th>
+              <th>1對1<br/>{{ $t('teacher.stats.shiningBlock') }}</th>
+              <th>1對多<br/>{{ $t('teacher.stats.shiningBlock') }}</th>
+              <th>{{ $t('admin.statsOverview.colTotal') }}</th>
+              <th>{{ $t('admin.statsOverview.colLastUpdate') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -299,10 +299,10 @@
                 <template v-if="getLinkedLecturer(row.teacherUsername)">
                   <div class="linked-lec-cell">
                     <span class="linked-lec-name">{{ getLinkedLecturer(row.teacherUsername)?.name }}</span>
-                    <span class="lec-course-count">{{ getLinkedLecturer(row.teacherUsername)?.courseIds.length }} 堂</span>
+                    <span class="lec-course-count">{{ $t('admin.statsOverview.courseSuffix', { n: getLinkedLecturer(row.teacherUsername)?.courseIds.length }) }}</span>
                   </div>
                 </template>
-                <span v-else class="text-xs text-muted">未建立</span>
+                <span v-else class="text-xs text-muted">{{ $t('admin.statsOverview.noLecturerDb') }}</span>
               </td>
               <td class="text-center">
                 <span class="stat-num">{{ row.oneOnOne30 }}</span>
@@ -325,12 +325,12 @@
             </tr>
             <tr v-if="adminTeachingStats.length === 0">
               <td colspan="9" class="text-center empty-row">
-                {{ adminStatsYear }} 年度尚未有任何教師填寫申報資料
+                {{ $t('admin.statsOverview.emptyRow', { year: adminStatsYear }) }}
               </td>
             </tr>
             <!-- Grand Total Row -->
             <tr v-if="adminTeachingStats.length > 0" class="stats-grand-total-row">
-              <td colspan="3"><strong>📊 全體合計</strong></td>
+              <td colspan="3"><strong>{{ $t('admin.statsOverview.grandTotal') }}</strong></td>
               <td class="text-center"><strong>{{ adminStatsTotals.oneOnOne30 }}</strong></td>
               <td class="text-center"><strong>{{ adminStatsTotals.oneToMany30 }}</strong></td>
               <td class="text-center"><strong>{{ adminStatsTotals.oneOnOneShining }}</strong></td>
@@ -350,48 +350,48 @@
     <!-- ─── Invite Code Management ─── -->
     <section class="admin-section glass-panel mt-6">
       <div class="section-header">
-        <h3>🎟️ 邀請碼管理</h3>
-        <p class="section-desc">產生適用特定角色的一次性邀請碼，發給被邀請者完成註冊。</p>
+        <h3>{{ $t('admin.inviteCode.title') }}</h3>
+        <p class="section-desc">{{ $t('admin.inviteCode.desc') }}</p>
       </div>
 
       <!-- Generate Form -->
       <div class="invite-generate-bar glass-card">
         <div class="invite-generate-fields">
           <div class="form-group">
-            <label class="form-label">角色</label>
+            <label class="form-label">{{ $t('admin.inviteCode.fieldRole') }}</label>
             <select v-model="inviteForm.role" class="form-input select-input" id="invite-role-select">
-              <option value="student">🎒 SS 學員</option>
-              <option value="teacher">👨‍🏫 輔導教師</option>
-              <option value="pastor">⛪ 分區牧者</option>
-              <option value="parent">👨‍👩‍👦 關懷家長</option>
-              <option value="admin">👑 SS 中央</option>
+              <option value="student">{{ $t('admin.inviteCode.roleStudent') }}</option>
+              <option value="teacher">{{ $t('admin.inviteCode.roleTeacher') }}</option>
+              <option value="pastor">{{ $t('admin.inviteCode.rolePastor') }}</option>
+              <option value="parent">{{ $t('admin.inviteCode.roleParent') }}</option>
+              <option value="admin">{{ $t('admin.inviteCode.roleAdmin') }}</option>
             </select>
           </div>
           <div class="form-group" v-if="inviteForm.role !== 'admin'">
-            <label class="form-label">指定教會</label>
+            <label class="form-label">{{ $t('admin.inviteCode.fieldChurch') }}</label>
             <select v-model="inviteForm.church" class="form-input select-input" id="invite-church-select">
               <option v-for="c in CHURCHES" :key="c" :value="c">{{ c }}</option>
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label">有效天數</label>
+            <label class="form-label">{{ $t('admin.inviteCode.fieldExpiry') }}</label>
             <select v-model="inviteForm.expiryDays" class="form-input select-input" id="invite-expiry-select">
-              <option :value="3">3 天</option>
-              <option :value="7">7 天</option>
-              <option :value="14">14 天</option>
-              <option :value="30">30 天</option>
+              <option :value="3">{{ $t('admin.inviteCode.days3') }}</option>
+              <option :value="7">{{ $t('admin.inviteCode.days7') }}</option>
+              <option :value="14">{{ $t('admin.inviteCode.days14') }}</option>
+              <option :value="30">{{ $t('admin.inviteCode.days30') }}</option>
             </select>
           </div>
         </div>
         <button class="btn btn-primary" @click="generateInviteCode" id="btn-generate-invite">
-          ✨ 產生邀請碼
+          {{ $t('admin.inviteCode.generateBtn') }}
         </button>
 
         <!-- Generated Code Display -->
         <div v-if="lastGeneratedCode" class="generated-code-display">
           <span class="generated-code-text">{{ lastGeneratedCode }}</span>
           <button class="btn btn-outline btn-sm" @click="copyInviteCode(lastGeneratedCode)" id="btn-copy-invite">
-            📋 複製
+            {{ $t('admin.inviteCode.copyBtn') }}
           </button>
         </div>
       </div>
@@ -399,17 +399,17 @@
       <!-- Invite Codes List -->
       <div class="invite-list mt-4">
         <div v-if="allInviteCodes.length === 0" class="text-center text-muted py-4">
-          目前尚無邀請碼。
+          {{ $t('admin.inviteCode.emptyList') }}
         </div>
         <table v-else class="invite-table">
           <thead>
             <tr>
-              <th>邀請碼</th>
-              <th>角色</th>
-              <th>教會</th>
-              <th>到期日</th>
-              <th>狀態</th>
-              <th>作廢</th>
+              <th>{{ $t('admin.inviteCode.colCode') }}</th>
+              <th>{{ $t('admin.inviteCode.colRole') }}</th>
+              <th>{{ $t('admin.inviteCode.colChurch') }}</th>
+              <th>{{ $t('admin.inviteCode.colExpiry') }}</th>
+              <th>{{ $t('admin.inviteCode.colStatus') }}</th>
+              <th>{{ $t('admin.inviteCode.colRevoke') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -424,7 +424,7 @@
                   v-if="!code.usedBy && !code.revoked"
                   class="btn btn-danger btn-sm"
                   @click="revokeCode(code.code)"
-                >作廢</button>
+                >{{ $t('admin.inviteCode.revokeBtn') }}</button>
                 <span v-else class="text-muted" style="font-size:0.75rem;">—</span>
               </td>
             </tr>
@@ -498,7 +498,7 @@ async function revokeCode(code: string) {
 
 function copyInviteCode(code: string) {
   navigator.clipboard.writeText(code).then(() => {
-    toast('已複製邀請碼！', 'success')
+    toast(t('admin.inviteCode.copySuccess'), 'success')
   }).catch(() => {
     toast(`請手動複製：${code}`, 'info')
   })
@@ -522,10 +522,10 @@ function formatInviteDate(iso: string): string {
 }
 
 function inviteStatusLabel(code: InviteCode): string {
-  if (code.revoked) return '已作廢'
-  if (code.usedBy) return `已使用 (${code.usedBy})`
-  if (new Date() > new Date(code.expiresAt)) return '已過期'
-  return '有效'
+  if (code.revoked) return t('admin.inviteCode.statusRevoked')
+  if (code.usedBy) return `${t('admin.inviteCode.statusUsed')} (${code.usedBy})`
+  if (new Date() > new Date(code.expiresAt)) return t('admin.inviteCode.statusExpired')
+  return t('admin.inviteCode.statusActive')
 }
 
 function inviteStatusClass(code: InviteCode): string {
