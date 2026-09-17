@@ -621,7 +621,15 @@
       "statusUsed": "已使用",
       "statusExpired": "已過期",
       "statusRevoked": "已作廢",
-      "copySuccess": "✅ 已複製邀請碼！"
+      "copySuccess": "✅ 已複製邀請碼！",
+      "generated": "✅ 邀請碼 {code} 已產生！",
+      "copyFallback": "請手動複製：{code}",
+      "revokeConfirm": "確定要作廢邀請碼 {code} 嗎？",
+      "roleStudent": "🎒 學員",
+      "roleTeacher": "👨‍🏫 輔導教師",
+      "rolePastor": "⛪ 牧者",
+      "roleParent": "👨‍👩‍👦 家長",
+      "roleAdmin": "👑 中央"
     }
   },
   "roleLabel": {

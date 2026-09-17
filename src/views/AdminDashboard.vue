@@ -486,11 +486,11 @@ function generateInviteCode() {
   const church = inviteForm.role !== 'admin' ? inviteForm.church : undefined
   const code = authStore.generateInviteCode(inviteForm.role, church, me.username, inviteForm.expiryDays)
   lastGeneratedCode.value = code
-  toast(`邀請碼 ${code} 已產生！`, 'success')
+  toast(t('admin.inviteCode.generated', { code }), 'success')
 }
 
 async function revokeCode(code: string) {
-  const ok = await confirm(`確定要作廢邀請碼 ${code} 嗎？`)
+  const ok = await confirm(t('admin.inviteCode.revokeConfirm', { code }))
   if (!ok) return
   const result = authStore.revokeInviteCode(code)
   toast(result.message, result.success ? 'success' : 'error')
@@ -500,20 +500,19 @@ function copyInviteCode(code: string) {
   navigator.clipboard.writeText(code).then(() => {
     toast(t('admin.inviteCode.copySuccess'), 'success')
   }).catch(() => {
-    toast(`請手動複製：${code}`, 'info')
+    toast(t('admin.inviteCode.copyFallback', { code }), 'info')
   })
 }
 
-const INVITE_ROLE_LABELS: Record<UserRole, string> = {
-  student: '🎒 學員',
-  teacher: '👨‍🏫 輔導教師',
-  pastor: '⛪ 牧者',
-  parent: '👨‍👩‍👦 家長',
-  admin: '👑 中央'
-}
-
 function inviteRoleLabel(role: UserRole): string {
-  return INVITE_ROLE_LABELS[role] || role
+  const keyMap: Record<UserRole, string> = {
+    student: 'admin.inviteCode.roleStudent',
+    teacher: 'admin.inviteCode.roleTeacher',
+    pastor: 'admin.inviteCode.rolePastor',
+    parent: 'admin.inviteCode.roleParent',
+    admin: 'admin.inviteCode.roleAdmin'
+  }
+  return keyMap[role] ? t(keyMap[role]) : role
 }
 
 function formatInviteDate(iso: string): string {

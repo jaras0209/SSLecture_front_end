@@ -621,7 +621,15 @@
       "statusUsed": "Used",
       "statusExpired": "Expired",
       "statusRevoked": "Revoked",
-      "copySuccess": "✅ Invite code copied!"
+      "copySuccess": "✅ Invite code copied!",
+      "generated": "✅ Code {code} generated!",
+      "copyFallback": "Please copy manually: {code}",
+      "revokeConfirm": "Revoke invite code {code}?",
+      "roleStudent": "🎒 Student",
+      "roleTeacher": "👨‍🏫 Mentor Teacher",
+      "rolePastor": "⛪ Pastor",
+      "roleParent": "👨‍👩‍👦 Parent",
+      "roleAdmin": "👑 SS Central"
     }
   },
   "roleLabel": {

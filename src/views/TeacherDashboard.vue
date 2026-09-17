@@ -109,9 +109,9 @@
     </div>
 
     <Teleport to="body">
-      <div v-if="showLecturerModal" class="modal-overlay">
+      <div v-if="showLecturerModal" class="modal-overlay" role="dialog" aria-modal="true" :aria-label="editingLecturerId ? $t('teacher.lecturer.editTitle') : $t('teacher.lecturer.addTitle')">
       <div class="glass-panel modal-card lecturer-modal-card">
-        <h3>{{ editingLecturerId ? '✏️ 編輯講師資料' : '➕ 新增講師' }}</h3>
+        <h3>{{ editingLecturerId ? '✏️ ' + $t('teacher.lecturer.editTitle') : '➕ ' + $t('teacher.lecturer.addTitle') }}</h3>
 
         <!-- Mode Toggle -->
         <div class="link-mode-toggle mt-4">
@@ -121,7 +121,7 @@
             @click="lecturerForm.linkMode = 'link'; lecturerForm.linkedUsername = ''; lecturerForm.name = ''"
             id="btn-link-mode"
           >
-            🔗 關聯系統帳號
+            🔗 {{ $t('teacher.lecturer.linkMode') }}
           </button>
           <button
             class="link-mode-btn"
@@ -129,50 +129,50 @@
             @click="lecturerForm.linkMode = 'custom'; lecturerForm.linkedUsername = ''"
             id="btn-custom-mode"
           >
-            ✍️ 自訂名稱講師
+            ✍️ {{ $t('teacher.lecturer.customMode') }}
           </button>
         </div>
 
         <!-- Link Mode: pick from teachers in church -->
         <div v-if="lecturerForm.linkMode === 'link'" class="form-group mt-4">
-          <label class="form-label">選擇關聯帳號</label>
+          <label class="form-label">{{ $t('teacher.lecturer.selectAccount') }}</label>
           <select
             v-model="lecturerForm.linkedUsername"
             class="form-input select-input"
             @change="onLinkedUsernameChange(lecturerForm.linkedUsername)"
             id="select-linked-teacher"
           >
-            <option value="">請選擇帳號</option>
-            <option v-for="t in teachersInChurch" :key="t.username" :value="t.username">
-              {{ t.displayLabel }}
+            <option value="">{{ $t('teacher.lecturer.selectPlaceholder') }}</option>
+            <option v-for="tc in teachersInChurch" :key="tc.username" :value="tc.username">
+              {{ tc.displayLabel }}
             </option>
           </select>
           <p v-if="teachersInChurch.length === 0" class="text-xs text-muted mt-1">
-            提示：目前所在教會尚未設定講師帳號
+            {{ $t('teacher.lecturer.noTeachersHint') }}
           </p>
           <div v-if="lecturerForm.linkedUsername" class="linked-user-preview mt-2">
-            <span class="linked-chip">📌 已連結 @{{ lecturerForm.linkedUsername }}</span>
-            <span class="text-xs text-muted ml-2">名字將自動帶入</span>
+            <span class="linked-chip">📌 {{ $t('teacher.lecturer.linkedChip', { username: lecturerForm.linkedUsername }) }}</span>
+            <span class="text-xs text-muted ml-2">{{ $t('teacher.lecturer.autoFillHint') }}</span>
           </div>
         </div>
 
         <!-- Lecturer display name (editable in custom mode, auto in link mode) -->
         <div class="form-group" :class="{ 'mt-4': lecturerForm.linkMode !== 'link' }">
           <label class="form-label">
-            📧 講師显示名稱
-            <span v-if="lecturerForm.linkMode === 'link'" class="text-xs text-muted ml-1">(連結模式下將自動帶入)</span>
+            📧 {{ $t('teacher.lecturer.displayName') }}
+            <span v-if="lecturerForm.linkMode === 'link'" class="text-xs text-muted ml-1">{{ $t('teacher.lecturer.autoFillNote') }}</span>
           </label>
           <input
             v-model="lecturerForm.name"
             type="text"
             class="form-input"
-            placeholder="請輸入講師姓名"
+            :placeholder="$t('teacher.lecturer.namePlaceholder')"
             id="input-lecturer-name"
           />
         </div>
 
         <div class="form-group">
-          <label class="form-label">選擇講師職稱</label>
+          <label class="form-label">{{ $t('teacher.lecturer.titleLabel') }}</label>
           <select v-model="lecturerForm.title" class="form-input select-input" id="select-lecturer-title">
             <option value="講師">講師</option>
             <option value="牧師">牧師</option>
@@ -183,7 +183,7 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">課程指定（可多選） <span class="text-xs text-muted">指定後將在此課程的導生順序名單列出此講師</span></label>
+          <label class="form-label">{{ $t('teacher.lecturer.courses') }} <span class="text-xs text-muted">{{ $t('teacher.lecturer.coursesHint') }}</span></label>
           <div class="courses-checkboxes-grid mt-2">
             <label v-for="c in coursesStore.courses" :key="c.id" class="check-item-row">
               <input type="checkbox" :value="c.id" v-model="lecturerForm.courseIds" />
@@ -193,8 +193,8 @@
         </div>
 
         <div class="flex justify-end gap-2 mt-6" style="display: flex; justify-content: flex-end;">
-          <button @click="showLecturerModal = false" class="btn btn-outline btn-sm">取消</button>
-          <button @click="saveLecturer" class="btn btn-secondary btn-sm" id="btn-save-lecturer">儲存</button>
+          <button @click="showLecturerModal = false" class="btn btn-outline btn-sm">{{ $t('teacher.lecturer.cancelBtn') }}</button>
+          <button @click="saveLecturer" class="btn btn-secondary btn-sm" id="btn-save-lecturer">{{ $t('teacher.lecturer.saveBtn') }}</button>
         </div>
       </div>
     </div>
@@ -325,11 +325,11 @@ const notesDialogStudent = ref<StudentProgressSummary | null>(null)
 
 // Local lecturer form state for Settings tab
 
-const adminSettingsChurch = ref('?謜??唳０?')
+const adminSettingsChurch = ref('愛與話語')
 const currentContextChurch = computed(() => {
-  return authStore.currentUser?.role === 'admin' 
-    ? adminSettingsChurch.value 
-    : (authStore.currentUser?.church || '?謜??唳０?')
+  return authStore.currentUser?.role === 'admin'
+    ? adminSettingsChurch.value
+    : (authStore.currentUser?.church || '愛與話語')
 })
 
 // feedbacksSent tracks the confirmation message displayed to teacher after sending feedback
