@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="teacher-dashboard container">
     <!-- Header panel with statistics -->
     <header class="dashboard-header glass-panel no-print">
@@ -13,7 +13,7 @@
             <h2 v-else-if="authStore.currentUser?.role === 'admin'">{{ $t('teacher.header.adminTitle') }}</h2>
             <h2 v-else>{{ $t('teacher.header.teacherTitle') }}</h2>
             <p>{{ $t('teacher.header.welcome', { name: teacherDisplayName }) }}</p>
-            <p v-if="authStore.currentUser?.lastLoginAt" class="last-login-hint-sm">🕐 {{ $t('teacher.header.lastLogin', { time: authStore.currentUser?.lastLoginAt }) }}</p>
+            <p v-if="authStore.currentUser?.lastLoginAt" class="last-login-hint-sm">?? {{ $t('teacher.header.lastLogin', { time: authStore.currentUser?.lastLoginAt }) }}</p>
           </div>
         </div>
       </div>
@@ -42,9 +42,9 @@
         :class="['main-tab-btn', { active: activeMainTab === 'care' }]"
         @click="activeMainTab = 'care'"
       >
-        <span v-if="authStore.currentUser?.role === 'pastor'">👋 {{ $t('teacher.tabs.carePastor') }}</span>
-        <span v-else-if="authStore.currentUser?.role === 'admin'">🎓 {{ $t('teacher.tabs.careAdmin') }}</span>
-        <span v-else>👨‍🏫 {{ $t('teacher.tabs.careTeacher') }}</span>
+        <span v-if="authStore.currentUser?.role === 'pastor'">?? {{ $t('teacher.tabs.carePastor') }}</span>
+        <span v-else-if="authStore.currentUser?.role === 'admin'">?? {{ $t('teacher.tabs.careAdmin') }}</span>
+        <span v-else>????{{ $t('teacher.tabs.careTeacher') }}</span>
       </button>
       <!-- Pastor-only: Church Overview Tab -->
       <button 
@@ -52,13 +52,13 @@
         :class="['main-tab-btn', { active: activeMainTab === 'pastor-overview' }]"
         @click="activeMainTab = 'pastor-overview'"
       >
-        ⛪ {{ $t('teacher.tabs.pastorOverview') }}
+        ??{{ $t('teacher.tabs.pastorOverview') }}
       </button>
       <button 
         :class="['main-tab-btn', { active: activeMainTab === 'settings' }]"
         @click="activeMainTab = 'settings'"
       >
-        ⚙️ {{ $t('teacher.tabs.settings') }}
+        ?? {{ $t('teacher.tabs.settings') }}
       </button>
       <!-- Booking Tab: teacher + admin -->
       <button
@@ -67,7 +67,7 @@
         @click="activeMainTab = 'bookings'"
         id="tab-bookings"
       >
-        📅 {{ $t('teacher.tabs.bookings') }}
+        ?? {{ $t('teacher.tabs.bookings') }}
         <span v-if="bookingPendingCount > 0" class="tab-badge">{{ bookingPendingCount }}</span>
       </button>
     </div>
@@ -111,7 +111,7 @@
     <Teleport to="body">
       <div v-if="showLecturerModal" class="modal-overlay" role="dialog" aria-modal="true" :aria-label="editingLecturerId ? $t('teacher.lecturer.editTitle') : $t('teacher.lecturer.addTitle')">
       <div class="glass-panel modal-card lecturer-modal-card">
-        <h3>{{ editingLecturerId ? '✏️ ' + $t('teacher.lecturer.editTitle') : '➕ ' + $t('teacher.lecturer.addTitle') }}</h3>
+        <h3>{{ editingLecturerId ? '?? ' + $t('teacher.lecturer.editTitle') : '??' + $t('teacher.lecturer.addTitle') }}</h3>
 
         <!-- Mode Toggle -->
         <div class="link-mode-toggle mt-4">
@@ -121,7 +121,7 @@
             @click="lecturerForm.linkMode = 'link'; lecturerForm.linkedUsername = ''; lecturerForm.name = ''"
             id="btn-link-mode"
           >
-            🔗 {{ $t('teacher.lecturer.linkMode') }}
+            ?? {{ $t('teacher.lecturer.linkMode') }}
           </button>
           <button
             class="link-mode-btn"
@@ -129,7 +129,7 @@
             @click="lecturerForm.linkMode = 'custom'; lecturerForm.linkedUsername = ''"
             id="btn-custom-mode"
           >
-            ✍️ {{ $t('teacher.lecturer.customMode') }}
+            ?? {{ $t('teacher.lecturer.customMode') }}
           </button>
         </div>
 
@@ -151,7 +151,7 @@
             {{ $t('teacher.lecturer.noTeachersHint') }}
           </p>
           <div v-if="lecturerForm.linkedUsername" class="linked-user-preview mt-2">
-            <span class="linked-chip">📌 {{ $t('teacher.lecturer.linkedChip', { username: lecturerForm.linkedUsername }) }}</span>
+            <span class="linked-chip">?? {{ $t('teacher.lecturer.linkedChip', { username: lecturerForm.linkedUsername }) }}</span>
             <span class="text-xs text-muted ml-2">{{ $t('teacher.lecturer.autoFillHint') }}</span>
           </div>
         </div>
@@ -159,7 +159,7 @@
         <!-- Lecturer display name (editable in custom mode, auto in link mode) -->
         <div class="form-group" :class="{ 'mt-4': lecturerForm.linkMode !== 'link' }">
           <label class="form-label">
-            📧 {{ $t('teacher.lecturer.displayName') }}
+            ? {{ $t('teacher.lecturer.displayName') }}
             <span v-if="lecturerForm.linkMode === 'link'" class="text-xs text-muted ml-1">{{ $t('teacher.lecturer.autoFillNote') }}</span>
           </label>
           <input
@@ -221,6 +221,7 @@
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useToast } from '@/composables/useToast'
+import { useStudentList } from '@/composables/useStudentList'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import { useBookingsStore } from '@/stores/bookings'
@@ -228,7 +229,7 @@ import ProfileDialog from '@/components/ProfileDialog.vue'
 import { defineAsyncComponent } from 'vue'
 import type { StudentProgressSummary } from '@/components/teacher/TeacherStudentList.vue'
 
-// --- 大型子元件：改用 defineAsyncComponent 按需載入，縮短首次渲染時間 ---
+// --- 憭批?摮?隞塚??寧 defineAsyncComponent ??頛嚗葬?剝?甈⊥葡????---
 const TeacherNotesDialog    = defineAsyncComponent(() => import('@/components/teacher/TeacherNotesDialog.vue'))
 const TeacherPastorOverview = defineAsyncComponent(() => import('@/components/teacher/TeacherPastorOverview.vue'))
 const TeacherSettingsPanel  = defineAsyncComponent(() => import('@/components/teacher/TeacherSettingsPanel.vue'))
@@ -239,25 +240,12 @@ const TeacherStudentDrawer  = defineAsyncComponent(() => import('@/components/te
 import type { Lecturer } from '@/stores/courses'
 import type { BookingSession } from '@/stores/bookings'
 
-// Local type for studentsList computed (records per student)
-interface StudentRecordDetail {
-  courseTitle: string
-  courseId: string
-  listenedTime: number
-  totalDuration: number
-  percent: number
-  completed: boolean
-  notes: string
-  lastUpdated: string
-  listenedAt?: string
-  lecturer?: string
-}
-
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
 const bookingsStore = useBookingsStore()
 const { toast } = useToast()
 const { t } = useI18n()
+const { studentsList } = useStudentList()
 
 const showProfileDialog = ref(false)
 
@@ -325,11 +313,11 @@ const notesDialogStudent = ref<StudentProgressSummary | null>(null)
 
 // Local lecturer form state for Settings tab
 
-const adminSettingsChurch = ref('愛與話語')
+const adminSettingsChurch = ref('??閰梯?')
 const currentContextChurch = computed(() => {
   return authStore.currentUser?.role === 'admin'
     ? adminSettingsChurch.value
-    : (authStore.currentUser?.church || '愛與話語')
+    : (authStore.currentUser?.church || '??閰梯?')
 })
 
 // feedbacksSent tracks the confirmation message displayed to teacher after sending feedback
@@ -370,7 +358,7 @@ function openAddLecturer() {
   editingLecturerId.value = null
   lecturerForm.value = {
     name: '',
-    title: '講師',
+    title: '雓葦',
     courseIds: [],
     linkedUsername: '',
     linkMode: 'custom'
@@ -422,87 +410,6 @@ function saveLecturer() {
 }
 
 // Generate the students progress summary list from databases
-const studentsList = computed<StudentProgressSummary[]>(() => {
-  const students: StudentProgressSummary[] = []
-  const currentUserRole = authStore.currentUser?.role
-  const currentChurch = authStore.currentUser?.church
-  const childUsernames = authStore.currentUser?.childUsernames || []
-
-  // 1. Determine which usernames to include based on role
-  const usernamesSet = new Set<string>()
-
-  if (currentUserRole === 'parent') {
-    // Parent: only their bound children
-    childUsernames.forEach(u => usernamesSet.add(u))
-  } else {
-    // Teacher / Pastor: gather student accounts from SAME church
-    Object.keys(authStore.usersDb).forEach(username => {
-      const user = authStore.usersDb[username]
-      if (user.role === 'student') {
-        const sameChurch = !currentChurch || user.church === currentChurch
-        if (sameChurch) usernamesSet.add(username)
-      }
-    })
-    // Also include students who have progress records but may not be in usersDb
-    // (only if their church matches or if we don't know their church)
-    Object.keys(coursesStore.progressDb).forEach(username => {
-      if (usernamesSet.has(username)) return
-      const userInDb = authStore.usersDb[username]
-      if (!userInDb) {
-        // Legacy record without usersDb entry 
-        if (!currentChurch) usernamesSet.add(username)
-      }
-    })
-  }
-
-  // 2. For each username, calculate completion metrics
-  usernamesSet.forEach(username => {
-    const records: StudentRecordDetail[] = []
-    let totalCompleted = 0
-    let lastActiveTime = ''
-    let totalProgressSum = 0
-
-    coursesStore.courses.forEach(course => {
-      const record = coursesStore.getStudentProgress(username, course.id)
-      const percent = record.completed ? 100 : 0
-      
-      if (record.completed) totalCompleted++
-      if (record.lastUpdated && (!lastActiveTime || record.lastUpdated > lastActiveTime)) {
-        lastActiveTime = record.lastUpdated
-      }
-      
-      totalProgressSum += percent
-      records.push({
-        courseTitle: course.title,
-        courseId: course.id,
-        listenedTime: record.durationListened ?? 0,
-        totalDuration: course.duration,
-        percent,
-        completed: record.completed,
-        notes: record.notes,
-        lastUpdated: record.lastUpdated,
-        listenedAt: record.listenedAt,
-        lecturer: record.lecturer
-      })
-    })
-
-    const totalProgressPercent = coursesStore.courses.length > 0 
-      ? Math.round(totalProgressSum / coursesStore.courses.length) 
-      : 0
-
-    students.push({
-      username,
-      realName: authStore.usersDb[username]?.realName,
-      avatarUrl: authStore.usersDb[username]?.avatarUrl || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${username}`,
-      completedCount: totalCompleted,
-      totalProgressPercent,
-      lastActive: lastActiveTime,
-      records
-    })
-  })
-
-  return students
-})
 
 const myStudentsCount = computed(() => {
   const currentUserRole = authStore.currentUser?.role
@@ -539,7 +446,7 @@ function viewStudentDetails(student: StudentProgressSummary) {
 
 function handleNotesDialogFeedback(username: string, courseId: string, msg: string) {
   const key = `${username}_${courseId}`
-  feedbacksSent.value[key] = `已傳送回饋給 ${username}：${msg}`
+  feedbacksSent.value[key] = t('teacher.notes.feedbackSent', { username, msg })
   setTimeout(() => {
     delete feedbacksSent.value[key]
   }, 4000)

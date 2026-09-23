@@ -438,7 +438,8 @@
       "saveBtn": "💾 儲存備注",
       "savedLabel": "已儲存",
       "lastUpdated": "📅 更新：",
-      "studentNotes": "📖 學員心得記錄"
+      "studentNotes": "📖 學員心得記錄",
+      "feedbackSent": "已傳送回饋給 {username}：{msg}"
     },
 
     "settings": {

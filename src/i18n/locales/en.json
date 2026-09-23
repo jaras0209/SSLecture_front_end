@@ -438,7 +438,8 @@
       "saveBtn": "💾 Save Notes",
       "savedLabel": "Saved",
       "lastUpdated": "📅 Updated:",
-      "studentNotes": "📖 Student Notes"
+      "studentNotes": "📖 Student Notes",
+      "feedbackSent": "Feedback sent to {username}: {msg}"
     },
 
     "settings": {

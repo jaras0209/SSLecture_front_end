@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <!-- Search & Student List -->
   <section class="students-list-panel glass-panel">
     <div class="panel-header-row">
@@ -116,8 +116,9 @@ import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
+import { useStudentList } from '@/composables/useStudentList'
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+// ?? Types ?????????????????????????????????????????????????????????????????????
 
 export interface StudentProgressSummary {
   username: string
@@ -140,7 +141,7 @@ export interface StudentProgressSummary {
   }[]
 }
 
-// ── Emits ─────────────────────────────────────────────────────────────────────
+// ?? Emits ?????????????????????????????????????????????????????????????????????
 
 const emit = defineEmits<{
   'view-student': [student: StudentProgressSummary]
@@ -148,18 +149,18 @@ const emit = defineEmits<{
   'unmanage-student': [username: string]
 }>()
 
-// ── Stores ────────────────────────────────────────────────────────────────────
+// ?? Stores ????????????????????????????????????????????????????????????????????
 
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
 const { t } = useI18n()
 
-// ── State ─────────────────────────────────────────────────────────────────────
+// ?? State ?????????????????????????????????????????????????????????????????????
 
 const currentTab = ref<'my-students' | 'all-students'>('my-students')
 const searchQuery = ref('')
 
-// ── Watch role changes ────────────────────────────────────────────────────────
+// ?? Watch role changes ????????????????????????????????????????????????????????
 
 watch(() => authStore.currentUser?.role, (role) => {
   if (role === 'parent') {
@@ -169,79 +170,9 @@ watch(() => authStore.currentUser?.role, (role) => {
   }
 }, { immediate: true })
 
-// ── Students Data ─────────────────────────────────────────────────────────────
+// ?? Students Data (via shared composable) ?????????????????????????????????????
 
-const studentsList = computed<StudentProgressSummary[]>(() => {
-  const students: StudentProgressSummary[] = []
-  const currentUserRole = authStore.currentUser?.role
-  const currentChurch = authStore.currentUser?.church
-  const childUsernames = authStore.currentUser?.childUsernames || []
-
-  const usernamesSet = new Set<string>()
-
-  if (currentUserRole === 'parent') {
-    childUsernames.forEach(u => usernamesSet.add(u))
-  } else {
-    Object.keys(authStore.usersDb).forEach(username => {
-      const user = authStore.usersDb[username]
-      if (user.role === 'student') {
-        const sameChurch = !currentChurch || user.church === currentChurch
-        if (sameChurch) usernamesSet.add(username)
-      }
-    })
-    Object.keys(coursesStore.progressDb).forEach(username => {
-      if (usernamesSet.has(username)) return
-      const userInDb = authStore.usersDb[username]
-      if (!userInDb && !currentChurch) usernamesSet.add(username)
-    })
-  }
-
-  usernamesSet.forEach(username => {
-    const records: StudentProgressSummary['records'] = []
-    let totalCompleted = 0
-    let lastActiveTime = ''
-    let totalProgressSum = 0
-
-    coursesStore.courses.forEach(course => {
-      const record = coursesStore.getStudentProgress(username, course.id)
-      const percent = record.completed ? 100 : 0
-      if (record.completed) totalCompleted++
-      if (record.lastUpdated && (!lastActiveTime || record.lastUpdated > lastActiveTime)) {
-        lastActiveTime = record.lastUpdated
-      }
-      totalProgressSum += percent
-      records.push({
-        courseTitle: course.title,
-        courseId: course.id,
-        listenedTime: record.durationListened ?? 0,
-        totalDuration: course.duration,
-        percent,
-        completed: record.completed,
-        notes: record.notes,
-        lastUpdated: record.lastUpdated,
-        listenedAt: record.listenedAt,
-        lecturer: record.lecturer
-      })
-    })
-
-    const totalProgressPercent = coursesStore.courses.length > 0
-      ? Math.round(totalProgressSum / coursesStore.courses.length)
-      : 0
-
-    students.push({
-      username,
-      realName: authStore.usersDb[username]?.realName,
-      avatarUrl: authStore.usersDb[username]?.avatarUrl || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${username}`,
-      completedCount: totalCompleted,
-      totalProgressPercent,
-      lastActive: lastActiveTime,
-      records
-    })
-  })
-
-  return students
-})
-
+const { studentsList } = useStudentList()
 const myStudentsCount = computed(() => {
   const currentUserRole = authStore.currentUser?.role
   const currentUsername = authStore.currentUser?.username
@@ -272,7 +203,7 @@ const filteredStudents = computed(() => {
   )
 })
 
-// ── Helper Functions ──────────────────────────────────────────────────────────
+// ?? Helper Functions ??????????????????????????????????????????????????????????
 
 function isStudentManaged(studentUsername: string): boolean {
   if (!authStore.currentUser) return false
