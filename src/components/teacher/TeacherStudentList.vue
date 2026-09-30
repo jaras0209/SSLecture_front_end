@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <!-- Search & Student List -->
   <section class="students-list-panel glass-panel">
     <div class="panel-header-row">
@@ -33,6 +33,7 @@
 
     <div class="table-container mt-4">
       <table class="students-table">
+        <caption class="sr-only">{{ $t('teacher.studentList.tableCaption') }}</caption>
         <thead>
           <tr>
             <th>{{ $t('teacher.studentList.colName') }}</th>

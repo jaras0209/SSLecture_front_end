@@ -85,6 +85,7 @@
 
         <div class="table-container mt-4">
           <table class="admin-table">
+            <caption class="sr-only">{{ $t('admin.userList.tableCaption') }}</caption>
             <thead>
               <tr>
                 <th>{{ $t('admin.userList.colName') }}</th>
@@ -267,6 +268,7 @@
 
       <div class="table-container mt-4">
         <table class="admin-table stats-table">
+          <caption class="sr-only">{{ $t('admin.statsOverview.tableCaption') }}</caption>
           <thead>
             <tr>
               <th>{{ $t('admin.statsOverview.colTeacher') }}</th>
@@ -402,6 +404,7 @@
           {{ $t('admin.inviteCode.emptyList') }}
         </div>
         <table v-else class="invite-table">
+          <caption class="sr-only">{{ $t('admin.inviteCode.tableCaption') }}</caption>
           <thead>
             <tr>
               <th>{{ $t('admin.inviteCode.colCode') }}</th>

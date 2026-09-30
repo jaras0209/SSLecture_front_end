@@ -42,23 +42,34 @@
     <ProfileDialog v-model="showProfileDialog" />
 
     <!-- Main Navigation Tab (Sermons vs Shining Project) -->
-    <div class="main-tabs mb-4 no-print">
-      <button 
+    <div class="main-tabs mb-4 no-print" role="tablist" :aria-label="$t('student.tabs.ariaLabel')">
+      <button
+        role="tab"
+        :aria-selected="activeDashboardTab === 'sermons'"
+        aria-controls="tabpanel-sermons"
+        id="tab-sermons"
         :class="['main-tab-btn', { active: activeDashboardTab === 'sermons' }]"
         @click="activeDashboardTab = 'sermons'"
       >
         🎧 {{ $t('student.tabs.sermons') }}
       </button>
-      <button 
+      <button
+        role="tab"
+        :aria-selected="activeDashboardTab === 'shining'"
+        aria-controls="tabpanel-shining"
+        id="tab-shining"
         :class="['main-tab-btn', { active: activeDashboardTab === 'shining' }]"
         @click="activeDashboardTab = 'shining'"
       >
         ✨ {{ $t('student.tabs.shining') }}
       </button>
       <button
+        role="tab"
+        :aria-selected="activeDashboardTab === 'bookings'"
+        aria-controls="tabpanel-bookings"
+        id="tab-my-bookings"
         :class="['main-tab-btn', { active: activeDashboardTab === 'bookings' }]"
         @click="activeDashboardTab = 'bookings'"
-        id="tab-my-bookings"
       >
         📅 {{ $t('student.tabs.bookings') }}
         <span v-if="upcomingBookingsCount > 0" class="booking-badge">{{ upcomingBookingsCount }}</span>
@@ -66,7 +77,13 @@
     </div>
 
     <!-- TAB 1: Sermons Center -->
-    <div v-if="activeDashboardTab === 'sermons'" class="dashboard-body no-print">
+    <div
+      v-if="activeDashboardTab === 'sermons'"
+      id="tabpanel-sermons"
+      role="tabpanel"
+      aria-labelledby="tab-sermons"
+      class="dashboard-body no-print"
+    >
       <StudentCourseGrid
         :selected-course-id="selectedCourse?.id"
         @select-course="selectedCourse = $event"
@@ -75,13 +92,19 @@
     </div>
 
     <!-- TAB 2: SS Shining Project Dashboard -->
-    <StudentShiningDashboard v-else-if="activeDashboardTab === 'shining'" />
-
-
+    <StudentShiningDashboard
+      v-else-if="activeDashboardTab === 'shining'"
+      id="tabpanel-shining"
+      role="tabpanel"
+      aria-labelledby="tab-shining"
+    />
 
     <!-- TAB 3: 我的預約 -->
     <StudentBookingList
       v-if="activeDashboardTab === 'bookings'"
+      id="tabpanel-bookings"
+      role="tabpanel"
+      aria-labelledby="tab-my-bookings"
       @open-feedback="openFeedbackModal"
     /><!-- end bookings tab -->
 

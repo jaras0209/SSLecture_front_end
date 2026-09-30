@@ -26,6 +26,7 @@
         <p class="section-desc mb-4 text-sm text-muted">{{ $t('teacher.pastor.matchPanelDesc') }}</p>
         <div class="table-container">
           <table class="students-table match-table">
+            <caption class="sr-only">{{ $t('teacher.pastor.matchTableCaption') }}</caption>
             <thead>
               <tr>
                 <th>{{ $t('teacher.pastor.colStudent') }}</th>
@@ -88,6 +89,7 @@
         <h4 class="mb-4">{{ $t('teacher.pastor.teacherOverviewTitle') }}</h4>
         <div class="table-container">
           <table class="students-table">
+            <caption class="sr-only">{{ $t('teacher.pastor.teacherTableCaption') }}</caption>
             <thead>
               <tr>
                 <th>{{ $t('teacher.pastor.colTeacherName') }}</th>
@@ -138,6 +140,7 @@
         <h4 class="mb-4">{{ $t('teacher.pastor.lecturerStatsTitle') }}</h4>
         <div class="table-container">
           <table class="students-table">
+            <caption class="sr-only">{{ $t('teacher.pastor.lecturerTableCaption') }}</caption>
             <thead>
               <tr>
                 <th>{{ $t('teacher.pastor.colLecturer') }}</th>

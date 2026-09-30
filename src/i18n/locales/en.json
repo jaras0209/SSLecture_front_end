@@ -172,6 +172,7 @@
       "profileCard": "Profile"
     },
     "tabs": {
+      "ariaLabel": "Learning Navigation",
       "sermons": "📖 Session Records",
       "shining": "✨ Shining Plan",
       "bookings": "📅 My Bookings"
@@ -323,6 +324,7 @@
       "allStudents": "👥 All Students",
       "childrenTitle": "👨‍👩‍👦 My Children's Progress",
       "searchPlaceholder": "🔍 Search student name...",
+      "tableCaption": "Student Roster Table",
       "colName": "Student Name",
       "colStatus": "Status",
       "colCompleted": "Completed Sessions",
@@ -506,7 +508,10 @@
       "colLecturer": "Lecturer",
       "colSessions": "Sessions",
       "noLecturers": "No lecturers recorded for this church",
-      "sessionCountSuffix": "{n}"
+      "sessionCountSuffix": "{n}",
+      "matchTableCaption": "Student–Teacher Match Management Table",
+      "teacherTableCaption": "Teacher Management Overview Table",
+      "lecturerTableCaption": "Lecturer Session Statistics Table"
     },
     "drawer": {
       "emptyTitle": "Student Progress & Records",
@@ -543,6 +548,7 @@
     "userList": {
       "title": "Member List & Permission Matrix",
       "count": "{n} members",
+      "tableCaption": "Member List & Permission Settings Table",
       "colName": "Name / Account",
       "colRole": "Role Change",
       "colRestrictStudent": "Restrict /student",
@@ -591,7 +597,8 @@
       "noLecturerDb": "Not created",
       "courseSuffix": "{n} courses",
       "grandTotal": "📊 Grand Total",
-      "emptyRow": "No reports filed for {year} yet"
+      "emptyRow": "No reports filed for {year} yet",
+      "tableCaption": "Annual Teacher Session Report Table"
     },
     "inviteCode": {
       "title": "🎟️ Invite Code Management",
@@ -630,7 +637,8 @@
       "roleTeacher": "👨‍🏫 Mentor Teacher",
       "rolePastor": "⛪ Pastor",
       "roleParent": "👨‍👩‍👦 Parent",
-      "roleAdmin": "👑 SS Central"
+      "roleAdmin": "👑 SS Central",
+      "tableCaption": "Invite Code List Table"
     }
   },
   "roleLabel": {

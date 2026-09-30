@@ -412,15 +412,28 @@ export const useCoursesStore = defineStore('courses', () => {
     return ''
   }
 
-  // Backwards compatibility actions
+  // ── Backwards compatibility wrappers ─────────────────────────────────────
+  // These thin wrappers delegate to the generic caretaker API.
+  // Use assignStudentCaretaker / removeStudentCaretaker / getStudentCaretaker
+  // directly in new code.
+
+  /**
+   * @deprecated Use `assignStudentCaretaker(username, 'teacher', teacherUsername)` instead.
+   */
   function assignStudentToTeacher(studentUsername: string, teacherUsername: string): void {
     assignStudentCaretaker(studentUsername, 'teacher', teacherUsername)
   }
 
+  /**
+   * @deprecated Use `removeStudentCaretaker(username, 'teacher')` instead.
+   */
   function removeStudentFromTeacher(studentUsername: string): void {
     removeStudentCaretaker(studentUsername, 'teacher')
   }
 
+  /**
+   * @deprecated Use `getStudentCaretaker(username, 'teacher')` instead.
+   */
   function getStudentTeacher(studentUsername: string): string {
     return getStudentCaretaker(studentUsername, 'teacher')
   }

@@ -172,6 +172,7 @@
       "profileCard": "個人資料"
     },
     "tabs": {
+      "ariaLabel": "學習功能導覽",
       "sermons": "📖 聽道記錄",
       "shining": "✨ 閃耀計畫",
       "bookings": "📅 預約管理"
@@ -323,6 +324,7 @@
       "allStudents": "👥 全體學員名冊",
       "childrenTitle": "👨‍👩‍👦 我的孩子進度一覽",
       "searchPlaceholder": "🔍 搜尋學員姓名...",
+      "tableCaption": "學員名冊表格",
       "colName": "學員姓名",
       "colStatus": "管理狀態",
       "colCompleted": "已聽完課堂",
@@ -506,7 +508,10 @@
       "colLecturer": "講師姓名",
       "colSessions": "授課次數",
       "noLecturers": "本教會學員尚未登記任何授課講師",
-      "sessionCountSuffix": "{n} 次"
+      "sessionCountSuffix": "{n} 次",
+      "matchTableCaption": "學員教師配對管理表",
+      "teacherTableCaption": "教師管理概況表",
+      "lecturerTableCaption": "講師授課統計表"
     },
     "drawer": {
       "emptyTitle": "學員進度與紀錄詳細資訊",
@@ -543,6 +548,7 @@
     "userList": {
       "title": "成員清單與權限設定矩陣",
       "count": "共 {n} 名成員",
+      "tableCaption": "成員清單與存取權限表",
       "colName": "姓名 / 帳號",
       "colRole": "角色身分變更",
       "colRestrictStudent": "限制瀏覽 /student",
@@ -591,7 +597,8 @@
       "noLecturerDb": "未建立",
       "courseSuffix": "{n} 堂",
       "grandTotal": "📊 全體合計",
-      "emptyRow": "{year} 年度尚未有任何教師填寫申報資料"
+      "emptyRow": "{year} 年度尚未有任何教師填寫申報資料",
+      "tableCaption": "教師申報統計總覽表"
     },
     "inviteCode": {
       "title": "🎟️ 邀請碼管理",
@@ -630,7 +637,8 @@
       "roleTeacher": "👨‍🏫 輔導教師",
       "rolePastor": "⛪ 牧者",
       "roleParent": "👨‍👩‍👦 家長",
-      "roleAdmin": "👑 中央"
+      "roleAdmin": "👑 中央",
+      "tableCaption": "邀請碼清單表格"
     }
   },
   "roleLabel": {
