@@ -47,8 +47,8 @@ export function usePasswordStrength(password: Ref<string>) {
   const strength = computed(() => calcPasswordStrength(password.value))
   const label     = computed(() => {
     const key = LABEL_KEYS[strength.value] ?? LABEL_KEYS[0]
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (t as any)(key) as string
+    // Use the same explicit cast pattern as useI18nHelper to handle dynamic keys
+    return (t as (k: string) => string)(key)
   })
   const textClass = computed(() => TEXT_CLASSES[strength.value] ?? TEXT_CLASSES[0])
 

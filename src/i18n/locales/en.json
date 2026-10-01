@@ -662,7 +662,10 @@
       "wrongOldPassword": "Incorrect current password. Please try again.",
       "passwordChanged": "Password changed successfully!",
       "passwordReset": "Password for {username} has been reset to the default.",
-      "profileUpdated": "Profile updated successfully!"
+      "profileUpdated": "Profile updated successfully!",
+      "inviteNotFound": "Invite code not found.",
+      "inviteAlreadyUsed": "This invite code has already been used and cannot be revoked.",
+      "inviteRevoked": "Invite code {code} has been revoked."
     },
     "bookings": {
       "sessionFull": "This session is full or not open for booking",

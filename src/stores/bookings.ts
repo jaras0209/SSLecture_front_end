@@ -163,10 +163,14 @@ export const useBookingsStore = defineStore('bookings', () => {
     if (status === 'cancelled' && options?.cancelReason) session.cancelReason = options.cancelReason
   }
 
-  function updateSessionProp(sessionId: string, key: keyof BookingSession, value: unknown): void {
+  function updateSessionProp<K extends keyof BookingSession>(
+    sessionId: string,
+    key: K,
+    value: BookingSession[K]
+  ): void {
     const session = sessionsDb.value[sessionId]
     if (!session) return
-    ;(session as unknown as Record<string, unknown>)[key] = value
+    session[key] = value
     session.updatedAt = new Date().toISOString()
   }
 

@@ -356,8 +356,20 @@ export const useAuthStore = defineStore('auth', () => {
 
   /**
    * Validate an invite code. Returns the InviteCode if valid, null otherwise.
+   * Also prunes invite codes older than 30 days to keep localStorage clean.
    */
   function validateInviteCode(code: string): InviteCode | null {
+    // Prune stale codes on every validation call (lightweight cleanup)
+    const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000 // 30 days
+    for (const [key, invite] of Object.entries(inviteCodesDb.value)) {
+      const isExpired = new Date(invite.expiresAt).getTime() < cutoff
+      const isOldUsed = invite.usedAt && new Date(invite.usedAt).getTime() < cutoff
+      const isOldRevoked = invite.revoked && new Date(invite.createdAt).getTime() < cutoff
+      if (isExpired || isOldUsed || isOldRevoked) {
+        delete inviteCodesDb.value[key]
+      }
+    }
+
     const invite = inviteCodesDb.value[code.toUpperCase()]
     if (!invite) return null
     if (invite.revoked) return null
@@ -381,10 +393,10 @@ export const useAuthStore = defineStore('auth', () => {
    */
   function revokeInviteCode(code: string): { success: boolean; message: string } {
     const invite = inviteCodesDb.value[code.toUpperCase()]
-    if (!invite) return { success: false, message: '找不到此邀請碼。' }
-    if (invite.usedBy) return { success: false, message: '此邀請碼已被使用，無法作廢。' }
+    if (!invite) return { success: false, message: t('stores.auth.inviteNotFound') }
+    if (invite.usedBy) return { success: false, message: t('stores.auth.inviteAlreadyUsed') }
     invite.revoked = true
-    return { success: true, message: `邀請碼 ${code} 已作廢。` }
+    return { success: true, message: t('stores.auth.inviteRevoked', { code }) }
   }
 
   /**

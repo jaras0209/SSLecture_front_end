@@ -1,7 +1,7 @@
 import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
-import type { StudentProgressSummary } from '@/components/teacher/TeacherStudentList.vue'
+import type { StudentProgressSummary } from '@/types/student'
 
 /**
  * useStudentList — shared composable for teacher/pastor/parent views.

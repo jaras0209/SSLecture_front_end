@@ -662,7 +662,10 @@
       "wrongOldPassword": "原密碼錯誤，請再試一次。",
       "passwordChanged": "密碼修改成功！",
       "passwordReset": "帳號 {username} 的密碼已重設為預設值。",
-      "profileUpdated": "個人資料已更新！"
+      "profileUpdated": "個人資料已更新！",
+      "inviteNotFound": "找不到此邀請碼。",
+      "inviteAlreadyUsed": "此邀請碼已被使用，無法作廢。",
+      "inviteRevoked": "邀請碼 {code} 已作廢。"
     },
     "bookings": {
       "sessionFull": "此時段已額滿或不開放預約",

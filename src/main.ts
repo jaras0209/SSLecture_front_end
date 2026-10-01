@@ -22,9 +22,9 @@ app.use(router)
 app.config.errorHandler = (err, instance, info) => {
   // 開發環境：印出詳細資訊協助除錯
   if (import.meta.env.DEV) {
-    console.error('[全域錯誤捕獲]', {
+    console.error('[GlobalErrorCapture]', {
       error: err,
-      component: instance?.$options?.name ?? '未知元件',
+      component: instance?.$options?.name ?? 'UnknownComponent',
       info
     })
   }
@@ -40,7 +40,7 @@ app.config.errorHandler = (err, instance, info) => {
  */
 window.addEventListener('unhandledrejection', (event) => {
   if (import.meta.env.DEV) {
-    console.error('[未處理的 Promise 錯誤]', event.reason)
+    console.error('[UnhandledPromiseRejection]', event.reason)
   }
   // 防止瀏覽器預設行為（控制台紅字）在生產環境中顯示
   event.preventDefault()
