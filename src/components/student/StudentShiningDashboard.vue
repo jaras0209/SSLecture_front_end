@@ -510,3 +510,322 @@ const advancedLabels = computed(() => ({
   }
 }
 </style>
+
+<style>
+/* [css-migration] moved from StudentDashboard.vue */
+/* SHINING PROJECT DASHBOARD STYLE */
+.shining-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.shining-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.shining-row-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .shining-row-cols {
+      grid-template-columns: 1fr;
+    }
+}
+
+.shining-card-title {
+  font-size: 1.2rem;
+  border-bottom: 3px solid var(--warning);
+  padding-bottom: 0.5rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Basic Info card */
+.shining-card-basic {
+  background: white;
+  padding: 1.5rem;
+  border-radius: var(--radius-md);
+}
+
+.form-group-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+}
+
+.info-dot {
+  color: var(--warning);
+  font-weight: 700;
+}
+
+.info-lbl {
+  font-weight: 700;
+  min-width: 90px;
+  color: var(--text-secondary);
+}
+
+.form-input-clean {
+  flex-grow: 1;
+  border: none;
+  border-bottom: 2px dashed #E2E8F0;
+  padding: 0.35rem 0.5rem;
+  font-family: var(--font-family);
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  background: transparent;
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.form-input-clean:focus {
+  border-bottom-color: var(--warning);
+}
+
+.save-alert-msg {
+  font-size: 0.8rem;
+  color: var(--secondary-hover);
+  font-weight: 700;
+  margin-left: 0.5rem;
+}
+
+.text-right {
+  text-align: right;
+}
+
+/* Checklists styling */
+.checklist-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: var(--radius-md);
+}
+
+.checklist-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.check-box-wrapper {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.check-box-wrapper input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.styled-checkbox {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 20px;
+  width: 20px;
+  background-color: #F1F5F9;
+  border: 2px solid #CBD5E1;
+  border-radius: 50%; /* Circles matching images */
+  transition: all var(--transition-fast);
+}
+
+.check-box-wrapper input:checked + .styled-checkbox {
+  background-color: var(--warning);
+  border-color: var(--warning);
+}
+
+.check-box-wrapper input:checked + .styled-checkbox:after {
+  content: "✓";
+  position: absolute;
+  color: white;
+  font-weight: 800;
+  font-size: 0.75rem;
+  left: 4px;
+  top: -1px;
+}
+
+.check-label-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.special-progress-row {
+  background-color: #EFF6FF;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  border-left: 4px solid var(--primary);
+}
+
+.check-label-text-progress {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+
+.check-label-text-progress span {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.check-label-text-progress .progress-sub {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.custom-challenge-wrap {
+  flex-grow: 1;
+}
+
+.form-input-clean-custom {
+  width: 100%;
+  border: none;
+  border-bottom: 2px dashed #E2E8F0;
+  padding: 0.25rem 0.5rem;
+  font-family: var(--font-family);
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  outline: none;
+  background: transparent;
+}
+
+.form-input-clean-custom:focus {
+  border-bottom-color: var(--warning);
+}
+
+/* Tables styling */
+.shining-row-cols-tables {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 900px) {
+  .shining-row-cols-tables {
+      grid-template-columns: 1fr;
+    }
+}
+
+.table-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: var(--radius-md);
+}
+
+.table-sub-lbl {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-top: 0.25rem;
+}
+
+.shining-lecture-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.shining-lecture-table th {
+  background-color: #F8FAFC;
+  padding: 0.6rem 0.85rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  border-bottom: 2px solid #E2E8F0;
+  font-size: 0.85rem;
+}
+
+.shining-lecture-table td {
+  padding: 0.75rem 0.85rem;
+  border-bottom: 1px solid #F1F5F9;
+  font-size: 0.9rem;
+}
+
+.theme-title-cell {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.empty-input-cell {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 0.8rem;
+}
+
+/* Signature section */
+.signatures-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 1rem;
+}
+
+.signature-box-preview-container {
+  display: flex;
+  justify-content: space-around;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.sig-box-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 100px;
+}
+
+.sig-title-p {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.sig-circle-p {
+  width: 72px;
+  height: 72px;
+  border: 2px dashed var(--text-muted);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 480px) {
+  /* Shining panel */
+  .shining-dashboard-body {
+      padding: 0.5rem;
+    }
+
+  .shining-row-cols {
+      grid-template-columns: 1fr !important;
+    }
+
+  /* Form inline */
+  .form-group-inline {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.25rem;
+    }
+
+  .info-lbl {
+      min-width: unset;
+      font-size: 0.8rem;
+    }
+}
+</style>

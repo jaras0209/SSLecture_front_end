@@ -453,3 +453,201 @@ const advancedLabels = computed(() => ({
   custom: t('teacher.studentList.advCustom')
 }))
 </script>
+
+<style>
+/* [css-migration] moved from TeacherDashboard.vue */
+/* Drawer Tabs Selector Styles */
+.drawer-tabs {
+  display: flex;
+  background: #F1F5F9;
+  padding: 0.25rem;
+  border-radius: var(--radius-sm);
+  gap: 0.25rem;
+}
+
+.drawer-tab-btn {
+  flex: 1;
+  padding: 0.5rem;
+  border: none;
+  background: transparent;
+  font-family: var(--font-family);
+  font-weight: 700;
+  font-size: 0.85rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.drawer-tab-btn.active {
+  background: white;
+  color: var(--secondary-hover);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Drawer Section */
+.student-details-drawer {
+  background: white;
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  align-self: start;
+  position: sticky;
+  top: 96px;
+}
+
+.drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #E2E8F0;
+  padding-bottom: 1rem;
+}
+
+.student-profile {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.drawer-body {
+  max-height: 520px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.empty-drawer {
+  padding: 4rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-illustration {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+}
+
+.empty-drawer h4 {
+  font-size: 1.15rem;
+  margin-bottom: 0.5rem;
+}
+
+.empty-drawer p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  max-width: 280px;
+}
+
+/* SHINING AUDIT VIEW STYLES */
+.basic-info-readonly-card {
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: var(--radius-sm);
+  padding: 1rem;
+}
+
+.basic-info-readonly-card h6 {
+  font-size: 0.9rem;
+  border-bottom: 1px solid #E2E8F0;
+  padding-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.readonly-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.checklists-readonly-container h6 {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.checklist-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.checklist-ro-column {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: var(--radius-sm);
+  padding: 0.75rem;
+}
+
+.checklist-ro-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--secondary-hover);
+  border-bottom: 1px solid #E2E8F0;
+  padding-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.checklist-ro-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.ro-check-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.lectures-edit-section h6 {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.lecture-inputs-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.lecture-edit-row {
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.85rem;
+}
+
+.row-theme-name {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.35rem;
+}
+
+.inputs-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.inputs-row input {
+  padding: 0.35rem 0.5rem;
+  flex: 1;
+}
+
+.inputs-row-readonly {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  background: #F8FAFC;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  border: 1px dashed #E2E8F0;
+  color: var(--text-secondary);
+}
+</style>

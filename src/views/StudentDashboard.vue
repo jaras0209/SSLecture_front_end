@@ -339,23 +339,6 @@ const overallProgressPercent = computed(() => {
   }
 }
 
-.section-title-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.filter-tabs {
-  display: flex;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  padding: 0.2rem;
-  border-radius: var(--radius-full);
-}
-
 .filter-btn {
   padding: 0.4rem 1rem;
   border: none;
@@ -374,88 +357,11 @@ const overallProgressPercent = computed(() => {
   color: white;
 }
 
-/* Course Grid and Cards */
-.courses-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-.course-card {
-  display: flex;
-  overflow: hidden;
-  cursor: pointer;
-  transition: all var(--transition-normal);
-}
-
-.course-card:hover {
-  transform: translateY(-3px);
-}
-
-.card-cover {
-  width: 160px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.category-badge {
-  position: absolute;
-  top: 0.75rem;
-  left: 0.75rem;
-  background: rgba(0, 0, 0, 0.35);
-  color: white;
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 0.15rem 0.5rem;
-  border-radius: var(--radius-full);
-  backdrop-filter: blur(4px);
-}
-
-.completed-check {
-  position: absolute;
-  bottom: 0.75rem;
-  right: 0.75rem;
-  background: var(--secondary);
-  color: white;
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 0.15rem 0.5rem;
-  border-radius: var(--radius-full);
-  box-shadow: var(--shadow-sm);
-}
-
-.card-content {
-  padding: 1.25rem;
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.course-title {
-  font-size: 1.15rem;
-  color: var(--text-primary);
-  margin-bottom: 0.25rem;
-}
-
 .course-speaker {
   font-size: 0.8rem;
   color: var(--text-secondary);
   font-weight: 600;
   margin-bottom: 0.5rem;
-}
-
-.course-desc {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  margin-bottom: 1rem;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 .card-progress {
@@ -471,49 +377,6 @@ const overallProgressPercent = computed(() => {
   margin-bottom: 0.25rem;
 }
 
-/* Sticky Player Section */
-.player-section {
-  position: relative;
-}
-
-.sticky-panel {
-  position: sticky;
-  top: 96px;
-  max-height: calc(100vh - 130px);
-  overflow-y: auto;
-  padding: 2rem;
-  border-radius: var(--radius-lg);
-  background: white;
-}
-
-/* 針對小螢幕設計精緻滾動條，確保按鈕必定能被看見 */
-.sticky-panel::-webkit-scrollbar {
-  width: 6px;
-}
-.sticky-panel::-webkit-scrollbar-track {
-  background: transparent;
-}
-.sticky-panel::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.12);
-  border-radius: 3px;
-}
-.sticky-panel::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.22);
-}
-
-.panel-header {
-  font-size: 1.25rem;
-  color: var(--text-primary);
-  border-bottom: 1px solid #E2E8F0;
-  padding-bottom: 0.5rem;
-}
-
-.text-area {
-  resize: vertical;
-  border-radius: var(--radius-md);
-  margin-top: 0.5rem;
-}
-
 .save-row {
   display: flex;
   align-items: center;
@@ -526,127 +389,9 @@ const overallProgressPercent = computed(() => {
   font-weight: 600;
 }
 
-.empty-player-state {
-  padding: 4rem 2rem;
-}
-
-.empty-emoji {
-  font-size: 4rem;
-  margin-bottom: 1.5rem;
-  animation: float-pulse 3s infinite ease-in-out;
-}
-
-.empty-player-state h4 {
-  font-size: 1.2rem;
-  margin-bottom: 0.5rem;
-}
-
 .empty-player-state .desc {
   font-size: 0.85rem;
   color: var(--text-secondary);
-}
-
-/* SHINING PROJECT DASHBOARD STYLE */
-.shining-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.shining-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.shining-row-cols {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-}
-
-@media (max-width: 768px) {
-  .shining-row-cols {
-    grid-template-columns: 1fr;
-  }
-}
-
-.shining-card-title {
-  font-size: 1.2rem;
-  border-bottom: 3px solid var(--warning);
-  padding-bottom: 0.5rem;
-  color: var(--text-primary);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* Basic Info card */
-.shining-card-basic {
-  background: white;
-  padding: 1.5rem;
-  border-radius: var(--radius-md);
-}
-
-.form-group-inline {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.85rem;
-}
-
-.info-dot {
-  color: var(--warning);
-  font-weight: 700;
-}
-
-.info-lbl {
-  font-weight: 700;
-  min-width: 90px;
-  color: var(--text-secondary);
-}
-
-.form-input-clean {
-  flex-grow: 1;
-  border: none;
-  border-bottom: 2px dashed #E2E8F0;
-  padding: 0.35rem 0.5rem;
-  font-family: var(--font-family);
-  font-size: 0.95rem;
-  color: var(--text-primary);
-  background: transparent;
-  outline: none;
-  transition: border-color var(--transition-fast);
-}
-
-.form-input-clean:focus {
-  border-bottom-color: var(--warning);
-}
-
-.save-alert-msg {
-  font-size: 0.8rem;
-  color: var(--secondary-hover);
-  font-weight: 700;
-  margin-left: 0.5rem;
-}
-
-.text-right {
-  text-align: right;
-}
-
-/* Checklists styling */
-.checklist-card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: var(--radius-md);
-}
-
-.checklist-items {
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
 }
 
 .check-item-row {
@@ -654,46 +399,6 @@ const overallProgressPercent = computed(() => {
   align-items: center;
   gap: 0.75rem;
   cursor: pointer;
-}
-
-.check-box-wrapper {
-  position: relative;
-  width: 22px;
-  height: 22px;
-  flex-shrink: 0;
-}
-
-.check-box-wrapper input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.styled-checkbox {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 20px;
-  width: 20px;
-  background-color: #F1F5F9;
-  border: 2px solid #CBD5E1;
-  border-radius: 50%; /* Circles matching images */
-  transition: all var(--transition-fast);
-}
-
-.check-box-wrapper input:checked + .styled-checkbox {
-  background-color: var(--warning);
-  border-color: var(--warning);
-}
-
-.check-box-wrapper input:checked + .styled-checkbox:after {
-  content: "✓";
-  position: absolute;
-  color: white;
-  font-weight: 800;
-  font-size: 0.75rem;
-  left: 4px;
-  top: -1px;
 }
 
 .disabled-check {
@@ -704,156 +409,6 @@ const overallProgressPercent = computed(() => {
 .check-box-wrapper input:checked + .disabled-check {
   background-color: var(--primary);
   border-color: var(--primary);
-}
-
-.check-label-text {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.special-progress-row {
-  background-color: #EFF6FF;
-  padding: 0.5rem 0.75rem;
-  border-radius: var(--radius-sm);
-  border-left: 4px solid var(--primary);
-}
-
-.check-label-text-progress {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.3;
-}
-
-.check-label-text-progress span {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.check-label-text-progress .progress-sub {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--primary);
-}
-
-.custom-challenge-wrap {
-  flex-grow: 1;
-}
-
-.form-input-clean-custom {
-  width: 100%;
-  border: none;
-  border-bottom: 2px dashed #E2E8F0;
-  padding: 0.25rem 0.5rem;
-  font-family: var(--font-family);
-  font-size: 0.9rem;
-  color: var(--text-primary);
-  outline: none;
-  background: transparent;
-}
-
-.form-input-clean-custom:focus {
-  border-bottom-color: var(--warning);
-}
-
-/* Tables styling */
-.shining-row-cols-tables {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-}
-
-@media (max-width: 900px) {
-  .shining-row-cols-tables {
-    grid-template-columns: 1fr;
-  }
-}
-
-.table-card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: var(--radius-md);
-}
-
-.table-sub-lbl {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  font-weight: 600;
-  margin-top: 0.25rem;
-}
-
-.shining-lecture-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-}
-
-.shining-lecture-table th {
-  background-color: #F8FAFC;
-  padding: 0.6rem 0.85rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-  border-bottom: 2px solid #E2E8F0;
-  font-size: 0.85rem;
-}
-
-.shining-lecture-table td {
-  padding: 0.75rem 0.85rem;
-  border-bottom: 1px solid #F1F5F9;
-  font-size: 0.9rem;
-}
-
-.theme-title-cell {
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.empty-input-cell {
-  color: var(--text-muted);
-  font-style: italic;
-  font-size: 0.8rem;
-}
-
-/* Signature section */
-.signatures-card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: var(--radius-md);
-  margin-bottom: 1rem;
-}
-
-.signature-box-preview-container {
-  display: flex;
-  justify-content: space-around;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.sig-box-preview {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  min-width: 100px;
-}
-
-.sig-title-p {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-}
-
-.sig-circle-p {
-  width: 72px;
-  height: 72px;
-  border: 2px dashed var(--text-muted);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-  color: var(--text-muted);
 }
 
 .assigned-teacher-label {
@@ -931,12 +486,6 @@ const overallProgressPercent = computed(() => {
   box-shadow: 0 6px 20px rgba(99,102,241,0.15);
 }
 
-
-.datetime-input {
-  font-size: 0.9rem;
-  padding: 0.5rem 1rem;
-}
-
 @keyframes float-pulse {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-8px); }
@@ -1009,32 +558,6 @@ const overallProgressPercent = computed(() => {
     padding: 0 0.25rem;
   }
 
-  /* Course card: vertical on mobile */
-  .course-card {
-    flex-direction: column;
-  }
-
-  .card-cover {
-    width: 100%;
-    height: 140px;
-  }
-
-  .card-content {
-    padding: 0.85rem;
-  }
-
-  .course-title {
-    font-size: 1rem;
-  }
-
-  /* Filter tabs: horizontal scroll */
-  .filter-tabs {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    flex-wrap: nowrap;
-    max-width: 100%;
-  }
-
   .filter-btn {
     flex: 0 0 auto;
     white-space: nowrap;
@@ -1091,11 +614,6 @@ const overallProgressPercent = computed(() => {
     font-size: 0.78rem;
   }
 
-  /* Booking panel styles */
-  .student-bookings-panel {
-    padding: 0.75rem !important;
-  }
-
   .sbc-card {
     padding: 0.75rem;
   }
@@ -1110,34 +628,9 @@ const overallProgressPercent = computed(() => {
     align-self: flex-start;
   }
 
-  .sbc-prep-row {
-    font-size: 0.8rem;
-  }
-
   .scripture-chip {
     font-size: 0.72rem;
     padding: 0.15rem 0.45rem;
-  }
-
-  /* Shining panel */
-  .shining-dashboard-body {
-    padding: 0.5rem;
-  }
-
-  .shining-row-cols {
-    grid-template-columns: 1fr !important;
-  }
-
-  /* Form inline */
-  .form-group-inline {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.25rem;
-  }
-
-  .info-lbl {
-    min-width: unset;
-    font-size: 0.8rem;
   }
 
   /* Print certificate button section */
@@ -1323,130 +816,6 @@ const overallProgressPercent = computed(() => {
   }
 }
 
-/* ── Card selected state ── */
-.course-card.card-selected {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-}
-
-/* ── Section subtitle ── */
-.section-sub-title {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-  margin-bottom: 0.75rem;
-}
-
-/* ── Small glass panel (used in timeline items) ── */
-.glass-panel-sm {
-  background: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: var(--radius-sm, 8px);
-  padding: 0.75rem 1rem;
-  backdrop-filter: blur(6px);
-}
-
-/* ── Timeline ── */
-.session-history .timeline {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  padding-left: 1.25rem;
-  border-left: 2px solid rgba(99, 102, 241, 0.2);
-}
-
-.timeline-item {
-  position: relative;
-  display: flex;
-  gap: 0.75rem;
-  align-items: flex-start;
-}
-
-.timeline-dot {
-  position: absolute;
-  left: -1.45rem;
-  top: 0.5rem;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  border: 2px solid white;
-  flex-shrink: 0;
-}
-
-.timeline-dot.dot-latest {
-  background: var(--primary, #6366f1);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
-}
-
-.timeline-dot.dot-past {
-  background: var(--text-muted, #9ca3af);
-}
-
-.timeline-content {
-  flex: 1;
-}
-
-.timeline-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.3rem;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-}
-
-.timeline-count {
-  font-size: 0.8rem;
-  font-weight: 700;
-  background: rgba(99, 102, 241, 0.1);
-  color: var(--primary, #6366f1);
-  padding: 1px 8px;
-  border-radius: 20px;
-}
-
-.timeline-date {
-  font-size: 0.75rem;
-  color: var(--text-muted, #9ca3af);
-}
-
-.timeline-lecturer {
-  font-size: 0.85rem;
-  font-weight: 600;
-  margin: 0.2rem 0;
-  color: var(--text-primary);
-}
-
-.timeline-notes {
-  font-size: 0.82rem;
-  color: var(--text-secondary);
-  margin: 0;
-  white-space: pre-wrap;
-  line-height: 1.5;
-}
-
-/* ── Review toggle button ── */
-.btn-review-toggle {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0.7rem 1rem;
-  background: rgba(99, 102, 241, 0.08);
-  border: 1.5px dashed rgba(99, 102, 241, 0.4);
-  border-radius: var(--radius-sm, 8px);
-  color: var(--primary, #6366f1);
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
-  text-align: left;
-}
-
-.btn-review-toggle:hover {
-  background: rgba(99, 102, 241, 0.15);
-  border-color: var(--primary, #6366f1);
-}
-
 /* ── Review slide transition ── */
 .review-slide-enter-active,
 .review-slide-leave-active {
@@ -1459,37 +828,6 @@ const overallProgressPercent = computed(() => {
 .review-slide-leave-to {
   max-height: 0;
   opacity: 0;
-}
-
-.review-form {
-  background: rgba(99, 102, 241, 0.04);
-  border: 1px solid rgba(99, 102, 241, 0.12);
-  border-radius: var(--radius-sm, 8px);
-  padding: 1rem;
-}
-
-/* \u2500\u2500 Timeline edit controls \u2500\u2500 */
-.timeline-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.btn-edit-session {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 0.85rem;
-  padding: 2px 4px;
-  border-radius: 4px;
-  opacity: 0.5;
-  transition: opacity 0.15s, background 0.15s;
-  line-height: 1;
-}
-
-.btn-edit-session:hover {
-  opacity: 1;
-  background: rgba(99, 102, 241, 0.12);
 }
 
 /* Compact form labels and inputs inside edit panel */
@@ -1505,25 +843,6 @@ const overallProgressPercent = computed(() => {
   font-size: 0.82rem;
   padding: 0.35rem 0.6rem;
   height: auto;
-}
-
-.edit-session-form {
-  border-top: 1px dashed rgba(99, 102, 241, 0.2);
-  padding-top: 0.75rem;
-}
-
-.edit-session-actions {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: flex-end;
-  margin-top: 0.5rem;
-}
-
-/* Extra small button variant */
-.btn-xs {
-  font-size: 0.78rem;
-  padding: 0.25rem 0.7rem;
-  border-radius: 6px;
 }
 
 .btn-ghost {
@@ -1557,129 +876,10 @@ const overallProgressPercent = computed(() => {
   vertical-align: middle;
 }
 
-.student-bookings-panel {
-  padding: 1.5rem;
-}
-
-.booking-section {
-  margin-bottom: 1rem;
-}
-
-.booking-section-title {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.4rem;
-  border-bottom: 1px solid rgba(99,102,241,0.1);
-}
-
 .booking-list {
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
-}
-
-.student-booking-card {
-  padding: 1rem 1.25rem;
-  border-radius: 12px;
-  background: white;
-  border: 1px solid rgba(99,102,241,0.1);
-  transition: box-shadow 0.2s;
-}
-
-.student-booking-card:hover {
-  box-shadow: 0 4px 16px rgba(99,102,241,0.1);
-}
-
-.student-booking-card.card-completed {
-  border-color: rgba(16,185,129,0.2);
-}
-
-.sbc-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.sbc-status-row {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-}
-
-.sbc-info {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem 1.4rem;
-}
-
-.sbc-info-item {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.82rem;
-}
-
-.sbc-label {
-  color: var(--text-secondary);
-  font-size: 0.76rem;
-}
-
-.sbc-value {
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-/* Prep box */
-.sbc-prep {
-  background: rgba(99,102,241,0.04);
-  border: 1px dashed rgba(99,102,241,0.18);
-  border-radius: 8px;
-  padding: 0.6rem 0.85rem;
-}
-
-.sbc-prep-title {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--primary);
-  margin-bottom: 0.4rem;
-}
-
-.sbc-prep-row {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  margin-bottom: 0.2rem;
-}
-
-/* Feedback boxes */
-.sbc-teacher-feedback {
-  font-size: 0.8rem;
-  color: #2563EB;
-  background: rgba(37, 99, 235, 0.05);
-  border-radius: 6px;
-  padding: 0.4rem 0.75rem;
-  border-left: 3px solid rgba(37,99,235,0.3);
-}
-
-.sbc-my-feedback {
-  font-size: 0.8rem;
-  color: #059669;
-  background: rgba(16,185,129,0.05);
-  border-radius: 6px;
-  padding: 0.4rem 0.75rem;
-  border-left: 3px solid rgba(16,185,129,0.3);
-}
-
-.empty-booking-hint {
-  text-align: center;
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-  padding: 2rem 0;
-  font-style: italic;
 }
 
 /* Reuse booking status badge styles from TeacherDashboard (copy for scoped) */

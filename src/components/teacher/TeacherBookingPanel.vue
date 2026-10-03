@@ -535,3 +535,228 @@ function getStudentDisplayName(username: string): string {
 /** Expose pending count so parent can show badge */
 defineExpose({ pendingBookingsCount: computed(() => myBookingSessions.value.filter(s => s.status === 'pending').length) })
 </script>
+
+<style>
+/* [css-migration] moved from TeacherDashboard.vue */
+@media (max-width: 640px) {
+  /* Booking cards */
+  .booking-card {
+      padding: 0.85rem;
+    }
+
+  .booking-card-header {
+      flex-direction: column;
+      gap: 0.4rem;
+      align-items: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+  /* Booking filter tabs */
+  .booking-filter-tabs {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      flex-wrap: nowrap;
+    }
+}
+
+.bookings-panel {
+  padding: 1.5rem;
+}
+
+/* Filter tabs */
+.booking-filter-tabs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.booking-filter-btn {
+  padding: 0.35rem 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1.5px solid rgba(99, 102, 241, 0.2);
+  border-radius: 20px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.18s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.filter-count {
+  font-size: 0.68rem;
+  background: rgba(255,255,255,0.25);
+  border-radius: 10px;
+  padding: 0 5px;
+}
+
+.booking-card {
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  background: white;
+  border: 1px solid rgba(99,102,241,0.1);
+  transition: box-shadow 0.2s;
+}
+
+.booking-card:hover {
+  box-shadow: 0 4px 20px rgba(99,102,241,0.1);
+}
+
+.booking-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.booking-card-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.booking-card-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+/* Info row */
+.booking-info-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+}
+
+.booking-info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.83rem;
+}
+
+.info-label {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
+.info-value {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Attendee chips */
+.booking-attendees {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+}
+
+/* Prep section */
+.booking-prep {
+  background: rgba(248, 250, 252, 0.9);
+  border: 1px dashed rgba(99,102,241,0.18);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+}
+
+.prep-toggle-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.prep-section {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+/* Completed / cancelled notes */
+.booking-completed-notes {
+  font-size: 0.8rem;
+  color: #059669;
+  background: rgba(16, 185, 129, 0.06);
+  border-radius: 6px;
+  padding: 0.4rem 0.75rem;
+}
+
+.booking-cancel-reason {
+  font-size: 0.8rem;
+  color: #DC2626;
+  background: rgba(239, 68, 68, 0.06);
+  border-radius: 6px;
+  padding: 0.4rem 0.75rem;
+}
+
+/* Booking modals */
+.booking-modal-card {
+  max-width: 640px;
+  width: 92%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 2rem;
+}
+
+.complete-modal-card {
+  max-width: 580px;
+  width: 92%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 2rem;
+}
+
+/* Attendee selector (checkbox list in create modal) */
+.attendee-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid rgba(99,102,241,0.12);
+  border-radius: 8px;
+  padding: 0.75rem;
+  background: rgba(248,250,252,0.8);
+}
+
+.attendee-check-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.83rem;
+  cursor: pointer;
+}
+
+.attendee-check-item input[type="checkbox"] {
+  accent-color: var(--primary);
+  width: 15px;
+  height: 15px;
+}
+
+/* Complete modal attendee cards */
+.complete-attendees {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.complete-attendee-card {
+  border: 1px solid rgba(99,102,241,0.12);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  background: rgba(248,250,252,0.6);
+}
+
+.complete-att-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+</style>

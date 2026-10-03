@@ -229,3 +229,58 @@ function getCaretakerBadgeClass(studentUsername: string): string {
   return 'badge-student'
 }
 </script>
+
+<style>
+/* [css-migration] moved from TeacherDashboard.vue */
+.tab-selectors {
+  display: flex;
+  background: rgba(255, 255, 255, 0.5);
+  padding: 0.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: var(--radius-full);
+}
+
+.search-input {
+  max-width: 250px;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-full);
+}
+
+.table-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.percent-label {
+  font-weight: 700;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  min-width: 32px;
+}
+
+.table-bar {
+  flex-grow: 1;
+  max-width: 120px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  /* Tab selectors (inner tabs) also scrollable */
+  .tab-selectors {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      flex-wrap: nowrap;
+    }
+
+  /* Search input */
+  .search-input {
+      max-width: 100%;
+      width: 100%;
+    }
+}
+</style>

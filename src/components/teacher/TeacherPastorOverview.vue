@@ -249,3 +249,50 @@ function onSetCaretaker(studentUsername: string, role: 'teacher' | 'parent', val
   }
 }
 </script>
+
+<style>
+/* [css-migration] moved from TeacherDashboard.vue */
+/* Nickname tag shown below real name */
+.student-nickname-tag {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  font-style: italic;
+}
+
+.pastor-overview-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.pastor-stats-panel {
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+}
+
+.pastor-stats-panel h3 {
+  font-size: 1.4rem;
+  color: var(--primary);
+}
+
+.pastor-stats-grid {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.pastor-teacher-panel,
+.pastor-lecturer-panel {
+  padding: 1.75rem;
+  border-radius: var(--radius-lg);
+}
+
+.managed-students-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.mr-1 { margin-right: 0.25rem; }
+</style>

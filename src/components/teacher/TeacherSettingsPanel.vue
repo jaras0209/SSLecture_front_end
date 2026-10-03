@@ -167,3 +167,76 @@ async function handleDeleteLecturer(id: string) {
   }
 }
 </script>
+
+<style>
+/* [css-migration] moved from TeacherDashboard.vue */
+.theme-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.theme-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background: #F8FAFC;
+  border-radius: 6px;
+  margin-bottom: 0.35rem;
+  border: 1px solid #E2E8F0;
+  font-size: 0.9rem;
+}
+
+.theme-item-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.lecturers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.lecturer-card {
+  background: white;
+  border-radius: var(--radius-sm);
+  padding: 1.25rem;
+  border: 1px solid #E2E8F0;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Lecturer card link badges */
+.lec-link-tags {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.lec-linked-badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 20px;
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.lec-custom-badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 20px;
+  background: rgba(245, 158, 11, 0.1);
+  color: #D97706;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+</style>

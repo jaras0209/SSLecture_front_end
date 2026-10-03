@@ -182,3 +182,156 @@ function handleSaveStats() {
   setTimeout(() => { statsSavedMsg.value = '' }, 3000)
 }
 </script>
+
+<style>
+/* [css-migration] moved from TeacherDashboard.vue */
+@media (max-width: 480px) {
+  /* Stats form */
+  .stats-form-grid {
+      grid-template-columns: 1fr;
+    }
+}
+
+/* Pastor Overview Grid */
+/* ?????? Annual Teaching Stats Report Panel ?????? */
+.stats-report-panel {
+  padding: 2rem;
+  margin-top: 1.5rem;
+}
+
+.stats-report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.stats-year-select {
+  min-width: 120px;
+  flex-shrink: 0;
+}
+
+.stats-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+@media (max-width: 768px) {
+  .stats-form-grid {
+      grid-template-columns: 1fr;
+    }
+}
+
+.stats-group-card {
+  background: rgba(99, 102, 241, 0.04);
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.stats-group-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.stats-group-desc {
+  line-height: 1.5;
+}
+
+.stats-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.stats-badge {
+  display: inline-block;
+  font-size: 0.62rem;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 20px;
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--primary);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.stats-badge-multi {
+  background: rgba(245, 158, 11, 0.1);
+  color: #D97706;
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+.stats-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stats-number-input {
+  width: 90px !important;
+  text-align: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.stats-unit {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.stats-subtotal {
+  margin-top: 0.75rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid rgba(99, 102, 241, 0.1);
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  text-align: right;
+}
+
+.stats-subtotal strong {
+  color: var(--primary);
+  font-size: 1rem;
+}
+
+.stats-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(139,92,246,0.08) 100%);
+  border: 1px solid rgba(99,102,241,0.15);
+  border-radius: 10px;
+  padding: 0.85rem 1.25rem;
+  font-weight: 600;
+}
+
+.stats-total-num {
+  font-size: 1.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.stats-action-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
+}
+
+.stats-saved-msg {
+  font-size: 0.85rem;
+  color: #10B981;
+  font-weight: 600;
+}
+
+.stats-last-submit {
+  text-align: right;
+}
+</style>

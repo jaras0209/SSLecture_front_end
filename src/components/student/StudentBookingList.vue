@@ -186,3 +186,136 @@ function formatBookingTime(session: { proposedAt: string; confirmedAt?: string; 
   return `${dateStr} ${timeStr}${isPending ? t('student.attendance.proposed') : ''}`
 }
 </script>
+
+<style>
+/* [css-migration] moved from StudentDashboard.vue */
+@media (max-width: 480px) {
+  /* Booking panel styles */
+  .student-bookings-panel {
+      padding: 0.75rem !important;
+    }
+
+  .sbc-prep-row {
+      font-size: 0.8rem;
+    }
+}
+
+.student-bookings-panel {
+  padding: 1.5rem;
+}
+
+.booking-section {
+  margin-bottom: 1rem;
+}
+
+.booking-section-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid rgba(99,102,241,0.1);
+}
+
+.student-booking-card {
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  background: white;
+  border: 1px solid rgba(99,102,241,0.1);
+  transition: box-shadow 0.2s;
+}
+
+.student-booking-card:hover {
+  box-shadow: 0 4px 16px rgba(99,102,241,0.1);
+}
+
+.student-booking-card.card-completed {
+  border-color: rgba(16,185,129,0.2);
+}
+
+.sbc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.sbc-status-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.sbc-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.4rem;
+}
+
+.sbc-info-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+}
+
+.sbc-label {
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+}
+
+.sbc-value {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Prep box */
+.sbc-prep {
+  background: rgba(99,102,241,0.04);
+  border: 1px dashed rgba(99,102,241,0.18);
+  border-radius: 8px;
+  padding: 0.6rem 0.85rem;
+}
+
+.sbc-prep-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 0.4rem;
+}
+
+.sbc-prep-row {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.2rem;
+}
+
+/* Feedback boxes */
+.sbc-teacher-feedback {
+  font-size: 0.8rem;
+  color: #2563EB;
+  background: rgba(37, 99, 235, 0.05);
+  border-radius: 6px;
+  padding: 0.4rem 0.75rem;
+  border-left: 3px solid rgba(37,99,235,0.3);
+}
+
+.sbc-my-feedback {
+  font-size: 0.8rem;
+  color: #059669;
+  background: rgba(16,185,129,0.05);
+  border-radius: 6px;
+  padding: 0.4rem 0.75rem;
+  border-left: 3px solid rgba(16,185,129,0.3);
+}
+
+.empty-booking-hint {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  padding: 2rem 0;
+  font-style: italic;
+}
+</style>

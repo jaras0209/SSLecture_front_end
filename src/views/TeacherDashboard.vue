@@ -459,34 +459,6 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
 </script>
 
 <style>
-/* Drawer Tabs Selector Styles */
-.drawer-tabs {
-  display: flex;
-  background: #F1F5F9;
-  padding: 0.25rem;
-  border-radius: var(--radius-sm);
-  gap: 0.25rem;
-}
-
-.drawer-tab-btn {
-  flex: 1;
-  padding: 0.5rem;
-  border: none;
-  background: transparent;
-  font-family: var(--font-family);
-  font-weight: 700;
-  font-size: 0.85rem;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  color: var(--text-secondary);
-  transition: all var(--transition-fast);
-}
-
-.drawer-tab-btn.active {
-  background: white;
-  color: var(--secondary-hover);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-}
 
 .dashboard-header {
   display: flex;
@@ -539,7 +511,6 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   margin-top: 2px;
 }
 
-
 .stats-grid {
   display: flex;
   gap: 1.5rem;
@@ -590,14 +561,6 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   gap: 1rem;
 }
 
-.tab-selectors {
-  display: flex;
-  background: rgba(255, 255, 255, 0.5);
-  padding: 0.2rem;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  border-radius: var(--radius-full);
-}
-
 .tab-btn {
   padding: 0.4rem 1rem;
   border: none;
@@ -614,12 +577,6 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
 .tab-btn.active {
   background: var(--secondary);
   color: white;
-}
-
-.search-input {
-  max-width: 250px;
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-full);
 }
 
 /* Table styling */
@@ -693,65 +650,9 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   vertical-align: middle;
 }
 
-/* Nickname tag shown below real name */
-.student-nickname-tag {
-  font-size: 0.68rem;
-  color: var(--text-muted);
-  font-weight: 500;
-  font-style: italic;
-}
-
-
-.table-progress {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.percent-label {
-  font-weight: 700;
-  color: var(--text-secondary);
-  font-size: 0.8rem;
-  min-width: 32px;
-}
-
-.table-bar {
-  flex-grow: 1;
-  max-width: 120px;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 0.5rem;
-}
-
 .empty-row {
   color: var(--text-muted);
   padding: 3rem;
-}
-
-/* Drawer Section */
-.student-details-drawer {
-  background: white;
-  padding: 2rem;
-  border-radius: var(--radius-lg);
-  align-self: start;
-  position: sticky;
-  top: 96px;
-}
-
-.drawer-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #E2E8F0;
-  padding-bottom: 1rem;
-}
-
-.student-profile {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
 }
 
 .avatar-md {
@@ -774,12 +675,6 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
 
 .close-btn:hover {
   color: var(--text-primary);
-}
-
-.drawer-body {
-  max-height: 520px;
-  overflow-y: auto;
-  padding-right: 0.5rem;
 }
 
 .section-title {
@@ -881,95 +776,6 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   font-weight: 600;
 }
 
-.empty-drawer {
-  padding: 4rem 2rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.empty-illustration {
-  font-size: 4rem;
-  margin-bottom: 1.5rem;
-}
-
-.empty-drawer h4 {
-  font-size: 1.15rem;
-  margin-bottom: 0.5rem;
-}
-
-.empty-drawer p {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  max-width: 280px;
-}
-
-/* SHINING AUDIT VIEW STYLES */
-.basic-info-readonly-card {
-  background-color: #F8FAFC;
-  border: 1px solid #E2E8F0;
-  border-radius: var(--radius-sm);
-  padding: 1rem;
-}
-
-.basic-info-readonly-card h6 {
-  font-size: 0.9rem;
-  border-bottom: 1px solid #E2E8F0;
-  padding-bottom: 0.25rem;
-  margin-bottom: 0.5rem;
-  color: var(--text-primary);
-}
-
-.readonly-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-}
-
-.checklists-readonly-container h6 {
-  font-size: 0.9rem;
-  color: var(--text-primary);
-}
-
-.checklist-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.checklist-ro-column {
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
-  border-radius: var(--radius-sm);
-  padding: 0.75rem;
-}
-
-.checklist-ro-title {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--secondary-hover);
-  border-bottom: 1px solid #E2E8F0;
-  padding-bottom: 0.25rem;
-  margin-bottom: 0.5rem;
-}
-
-.checklist-ro-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.ro-check-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
 .ro-check-row.active {
   color: var(--text-primary);
   font-weight: 600;
@@ -977,42 +783,6 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
 
 .ro-check-row .text-ro {
   line-height: 1.2;
-}
-
-.lectures-edit-section h6 {
-  font-size: 0.9rem;
-  color: var(--text-primary);
-}
-
-.lecture-inputs-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.lecture-edit-row {
-  background-color: #F8FAFC;
-  border: 1px solid #E2E8F0;
-  border-radius: var(--radius-sm);
-  padding: 0.65rem 0.85rem;
-}
-
-.row-theme-name {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 0.35rem;
-}
-
-.inputs-row {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.inputs-row input {
-  padding: 0.35rem 0.5rem;
-  flex: 1;
 }
 
 .mb-0 {
@@ -1080,13 +850,6 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
     scroll-snap-align: start;
   }
 
-  /* Tab selectors (inner tabs) also scrollable */
-  .tab-selectors {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    flex-wrap: nowrap;
-  }
-
   .tab-btn {
     flex: 0 0 auto;
     white-space: nowrap;
@@ -1112,12 +875,6 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
     gap: 0.5rem;
   }
 
-  /* Search input */
-  .search-input {
-    max-width: 100%;
-    width: 100%;
-  }
-
   /* Table: always has overflow-x auto */
   .table-container {
     overflow-x: auto;
@@ -1129,17 +886,6 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
     font-size: 0.78rem;
     padding: 0.5rem 0.5rem;
     white-space: nowrap;
-  }
-
-  /* Booking cards */
-  .booking-card {
-    padding: 0.85rem;
-  }
-
-  .booking-card-header {
-    flex-direction: column;
-    gap: 0.4rem;
-    align-items: flex-start;
   }
 
   .booking-meta-row {
@@ -1187,13 +933,6 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
     padding: 0.4rem 0.4rem;
   }
 
-  /* Booking filter tabs */
-  .booking-filter-tabs {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    flex-wrap: nowrap;
-  }
-
   .booking-filter-tab {
     flex: 0 0 auto;
     white-space: nowrap;
@@ -1218,11 +957,6 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   .modal-overlay {
     align-items: flex-end;
     padding: 0;
-  }
-
-  /* Stats form */
-  .stats-form-grid {
-    grid-template-columns: 1fr;
   }
 
   /* Student card (if card view) */
@@ -1443,47 +1177,6 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
 
-.theme-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  max-height: 220px;
-  overflow-y: auto;
-}
-
-.theme-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem 0.75rem;
-  background: #F8FAFC;
-  border-radius: 6px;
-  margin-bottom: 0.35rem;
-  border: 1px solid #E2E8F0;
-  font-size: 0.9rem;
-}
-
-.theme-item-actions {
-  display: flex;
-  gap: 0.25rem;
-}
-
-.lecturers-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 1rem;
-  max-height: 500px;
-  overflow-y: auto;
-}
-
-.lecturer-card {
-  background: white;
-  border-radius: var(--radius-sm);
-  padding: 1.25rem;
-  border: 1px solid #E2E8F0;
-  box-shadow: var(--shadow-sm);
-}
-
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -1556,35 +1249,6 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   color: #059669;
 }
 
-/* Lecturer card link badges */
-.lec-link-tags {
-  display: flex;
-  gap: 0.35rem;
-  flex-wrap: wrap;
-}
-
-.lec-linked-badge {
-  display: inline-block;
-  font-size: 0.68rem;
-  font-weight: 600;
-  padding: 1px 8px;
-  border-radius: 20px;
-  background: rgba(16, 185, 129, 0.1);
-  color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.25);
-}
-
-.lec-custom-badge {
-  display: inline-block;
-  font-size: 0.68rem;
-  font-weight: 600;
-  padding: 1px 8px;
-  border-radius: 20px;
-  background: rgba(245, 158, 11, 0.1);
-  color: #D97706;
-  border: 1px solid rgba(245, 158, 11, 0.25);
-}
-
 .courses-checkboxes-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1606,73 +1270,6 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   padding: 2px 0;
 }
 
-.inputs-row-readonly {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  background: #F8FAFC;
-  padding: 0.5rem 0.75rem;
-  border-radius: var(--radius-sm);
-  border: 1px dashed #E2E8F0;
-  color: var(--text-secondary);
-}
-
-/* Pastor Overview Grid */
-/* ?????? Annual Teaching Stats Report Panel ?????? */
-.stats-report-panel {
-  padding: 2rem;
-  margin-top: 1.5rem;
-}
-
-.stats-report-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-}
-
-.stats-year-select {
-  min-width: 120px;
-  flex-shrink: 0;
-}
-
-.stats-form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.25rem;
-}
-
-@media (max-width: 768px) {
-  .stats-form-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.stats-group-card {
-  background: rgba(99, 102, 241, 0.04);
-  border: 1px solid rgba(99, 102, 241, 0.1);
-  border-radius: 12px;
-  padding: 1.25rem;
-}
-
-.stats-group-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 0.25rem;
-}
-
-.stats-group-desc {
-  line-height: 1.5;
-}
-
-.stats-fields {
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-}
-
 .stats-field-item .form-label {
   display: flex;
   align-items: center;
@@ -1680,229 +1277,6 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   flex-wrap: wrap;
   margin-bottom: 0.35rem;
   font-size: 0.82rem;
-}
-
-.stats-badge {
-  display: inline-block;
-  font-size: 0.62rem;
-  font-weight: 600;
-  padding: 1px 7px;
-  border-radius: 20px;
-  background: rgba(99, 102, 241, 0.1);
-  color: var(--primary);
-  border: 1px solid rgba(99, 102, 241, 0.2);
-}
-
-.stats-badge-multi {
-  background: rgba(245, 158, 11, 0.1);
-  color: #D97706;
-  border-color: rgba(245, 158, 11, 0.2);
-}
-
-.stats-input-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.stats-number-input {
-  width: 90px !important;
-  text-align: center;
-  font-weight: 700;
-  font-size: 1.1rem;
-}
-
-.stats-unit {
-  font-size: 0.82rem;
-  color: var(--text-muted);
-  font-weight: 500;
-}
-
-.stats-subtotal {
-  margin-top: 0.75rem;
-  padding-top: 0.65rem;
-  border-top: 1px solid rgba(99, 102, 241, 0.1);
-  font-size: 0.82rem;
-  color: var(--text-secondary);
-  text-align: right;
-}
-
-.stats-subtotal strong {
-  color: var(--primary);
-  font-size: 1rem;
-}
-
-.stats-total-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(139,92,246,0.08) 100%);
-  border: 1px solid rgba(99,102,241,0.15);
-  border-radius: 10px;
-  padding: 0.85rem 1.25rem;
-  font-weight: 600;
-}
-
-.stats-total-num {
-  font-size: 1.5rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.stats-action-row {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 1rem;
-}
-
-.stats-saved-msg {
-  font-size: 0.85rem;
-  color: #10B981;
-  font-weight: 600;
-}
-
-.stats-last-submit {
-  text-align: right;
-}
-
-.pastor-overview-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.pastor-stats-panel {
-  padding: 2rem;
-  border-radius: var(--radius-lg);
-}
-
-.pastor-stats-panel h3 {
-  font-size: 1.4rem;
-  color: var(--primary);
-}
-
-.pastor-stats-grid {
-  display: flex;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-}
-
-.pastor-teacher-panel,
-.pastor-lecturer-panel {
-  padding: 1.75rem;
-  border-radius: var(--radius-lg);
-}
-
-.managed-students-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-}
-
-.mr-1 { margin-right: 0.25rem; }
-
-/* ===================== Notes Dialog ===================== */
-.notes-dialog-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(6px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  padding: 1rem;
-}
-
-.notes-dialog-card {
-  width: 100%;
-  max-width: 840px;
-  max-height: 88vh;
-  display: flex;
-  flex-direction: column;
-  border-radius: 16px;
-  background: #ffffff;
-  box-shadow: 0 32px 96px rgba(0, 0, 0, 0.28);
-  overflow: hidden;
-}
-
-.notes-dialog-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem 2rem;
-  border-bottom: 1px solid #E2E8F0;
-  background: linear-gradient(135deg, #F8FAFC 0%, #EEF2FF 100%);
-  flex-shrink: 0;
-}
-
-.notes-dialog-profile {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.notes-dialog-profile h3 {
-  margin: 0 0 0.25rem 0;
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: #1e293b;
-}
-
-.notes-dialog-subtitle {
-  margin: 0;
-  font-size: 0.82rem;
-  color: #64748B;
-}
-
-.notes-close-btn {
-  width: 36px;
-  height: 36px;
-  border: none;
-  background: rgba(0,0,0,0.06);
-  border-radius: 50%;
-  font-size: 1.2rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #475569;
-  transition: background 0.15s;
-  flex-shrink: 0;
-}
-
-.notes-close-btn:hover {
-  background: rgba(239, 68, 68, 0.12);
-  color: #ef4444;
-}
-
-/* Filter Bar */
-.notes-filter-bar {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.85rem 2rem;
-  background: #F8FAFC;
-  border-bottom: 1px solid #E2E8F0;
-  flex-wrap: wrap;
-  flex-shrink: 0;
-}
-
-.filter-label {
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: #64748B;
-  white-space: nowrap;
-}
-
-.filter-btns {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
 }
 
 .filter-btn {
@@ -1932,98 +1306,6 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   box-shadow: 0 3px 10px rgba(99, 102, 241, 0.3);
 }
 
-/* Dialog Body */
-.notes-dialog-body {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding: 1.25rem 1.75rem;
-  /* Use block layout (not flex) so cards do NOT flex-shrink to zero */
-  display: block;
-  background: #F1F5F9;
-}
-
-.notes-empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem;
-  color: #94A3B8;
-  gap: 0.5rem;
-}
-
-.notes-empty-icon {
-  font-size: 2.5rem;
-  opacity: 0.5;
-}
-
-/* Individual record card */
-.notes-record-card {
-  border-radius: 12px;
-  background: #ffffff;
-  border: 1px solid #E2E8F0;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-  overflow: hidden;
-  transition: box-shadow 0.2s ease;
-  flex-shrink: 0;       /* prevent flex shrinking (safety net) */
-  margin-bottom: 0.85rem; /* gap replacement for block layout */
-}
-
-.notes-record-card:hover {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-}
-
-.notes-record-completed {
-  border-left: 4px solid #10B981;
-}
-
-.notes-record-incomplete {
-  border-left: 4px solid #F59E0B;
-}
-
-.notes-record-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.85rem 1.25rem;
-  background: #FAFBFC;
-  border-bottom: 1px solid #F0F2F5;
-}
-
-.notes-record-title-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-width: 0;
-  flex: 1;
-}
-
-.notes-record-index {
-  font-size: 1rem;
-  flex-shrink: 0;
-}
-
-.notes-record-title {
-  margin: 0;
-  font-size: 0.92rem;
-  font-weight: 700;
-  color: #1e293b;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.notes-status-badge {
-  padding: 0.2rem 0.7rem;
-  border-radius: 999px;
-  font-size: 0.76rem;
-  font-weight: 700;
-  white-space: nowrap;
-  flex-shrink: 0;
-  margin-left: 0.75rem;
-}
-
 .status-done {
   background: rgba(16, 185, 129, 0.1);
   color: #059669;
@@ -2032,97 +1314,6 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
 .status-pending {
   background: rgba(245, 158, 11, 0.1);
   color: #D97706;
-}
-
-.notes-record-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  padding: 0.55rem 1.25rem;
-  background: white;
-  border-bottom: 1px dashed #EAECF0;
-}
-
-.meta-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.2rem;
-  font-size: 0.75rem;
-  color: #64748B;
-  background: #F1F5F9;
-  padding: 0.15rem 0.55rem;
-  border-radius: 999px;
-  border: 1px solid #E2E8F0;
-}
-
-.notes-record-content {
-  padding: 0.85rem 1.25rem;
-  background: white;
-}
-
-.notes-text-box {
-  background: #F0FDF4;
-  border: 1px solid #BBF7D0;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.notes-text-header {
-  font-size: 0.73rem;
-  font-weight: 700;
-  color: #16A34A;
-  padding: 0.35rem 0.8rem;
-  background: rgba(22, 163, 74, 0.07);
-  border-bottom: 1px solid #BBF7D0;
-}
-
-.notes-text-body {
-  padding: 0.7rem 0.8rem;
-  font-size: 0.88rem;
-  line-height: 1.75;
-  color: #1e293b;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.notes-empty-note {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.65rem;
-  background: #F8FAFC;
-  border-radius: 8px;
-  font-size: 0.83rem;
-  color: #94A3B8;
-  font-style: italic;
-  border: 1px dashed #E2E8F0;
-}
-
-/* Feedback */
-.notes-feedback-area {
-  padding: 0.8rem 1.25rem;
-  border-top: 1px dashed #E2E8F0;
-  background: #FFFBEB;
-}
-
-.feedback-label {
-  display: block;
-  font-size: 0.76rem;
-  font-weight: 700;
-  color: #92400E;
-  margin-bottom: 0.45rem;
-}
-
-.feedback-input-row {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.feedback-sent-msg {
-  font-size: 0.77rem;
-  color: #16A34A;
-  margin-top: 0.4rem;
-  font-weight: 600;
 }
 
 /* ?????? Booking Styles ?????????????????????????????????????????????????????????????????????????????????????? */
@@ -2143,43 +1334,10 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   vertical-align: middle;
 }
 
-.bookings-panel {
-  padding: 1.5rem;
-}
-
-/* Filter tabs */
-.booking-filter-tabs {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.booking-filter-btn {
-  padding: 0.35rem 0.85rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  border: 1.5px solid rgba(99, 102, 241, 0.2);
-  border-radius: 20px;
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.18s;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
 .booking-filter-btn.active {
   background: var(--primary);
   color: white;
   border-color: var(--primary);
-}
-
-.filter-count {
-  font-size: 0.68rem;
-  background: rgba(255,255,255,0.25);
-  border-radius: 10px;
-  padding: 0 5px;
 }
 
 /* Booking list */
@@ -2187,38 +1345,6 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   display: flex;
   flex-direction: column;
   gap: 1rem;
-}
-
-.booking-card {
-  padding: 1rem 1.25rem;
-  border-radius: 12px;
-  background: white;
-  border: 1px solid rgba(99,102,241,0.1);
-  transition: box-shadow 0.2s;
-}
-
-.booking-card:hover {
-  box-shadow: 0 4px 20px rgba(99,102,241,0.1);
-}
-
-.booking-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.booking-card-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.booking-card-actions {
-  display: flex;
-  gap: 0.4rem;
 }
 
 /* Status badges */
@@ -2263,39 +1389,6 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   color: var(--primary);
 }
 
-/* Info row */
-.booking-info-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem 1.5rem;
-}
-
-.booking-info-item {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.83rem;
-}
-
-.info-label {
-  color: var(--text-secondary);
-  font-size: 0.78rem;
-}
-
-.info-value {
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-/* Attendee chips */
-.booking-attendees {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.8rem;
-}
-
 .att-chip {
   display: inline-flex;
   align-items: center;
@@ -2310,25 +1403,6 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
 .att-attended { background: rgba(16, 185, 129, 0.1); color: #059669; border: 1px solid rgba(16,185,129,0.25); }
 .att-absent   { background: rgba(239, 68, 68, 0.08); color: #DC2626; border: 1px solid rgba(239,68,68,0.2); }
 
-/* Prep section */
-.booking-prep {
-  background: rgba(248, 250, 252, 0.9);
-  border: 1px dashed rgba(99,102,241,0.18);
-  border-radius: 8px;
-  padding: 0.5rem 0.75rem;
-}
-
-.prep-toggle-label {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--primary);
-}
-
-.prep-section {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-}
-
 .scripture-chip {
   display: inline-block;
   background: rgba(99, 102, 241, 0.08);
@@ -2340,92 +1414,9 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   margin: 2px 3px 2px 0;
 }
 
-/* Completed / cancelled notes */
-.booking-completed-notes {
-  font-size: 0.8rem;
-  color: #059669;
-  background: rgba(16, 185, 129, 0.06);
-  border-radius: 6px;
-  padding: 0.4rem 0.75rem;
-}
-
-.booking-cancel-reason {
-  font-size: 0.8rem;
-  color: #DC2626;
-  background: rgba(239, 68, 68, 0.06);
-  border-radius: 6px;
-  padding: 0.4rem 0.75rem;
-}
-
-/* Booking modals */
-.booking-modal-card {
-  max-width: 640px;
-  width: 92%;
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: 2rem;
-}
-
-.complete-modal-card {
-  max-width: 580px;
-  width: 92%;
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: 2rem;
-}
-
-/* Attendee selector (checkbox list in create modal) */
-.attendee-selector {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  max-height: 200px;
-  overflow-y: auto;
-  border: 1px solid rgba(99,102,241,0.12);
-  border-radius: 8px;
-  padding: 0.75rem;
-  background: rgba(248,250,252,0.8);
-}
-
-.attendee-check-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.83rem;
-  cursor: pointer;
-}
-
-.attendee-check-item input[type="checkbox"] {
-  accent-color: var(--primary);
-  width: 15px;
-  height: 15px;
-}
-
 .att-username-hint {
   font-size: 0.72rem;
   color: var(--text-secondary);
-}
-
-/* Complete modal attendee cards */
-.complete-attendees {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.complete-attendee-card {
-  border: 1px solid rgba(99,102,241,0.12);
-  border-radius: 10px;
-  padding: 0.85rem 1rem;
-  background: rgba(248,250,252,0.6);
-}
-
-.complete-att-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  gap: 0.5rem;
 }
 
 .att-status-toggle {
