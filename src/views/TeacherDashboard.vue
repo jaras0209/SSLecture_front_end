@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="teacher-dashboard container">
     <!-- Header panel with statistics -->
     <header class="dashboard-header glass-panel no-print">
@@ -174,11 +174,11 @@
         <div class="form-group">
           <label class="form-label">{{ $t('teacher.lecturer.titleLabel') }}</label>
           <select v-model="lecturerForm.title" class="form-input select-input" id="select-lecturer-title">
-            <option value="講師">講師</option>
-            <option value="牧師">牧師</option>
-            <option value="傳道人">傳道人</option>
-            <option value="師母">師母</option>
-            <option value="特約講師">特約講師</option>
+            <option value="講師">{{ $t('teacher.lecturer.titleOptions.lecturer') }}</option>
+            <option value="牧師">{{ $t('teacher.lecturer.titleOptions.pastor') }}</option>
+            <option value="傳道人">{{ $t('teacher.lecturer.titleOptions.preacher') }}</option>
+            <option value="師母">{{ $t('teacher.lecturer.titleOptions.pastor_wife') }}</option>
+            <option value="特約講師">{{ $t('teacher.lecturer.titleOptions.guest') }}</option>
           </select>
         </div>
 
@@ -187,7 +187,7 @@
           <div class="courses-checkboxes-grid mt-2">
             <label v-for="c in coursesStore.courses" :key="c.id" class="check-item-row">
               <input type="checkbox" :value="c.id" v-model="lecturerForm.courseIds" />
-              <span>{{ c.title }} <span class="text-xs text-muted">({{ c.category === 'bible' ? '聖經課' : '專題課' }})</span></span>
+              <span>{{ c.title }} <span class="text-xs text-muted">({{ c.category === 'bible' ? $t('teacher.lecturer.courseCategory.bible') : $t('teacher.lecturer.courseCategory.topic') }})</span></span>
             </label>
           </div>
         </div>

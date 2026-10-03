@@ -274,10 +274,10 @@
               <th>{{ $t('admin.statsOverview.colTeacher') }}</th>
               <th>{{ $t('admin.statsOverview.colChurch') }}</th>
               <th>{{ $t('admin.statsOverview.colLecturerDb') }}</th>
-              <th>1對1<br/>{{ $t('teacher.stats.sermonBlock') }}</th>
-              <th>1對多<br/>{{ $t('teacher.stats.sermonBlock') }}</th>
-              <th>1對1<br/>{{ $t('teacher.stats.shiningBlock') }}</th>
-              <th>1對多<br/>{{ $t('teacher.stats.shiningBlock') }}</th>
+              <th>{{ $t('admin.statsOverview.col1on1Label') }}<br/>{{ $t('teacher.stats.sermonBlock') }}</th>
+              <th>{{ $t('admin.statsOverview.col1manyLabel') }}<br/>{{ $t('teacher.stats.sermonBlock') }}</th>
+              <th>{{ $t('admin.statsOverview.col1on1Label') }}<br/>{{ $t('teacher.stats.shiningBlock') }}</th>
+              <th>{{ $t('admin.statsOverview.col1manyLabel') }}<br/>{{ $t('teacher.stats.shiningBlock') }}</th>
               <th>{{ $t('admin.statsOverview.colTotal') }}</th>
               <th>{{ $t('admin.statsOverview.colLastUpdate') }}</th>
             </tr>

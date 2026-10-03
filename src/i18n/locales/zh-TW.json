@@ -89,7 +89,12 @@
     },
     "demo": {
       "title": "快速測試帳號 (密碼皆為 123456)",
-      "filled": "已自動帶入 {role} 測試資料"
+      "filled": "已自動帶入 {role} 測試資料",
+      "chipStudent": "SS學員 (student)",
+      "chipTeacher": "輔導教師 (teacher)",
+      "chipAdmin": "SS中央 (admin)",
+      "chipParent": "家長 (parent)",
+      "chipPastor": "牧者 (pastor)"
     },
     "validation": {
       "fillAll": "請填寫所有欄位！",
@@ -202,6 +207,7 @@
       "noLecturer": "未填寫",
       "editLecturer": "🎤 授課講師：",
       "selectLecturer": "-- 請選擇 --",
+      "listenedTime": "📅 聽課時間",
       "notes": "個人心得筆記",
       "notesPlaceholder": "記錄心得、感動或疑問...",
       "noNotes": "（無心得）",
@@ -312,6 +318,17 @@
       "autoFillNote": "（連結模式下將自動帶入）",
       "namePlaceholder": "請輸入講師姓名",
       "titleLabel": "選擇講師職稱",
+      "titleOptions": {
+        "lecturer": "講師",
+        "pastor": "牧師",
+        "preacher": "傳道人",
+        "pastor_wife": "師母",
+        "guest": "特約講師"
+      },
+      "courseCategory": {
+        "bible": "聖經課",
+        "topic": "專題課"
+      },
       "courses": "課程指定（可多選）",
       "coursesHint": "指定後將在此課程的導生順序名單列出此講師",
       "cancelBtn": "取消",
@@ -523,7 +540,31 @@
       "lecturerPlaceholder": "講師名稱",
       "notRegistered": "（尚未登記）",
       "lecturerLabel": "🎤 講師：",
-      "dateLabel": "📅 日期："
+      "dateLabel": "📅 日期：",
+      "print": {
+        "logoTitle": "SS閃耀計畫",
+        "basicInfo": "【基本資料】",
+        "name": "✦ 姓名：",
+        "birthday": "✦ 生日：",
+        "church": "✦ 教會：",
+        "schoolGrade": "✦ 學校/年級：",
+        "faithPhase1": "【信仰指標 PHASE 1】",
+        "faithPhase2": "【信仰指標 PHASE 2】",
+        "courses30Done": "我已經聽完 30 個論 (聽課數: {count}/30)",
+        "advancedChallenges": "【進階挑戰】",
+        "customChallengeFallback": "自訂挑戰項目（未填寫）",
+        "characterThemes": "【不分階專題課：品格力】",
+        "characterSubtitle": "{'<'}言語和行動{'>'}會展現「人格」。在「人格」之上才有「信仰」和「主的話語」。",
+        "comingOfAgeThemes": "【成年禮必修專題課】",
+        "comingOfAgeSubtitle": "向我學習後，也像這樣絕對相信、堅定地生活吧！",
+        "tableColTheme": "主題",
+        "tableColLecturer": "講師",
+        "tableColDate": "上課日期",
+        "signature": "【審核簽名】",
+        "sigTeacher": "✦ 教師",
+        "sigPastor": "✦ 牧者",
+        "sigParent": "✦ 家長/導師"
+      }
     }
   },
   "admin": {
@@ -598,7 +639,9 @@
       "courseSuffix": "{n} 堂",
       "grandTotal": "📊 全體合計",
       "emptyRow": "{year} 年度尚未有任何教師填寫申報資料",
-      "tableCaption": "教師申報統計總覽表"
+      "tableCaption": "教師申報統計總覽表",
+      "col1on1Label": "1對1",
+      "col1manyLabel": "1對多"
     },
     "inviteCode": {
       "title": "🎟️ 邀請碼管理",

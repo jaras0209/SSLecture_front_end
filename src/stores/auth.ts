@@ -302,7 +302,7 @@ export const useAuthStore = defineStore('auth', () => {
   ): { success: boolean; message: string } {
     const dbUser = usersDb.value[username]
     if (!dbUser) {
-      return { success: false, message: '找不到此帳號。' }
+      return { success: false, message: t('stores.auth.accountNotFoundShort') }
     }
     if (patch.displayName !== undefined) {
       dbUser.displayName = patch.displayName.trim() || undefined

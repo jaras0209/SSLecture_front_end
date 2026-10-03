@@ -89,7 +89,12 @@
     },
     "demo": {
       "title": "Quick test accounts (password: 123456)",
-      "filled": "Auto-filled {role} test account"
+      "filled": "Auto-filled {role} test account",
+      "chipStudent": "SS Student (student)",
+      "chipTeacher": "Mentor Teacher (teacher)",
+      "chipAdmin": "SS Central (admin)",
+      "chipParent": "Parent (parent)",
+      "chipPastor": "Pastor (pastor)"
     },
     "validation": {
       "fillAll": "Please fill in all fields.",
@@ -202,6 +207,7 @@
       "noLecturer": "Not filled",
       "editLecturer": "🎤 Lecturer:",
       "selectLecturer": "-- Select --",
+      "listenedTime": "📅 Listened At",
       "notes": "Personal Notes",
       "notesPlaceholder": "Record your thoughts, takeaways or questions...",
       "noNotes": "(No notes)",
@@ -312,6 +318,17 @@
       "autoFillNote": "(Auto-filled in link mode)",
       "namePlaceholder": "Enter lecturer name",
       "titleLabel": "Select Lecturer Title",
+      "titleOptions": {
+        "lecturer": "Lecturer",
+        "pastor": "Pastor",
+        "preacher": "Preacher",
+        "pastor_wife": "Pastor's Wife",
+        "guest": "Guest Lecturer"
+      },
+      "courseCategory": {
+        "bible": "Bible Course",
+        "topic": "Topic Course"
+      },
       "courses": "Assign Courses (multi-select)",
       "coursesHint": "Assigned lecturers will appear in the course student list",
       "cancelBtn": "Cancel",
@@ -523,7 +540,31 @@
       "lecturerPlaceholder": "Lecturer name",
       "notRegistered": "(Not registered)",
       "lecturerLabel": "🎤 Lecturer:",
-      "dateLabel": "📅 Date:"
+      "dateLabel": "📅 Date:",
+      "print": {
+        "logoTitle": "SS Shining Plan",
+        "basicInfo": "【Basic Info】",
+        "name": "✦ Name:",
+        "birthday": "✦ Birthday:",
+        "church": "✦ Church:",
+        "schoolGrade": "✦ School / Grade:",
+        "faithPhase1": "【Faith Indicators PHASE 1】",
+        "faithPhase2": "【Faith Indicators PHASE 2】",
+        "courses30Done": "I have completed all 30 Sermons (completed: {count}/30)",
+        "advancedChallenges": "【Advanced Challenges】",
+        "customChallengeFallback": "Custom challenge (not filled in)",
+        "characterThemes": "【Open-Level Topics: Character】",
+        "characterSubtitle": "{'<'}Words and actions{'>'} reveal \"character\". Above character stand \"faith\" and \"the Word of the Lord\".",
+        "comingOfAgeThemes": "【Coming-of-Age Required Topics】",
+        "comingOfAgeSubtitle": "Having learned from me, live with absolute trust and conviction as well!",
+        "tableColTheme": "Topic",
+        "tableColLecturer": "Lecturer",
+        "tableColDate": "Class Date",
+        "signature": "【Review Signatures】",
+        "sigTeacher": "✦ Teacher",
+        "sigPastor": "✦ Pastor",
+        "sigParent": "✦ Parent / Guardian"
+      }
     }
   },
   "admin": {
@@ -598,7 +639,9 @@
       "courseSuffix": "{n} courses",
       "grandTotal": "📊 Grand Total",
       "emptyRow": "No reports filed for {year} yet",
-      "tableCaption": "Annual Teacher Session Report Table"
+      "tableCaption": "Annual Teacher Session Report Table",
+      "col1on1Label": "1-on-1",
+      "col1manyLabel": "1-to-many"
     },
     "inviteCode": {
       "title": "🎟️ Invite Code Management",

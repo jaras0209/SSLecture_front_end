@@ -63,7 +63,7 @@
                       </select>
                     </div>
                     <div class="form-group mb-2">
-                      <label class="form-label form-label-sm">📅 聽課時間：</label>
+                      <label class="form-label form-label-sm">{{ $t('student.course.listenedTime') }}：</label>
                       <input
                         v-model="editSessionDraft.listenedAt"
                         type="datetime-local"
@@ -118,7 +118,7 @@
               </div>
 
               <div class="form-group mb-3">
-                <label class="form-label" for="review-listened-time">📅 聽課時間：</label>
+                <label class="form-label" for="review-listened-time">{{ $t('student.course.listenedTime') }}：</label>
                 <input
                   v-model="listenedAt"
                   id="review-listened-time"
@@ -171,7 +171,7 @@
           </div>
 
           <div class="form-group mb-3">
-            <label class="form-label" for="listened-time-input">📅 聽課時間：</label>
+            <label class="form-label" for="listened-time-input">{{ $t('student.course.listenedTime') }}：</label>
             <input
               v-model="listenedAt"
               id="listened-time-input"

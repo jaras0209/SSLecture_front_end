@@ -246,11 +246,11 @@
       <div class="demo-helper">
         <p class="demo-title">💡 {{ $t('auth.demo.title') }}</p>
         <div class="demo-chips">
-          <span class="demo-chip" @click="fillDemo('student')">SS學員 (student)</span>
-          <span class="demo-chip" @click="fillDemo('teacher')">輔導教師 (teacher)</span>
-          <span class="demo-chip" @click="fillDemo('admin')">SS中央 (admin)</span>
-          <span class="demo-chip" @click="fillDemo('parent')">家長 (parent)</span>
-          <span class="demo-chip" @click="fillDemo('pastor')">牧者 (pastor)</span>
+          <span class="demo-chip" @click="fillDemo('student')">{{ $t('auth.demo.chipStudent') }}</span>
+          <span class="demo-chip" @click="fillDemo('teacher')">{{ $t('auth.demo.chipTeacher') }}</span>
+          <span class="demo-chip" @click="fillDemo('admin')">{{ $t('auth.demo.chipAdmin') }}</span>
+          <span class="demo-chip" @click="fillDemo('parent')">{{ $t('auth.demo.chipParent') }}</span>
+          <span class="demo-chip" @click="fillDemo('pastor')">{{ $t('auth.demo.chipPastor') }}</span>
         </div>
       </div>
     </div>
