@@ -240,6 +240,14 @@ function getCaretakerBadgeClass(studentUsername: string): string {
   border-radius: var(--radius-full);
 }
 
+/* This component is async-loaded, so its CSS is injected after the dashboard's
+   @media print rule. Re-declare the print hide here to keep it winning. */
+@media print {
+  .tab-selectors {
+    display: none !important;
+  }
+}
+
 .search-input {
   max-width: 250px;
   padding: 0.5rem 1rem;

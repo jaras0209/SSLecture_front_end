@@ -357,26 +357,6 @@ const overallProgressPercent = computed(() => {
   color: white;
 }
 
-.course-speaker {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.card-progress {
-  margin-top: auto;
-}
-
-.progress-info {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-  margin-bottom: 0.25rem;
-}
-
 .save-row {
   display: flex;
   align-items: center;
@@ -399,16 +379,6 @@ const overallProgressPercent = computed(() => {
   align-items: center;
   gap: 0.75rem;
   cursor: pointer;
-}
-
-.disabled-check {
-  background-color: #E2E8F0;
-  border-color: #CBD5E1;
-}
-
-.check-box-wrapper input:checked + .disabled-check {
-  background-color: var(--primary);
-  border-color: var(--primary);
 }
 
 .assigned-teacher-label {
@@ -614,29 +584,9 @@ const overallProgressPercent = computed(() => {
     font-size: 0.78rem;
   }
 
-  .sbc-card {
-    padding: 0.75rem;
-  }
-
-  .sbc-meta-row {
-    flex-direction: column;
-    gap: 0.25rem;
-    align-items: flex-start;
-  }
-
-  .sbc-status-badge {
-    align-self: flex-start;
-  }
-
   .scripture-chip {
     font-size: 0.72rem;
     padding: 0.15rem 0.45rem;
-  }
-
-  /* Print certificate button section */
-  .print-cert-actions {
-    flex-direction: column;
-    gap: 0.5rem;
   }
 }
 

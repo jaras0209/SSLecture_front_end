@@ -522,6 +522,14 @@ const advancedLabels = computed(() => ({
   gap: 1rem;
 }
 
+/* This component is async-loaded, so its CSS is injected after the dashboard's
+   @media print rule. Re-declare the print hide here to keep it winning. */
+@media print {
+  .shining-toolbar {
+    display: none !important;
+  }
+}
+
 .shining-grid {
   display: flex;
   flex-direction: column;

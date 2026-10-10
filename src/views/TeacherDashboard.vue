@@ -686,95 +686,7 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   display: flex;
   align-items: center;
 }
-
-.records-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-.record-detail-card {
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
-  border-radius: var(--radius-md);
-  padding: 1rem;
-}
-
-.record-title-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.25rem;
-}
-
-.record-title-row h6 {
-  font-size: 0.95rem;
-  color: var(--text-primary);
-}
-
-.record-meta {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  margin-bottom: 0.25rem;
-}
-
-.record-timestamps {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  line-height: 1.4;
-  border-bottom: 1px dashed #E2E8F0;
-  padding-bottom: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.text-highlight {
-  color: var(--primary);
-}
-
-.record-notes {
-  background: white;
-  border: 1px solid #E2E8F0;
-  border-radius: var(--radius-sm);
-  padding: 0.75rem;
-}
-
-.notes-title {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-  margin-bottom: 0.25rem;
-}
-
-.notes-content {
-  font-size: 0.85rem;
-  color: var(--text-primary);
-  white-space: pre-wrap;
-}
-
-/* Feedback Box */
-.feedback-input-area {
-  border-top: 1px dashed #E2E8F0;
-  padding-top: 0.75rem;
-}
-
-.font-bold { font-weight: 700; }
 .text-xs { font-size: 0.75rem; }
-
-.feedback-row {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.25rem;
-}
-
-.feedback-row input {
-  padding: 0.4rem 0.75rem;
-}
-
-.feedback-status {
-  color: var(--primary);
-  font-size: 0.75rem;
-  font-weight: 600;
-}
 
 .ro-check-row.active {
   color: var(--text-primary);
@@ -815,11 +727,6 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   .avatar-lg {
     width: 52px;
     height: 52px;
-  }
-
-  /* Stat boxes */
-  .teacher-stats-row {
-    gap: 0.5rem;
   }
 
   .stat-box {
@@ -887,16 +794,6 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
     padding: 0.5rem 0.5rem;
     white-space: nowrap;
   }
-
-  .booking-meta-row {
-    flex-wrap: wrap;
-    gap: 0.3rem;
-  }
-
-  .booking-actions-row {
-    flex-wrap: wrap;
-    gap: 0.4rem;
-  }
 }
 
 /* ???????????????????????????????????????????????????????????????
@@ -933,19 +830,6 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
     padding: 0.4rem 0.4rem;
   }
 
-  .booking-filter-tab {
-    flex: 0 0 auto;
-    white-space: nowrap;
-    font-size: 0.75rem;
-    padding: 0.3rem 0.6rem;
-  }
-
-  /* Booking create button */
-  .booking-create-btn {
-    width: 100%;
-    justify-content: center;
-  }
-
   /* Modal: full width on phones */
   .modal-card,
   .modal-booking-card {
@@ -957,12 +841,6 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   .modal-overlay {
     align-items: flex-end;
     padding: 0;
-  }
-
-  /* Student card (if card view) */
-  .student-card-content {
-    flex-direction: column;
-    gap: 0.5rem;
   }
 }
 
