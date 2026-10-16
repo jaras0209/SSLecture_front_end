@@ -225,7 +225,7 @@ import { useStudentList } from '@/composables/useStudentList'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import { useBookingsStore } from '@/stores/bookings'
-import ProfileDialog from '@/components/ProfileDialog.vue'
+import ProfileDialog from '@/components/shared/ProfileDialog.vue'
 import { defineAsyncComponent } from 'vue'
 import type { StudentProgressSummary } from '@/components/teacher/TeacherStudentList.vue'
 

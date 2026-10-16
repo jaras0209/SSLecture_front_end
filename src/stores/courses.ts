@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 import { safeGet, safeSet } from '@/utils/storage'
+import { buildMockCourses } from '@/mocks/courses'
 
 // 型別定義集中至 src/types/courses.ts—從這裡 re-export 保持向下相容
 export type {
@@ -38,66 +39,9 @@ import type {
 
 
 export const useCoursesStore = defineStore('courses', () => {
-  // Pre-configured cover colors gradients cyclic list
-  const colors = [
-    'linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%)', // Blue
-    'linear-gradient(135deg, #10B981 0%, #34D399 100%)', // Green
-    'linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%)', // Yellow
-    'linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%)', // Purple
-    'linear-gradient(135deg, #EC4899 0%, #F472B6 100%)', // Pink
-    'linear-gradient(135deg, #06B6D4 0%, #22D3EE 100%)'  // Cyan
-  ]
-  const speakers = ['張牧師', '陳傳道', '李長老', '林輔導', '王老師']
-  const durations = [180, 240, 200, 300, 220] // 3 to 5 minutes list
-
-  const rawCoursesList = [
-    { title: '聖經時觀', category: 'bible' },
-    { title: '日月停止', category: 'bible' },
-    { title: '彼得與釣魚', category: 'bible' },
-    { title: '以利亞與烏鴉飯', category: 'bible' },
-    { title: '三分說', category: 'bible' },
-    { title: '七階段法則', category: 'bible' },
-    { title: '火之概念', category: 'bible' },
-    { title: '末世論', category: 'bible' },
-    { title: '比喻論', category: 'bible' },
-    { title: '洪水審判', category: 'bible' },
-    { title: '無知中的相剋世界', category: 'bible' },
-    { title: '預定論', category: 'bible' },
-    { title: '異端的概念', category: 'bible' },
-    { title: '中心人物論', category: 'bible' },
-    { title: '復活論', category: 'bible' },
-    { title: '三位一體', category: 'lecture' },
-    { title: '聖子論', category: 'lecture' },
-    { title: '再臨論', category: 'lecture' },
-    { title: '空提論', category: 'lecture' },
-    { title: '啟示論', category: 'lecture' },
-    { title: '靈界論', category: 'lecture' },
-    { title: '撒旦論', category: 'lecture' },
-    { title: '該隱的個性', category: 'lecture' },
-    { title: '罪與悔改', category: 'lecture' },
-    { title: '創造目的', category: 'lecture' },
-    { title: '墮落論', category: 'lecture' },
-    { title: '施洗約翰與耶穌的關係使命', category: 'lecture' },
-    { title: '兩棵橄欖樹與兩個見證人', category: 'lecture' },
-    { title: '歷史論', category: 'lecture' },
-    { title: '一載二載半載', category: 'lecture' }
-  ] as const
-
-  // Populate courses list
-  const courses = ref<Course[]>(
-    rawCoursesList.map((item, index) => {
-      const id = `${item.category}-${(index + 1).toString().padStart(2, '0')}`
-      return {
-        id,
-        title: item.title,
-        category: item.category,
-        speaker: speakers[index % speakers.length],
-        duration: durations[index % durations.length],
-        description: `精選聖經專題，帶您深入探討「${item.title}」的屬靈含義、歷史背景與信仰實踐。`,
-        coverColor: colors[index % colors.length]
-      }
-    })
-  )
+  // Course catalog — dev seed data lives in src/mocks/courses.ts
+  // TODO（後端就緒後）：replace with GET /courses
+  const courses = ref<Course[]>(buildMockCourses())
 
   // Progress database (persistent)
   const progressDb = ref<UserProgressDb>(

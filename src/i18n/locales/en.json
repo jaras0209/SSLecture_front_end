@@ -3,6 +3,8 @@
     "confirm": "Confirm",
     "cancel": "Cancel",
     "close": "Close",
+    "inviteCodePlaceholder": "e.g. SS-TCH-A3F7",
+    "scripturePlaceholder": "e.g. John 1:1-18",
     "dialog": "Dialog",
     "save": "Save",
     "submit": "Submit",

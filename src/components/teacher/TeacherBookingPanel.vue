@@ -158,7 +158,7 @@
             <label class="form-label">{{ $t('teacher.booking.fieldPrep') }}</label>
             <div class="mb-2">
               <div class="flex gap-2 mb-1" v-for="(_, i) in bookingForm.prep.scriptures" :key="i">
-                <input class="form-input flex-1" v-model="bookingForm.prep.scriptures[i]" :placeholder="`如：約翰福音 1:1-18`" />
+                <input class="form-input flex-1" v-model="bookingForm.prep.scriptures[i]" :placeholder="$t('common.scripturePlaceholder')" />
                 <button class="btn btn-sm btn-danger" @click="bookingForm.prep.scriptures.splice(i, 1)">✕</button>
               </div>
               <button class="btn btn-sm btn-outline mt-1" @click="bookingForm.prep.scriptures.push('')" id="btn-add-scripture">{{ $t('teacher.booking.addScripture') }}</button>

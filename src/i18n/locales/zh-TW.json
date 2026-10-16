@@ -3,6 +3,8 @@
     "confirm": "確認",
     "cancel": "取消",
     "close": "關閉",
+    "inviteCodePlaceholder": "例如：SS-TCH-A3F7",
+    "scripturePlaceholder": "如：約翰福音 1:1-18",
     "dialog": "對話框",
     "save": "儲存",
     "submit": "送出",

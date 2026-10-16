@@ -450,7 +450,7 @@ import type { UserRole, InviteCode } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 
 // 大型 Dialog 元件：按需載入
-const ProfileDialog = defineAsyncComponent(() => import('@/components/ProfileDialog.vue'))
+const ProfileDialog = defineAsyncComponent(() => import('@/components/shared/ProfileDialog.vue'))
 
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()

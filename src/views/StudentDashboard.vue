@@ -134,7 +134,7 @@ import { defineAsyncComponent } from 'vue'
 import type { FeedbackItem } from '@/components/student/StudentBookingList.vue'
 
 // --- 大型子元件：改用 defineAsyncComponent 按需載入，縮短首次渲染時間 ---
-const ProfileDialog          = defineAsyncComponent(() => import('@/components/ProfileDialog.vue'))
+const ProfileDialog          = defineAsyncComponent(() => import('@/components/shared/ProfileDialog.vue'))
 const StudentFeedbackModal   = defineAsyncComponent(() => import('@/components/student/StudentFeedbackModal.vue'))
 const StudentShiningDashboard = defineAsyncComponent(() => import('@/components/student/StudentShiningDashboard.vue'))
 const StudentBookingList     = defineAsyncComponent(() => import('@/components/student/StudentBookingList.vue'))

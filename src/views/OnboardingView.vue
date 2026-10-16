@@ -71,7 +71,7 @@
               id="ob-invite-code"
               type="text"
               class="form-input"
-              placeholder="例如：SS-TCH-A3F7"
+              :placeholder="$t('common.inviteCodePlaceholder')"
               @input="onInviteCodeInput"
               autocomplete="off"
               style="text-transform: uppercase; letter-spacing: 0.1em;"

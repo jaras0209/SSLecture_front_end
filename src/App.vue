@@ -109,8 +109,8 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import { useI18n } from 'vue-i18n'
-import AppToast from '@/components/AppToast.vue'
-import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
+import AppToast from '@/components/shared/AppToast.vue'
+import LanguageSwitcher from '@/components/shared/LanguageSwitcher.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
