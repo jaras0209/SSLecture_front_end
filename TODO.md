@@ -31,9 +31,9 @@
   - `JWT_SECRET`（256-bit+，用 `openssl rand -base64 32` 生成）
   - `FRONTEND_URL`（正式環境前端 URL）
   - `REDIS_HOST`（儲存短效 code）
-- [ ] 後端 `application.yml` 確認 `app.frontend.callback-url` 設為：
+- [ ] 後端 `application.yml` 確認 `app.frontend.callback-url` 設為（HTML5 History 模式）：
   ```
-  app.frontend.callback-url: ${FRONTEND_URL}/#/login/callback
+  app.frontend.callback-url: ${FRONTEND_URL}/login/callback
   ```
 
 ---
@@ -51,9 +51,14 @@
 
 ---
 
-## 前端 src/stores/auth.ts 替換（前端工程師負責）
+## 前端 Store / Mock 替換（前端工程師負責）
 
-### exchangeOAuthCode 函式
+### src/stores/courses.ts & src/mocks/courses.ts
+
+- [ ] 將 `src/stores/courses.ts` 中的 `buildMockCourses()` 替換為後端 `GET /courses` API 呼叫
+- [ ] 後端課程 API 穩定後移除 `src/mocks/courses.ts`
+
+### src/stores/auth.ts — exchangeOAuthCode 函式
 
 - [ ] 移除「=== 開發期 mock ===」區塊（約 10 行）
 - [ ] 取消註解真實 fetch 呼叫區塊（已預先寫好，被 TODO 包圍）
@@ -111,7 +116,7 @@
 ## 文件更新
 
 - [ ] docs/database_schema.md：新增 social_accounts 表、更新 ERD、版本升至 v1.6.0
-- [ ] README.md：更新登入方式說明，新增後端部署需求（環境變數清單）
+- [x] README.md：更新目錄結構、i18n/測試/Lint 說明、登入方式與後端部署需求（環境變數清單）
 
 ---
 

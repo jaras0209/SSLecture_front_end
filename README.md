@@ -8,20 +8,23 @@ SSLecture 是一個基於 **Vue 3 + TypeScript + Vite** 技術棧開發的現代
 
 本系統旨在協助教會或教育機構管理學員的聖經課程學習進度，並搭建「學員 - 輔導教師 - 分區牧者 - 關懷家長」的多元關懷網路，結合了以下特色：
 *   **多角色權限控制**：五種角色（管理員、牧者、教師、學員、家長）各司其職，擁有專屬的控制面板。
-*   **精美現代視覺**：採用高質感漸層色調、玻璃擬態（Glassmorphism）與滑鼠懸停微動畫，提供流暢的使用者體驗。
-*   **發光計畫檢核表**：學員專屬的信仰與生活挑戰追蹤系統。
-*   **教師 & 牧者配對管理**：分區牧者可輕鬆完成輔導教師對學員、以及關懷家長的配對設定。
+*   **雙語系即時切換（i18n）**：完整支援繁體中文（`zh-TW`）與英文（`en`），包含介面、驗證訊息與列印報表模板，並自動記憶語系偏好。
+*   **精美現代視覺與無障礙體驗**：採用漸層色調、玻璃擬態（Glassmorphism）、ARIA 無障礙標籤與響應式排版。
+*   **閃耀計畫檢核與列印匯出**：學員專屬的信仰與生活挑戰追蹤系統，支援專屬列印排版與 PDF 匯出。
+*   **課程預約、配對與年度申報**：支援一對一／團體預約、出席與心得回饋追蹤、牧者關懷配對管理，以及教師年度教學人次統計申報。
 
 ---
 
 ## 🛠️ 技術棧說明
 
-*   **前端核心**：Vue 3 (Composition API, `<script setup>`)
-*   **建置工具**：Vite 6
-*   **狀態管理**：Pinia 3 (模組化設計：`auth` 權限模組、`courses` 課程與進度模組)
-*   **路由管理**：Vue Router（v5.x）(HTML5 History 模式，內建導航守衛，防止未授權與被限制之頁面存取)
-*   **樣式設計**：Vanilla CSS (響應式排版，完美適配行動端與桌面端)
-*   **程式語言**：TypeScript 5
+*   **前端核心**：Vue 3.5 (Composition API, `<script setup>`, `defineAsyncComponent` 按需載入)
+*   **建置工具**：Vite 6（含 `vue-vendor` 與 `i18n` 獨立 chunk 拆分最佳化）
+*   **狀態管理**：Pinia 3（模組化設計：`auth` 權限模組、`courses` 課程與進度模組、`bookings` 預約與出席模組）
+*   **多語系架構**：Vue I18n 10（Composition API 模式，`zh-TW` / `en` 雙語系）
+*   **路由管理**：Vue Router 5（HTML5 History 模式，內建角色與頁面限制導航守衛、平滑捲動）
+*   **單元測試**：Vitest 3 + Happy DOM + `@pinia/testing`（5 個測試檔案、103 項單元測試）
+*   **程式碼品質**：TypeScript 5.8（Strict 嚴格模式）、ESLint 10、Prettier 3
+*   **樣式設計**：Vanilla CSS（響應式排版，適配行動端、桌面端與 `@media print` 列印模式）
 
 ---
 
@@ -31,53 +34,67 @@ SSLecture 是一個基於 **Vue 3 + TypeScript + Vite** 技術棧開發的現代
 SSLecture/
 ├── public/                 # 靜態資源
 ├── docs/                   # 開發文件
-│   ├── backend_api_spec.md       # 後端 API 規格（v1.5.0）
-│   ├── database_schema.md        # 資料庫設計文件（PostgreSQL DDL + ERD）
+│   ├── backend_api_spec.md          # 後端 API 規格（v1.5.0）
+│   ├── database_schema.md           # 資料庫設計文件（PostgreSQL DDL + ERD）
 │   └── oauth2_social_login_spec.md  # OAuth2 Google/LINE 登入架構設計
 ├── src/
 │   ├── assets/             # 圖片、樣式等靜態資源
-│   │   └── styles/main.css # 全域 CSS（漸層、玻璃擬態、通用工具類）
+│   │   └── styles/main.css # 全域 CSS（變數、玻璃擬態、通用工具類、列印基礎樣式）
 │   ├── components/         # 可複用元件
-│   │   ├── student/        # 學員專屬元件
-│   │   └── teacher/        # 教師專屬元件
+│   │   ├── shared/         # 全域共用元件（AppToast、BaseModal、LanguageSwitcher、ProfileDialog、StatusBadge）
+│   │   ├── student/        # 學員專屬子元件（課程卡片、詳情、預約清單、回饋 Modal、閃耀計畫面板）
+│   │   └── teacher/        # 教師/牧者專屬子元件（學員清單、進度抽屜、筆記對話框、預約面板、牧者總覽、年度申報、講師與主題設定）
 │   ├── composables/        # 可複用邏輯（Composition API）
-│   │   ├── useToast.ts     # 全域 Toast / Confirm 通知系統
-│   │   └── usePasswordStrength.ts  # 密碼強度計算
+│   │   ├── useI18nHelper.ts        # 動態 i18n Key、角色與狀態翻譯輔助函式
+│   │   ├── usePasswordStrength.ts  # 密碼強度計算與多語系提示
+│   │   ├── useStudentList.ts       # 學員清單過濾、搜尋與進度統計邏輯
+│   │   └── useToast.ts             # 全域 Toast 通知與 Confirm 確認框系統
+│   ├── i18n/               # 多語系設定與語言包
+│   │   ├── index.ts        # Vue I18n 實例與 setLocale 切換函式
+│   │   └── locales/        # 語系 JSON 檔（zh-TW.json、en.json）
+│   ├── mocks/              # 開發期預設資料（後端就緒後可替換）
+│   │   └── courses.ts      # 30 堂課程預設清單產生器（buildMockCourses）
 │   ├── router/
-│   │   └── index.ts        # 路由配置與導航守衛（lazy loading、角色守衛）
+│   │   ├── index.ts        # 路由配置與導航守衛（lazy loading、角色與頁面權限守衛）
+│   │   └── __tests__/      # 路由導航守衛單元測試（router.spec.ts）
 │   ├── stores/             # Pinia 狀態管理
-│   │   ├── auth.ts         # 使用者驗證與帳號（含 OAuth2 actions）
-│   │   ├── courses.ts      # 課程、學習進度與配對關係
-│   │   └── bookings.ts     # 課程預約與出席紀錄
+│   │   ├── auth.ts         # 使用者驗證、邀請碼管理與 OAuth2 actions
+│   │   ├── courses.ts      # 課程、學習進度、閃耀計畫、講師與關懷配對關係
+│   │   ├── bookings.ts     # 課程預約、出席紀錄與雙向心得回饋
+│   │   └── __tests__/      # Store 單元測試（auth / courses / bookings.spec.ts）
 │   ├── types/              # TypeScript 型別集中管理
 │   │   ├── auth.ts         # User、UserRole、InviteCode 等
-│   │   ├── courses.ts      # Course、CourseSession 等
-│   │   ├── bookings.ts     # Booking、AttendanceRecord 等
+│   │   ├── courses.ts      # Course、ListenSession、ShiningProject、Lecturer 等
+│   │   ├── bookings.ts     # BookingSession、AttendeeEntry 等
+│   │   ├── student.ts      # StudentProgressSummary 等學員進度摘要型別
 │   │   └── index.ts        # 統一 barrel export
 │   ├── utils/
-│   │   ├── storage.ts      # localStorage 安全包裝工具
-│   │   └── api.ts          # 集中式 API fetch wrapper（含 JWT 注入、401 refresh）
+│   │   ├── storage.ts      # localStorage 安全讀寫包裝工具（safeGet / safeSet）
+│   │   ├── api.ts          # 集中式 API fetch wrapper（含 JWT 注入、401 refresh）
+│   │   └── __tests__/      # 工具函式單元測試（storage.spec.ts）
 │   ├── views/              # 各角色的控制面板主頁面
-│   │   ├── AdminDashboard.vue      # 系統管理員後台
-│   │   ├── LoginView.vue           # 登入與註冊介面（含 Google/LINE 登入按鈕）
+│   │   ├── AdminDashboard.vue      # 系統管理員後台（帳號權限、邀請碼、年度統計總覽）
+│   │   ├── LoginView.vue           # 登入與註冊介面（含邀請碼驗證、Google/LINE 登入、快速測試帳號）
 │   │   ├── LoginCallback.vue       # OAuth2 回調頁（換取 JWT、錯誤處理）
 │   │   ├── NotFoundView.vue        # 404 找不到頁面
 │   │   ├── OnboardingView.vue      # 首次社群登入補充資料頁
-│   │   ├── StudentDashboard.vue    # 學員個人學習面板 & 發光計畫
+│   │   ├── StudentDashboard.vue    # 學員個人學習面板 & 閃耀計畫
 │   │   ├── TeacherDashboard.vue    # 輔導教師 / 分區牧者 / 家長共用控制面板
 │   │   └── UnauthorizedView.vue    # 未授權提示頁
-│   ├── App.vue             # 根元件（導航、Toast Provider、密碼修改 Modal）
-│   ├── main.ts             # 專案入口（全域錯誤捕獲）
+│   ├── App.vue             # 根元件（頂部導覽列、語系切換器、Toast、個人資料與密碼修改 Modal）
+│   ├── main.ts             # 專案入口（Pinia、Router、i18n 掛載與全域錯誤捕獲）
 │   └── vite-env.d.ts       # Vite 環境變數型別宣告
 ├── .env.example            # 環境變數範本（複製為 .env.development 使用）
 ├── .env.development        # 開發環境變數（VITE_API_BASE_URL 等）
 ├── .env.production         # 生產環境變數
+├── eslint.config.js        # ESLint Flat Config 配置
+├── .prettierrc             # Prettier 格式化配置
 ├── TODO.md                 # 後端串接待辦清單
 ├── index.html              # HTML 模板入口
 ├── package.json            # 依賴套件與指令腳本
 ├── tsconfig.json           # TypeScript 配置
 ├── vitest.config.ts        # Vitest 測試配置（含 coverage）
-└── vite.config.ts          # Vite 建置配置（含 vendor chunk splitting）
+└── vite.config.ts          # Vite 建置配置（含 vendor / i18n chunk splitting）
 ```
 
 ---
@@ -86,15 +103,15 @@ SSLecture/
 
 ### 1. 帳號密碼登入
 
-在登入頁輸入帳號與密碼。可使用以下預設測試帳號（**密碼皮為 `123456`**）：
+在登入頁輸入帳號與密碼。可使用以下預設測試帳號（**密碼皆為 `123456`**）：
 
 | 角色 | 預設帳號 | 核心功能 |
 | :--- | :--- | :--- |
-| **系統管理員** | `admin` | 檢視各教會數據總覽、管理使用者註冊權限、限制特定用戶的頁面存取、編輯課程與講師清單。 |
-| **分區牧者** | `pastor` | 專屬「教會配對管理板」，分配輔導教師與學員的關懷對象，管理關懷家長配對。 |
-| **輔導教師** | `teacher` | 檢視被指派學員的課程清單與學習進度。 |
-| **學員** | `student` | 瀏覽聖經課程、撰寫興心筆記、填寫「發光計畫」。 |
-| **關懷家長** | `parent` | 查看與其綁定之子女（學員）的論課記錄與學習百分比。 |
+| **系統管理員** | `admin` | 檢視各教會數據與年度申報總覽、管理使用者角色與註冊權限、限制特定用戶的頁面存取、產生與撤銷邀請碼。 |
+| **分區牧者** | `pastor` | 專屬「教會配對管理板」，分配輔導教師與學員的關懷對象，管理關懷家長配對與講師名冊。 |
+| **輔導教師** | `teacher` | 檢視被指派學員的課程進度、審核閃耀計畫並匯出列印、管理聽課預約與出席、填寫年度教學人次申報。 |
+| **學員** | `student` | 瀏覽聖經與專題課程、登記聽課紀錄與個人心得筆記、管理預約、填寫「閃耀計畫」。 |
+| **關懷家長** | `parent` | 查看與其綁定之子女（學員）的聽課紀錄、學習進度百分比與閃耀計畫。 |
 
 ### 2. 邀請碼註冊機制
 
@@ -104,7 +121,7 @@ SSLecture/
 
 > ⚠️ 目前為前端 Mock 實作，後端就緒後將實現實際 OAuth2 流程。
 
-登入頁體展示 Google / LINE 登入按鈕，點擊後將執行以下流程：
+登入頁展示 Google / LINE 登入按鈕，點擊後將執行以下流程：
 
 ```
 點擊按鈕
@@ -126,14 +143,14 @@ SSLecture/
 
 ## 🚀 快速上手與環境設定
 
-若要於本機環境執行此專案，請確保電腦已安裝 **Node.js v22 LTS** 以上版本（本專案開發環境為 Node.js v22.19.0）與 npm 包管理器。
+若要於本機環境執行此專案，請確保電腦已安裝 **Node.js v22 LTS** 以上版本（本專案開發環境為 Node.js v22.19.0）與 npm 套件管理器。
 
 ### 1. 安裝專案依賴
 
-開啟終端機並切換至專案根目錄，執行以下指令安裝所需套件：
+開啟終端機並切換至專案根目錄，執行以下指令安裝所需套件（在 Node.js v22 環境下建議加上 `--legacy-peer-deps`）：
 
 ```bash
-npm install
+npm install --legacy-peer-deps
 ```
 
 ### 2. 本地開發伺服器啟動
@@ -144,19 +161,39 @@ npm install
 npm run dev
 ```
 
-### 3. 專案編譯與建置
+### 3. 單元測試與覆蓋率
 
-若要將專案打包編譯為生產環境靜態檔案（會輸出至 `dist/` 目錄），請執行：
+本專案使用 Vitest 進行單元測試（涵蓋 `storage`、`auth`、`courses`、`bookings` stores 與 `router` 導航守衛，共 103 項測試）：
+
+```bash
+# 單次執行所有測試
+npm run test
+
+# 監聽模式執行測試
+npm run test:watch
+
+# 產生測試覆蓋率報告
+npm run test:coverage
+```
+
+### 4. 程式碼檢查與格式化
+
+```bash
+# ESLint 靜態檢查 / 自動修復
+npm run lint
+npm run lint:fix
+
+# Prettier 格式檢查 / 自動排版
+npm run format:check
+npm run format
+```
+
+### 5. 專案編譯與預覽
+
+若要執行 TypeScript 型別檢查並將專案打包為生產環境靜態檔案（輸出至 `dist/` 目錄）：
 
 ```bash
 npm run build
-```
-
-### 4. 預覽生產環境建置結果
-
-在建置完成後，可以使用以下指令本地預覽打包後的成果：
-
-```bash
 npm run preview
 ```
 
