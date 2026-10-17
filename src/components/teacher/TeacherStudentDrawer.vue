@@ -35,7 +35,7 @@
       <!-- Shining Audit Panel -->
       <div v-if="activeDrawerTab === 'shining'" class="shining-audit-panel">
         <div class="flex justify-between align-center mb-4">
-          <h5 class="section-title mb-0">✨ {{ $t('teacher.drawer.shiningAuditBtn') }}</h5>
+          <h5 class="section-title mb-0">{{ $t('teacher.drawer.shiningAuditBtn') }}</h5>
           <button class="btn btn-primary btn-sm" @click="triggerPrint(student.username)">
             {{ $t('teacher.drawer.printBtn') }}
           </button>

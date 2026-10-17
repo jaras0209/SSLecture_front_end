@@ -146,7 +146,7 @@
             </thead>
             <tbody>
               <tr v-for="(theme, index) in characterThemes" :key="index">
-                <td class="theme-title-cell">??{{ theme }}</td>
+                <td class="theme-title-cell">✦ {{ theme }}</td>
                 <td>
                   <span v-if="shiningProject.characterLectures[theme]?.speaker">
                     {{ shiningProject.characterLectures[theme].speaker }}
@@ -180,7 +180,7 @@
             </thead>
             <tbody>
               <tr v-for="(theme, index) in comingOfAgeThemes" :key="index">
-                <td class="theme-title-cell">??{{ theme }}</td>
+                <td class="theme-title-cell">✦ {{ theme }}</td>
                 <td>
                   <span v-if="shiningProject.comingOfAgeTopics[theme]?.speaker">
                     {{ shiningProject.comingOfAgeTopics[theme].speaker }}
@@ -221,7 +221,7 @@
   </div>
 
   <!-- DEDICATED HIGH-FIDELITY HTML PRINT TEMPLATE -->
-  <!-- Teleport ??body ?遛蹓?? #app-container display:none ??軋? -->
+  <!-- Teleport 到 body 以避開列印時 #app-container display:none 的限制 -->
   <Teleport to="body">
     <div class="print-page-layout print-only">
     <div class="print-container">
@@ -380,7 +380,7 @@ const { t } = useI18n()
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
 
-// ?? Shining Project Data ??????????????????????????????????????????????????????
+// ── Shining Project Data ──────────────────────────────────────────────────────
 
 const shiningProject = computed(() => {
   const username = authStore.currentUser?.username || ''
@@ -407,7 +407,7 @@ watch(shiningProject, (newProj) => {
   }
 }, { immediate: true })
 
-// ?? Caretaker Info (for print signatures) ????????????????????????????????????
+// ── Caretaker Info (for print signatures) ────────────────────────────────────
 
 const assignedTeacher = computed(() => {
   const username = authStore.currentUser?.username || ''
@@ -424,7 +424,7 @@ const assignedParent = computed(() => {
   return coursesStore.getStudentCaretaker(username, 'parent')
 })
 
-// ?€?€ Themes ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
+// ── Themes ────────────────────────────────────────────────────────────────────
 
 const characterThemes = computed(() => {
   const church = authStore.currentUser?.church || '愛與話語'
@@ -435,7 +435,7 @@ const comingOfAgeThemes = computed(() => {
   return coursesStore.getThemesByChurch('comingOfAge', church)
 })
 
-// ?€?€ Course Completion Count (for Phase 2 progress bar) ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€
+// ── Course Completion Count (for Phase 2 progress bar) ───────────────────────
 
 const completedCount = computed(() => {
   const username = authStore.currentUser?.username || ''
@@ -444,7 +444,7 @@ const completedCount = computed(() => {
   return Object.values(userRecords).filter(r => r.completed).length
 })
 
-// ?? Actions ???????????????????????????????????????????????????????????????????
+// ── Actions ───────────────────────────────────────────────────────────────────
 
 function saveBasicInfo() {
   const username = authStore.currentUser?.username || ''
@@ -469,7 +469,7 @@ function triggerPrint() {
   window.print()
 }
 
-// ?? Checklist Labels (i18n computed) ?????????????????????????????????????????
+// ── Checklist Labels (i18n computed) ─────────────────────────────────────────
 
 const phase1Labels = computed(() => ({
   worship: t('teacher.studentList.phase1Worship'),
@@ -496,14 +496,14 @@ const advancedLabels = computed(() => ({
 }))
 </script>
 
-<!-- ??? scoped??eleport ??print-only ????body?coped ???????? -->
+<!-- 不使用 scoped，因為 Teleport 的 print-only 掛載在 body，scoped 無法命中 -->
 <style>
-/* ?嚗???謇?????唾???*/
+/* 平常瀏覽時隱藏列印模板 */
 .print-page-layout.print-only {
   display: none;
 }
 
-/* ?謅?蹇???*/
+/* 列印時強制顯示 */
 @media print {
   .print-page-layout.print-only {
     display: block !important;

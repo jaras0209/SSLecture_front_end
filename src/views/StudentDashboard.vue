@@ -51,7 +51,7 @@
         :class="['main-tab-btn', { active: activeDashboardTab === 'sermons' }]"
         @click="activeDashboardTab = 'sermons'"
       >
-        🎧 {{ $t('student.tabs.sermons') }}
+        {{ $t('student.tabs.sermons') }}
       </button>
       <button
         role="tab"
@@ -61,7 +61,7 @@
         :class="['main-tab-btn', { active: activeDashboardTab === 'shining' }]"
         @click="activeDashboardTab = 'shining'"
       >
-        ✨ {{ $t('student.tabs.shining') }}
+        {{ $t('student.tabs.shining') }}
       </button>
       <button
         role="tab"
@@ -71,7 +71,7 @@
         :class="['main-tab-btn', { active: activeDashboardTab === 'bookings' }]"
         @click="activeDashboardTab = 'bookings'"
       >
-        📅 {{ $t('student.tabs.bookings') }}
+        {{ $t('student.tabs.bookings') }}
         <span v-if="upcomingBookingsCount > 0" class="booking-badge">{{ upcomingBookingsCount }}</span>
       </button>
     </div>

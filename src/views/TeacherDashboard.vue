@@ -13,7 +13,7 @@
             <h2 v-else-if="authStore.currentUser?.role === 'admin'">{{ $t('teacher.header.adminTitle') }}</h2>
             <h2 v-else>{{ $t('teacher.header.teacherTitle') }}</h2>
             <p>{{ $t('teacher.header.welcome', { name: teacherDisplayName }) }}</p>
-            <p v-if="authStore.currentUser?.lastLoginAt" class="last-login-hint-sm">?? {{ $t('teacher.header.lastLogin', { time: authStore.currentUser?.lastLoginAt }) }}</p>
+            <p v-if="authStore.currentUser?.lastLoginAt" class="last-login-hint-sm">🕐 {{ $t('teacher.header.lastLogin', { time: authStore.currentUser?.lastLoginAt }) }}</p>
           </div>
         </div>
       </div>
@@ -42,9 +42,9 @@
         :class="['main-tab-btn', { active: activeMainTab === 'care' }]"
         @click="activeMainTab = 'care'"
       >
-        <span v-if="authStore.currentUser?.role === 'pastor'">?? {{ $t('teacher.tabs.carePastor') }}</span>
-        <span v-else-if="authStore.currentUser?.role === 'admin'">?? {{ $t('teacher.tabs.careAdmin') }}</span>
-        <span v-else>????{{ $t('teacher.tabs.careTeacher') }}</span>
+        <span v-if="authStore.currentUser?.role === 'pastor'">⛪ {{ $t('teacher.tabs.carePastor') }}</span>
+        <span v-else-if="authStore.currentUser?.role === 'admin'">👑 {{ $t('teacher.tabs.careAdmin') }}</span>
+        <span v-else>👨‍🏫 {{ $t('teacher.tabs.careTeacher') }}</span>
       </button>
       <!-- Pastor-only: Church Overview Tab -->
       <button 
@@ -52,13 +52,13 @@
         :class="['main-tab-btn', { active: activeMainTab === 'pastor-overview' }]"
         @click="activeMainTab = 'pastor-overview'"
       >
-        ??{{ $t('teacher.tabs.pastorOverview') }}
+        ⛪ {{ $t('teacher.tabs.pastorOverview') }}
       </button>
       <button 
         :class="['main-tab-btn', { active: activeMainTab === 'settings' }]"
         @click="activeMainTab = 'settings'"
       >
-        ?? {{ $t('teacher.tabs.settings') }}
+        ⚙️ {{ $t('teacher.tabs.settings') }}
       </button>
       <!-- Booking Tab: teacher + admin -->
       <button
@@ -67,7 +67,7 @@
         @click="activeMainTab = 'bookings'"
         id="tab-bookings"
       >
-        ?? {{ $t('teacher.tabs.bookings') }}
+        📅 {{ $t('teacher.tabs.bookings') }}
         <span v-if="bookingPendingCount > 0" class="tab-badge">{{ bookingPendingCount }}</span>
       </button>
     </div>
@@ -111,7 +111,7 @@
     <Teleport to="body">
       <div v-if="showLecturerModal" class="modal-overlay" role="dialog" aria-modal="true" :aria-label="editingLecturerId ? $t('teacher.lecturer.editTitle') : $t('teacher.lecturer.addTitle')">
       <div class="glass-panel modal-card lecturer-modal-card">
-        <h3>{{ editingLecturerId ? '?? ' + $t('teacher.lecturer.editTitle') : '??' + $t('teacher.lecturer.addTitle') }}</h3>
+        <h3>{{ editingLecturerId ? '✏️ ' + $t('teacher.lecturer.editTitle') : '➕ ' + $t('teacher.lecturer.addTitle') }}</h3>
 
         <!-- Mode Toggle -->
         <div class="link-mode-toggle mt-4">
@@ -121,7 +121,7 @@
             @click="lecturerForm.linkMode = 'link'; lecturerForm.linkedUsername = ''; lecturerForm.name = ''"
             id="btn-link-mode"
           >
-            ?? {{ $t('teacher.lecturer.linkMode') }}
+            🔗 {{ $t('teacher.lecturer.linkMode') }}
           </button>
           <button
             class="link-mode-btn"
@@ -129,7 +129,7 @@
             @click="lecturerForm.linkMode = 'custom'; lecturerForm.linkedUsername = ''"
             id="btn-custom-mode"
           >
-            ?? {{ $t('teacher.lecturer.customMode') }}
+            ✍️ {{ $t('teacher.lecturer.customMode') }}
           </button>
         </div>
 
@@ -151,7 +151,7 @@
             {{ $t('teacher.lecturer.noTeachersHint') }}
           </p>
           <div v-if="lecturerForm.linkedUsername" class="linked-user-preview mt-2">
-            <span class="linked-chip">?? {{ $t('teacher.lecturer.linkedChip', { username: lecturerForm.linkedUsername }) }}</span>
+            <span class="linked-chip">🔗 {{ $t('teacher.lecturer.linkedChip', { username: lecturerForm.linkedUsername }) }}</span>
             <span class="text-xs text-muted ml-2">{{ $t('teacher.lecturer.autoFillHint') }}</span>
           </div>
         </div>
@@ -159,7 +159,7 @@
         <!-- Lecturer display name (editable in custom mode, auto in link mode) -->
         <div class="form-group" :class="{ 'mt-4': lecturerForm.linkMode !== 'link' }">
           <label class="form-label">
-            ? {{ $t('teacher.lecturer.displayName') }}
+            🎤 {{ $t('teacher.lecturer.displayName') }}
             <span v-if="lecturerForm.linkMode === 'link'" class="text-xs text-muted ml-1">{{ $t('teacher.lecturer.autoFillNote') }}</span>
           </label>
           <input
@@ -229,7 +229,7 @@ import ProfileDialog from '@/components/shared/ProfileDialog.vue'
 import { defineAsyncComponent } from 'vue'
 import type { StudentProgressSummary } from '@/components/teacher/TeacherStudentList.vue'
 
-// --- 憭批?摮?隞塚??寧 defineAsyncComponent ??頛嚗葬?剝?甈⊥葡????---
+// --- 大型子元件：改用 defineAsyncComponent 按需載入，縮減首次渲染負擔 ---
 const TeacherNotesDialog    = defineAsyncComponent(() => import('@/components/teacher/TeacherNotesDialog.vue'))
 const TeacherPastorOverview = defineAsyncComponent(() => import('@/components/teacher/TeacherPastorOverview.vue'))
 const TeacherSettingsPanel  = defineAsyncComponent(() => import('@/components/teacher/TeacherSettingsPanel.vue'))
@@ -313,11 +313,11 @@ const notesDialogStudent = ref<StudentProgressSummary | null>(null)
 
 // Local lecturer form state for Settings tab
 
-const adminSettingsChurch = ref('??閰梯?')
+const adminSettingsChurch = ref('愛與話語')
 const currentContextChurch = computed(() => {
   return authStore.currentUser?.role === 'admin'
     ? adminSettingsChurch.value
-    : (authStore.currentUser?.church || '??閰梯?')
+    : (authStore.currentUser?.church || '愛與話語')
 })
 
 // feedbacksSent tracks the confirmation message displayed to teacher after sending feedback
@@ -358,7 +358,7 @@ function openAddLecturer() {
   editingLecturerId.value = null
   lecturerForm.value = {
     name: '',
-    title: '雓葦',
+    title: '講師',
     courseIds: [],
     linkedUsername: '',
     linkMode: 'custom'
@@ -706,9 +706,9 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   display: none;
 }
 
-/* ???????????????????????????????????????????????????????????????
-   TeacherDashboard ??Mobile RWD (640px)
-??????????????????????????????????????????????????????????????? */
+/* ═══════════════════════════════════════════════════════════════
+   TeacherDashboard — Mobile RWD (640px)
+═══════════════════════════════════════════════════════════════ */
 @media (max-width: 640px) {
   /* Dashboard header */
   .dashboard-header {
@@ -796,9 +796,9 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   }
 }
 
-/* ???????????????????????????????????????????????????????????????
-   TeacherDashboard ??Mobile RWD (480px)
-??????????????????????????????????????????????????????????????? */
+/* ═══════════════════════════════════════════════════════════════
+   TeacherDashboard — Mobile RWD (480px)
+═══════════════════════════════════════════════════════════════ */
 @media (max-width: 480px) {
   .dashboard-header {
     padding: 0.75rem;

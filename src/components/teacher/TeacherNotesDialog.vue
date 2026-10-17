@@ -26,7 +26,7 @@
 
           <!-- Filter Bar -->
           <div class="notes-filter-bar">
-            <span class="filter-label">🔍 {{ $t('teacher.notes.studentLabel') }}</span>
+            <span class="filter-label">{{ $t('teacher.notes.studentLabel') }}</span>
             <div class="filter-btns">
               <button
                 :class="['filter-btn', { active: notesFilter === 'all' }]"
@@ -50,7 +50,7 @@
                 :class="['filter-btn', { active: notesFilter === 'has-notes' }]"
                 @click="notesFilter = 'has-notes'"
               >
-                📝 {{ $t('teacher.notes.studentNotes') }} ({{ student.records.filter(r => r.notes && r.notes.trim()).length }})
+                {{ $t('teacher.notes.studentNotes') }} ({{ student.records.filter(r => r.notes && r.notes.trim()).length }})
               </button>
             </div>
           </div>
@@ -85,13 +85,13 @@
               <div class="notes-record-meta">
                 <span class="meta-chip">🎤 {{ record.lecturer || $t('student.course.noLecturerFull') }}</span>
                 <span class="meta-chip" v-if="record.listenedAt">📅 {{ formatDateTime(record.listenedAt) }}</span>
-                <span class="meta-chip" v-if="record.lastUpdated">📥 {{ $t('teacher.notes.lastUpdated') }}{{ record.lastUpdated }}</span>
+                <span class="meta-chip" v-if="record.lastUpdated">{{ $t('teacher.notes.lastUpdated') }}{{ record.lastUpdated }}</span>
               </div>
 
               <!-- Notes Content -->
               <div class="notes-record-content">
                 <div v-if="record.notes && record.notes.trim()" class="notes-text-box">
-                  <div class="notes-text-header">📝 {{ $t('teacher.notes.studentNotes') }}</div>
+                  <div class="notes-text-header">{{ $t('teacher.notes.studentNotes') }}</div>
                   <div class="notes-text-body">{{ record.notes }}</div>
                 </div>
                 <div v-else class="notes-empty-note">

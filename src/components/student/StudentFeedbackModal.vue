@@ -7,7 +7,7 @@
         @click.self="close"
       >
         <div class="glass-panel modal-card" style="max-width: 480px; width: 92%; padding: 1.75rem;">
-          <h3>✍️ {{ $t('student.course.feedbackTitle') }}</h3>
+          <h3>{{ $t('student.course.feedbackTitle') }}</h3>
           <p class="text-muted text-sm mt-1" v-if="session">
             {{ session.courseTitle }} ／
             {{ session.lecturerTitle }} {{ session.lecturerName }} ／

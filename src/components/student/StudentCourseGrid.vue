@@ -39,10 +39,10 @@
               :class="getRecord(course.id).completed ? 'badge-teacher' : 'badge-student'"
             >
               <template v-if="getRecord(course.id).sessions.length > 0">
-                🎧 {{ $t('student.course.listenCount', { n: getRecord(course.id).sessions.length }) }}
+                {{ $t('student.course.listenCount', { n: getRecord(course.id).sessions.length }) }}
               </template>
               <template v-else>
-                📝 {{ $t('student.course.notRegistered') }}
+                {{ $t('student.course.notRegistered') }}
               </template>
             </span>
             <!-- Show latest session lecturer -->

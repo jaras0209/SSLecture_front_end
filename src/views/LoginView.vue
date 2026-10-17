@@ -161,10 +161,10 @@
           <label class="form-label">{{ $t('auth.register.role') }}</label>
           <div v-if="validatedInvite" class="locked-field-display">
             {{ roleLabel(validatedInvite.role) }}
-            <span class="locked-badge">🔒 {{ $t('auth.register.inviteLockedBadge') }}</span>
+            <span class="locked-badge">{{ $t('auth.register.inviteLockedBadge') }}</span>
           </div>
           <div v-else class="locked-field-display student-only">
-            🎒 {{ $t('auth.register.studentRole') }}
+            {{ $t('auth.register.studentRole') }}
             <span class="locked-badge">{{ $t('auth.register.studentRoleHint') }}</span>
           </div>
         </div>
@@ -174,7 +174,7 @@
           <label class="form-label" for="reg-church">⛪ {{ $t('auth.register.church') }}</label>
           <div v-if="validatedInvite && validatedInvite.church" class="locked-field-display">
             {{ validatedInvite.church }}
-            <span class="locked-badge">🔒 {{ $t('auth.register.churchLockedBadge') }}</span>
+            <span class="locked-badge">{{ $t('auth.register.churchLockedBadge') }}</span>
           </div>
           <select
             v-else
