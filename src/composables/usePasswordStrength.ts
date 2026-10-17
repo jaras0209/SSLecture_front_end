@@ -55,6 +55,7 @@ export function usePasswordStrength(password: Ref<string>) {
   /** 回傳第 idx 格強度 bar 的 CSS class（共 3 格，idx = 0/1/2） */
   function barClass(idx: number): string {
     const s = strength.value
+    if (s === 0) return idx === 0 ? 'bar-weak' : 'bar-empty'
     if (idx > s - 1) return 'bar-empty'
     return BAR_CLASSES[s] ?? 'bar-empty'
   }

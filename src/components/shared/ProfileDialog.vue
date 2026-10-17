@@ -101,37 +101,92 @@
 
           <!-- ── Change Password (collapsible) ── -->
           <div class="pd-pwd-section mt-4">
-            <button class="pd-pwd-toggle" @click="showPwd = !showPwd">
+            <button type="button" class="pd-pwd-toggle" @click="showPwd = !showPwd">
               🔒 {{ $t('profile.changePwd') }}
               <span class="pd-toggle-arrow">{{ showPwd ? '▲' : '▼' }}</span>
             </button>
             <transition name="review-slide">
               <div v-if="showPwd" class="pd-pwd-form">
+                <div v-if="pwdMsg" :class="['pd-pwd-alert', pwdMsgType]">
+                  {{ pwdMsg }}
+                </div>
                 <div class="form-group mb-2">
                   <label class="form-label form-label-sm">{{ $t('profile.oldPwd') }}</label>
-                  <input v-model="pwd.old" type="password" class="form-input form-input-sm" :placeholder="$t('profile.oldPwdPlaceholder')" />
+                  <div class="pwd-input-wrap">
+                    <input
+                      v-model="pwd.old"
+                      :type="showOldPwd ? 'text' : 'password'"
+                      class="form-input form-input-sm"
+                      :placeholder="$t('profile.oldPwdPlaceholder')"
+                    />
+                    <button type="button" class="pwd-eye-btn" @click="showOldPwd = !showOldPwd" :title="showOldPwd ? $t('common.hidePwd') : $t('common.showPwd')">
+                      <svg v-if="!showOldPwd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    </button>
+                  </div>
                 </div>
                 <div class="form-group mb-2">
                   <label class="form-label form-label-sm">{{ $t('profile.newPwd') }}</label>
-                  <input v-model="pwd.new1" type="password" class="form-input form-input-sm" :placeholder="$t('profile.newPwdPlaceholder')" />
-                  <!-- Strength bar (reuse same logic) -->
-                  <div v-if="pwd.new1" class="pwd-strength-wrap mt-1">
-                    <div class="pwd-bars">
-                      <div class="pwd-bar" :class="pwdStrengthClass(0)"></div>
-                      <div class="pwd-bar" :class="pwdStrengthClass(1)"></div>
-                      <div class="pwd-bar" :class="pwdStrengthClass(2)"></div>
+                  <div class="pwd-input-wrap">
+                    <input
+                      v-model="pwd.new1"
+                      :type="showNewPwd ? 'text' : 'password'"
+                      class="form-input form-input-sm"
+                      :placeholder="$t('profile.newPwdPlaceholder')"
+                    />
+                    <button type="button" class="pwd-eye-btn" @click="showNewPwd = !showNewPwd" :title="showNewPwd ? $t('common.hidePwd') : $t('common.showPwd')">
+                      <svg v-if="!showNewPwd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    </button>
+                  </div>
+                  <!-- Password Strength Indicator & Rules -->
+                  <div v-if="pwd.new1" class="pwd-strength-section">
+                    <div class="pwd-strength-wrap">
+                      <div class="pwd-bars">
+                        <div class="pwd-bar" :class="pwdStrengthClass(0)"></div>
+                        <div class="pwd-bar" :class="pwdStrengthClass(1)"></div>
+                        <div class="pwd-bar" :class="pwdStrengthClass(2)"></div>
+                      </div>
+                      <span class="pwd-label" :class="pwdStrengthTextClass">{{ pwdStrengthLabel }}</span>
                     </div>
-                    <span class="pwd-label" :class="pwdStrengthTextClass">{{ pwdStrengthLabel }}</span>
+                    <ul class="pwd-rules-list">
+                      <li :class="{ 'rule-ok': pwd.new1.length >= 8 }">
+                        {{ pwd.new1.length >= 8 ? '✅' : '❌' }} {{ $t('auth.passwordRules.minLength') }}
+                      </li>
+                      <li :class="{ 'rule-ok': /[A-Z]/.test(pwd.new1) }">
+                        {{ /[A-Z]/.test(pwd.new1) ? '✅' : '❌' }} {{ $t('auth.passwordRules.uppercase') }}
+                      </li>
+                      <li :class="{ 'rule-ok': /[a-z]/.test(pwd.new1) }">
+                        {{ /[a-z]/.test(pwd.new1) ? '✅' : '❌' }} {{ $t('auth.passwordRules.lowercase') }}
+                      </li>
+                      <li :class="{ 'rule-ok': /[0-9]/.test(pwd.new1) }">
+                        {{ /[0-9]/.test(pwd.new1) ? '✅' : '❌' }} {{ $t('auth.passwordRules.number') }}
+                      </li>
+                      <li :class="{ 'rule-ok': /[^A-Za-z0-9]/.test(pwd.new1) }">
+                        {{ /[^A-Za-z0-9]/.test(pwd.new1) ? '✅' : '❌' }} {{ $t('auth.passwordRules.special') }}
+                      </li>
+                    </ul>
                   </div>
                 </div>
                 <div class="form-group mb-3">
                   <label class="form-label form-label-sm">{{ $t('profile.confirmPwd') }}</label>
-                  <input v-model="pwd.new2" type="password" class="form-input form-input-sm" :placeholder="$t('profile.confirmPwdPlaceholder')" />
+                  <div class="pwd-input-wrap">
+                    <input
+                      v-model="pwd.new2"
+                      :type="showConfirmPwd ? 'text' : 'password'"
+                      class="form-input form-input-sm"
+                      :placeholder="$t('profile.confirmPwdPlaceholder')"
+                    />
+                    <button type="button" class="pwd-eye-btn" @click="showConfirmPwd = !showConfirmPwd" :title="showConfirmPwd ? $t('common.hidePwd') : $t('common.showPwd')">
+                      <svg v-if="!showConfirmPwd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    </button>
+                  </div>
                   <p v-if="pwd.new2 && pwd.new1 !== pwd.new2" class="pwd-mismatch">{{ $t('profile.pwdMismatch') }}</p>
                 </div>
                 <div class="save-row">
-                  <span v-if="pwdMsg" :class="['save-status', pwdMsgType === 'error' ? 'text-error' : '']">{{ pwdMsg }}</span>
-                  <button class="btn btn-secondary btn-sm" @click="changePassword">{{ $t('profile.updatePwdBtn') }}</button>
+                  <span></span>
+                  <button type="button" class="btn btn-secondary btn-sm" @click="changePassword">{{ $t('profile.updatePwdBtn') }}</button>
                 </div>
               </div>
             </transition>
@@ -156,6 +211,7 @@
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
+import { usePasswordStrength } from '@/composables/usePasswordStrength'
 
 const props = defineProps<{ modelValue: boolean }>()
 const emit = defineEmits<{ (e: 'update:modelValue', val: boolean): void }>()
@@ -170,6 +226,9 @@ const draftAvatarUrl = ref('')
 const customAvatarUrl = ref('')
 const selectedStyle = ref('')
 const showPwd = ref(false)
+const showOldPwd = ref(false)
+const showNewPwd = ref(false)
+const showConfirmPwd = ref(false)
 const saveMsg = ref('')
 const pwdMsg = ref('')
 const pwdMsgType = ref<'success' | 'error'>('success')
@@ -185,6 +244,9 @@ watch(() => props.modelValue, (open) => {
     customAvatarUrl.value = ''
     selectedStyle.value = ''
     showPwd.value = false
+    showOldPwd.value = false
+    showNewPwd.value = false
+    showConfirmPwd.value = false
     saveMsg.value = ''
     pwdMsg.value = ''
     pwd.value = { old: '', new1: '', new2: '' }
@@ -230,40 +292,14 @@ function applyCustomUrl() {
   }
 }
 
-// ── Password strength (for change password field) ──
-function calcStrength(p: string): number {
-  if (p.length < 6) return 0
-  let score = 1
-  if (p.length >= 8) score++
-  if (/[A-Z]/.test(p) && /[a-z]/.test(p)) score++
-  if (/[0-9]/.test(p)) score++
-  if (/[^A-Za-z0-9]/.test(p)) score++
-  return Math.min(score - 1, 3)
-}
-
-const newPwdStrength = computed(() => calcStrength(pwd.value.new1))
-
-function pwdStrengthClass(idx: number): string {
-  if (newPwdStrength.value === 0) return idx === 0 ? 'bar-weak' : 'bar-empty'
-  if (newPwdStrength.value === 1) return idx <= 0 ? 'bar-fair' : 'bar-empty'
-  if (newPwdStrength.value === 2) return idx <= 1 ? 'bar-medium' : 'bar-empty'
-  return 'bar-strong'
-}
-
-const pwdStrengthLabel = computed(() => {
-  const labels = [
-    t('passwordStrength.weak'),
-    t('passwordStrength.fair'),
-    t('passwordStrength.medium'),
-    t('passwordStrength.strong'),
-  ]
-  return labels[newPwdStrength.value]
-})
-
-const pwdStrengthTextClass = computed(() => {
-  const cls = ['text-weak', 'text-fair', 'text-medium', 'text-strong']
-  return cls[newPwdStrength.value]
-})
+// ── Password strength (shared composable) ──
+const newPwdRef = computed(() => pwd.value.new1)
+const {
+  strength: newPwdStrength,
+  label: pwdStrengthLabel,
+  textClass: pwdStrengthTextClass,
+  barClass: pwdStrengthClass
+} = usePasswordStrength(newPwdRef)
 
 // ── Actions ──
 function saveProfile() {
@@ -294,7 +330,7 @@ function changePassword() {
     pwdMsgType.value = 'error'
     return
   }
-  if (calcStrength(pwd.value.new1) < 2) {
+  if (newPwdStrength.value < 2) {
     pwdMsg.value = t('profile.errWeak')
     pwdMsgType.value = 'error'
     return
@@ -304,6 +340,9 @@ function changePassword() {
   pwdMsgType.value = result.success ? 'success' : 'error'
   if (result.success) {
     pwd.value = { old: '', new1: '', new2: '' }
+    showOldPwd.value = false
+    showNewPwd.value = false
+    showConfirmPwd.value = false
     setTimeout(() => { pwdMsg.value = '' }, 2000)
   }
 }
@@ -543,7 +582,50 @@ function close() {
   padding-top: 0.75rem;
 }
 
-/* Password strength bars */
+.pd-pwd-alert {
+  padding: 0.6rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  text-align: center;
+}
+.pd-pwd-alert.success { background-color: #D1FAE5; color: #065F46; }
+.pd-pwd-alert.error   { background-color: #FEE2E2; color: #991B1B; }
+
+.pwd-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.pwd-input-wrap .form-input {
+  padding-right: 2.5rem;
+}
+.pwd-eye-btn {
+  position: absolute;
+  right: 0.65rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem;
+  transition: color 0.15s ease;
+}
+.pwd-eye-btn:hover {
+  color: var(--text-primary);
+}
+.pwd-eye-btn svg {
+  width: 17px;
+  height: 17px;
+}
+
+/* Password strength bars & rules */
+.pwd-strength-section {
+  margin-top: 0.4rem;
+}
 .pwd-strength-wrap {
   display: flex;
   align-items: center;
@@ -572,6 +654,24 @@ function close() {
 .text-medium { color: #3b82f6; }
 .text-strong { color: #10b981; }
 .text-error  { color: #ef4444; }
+
+.pwd-rules-list {
+  list-style: none;
+  padding: 0.45rem 0.65rem;
+  margin: 0.4rem 0 0;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.2rem 0.5rem;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+.pwd-rules-list li.rule-ok {
+  color: #059669;
+  font-weight: 600;
+}
 
 .pwd-mismatch {
   font-size: 0.75rem;
@@ -613,7 +713,7 @@ function close() {
 .review-slide-leave-active {
   transition: max-height 0.3s ease, opacity 0.3s ease;
   overflow: hidden;
-  max-height: 400px;
+  max-height: 600px;
 }
 .review-slide-enter-from,
 .review-slide-leave-to {

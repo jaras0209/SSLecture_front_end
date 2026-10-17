@@ -60,8 +60,8 @@
     </nav>
 
     <!-- Password Change Modal -->
-    <div v-if="showPasswordModal" class="modal-overlay">
-      <div class="glass-panel modal-card">
+    <div v-if="showPasswordModal" class="modal-overlay" @click.self="closePasswordModal">
+      <div class="glass-panel modal-card" role="dialog" aria-modal="true" :aria-label="$t('passwordModal.title')">
         <div class="modal-header">
           <h3>{{ $t('passwordModal.title') }}</h3>
           <button @click="closePasswordModal" class="close-btn" :aria-label="$t('common.close')">&times;</button>
@@ -72,19 +72,84 @@
           </div>
           <div class="form-group">
             <label class="form-label">{{ $t('passwordModal.oldPassword') }}</label>
-            <input v-model="pwdForm.oldPassword" type="password" class="form-input" required :placeholder="$t('passwordModal.oldPlaceholder')" />
+            <div class="pwd-input-wrap">
+              <input
+                v-model="pwdForm.oldPassword"
+                :type="showOldPwd ? 'text' : 'password'"
+                class="form-input"
+                required
+                :placeholder="$t('passwordModal.oldPlaceholder')"
+              />
+              <button type="button" class="pwd-eye-btn" @click="showOldPwd = !showOldPwd" :title="showOldPwd ? $t('common.hidePwd') : $t('common.showPwd')">
+                <svg v-if="!showOldPwd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+            </div>
           </div>
           <div class="form-group">
             <label class="form-label">{{ $t('passwordModal.newPassword') }}</label>
-            <input v-model="pwdForm.newPassword" type="password" class="form-input" required :placeholder="$t('passwordModal.newPlaceholder')" />
+            <div class="pwd-input-wrap">
+              <input
+                v-model="pwdForm.newPassword"
+                :type="showNewPwd ? 'text' : 'password'"
+                class="form-input"
+                required
+                :placeholder="$t('passwordModal.newPlaceholder')"
+              />
+              <button type="button" class="pwd-eye-btn" @click="showNewPwd = !showNewPwd" :title="showNewPwd ? $t('common.hidePwd') : $t('common.showPwd')">
+                <svg v-if="!showNewPwd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+            </div>
+            <!-- Password Strength Indicator & Rules -->
+            <div v-if="pwdForm.newPassword" class="pwd-strength-section">
+              <div class="pwd-bars-row">
+                <div class="pwd-bar" :class="newPwdBarClass(0)"></div>
+                <div class="pwd-bar" :class="newPwdBarClass(1)"></div>
+                <div class="pwd-bar" :class="newPwdBarClass(2)"></div>
+                <span class="pwd-strength-label" :class="newPwdTextClass">{{ newPwdLabel }}</span>
+              </div>
+              <ul class="pwd-rules-list">
+                <li :class="{ 'rule-ok': pwdForm.newPassword.length >= 8 }">
+                  {{ pwdForm.newPassword.length >= 8 ? '✅' : '❌' }} {{ $t('auth.passwordRules.minLength') }}
+                </li>
+                <li :class="{ 'rule-ok': /[A-Z]/.test(pwdForm.newPassword) }">
+                  {{ /[A-Z]/.test(pwdForm.newPassword) ? '✅' : '❌' }} {{ $t('auth.passwordRules.uppercase') }}
+                </li>
+                <li :class="{ 'rule-ok': /[a-z]/.test(pwdForm.newPassword) }">
+                  {{ /[a-z]/.test(pwdForm.newPassword) ? '✅' : '❌' }} {{ $t('auth.passwordRules.lowercase') }}
+                </li>
+                <li :class="{ 'rule-ok': /[0-9]/.test(pwdForm.newPassword) }">
+                  {{ /[0-9]/.test(pwdForm.newPassword) ? '✅' : '❌' }} {{ $t('auth.passwordRules.number') }}
+                </li>
+                <li :class="{ 'rule-ok': /[^A-Za-z0-9]/.test(pwdForm.newPassword) }">
+                  {{ /[^A-Za-z0-9]/.test(pwdForm.newPassword) ? '✅' : '❌' }} {{ $t('auth.passwordRules.special') }}
+                </li>
+              </ul>
+            </div>
           </div>
           <div class="form-group">
             <label class="form-label">{{ $t('passwordModal.confirmPassword') }}</label>
-            <input v-model="pwdForm.confirmPassword" type="password" class="form-input" required :placeholder="$t('passwordModal.confirmPlaceholder')" />
+            <div class="pwd-input-wrap">
+              <input
+                v-model="pwdForm.confirmPassword"
+                :type="showConfirmPwd ? 'text' : 'password'"
+                class="form-input"
+                required
+                :placeholder="$t('passwordModal.confirmPlaceholder')"
+              />
+              <button type="button" class="pwd-eye-btn" @click="showConfirmPwd = !showConfirmPwd" :title="showConfirmPwd ? $t('common.hidePwd') : $t('common.showPwd')">
+                <svg v-if="!showConfirmPwd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+            </div>
+            <p v-if="pwdForm.confirmPassword && pwdForm.newPassword !== pwdForm.confirmPassword" class="pwd-mismatch">
+              {{ $t('profile.pwdMismatch') }}
+            </p>
           </div>
           <div class="modal-actions mt-4 flex gap-2">
-            <button type="submit" class="btn btn-primary w-full">{{ $t('passwordModal.submitBtn') }}</button>
             <button type="button" @click="closePasswordModal" class="btn btn-outline w-full">{{ $t('passwordModal.cancelBtn') }}</button>
+            <button type="submit" class="btn btn-primary w-full">{{ $t('passwordModal.submitBtn') }}</button>
           </div>
         </form>
       </div>
@@ -104,11 +169,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, toRef } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import { useI18n } from 'vue-i18n'
+import { usePasswordStrength } from '@/composables/usePasswordStrength'
 import AppToast from '@/components/shared/AppToast.vue'
 import LanguageSwitcher from '@/components/shared/LanguageSwitcher.vue'
 
@@ -120,16 +186,28 @@ const { t } = useI18n()
 // Password Change State
 const mobileMenuOpen = ref(false)
 const showPasswordModal = ref(false)
+const showOldPwd = ref(false)
+const showNewPwd = ref(false)
+const showConfirmPwd = ref(false)
 const pwdForm = reactive({
   oldPassword: '',
   newPassword: '',
   confirmPassword: ''
 })
+const {
+  strength: newPwdStrength,
+  label: newPwdLabel,
+  textClass: newPwdTextClass,
+  barClass: newPwdBarClass
+} = usePasswordStrength(toRef(pwdForm, 'newPassword'))
 const pwdAlertMsg = ref('')
 const pwdAlertType = ref<'success' | 'error'>('success')
 
 function closePasswordModal() {
   showPasswordModal.value = false
+  showOldPwd.value = false
+  showNewPwd.value = false
+  showConfirmPwd.value = false
   pwdForm.oldPassword = ''
   pwdForm.newPassword = ''
   pwdForm.confirmPassword = ''
@@ -145,8 +223,16 @@ function showPwdAlert(msg: string, type: 'success' | 'error') {
 }
 
 function handlePasswordChange() {
+  if (!pwdForm.oldPassword || !pwdForm.newPassword || !pwdForm.confirmPassword) {
+    showPwdAlert(t('profile.errFillAll'), 'error')
+    return
+  }
   if (pwdForm.newPassword !== pwdForm.confirmPassword) {
-    showPwdAlert(t('passwordModal.mismatch'), 'error')
+    showPwdAlert(t('profile.errMismatch'), 'error')
+    return
+  }
+  if (newPwdStrength.value < 2) {
+    showPwdAlert(t('profile.errWeak'), 'error')
     return
   }
   if (!authStore.currentUser) return
@@ -282,7 +368,7 @@ function getRoleLabel(role?: string) {
 }
 
 .modal-card {
-  max-width: 400px;
+  max-width: 440px;
   width: 100%;
   padding: 2rem;
   background: white;
@@ -321,6 +407,92 @@ function getRoleLabel(role?: string) {
 }
 .alert-box.success { background-color: #D1FAE5; color: #065F46; }
 .alert-box.error { background-color: #FEE2E2; color: #991B1B; }
+
+/* Password input eye button & strength indicator */
+.pwd-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.pwd-input-wrap .form-input {
+  padding-right: 2.75rem;
+}
+.pwd-eye-btn {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  transition: color 0.15s ease;
+}
+.pwd-eye-btn:hover {
+  color: var(--text-primary);
+}
+.pwd-eye-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.pwd-strength-section {
+  margin-top: 0.5rem;
+}
+.pwd-bars-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pwd-bar {
+  height: 5px;
+  flex: 1;
+  border-radius: 3px;
+  transition: background 0.3s ease;
+}
+.bar-empty  { background: #E2E8F0; }
+.bar-weak   { background: #EF4444; }
+.bar-fair   { background: #F59E0B; }
+.bar-medium { background: #3B82F6; }
+.bar-strong { background: #10B981; }
+
+.pwd-strength-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-left: 4px;
+  white-space: nowrap;
+}
+.text-weak   { color: #EF4444; }
+.text-fair   { color: #F59E0B; }
+.text-medium { color: #3B82F6; }
+.text-strong { color: #10B981; }
+
+.pwd-rules-list {
+  list-style: none;
+  padding: 0.5rem 0.75rem;
+  margin: 0.5rem 0 0;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: var(--radius-sm);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.pwd-rules-list li.rule-ok {
+  color: #059669;
+  font-weight: 600;
+}
+
+.pwd-mismatch {
+  font-size: 0.75rem;
+  color: #EF4444;
+  font-weight: 600;
+  margin-top: 0.35rem;
+}
 
 .badge-church {
   background: rgba(59, 130, 246, 0.08);
