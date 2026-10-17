@@ -81,7 +81,7 @@
       "uppercase": "Contains uppercase letters",
       "lowercase": "Contains lowercase letters",
       "number": "Contains numbers",
-      "special": "Contains special characters (!@#$%^&*)"
+      "special": "Contains special characters (!{'@'}#$%^&*)"
     },
     "social": {
       "divider": "Or sign in with a social platform",
@@ -314,7 +314,7 @@
       "selectAccount": "Select Linked Account",
       "selectPlaceholder": "Please select an account",
       "noTeachersHint": "Note: No lecturer accounts set up in this church yet",
-      "linkedChip": "Linked @{username}",
+      "linkedChip": "Linked {'@'}{username}",
       "autoFillHint": "Name will be auto-filled",
       "displayName": "Lecturer Display Name",
       "autoFillNote": "(Auto-filled in link mode)",
@@ -572,7 +572,7 @@
   "admin": {
     "header": {
       "title": "Security & Permission Control Center ⚙️",
-      "desc": "{name} | SS Central: Change user roles, set page access permissions, and add test users.",
+      "desc": "{name} {'|'} SS Central: Change user roles, set page access permissions, and add test users.",
       "lastLogin": "Last login: {time}"
     },
     "createUser": {

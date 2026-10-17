@@ -81,7 +81,7 @@
       "uppercase": "包含英文大寫字母",
       "lowercase": "包含英文小寫字母",
       "number": "包含數字",
-      "special": "包含特殊符號（!@#$%^&*）"
+      "special": "包含特殊符號（!{'@'}#$%^&*）"
     },
     "social": {
       "divider": "或者透過社群平台快速登入",
@@ -314,7 +314,7 @@
       "selectAccount": "選擇關聯帳號",
       "selectPlaceholder": "請選擇帳號",
       "noTeachersHint": "提示：目前所在教會尚未設定講師帳號",
-      "linkedChip": "已連結 @{username}",
+      "linkedChip": "已連結 {'@'}{username}",
       "autoFillHint": "名字將自動帶入",
       "displayName": "講師顯示名稱",
       "autoFillNote": "（連結模式下將自動帶入）",
