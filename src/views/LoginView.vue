@@ -1,6 +1,9 @@
 <template>
   <div class="login-wrapper">
     <div class="glass-panel login-card">
+      <div class="login-lang-row">
+        <LanguageSwitcher />
+      </div>
       <div class="brand-header text-center">
         <span class="logo-orb">✨</span>
         <h1 class="brand-title">Shining Star</h1>
@@ -294,6 +297,7 @@ import { useAuthStore, CHURCHES } from '@/stores/auth'
 import type { UserRole, InviteCode } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
 import { usePasswordStrength } from '@/composables/usePasswordStrength'
+import LanguageSwitcher from '@/components/shared/LanguageSwitcher.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -475,6 +479,12 @@ function loginWithLine() {
   padding: 2.5rem;
   border-radius: var(--radius-lg);
   background: rgba(255, 255, 255, 0.9);
+}
+
+.login-lang-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.5rem;
 }
 
 .brand-header {

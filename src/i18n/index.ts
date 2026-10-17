@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file src/i18n/index.ts
  * @description vue-i18n plugin 初始化。
  * - legacy: false → Composition API 模式（與 <script setup> 風格一致）
@@ -15,7 +15,8 @@ const LANG_KEY = 'superstart_lang'
 export type SupportedLocale = 'zh-TW' | 'en'
 type MessageSchema = typeof zhTW
 
-const savedLocale = safeGet<SupportedLocale>(LANG_KEY, 'zh-TW')
+const rawSavedLocale = safeGet<string>(LANG_KEY, 'zh-TW', { clearOnError: true })
+const savedLocale: SupportedLocale = rawSavedLocale === 'en' ? 'en' : 'zh-TW'
 
 export const i18n = createI18n<[MessageSchema], SupportedLocale>({
   legacy: false,
@@ -30,7 +31,9 @@ export const i18n = createI18n<[MessageSchema], SupportedLocale>({
 export function setLocale(lang: SupportedLocale) {
   ;(i18n.global.locale as unknown as Ref<SupportedLocale>).value = lang
   safeSet(LANG_KEY, lang)
-  document.documentElement.lang = lang === 'zh-TW' ? 'zh-TW' : 'en'
+  if (typeof document !== 'undefined') {
+    document.documentElement.lang = lang === 'zh-TW' ? 'zh-TW' : 'en'
+  }
 }
 
 export default i18n
