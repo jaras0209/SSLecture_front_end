@@ -72,9 +72,17 @@ describe('formatDateTime()', () => {
     process.env.TZ = originalTz
   })
 
+  // ICU versions differ in the separator they emit (plain space vs U+00A0 / U+202F),
+  // so compare with all whitespace normalized to a plain space
+  const normalizeSpaces = (s: string) => s.replace(/\s/g, ' ')
+
   it('formats an ISO timestamp in local time for the given locale', () => {
-    expect(formatDateTime('2026-10-28T06:30:00.000Z', 'zh-TW')).toBe('2026/10/28 14:30')
-    expect(formatDateTime('2026-10-28T06:30:00.000Z', 'en')).toBe('10/28/2026, 14:30')
+    expect(normalizeSpaces(formatDateTime('2026-10-28T06:30:00.000Z', 'zh-TW'))).toBe(
+      '2026/10/28 14:30'
+    )
+    expect(normalizeSpaces(formatDateTime('2026-10-28T06:30:00.000Z', 'en'))).toBe(
+      '10/28/2026, 14:30'
+    )
   })
 
   it('returns an empty string for empty input', () => {
