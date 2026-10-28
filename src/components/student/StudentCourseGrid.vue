@@ -23,7 +23,7 @@
 
     <div class="courses-grid">
       <div
-        v-for="course in filteredCourses"
+        v-for="{ course, completed, sessionCount, latestLecturer } in courseCards"
         :key="course.id"
         class="course-card glass-panel"
         :class="{ 'card-selected': selectedCourseId === course.id }"
@@ -35,7 +35,7 @@
               ? $t('profile.course.bibleBadge')
               : $t('profile.course.topicBadge')
           }}</span>
-          <span v-if="getRecord(course.id).completed" class="completed-check"
+          <span v-if="completed" class="completed-check"
             >✓ {{ $t('student.motivation.done') }}</span
           >
         </div>
@@ -46,12 +46,9 @@
           <!-- Status info on card -->
           <div class="card-status-info mt-2">
             <!-- Listen count badge -->
-            <span
-              class="badge"
-              :class="getRecord(course.id).completed ? 'badge-teacher' : 'badge-student'"
-            >
-              <template v-if="getRecord(course.id).sessions.length > 0">
-                {{ $t('student.course.listenCount', { n: getRecord(course.id).sessions.length }) }}
+            <span class="badge" :class="completed ? 'badge-teacher' : 'badge-student'">
+              <template v-if="sessionCount > 0">
+                {{ $t('student.course.listenCount', { n: sessionCount }) }}
               </template>
               <template v-else>
                 {{ $t('student.course.notRegistered') }}
@@ -59,13 +56,12 @@
             </span>
             <!-- Show latest session lecturer -->
             <span
-              v-if="getRecord(course.id).sessions.length > 0"
+              v-if="sessionCount > 0"
               class="lecturer-tag text-xs text-muted mt-1"
               style="display: block"
             >
               🎤 {{ $t('student.course.lecturerLabel') }}：{{
-                getRecord(course.id).sessions[getRecord(course.id).sessions.length - 1].lecturer ||
-                $t('student.course.noLecturer')
+                latestLecturer || $t('student.course.noLecturer')
               }}
             </span>
           </div>
@@ -108,12 +104,21 @@ const filteredCourses = computed(() => {
   return coursesStore.courses.filter((c) => c.category === currentFilter.value)
 })
 
-// ── Record Access ─────────────────────────────────────────────────────────────
+// ── Card Status ───────────────────────────────────────────────────────────────
 
-function getRecord(courseId: string) {
+// Look up each course's progress once per render instead of once per template binding
+const courseCards = computed(() => {
   const username = authStore.currentUser?.username || ''
-  return coursesStore.getStudentProgress(username, courseId)
-}
+  return filteredCourses.value.map((course) => {
+    const { completed, sessions } = coursesStore.getStudentProgress(username, course.id)
+    return {
+      course,
+      completed,
+      sessionCount: sessions.length,
+      latestLecturer: sessions[sessions.length - 1]?.lecturer ?? ''
+    }
+  })
+})
 </script>
 
 <style>

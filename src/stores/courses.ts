@@ -421,25 +421,6 @@ export const useCoursesStore = defineStore('courses', () => {
   }
 
   /**
-   * Legacy updateProgress kept for backward compatibility.
-   * New code should use addListenSession directly.
-   */
-  function updateProgress(
-    username: string,
-    courseId: string,
-    _durationListened: number,
-    notes: string,
-    listenedAt?: string,
-    lecturer?: string
-  ): void {
-    addListenSession(username, courseId, {
-      lecturer: lecturer || '',
-      listenedAt: listenedAt || toLocalDateTimeInput(),
-      notes: notes
-    })
-  }
-
-  /**
    * Update an existing session's editable fields (listenedAt and notes).
    * The lecturer field is intentionally immutable after creation to preserve audit integrity.
    */
@@ -535,32 +516,6 @@ export const useCoursesStore = defineStore('courses', () => {
       return caretakers[role] || ''
     }
     return ''
-  }
-
-  // ── Backwards compatibility wrappers ─────────────────────────────────────
-  // These thin wrappers delegate to the generic caretaker API.
-  // Use assignStudentCaretaker / removeStudentCaretaker / getStudentCaretaker
-  // directly in new code.
-
-  /**
-   * @deprecated Use `assignStudentCaretaker(username, 'teacher', teacherUsername)` instead.
-   */
-  function assignStudentToTeacher(studentUsername: string, teacherUsername: string): void {
-    assignStudentCaretaker(studentUsername, 'teacher', teacherUsername)
-  }
-
-  /**
-   * @deprecated Use `removeStudentCaretaker(username, 'teacher')` instead.
-   */
-  function removeStudentFromTeacher(studentUsername: string): void {
-    removeStudentCaretaker(studentUsername, 'teacher')
-  }
-
-  /**
-   * @deprecated Use `getStudentCaretaker(username, 'teacher')` instead.
-   */
-  function getStudentTeacher(studentUsername: string): string {
-    return getStudentCaretaker(studentUsername, 'teacher')
   }
 
   // Dynamic themes actions
@@ -923,15 +878,11 @@ export const useCoursesStore = defineStore('courses', () => {
     comingOfAgeThemesDb,
     lecturers,
     teachingStatsDb,
-    updateProgress,
     addListenSession,
     updateListenSession,
     getStudentProgress,
     toggleRestriction,
     isPageRestricted,
-    assignStudentToTeacher,
-    removeStudentFromTeacher,
-    getStudentTeacher,
     assignStudentCaretaker,
     removeStudentCaretaker,
     getStudentCaretaker,
