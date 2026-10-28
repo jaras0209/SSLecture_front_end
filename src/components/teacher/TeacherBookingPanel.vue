@@ -926,13 +926,6 @@ defineExpose({
  * styles (scoping would raise their specificity and change what wins).
  */
 /* [css-migration] moved from TeacherDashboard.vue */
-@media (max-width: 640px) {
-  /* Booking cards */
-  .booking-card {
-    padding: 0.85rem;
-  }
-}
-
 .bookings-panel {
   padding: 1.5rem;
 }

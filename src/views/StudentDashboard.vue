@@ -661,11 +661,6 @@ const overallProgressPercent = computed(() => {
     padding: 0.5rem 0.65rem;
     font-size: 0.78rem;
   }
-
-  .scripture-chip {
-    font-size: 0.72rem;
-    padding: 0.15rem 0.45rem;
-  }
 }
 
 @media print {

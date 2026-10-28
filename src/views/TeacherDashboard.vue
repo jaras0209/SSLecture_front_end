@@ -624,15 +624,10 @@ function viewStudentDetails(student: StudentProgressSummary) {
     -webkit-overflow-scrolling: touch;
     flex-wrap: nowrap;
     scroll-snap-type: x proximity;
-    padding: 0.25rem;
-    gap: 0.25rem;
   }
 
   .main-tab-btn {
-    flex: 0 0 auto;
     white-space: nowrap;
-    font-size: 0.82rem;
-    padding: 0.6rem 0.85rem;
     scroll-snap-align: start;
   }
 
@@ -696,12 +691,6 @@ function viewStudentDetails(student: StudentProgressSummary) {
     font-size: 0.72rem;
   }
 
-  /* Main tab buttons smaller */
-  .main-tab-btn {
-    padding: 0.5rem 0.65rem;
-    font-size: 0.78rem;
-  }
-
   /* Student table: font smaller */
   .students-table th,
   .students-table td {
@@ -718,7 +707,6 @@ function viewStudentDetails(student: StudentProgressSummary) {
   }
 
   .modal-overlay {
-    align-items: flex-end;
     padding: 0;
   }
 }
@@ -1017,11 +1005,6 @@ function viewStudentDetails(student: StudentProgressSummary) {
 .status-done {
   background: rgba(16, 185, 129, 0.1);
   color: #059669;
-}
-
-.status-pending {
-  background: rgba(245, 158, 11, 0.1);
-  color: #d97706;
 }
 
 /* Booking list */

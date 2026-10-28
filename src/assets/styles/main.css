@@ -9,6 +9,245 @@
 @import '@fontsource/outfit/600.css';
 @import '@fontsource/outfit/700.css';
 
+/*
+ * App shell and shared component styles (formerly the global <style> block in App.vue).
+ * Kept ahead of the rest of this file so the cascade order is unchanged: these rules
+ * used to load just before main.css, and some of them rely on losing ties to it.
+ */
+/* Reset global style.css default margins if any */
+#app {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  max-width: 100%;
+}
+
+.action-btn {
+  font-size: 0.75rem;
+  padding: 0.35rem 0.75rem;
+  border-color: #e2e8f0;
+}
+
+.action-btn:hover {
+  background-color: #f8fafc;
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.logout-btn:hover {
+  background-color: #fef2f2;
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.modal-card {
+  max-width: 440px;
+  width: 100%;
+  padding: 2rem;
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.w-full {
+  width: 100%;
+}
+
+.alert-box {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+  text-align: center;
+}
+.alert-box.success {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+.alert-box.error {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+/* Password input eye button & strength indicator */
+.pwd-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.pwd-input-wrap .form-input {
+  padding-right: 2.75rem;
+}
+.pwd-eye-btn {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  transition: color 0.15s ease;
+}
+.pwd-eye-btn:hover {
+  color: var(--text-primary);
+}
+.pwd-eye-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.pwd-strength-section {
+  margin-top: 0.5rem;
+}
+.pwd-bars-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pwd-bar {
+  height: 5px;
+  flex: 1;
+  border-radius: 3px;
+  transition: background 0.3s ease;
+}
+.bar-empty {
+  background: #e2e8f0;
+}
+.bar-weak {
+  background: #ef4444;
+}
+.bar-fair {
+  background: #f59e0b;
+}
+.bar-medium {
+  background: #3b82f6;
+}
+.bar-strong {
+  background: #10b981;
+}
+
+.pwd-strength-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-left: 4px;
+  white-space: nowrap;
+}
+.text-weak {
+  color: #ef4444;
+}
+.text-fair {
+  color: #f59e0b;
+}
+.text-medium {
+  color: #3b82f6;
+}
+.text-strong {
+  color: #10b981;
+}
+
+.pwd-rules-list {
+  list-style: none;
+  padding: 0.5rem 0.75rem;
+  margin: 0.5rem 0 0;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-sm);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.pwd-rules-list li.rule-ok {
+  color: #059669;
+  font-weight: 600;
+}
+
+.pwd-mismatch {
+  font-size: 0.75rem;
+  color: #ef4444;
+  font-weight: 600;
+  margin-top: 0.35rem;
+}
+
+.badge-church {
+  background: rgba(59, 130, 246, 0.08);
+  color: var(--primary);
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .navbar {
+    flex-direction: column;
+  }
+
+  .navbar-menu {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .navbar-menu li {
+    width: 100%;
+  }
+
+  .navbar-link {
+    display: block;
+    font-size: 0.95rem;
+  }
+
+  .action-btn {
+    flex: 1;
+    justify-content: center;
+    font-size: 0.78rem;
+    padding: 0.4rem 0.5rem;
+  }
+}
+
+/* Desktop: hide hamburger, restore horizontal layout with centered menu */
+@media (min-width: 641px) {
+  .navbar {
+    gap: 0;
+  }
+
+  .navbar-menu {
+    flex-direction: row;
+    justify-content: center;
+    width: auto;
+  }
+
+  .navbar-menu li {
+    width: auto;
+  }
+
+  .navbar-link {
+    display: inline-flex;
+    font-size: 0.95rem;
+    white-space: nowrap;
+  }
+
+  .action-btn {
+    flex: 0 0 auto;
+    font-size: 0.75rem;
+    padding: 0.35rem 0.75rem;
+  }
+}
+/* End of shared component styles */
 
 :root {
   /* Color Palette - Bright and Student Friendly */
@@ -168,17 +407,6 @@ h6 {
   background: linear-gradient(135deg, var(--secondary-hover) 0%, #047857 100%);
   transform: translateY(-2px);
   box-shadow: 0 6px 15px rgba(16, 185, 129, 0.25);
-}
-
-.btn-warning {
-  background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%);
-  color: white;
-}
-
-.btn-warning:hover {
-  background: linear-gradient(135deg, var(--warning-hover) 0%, #b45309 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(245, 158, 11, 0.25);
 }
 
 .btn-danger {
@@ -379,12 +607,6 @@ h6 {
   padding: 0 1.5rem;
 }
 
-.grid-cols-3 {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
-}
-
 /* Utilities */
 .text-center {
   text-align: center;
@@ -406,100 +628,6 @@ h6 {
 }
 .gap-2 {
   gap: 0.5rem;
-}
-
-/* Custom Audio Player Stylings */
-.audio-player {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  color: white;
-  border-radius: var(--radius-lg);
-  padding: 1.5rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.audio-title {
-  color: white;
-  font-size: 1.2rem;
-  margin-bottom: 0.25rem;
-}
-
-.audio-subtitle {
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  margin-bottom: 1rem;
-}
-
-.audio-controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1.5rem;
-  margin: 1rem 0;
-}
-
-.player-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  border-radius: var(--radius-full);
-  color: white;
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.player-btn:hover {
-  background: rgba(255, 255, 255, 0.25);
-  transform: scale(1.05);
-}
-
-.player-btn.play {
-  background: white;
-  color: #0f172a;
-  width: 56px;
-  height: 56px;
-}
-
-.player-btn.play:hover {
-  background: #e2e8f0;
-}
-
-.slider-container {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  font-size: 0.8rem;
-  color: var(--text-muted);
-}
-
-.audio-slider {
-  flex-grow: 1;
-  -webkit-appearance: none;
-  appearance: none;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: var(--radius-full);
-  outline: none;
-  cursor: pointer;
-}
-
-.audio-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--primary);
-  cursor: pointer;
-  transition: transform 0.1s;
-}
-
-.audio-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
 }
 
 /* Page Transition classes */
@@ -618,12 +746,6 @@ h6 {
     white-space: nowrap;
   }
 
-  /* Grid: always single column */
-  .grid-cols-3 {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-
   /* Glass card compact */
   .glass-card {
     padding: 0.85rem;
@@ -643,21 +765,6 @@ h6 {
   /* Progress bar */
   .progress-bar-container {
     height: 6px;
-  }
-
-  /* Audio player */
-  .audio-controls {
-    gap: 0.75rem;
-  }
-
-  .player-btn {
-    width: 40px;
-    height: 40px;
-  }
-
-  .player-btn.play {
-    width: 48px;
-    height: 48px;
   }
 
   /* Section titles */
