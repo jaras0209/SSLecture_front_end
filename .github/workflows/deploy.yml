@@ -47,15 +47,29 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: End-to-end tests
+        run: npm run test:e2e
+
+      - name: Upload Playwright traces
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: playwright-traces
+          path: test-results/
+          retention-days: 7
+
       # GitHub Pages 沒有 SPA fallback：以 404.html 承接 History 模式的深層連結與重新整理
       - name: Add SPA fallback for GitHub Pages
         run: cp dist/index.html dist/404.html
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: './dist'
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

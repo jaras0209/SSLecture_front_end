@@ -1,0 +1,212 @@
+import { test, expect, stored, users } from './fixtures'
+
+test.describe('sign-in and routing', () => {
+  for (const [username, home] of [
+    ['student', '/student'],
+    ['teacher', '/teacher'],
+    ['pastor', '/teacher'],
+    ['parent', '/teacher'],
+    ['admin', '/admin']
+  ] as const) {
+    test(`${username} signs in to ${home} and can sign out`, async ({ page, openWith }) => {
+      await openWith('login')
+      await page.fill('#login-username', username)
+      await page.fill('#login-password', '123456')
+      await page.click('form.auth-form button[type=submit]')
+      await expect(page).toHaveURL(new RegExp(`${home}$`))
+
+      await page.getByRole('button', { name: /登出/ }).click()
+      await expect(page).toHaveURL(/\/login$/)
+    })
+  }
+
+  test('rejects a wrong password', async ({ page, openWith }) => {
+    await openWith('login')
+    await page.fill('#login-username', 'student')
+    await page.fill('#login-password', 'wrong')
+    await page.click('form.auth-form button[type=submit]')
+    await page.waitForTimeout(800)
+    await expect(page).toHaveURL(/\/login$/)
+  })
+
+  test('sends signed-out visitors to login with a redirect', async ({ page, openWith }) => {
+    await openWith('admin')
+    await expect(page).toHaveURL(/\/login\?redirect=(%2F|\/)admin$/)
+  })
+
+  test('blocks pages outside the signed-in role', async ({ page, openWith }) => {
+    await openWith('teacher', { superstart_user: users.student })
+    await expect(page).toHaveURL(/\/unauthorized$/)
+  })
+})
+
+test.describe('login page', () => {
+  test('demo-account chips work from the keyboard', async ({ page, openWith }) => {
+    await openWith('login')
+    const chip = page.locator('.demo-chip').first()
+    for (let i = 0; i < 40 && !(await chip.evaluate((el) => el === document.activeElement)); i++) {
+      await page.keyboard.press('Tab')
+    }
+    await expect(chip).toBeFocused()
+    await page.keyboard.press('Enter')
+    await expect(page.locator('#login-username')).toHaveValue('student')
+    await expect(page.locator('#login-password')).toHaveValue('123456')
+  })
+
+  test('keeps what was typed when switching between the login and register tabs', async ({
+    page,
+    openWith
+  }) => {
+    await openWith('login')
+    await page.fill('#login-username', 'someone')
+    await page.getByRole('button', { name: '註冊新成員' }).click()
+    await page.fill('#reg-username', 'newbie')
+    await page.getByRole('button', { name: '登入帳號' }).click()
+    await expect(page.locator('#login-username')).toHaveValue('someone')
+    await page.getByRole('button', { name: '註冊新成員' }).click()
+    await expect(page.locator('#reg-username')).toHaveValue('newbie')
+  })
+
+  test('registers a parent with an invite code, binding a child and using up the code', async ({
+    page,
+    openWith
+  }) => {
+    await openWith('login', {
+      superstart_invite_codes: {
+        'SS-PAR-AB12': {
+          code: 'SS-PAR-AB12',
+          role: 'parent',
+          church: '愛與話語',
+          createdBy: 'admin',
+          createdAt: '2026-01-01T00:00:00.000Z',
+          expiresAt: '2099-01-01T00:00:00.000Z',
+          revoked: false
+        }
+      }
+    })
+    await page.getByRole('button', { name: '註冊新成員' }).click()
+    await page.fill('#reg-invite-code', 'SS-PAR-AB12')
+    await page.fill('#reg-username', 'mom1')
+    await page.fill('#reg-password', 'Abcdef1!')
+    await page.locator('.student-binding-option input').first().check()
+    await page.click('form.auth-form button[type=submit]')
+    await expect(page).toHaveURL(/\/teacher$/)
+
+    const usersDb = await stored<Record<string, { role: string; childUsernames?: string[] }>>(
+      page,
+      'superstart_users_db'
+    )
+    expect(usersDb.mom1).toMatchObject({ role: 'parent', childUsernames: ['student'] })
+    const invites = await stored<Record<string, { usedBy?: string }>>(
+      page,
+      'superstart_invite_codes'
+    )
+    expect(invites['SS-PAR-AB12'].usedBy).toBe('mom1')
+  })
+
+  test('language choice applies and survives a reload', async ({ page, openWith }) => {
+    await openWith('login')
+    await page.getByRole('button', { name: 'EN', exact: true }).click()
+    await expect(page.locator('.auth-tabs .tab-btn').first()).toHaveText('Sign In')
+    await page.reload()
+    await expect(page.locator('.auth-tabs .tab-btn').first()).toHaveText('Sign In')
+  })
+})
+
+test.describe('student', () => {
+  test('records a listen session that survives a reload', async ({ page, openWith }) => {
+    await openWith('student', { superstart_user: users.student })
+    const firstCard = page.locator('.course-card').first()
+    await expect(firstCard).toContainText('尚未登記')
+
+    await firstCard.click()
+    await page.selectOption('#lecturer-select', { index: 1 })
+    await page.fill('#notes-input', '很有收穫')
+    await page.getByRole('button', { name: /記錄/ }).first().click()
+    await expect(firstCard).toContainText('已聽 1 次')
+
+    await page.reload()
+    await expect(page.locator('.course-card').first()).toContainText('已聽 1 次')
+  })
+
+  test('Shining Project keeps unsaved input while ticking items, and saved info persists', async ({
+    page,
+    openWith
+  }) => {
+    await openWith('student', { superstart_user: users.student })
+    await page.click('#tab-shining')
+
+    const name = page.locator('input.form-input-clean').first()
+    await name.fill('小明')
+    await page.locator('.checklist-card label.check-item-row').first().click()
+    await expect(name).toHaveValue('小明')
+
+    await page.getByRole('button', { name: /儲存/ }).first().click()
+    await page.reload()
+    await page.click('#tab-shining')
+    await expect(page.locator('input.form-input-clean').first()).toHaveValue('小明')
+  })
+})
+
+test.describe('teacher', () => {
+  test('adds a lecturer through the modal', async ({ page, openWith }) => {
+    await openWith('teacher', { superstart_user: users.teacher })
+    await page.getByRole('button', { name: '⚙️ 講師管理 / 系統設定' }).click()
+    await page.getByRole('button', { name: '➕ 新增講師' }).click()
+
+    await page.click('#btn-save-lecturer') // empty name is rejected
+    await expect(page.locator('.lecturer-modal-card')).toBeVisible()
+
+    await page.fill('#input-lecturer-name', '測試講師')
+    await page.locator('.courses-checkboxes-grid input').first().check()
+    await page.click('#btn-save-lecturer')
+    await expect(page.locator('.lecturer-modal-card')).toBeHidden()
+    await expect(page.getByText('測試講師')).toBeVisible()
+
+    const lecturers = await stored<{ name: string; courseIds: string[] }[]>(
+      page,
+      'superstart_lecturers_db'
+    )
+    expect(lecturers.find((l) => l.name === '測試講師')?.courseIds).toHaveLength(1)
+  })
+})
+
+test.describe('admin', () => {
+  test('creates a user and generates an invite code', async ({ page, openWith }) => {
+    await openWith('admin', { superstart_user: users.admin })
+
+    await page.fill('#new-username', 'e2e-user')
+    await page.fill('#new-password', 'secret')
+    await page.click('.create-form button[type=submit]')
+    await expect(page.locator('.admin-table').first()).toContainText('e2e-user')
+
+    await page.click('#btn-generate-invite')
+    const code = (await page.locator('.generated-code-text').innerText()).trim()
+    expect(code).toMatch(/^SS-TCH-[0-9A-F]{4}$/)
+    await expect(page.locator('.invite-table')).toContainText(code)
+  })
+})
+
+test.describe('assets', () => {
+  test('avatars and sign-in icons are rendered locally', async ({
+    page,
+    openWith,
+    externalHosts
+  }) => {
+    await openWith('login')
+    for (const icon of await page.locator('.social-icon').all()) {
+      expect(await icon.getAttribute('src')).toMatch(/^data:image\/svg\+xml/)
+      expect(await icon.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0)
+    }
+
+    await openWith('student', { superstart_user: users.student })
+    const avatar = page.locator('img.avatar-lg')
+    await expect
+      .poll(() => avatar.evaluate((img: HTMLImageElement) => img.naturalWidth))
+      .toBeGreaterThan(1) // not the 1x1 placeholder
+    expect(await avatar.getAttribute('src')).toMatch(/^data:image\/svg\+xml/)
+
+    const imageHosts = [...externalHosts].filter((h) => /dicebear|flaticon/.test(h))
+    expect(imageHosts).toEqual([])
+  })
+})
