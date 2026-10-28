@@ -18,11 +18,11 @@ SSLecture 是一個基於 **Vue 3 + TypeScript + Vite** 技術棧開發的現代
 ## 🛠️ 技術棧說明
 
 *   **前端核心**：Vue 3.5 (Composition API, `<script setup>`, `defineAsyncComponent` 按需載入)
-*   **建置工具**：Vite 6（含 `vue-vendor` 與 `i18n` 獨立 chunk 拆分最佳化）
+*   **建置工具**：Vite 7（含 `vue-vendor` 與 `i18n` 獨立 chunk 拆分最佳化）
 *   **狀態管理**：Pinia 3（模組化設計：`auth` 權限模組、`courses` 課程與進度模組、`bookings` 預約與出席模組）
 *   **多語系架構**：Vue I18n 10（Composition API 模式，`zh-TW` / `en` 雙語系）
 *   **路由管理**：Vue Router 5（HTML5 History 模式，內建角色與頁面限制導航守衛、平滑捲動）
-*   **單元測試**：Vitest 3 + Happy DOM + `@pinia/testing`（5 個測試檔案、103 項單元測試）
+*   **單元測試**：Vitest 3 + Happy DOM（12 個測試檔案、177 項測試，含以本機 HTTP 伺服器驗證 `api.ts` 的整合測試）
 *   **程式碼品質**：TypeScript 5.8（Strict 嚴格模式）、ESLint 10、Prettier 3
 *   **樣式設計**：Vanilla CSS（響應式排版，適配行動端、桌面端與 `@media print` 列印模式）
 
@@ -72,8 +72,11 @@ SSLecture/
 │   │   └── index.ts        # 統一 barrel export
 │   ├── utils/
 │   │   ├── storage.ts      # localStorage 安全讀寫包裝工具（safeGet / safeSet）
-│   │   ├── api.ts          # 集中式 API fetch wrapper（含 JWT 注入、401 refresh）
-│   │   └── __tests__/      # 工具函式單元測試（storage.spec.ts）
+│   │   ├── api.ts          # 集中式 API fetch wrapper（JWT 注入、401 refresh、逾時／取消、i18n 錯誤訊息）
+│   │   ├── datetime.ts     # 本地時間 / ISO 時間戳記轉換與依語系顯示
+│   │   ├── id.ts           # 不會碰撞的隨機 ID 產生器
+│   │   ├── persist.ts      # store 狀態延遲合併寫入 localStorage
+│   │   └── __tests__/      # 工具函式單元與整合測試（storage / datetime / id / persist / api）
 │   ├── views/              # 各角色的控制面板主頁面
 │   │   ├── AdminDashboard.vue      # 系統管理員後台（帳號權限、邀請碼、年度統計總覽）
 │   │   ├── LoginView.vue           # 登入與註冊介面（含邀請碼驗證、Google/LINE 登入、快速測試帳號）
@@ -149,10 +152,10 @@ SSLecture/
 
 ### 1. 安裝專案依賴
 
-開啟終端機並切換至專案根目錄，執行以下指令安裝所需套件（在 Node.js v22 環境下建議加上 `--legacy-peer-deps`）：
+開啟終端機並切換至專案根目錄，執行以下指令安裝所需套件（依 `package-lock.json` 安裝固定版本，與 CI 相同）：
 
 ```bash
-npm install --legacy-peer-deps
+npm ci
 ```
 
 ### 2. 本地開發伺服器啟動
@@ -165,7 +168,7 @@ npm run dev
 
 ### 3. 單元測試與覆蓋率
 
-本專案使用 Vitest 進行單元測試（涵蓋 `storage`、`auth`、`courses`、`bookings` stores 與 `router` 導航守衛，共 103 項測試）：
+本專案使用 Vitest 進行測試（涵蓋 `auth`、`courses`、`bookings` stores、`router` 導航守衛、語系檔編譯檢查，以及 `storage`、`datetime`、`id`、`persist`、`api` 工具函式，共 177 項測試）：
 
 ```bash
 # 單次執行所有測試
