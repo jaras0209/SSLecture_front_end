@@ -46,6 +46,8 @@ withDefaults(
     closeOnBackdrop?: boolean
   }>(),
   {
+    title: undefined,
+    maxWidth: undefined,
     closeOnBackdrop: true
   }
 )

@@ -251,11 +251,11 @@
               </div>
               <div class="church-chips-row">
                 <span
-                  v-for="t in getChurchTeacherList(summary.church)"
-                  :key="t"
+                  v-for="tc in getChurchTeacherList(summary.church)"
+                  :key="tc"
                   class="church-chip chip-teacher"
-                  :title="`@${t}`"
-                  >✍️ {{ authStore.usersDb[t]?.realName || t }}</span
+                  :title="`@${tc}`"
+                  >✍️ {{ authStore.usersDb[tc]?.realName || tc }}</span
                 >
                 <span v-if="getChurchTeacherList(summary.church).length === 0" class="chip-empty">{{
                   $t('admin.churchOverview.noTeachers')

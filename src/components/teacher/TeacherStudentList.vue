@@ -135,6 +135,7 @@ import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
+import { isCaretakerRole } from '@/types/courses'
 import { useStudentList } from '@/composables/useStudentList'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -259,7 +260,8 @@ function getCaretakerStatusText(studentUsername: string): string {
 
 function getCaretakerBadgeClass(studentUsername: string): string {
   const role = authStore.currentUser?.role
-  const val = coursesStore.getStudentCaretaker(studentUsername, role as any)
+  if (!isCaretakerRole(role)) return 'badge-student'
+  const val = coursesStore.getStudentCaretaker(studentUsername, role)
   if (val === authStore.currentUser?.username) return 'badge-teacher'
   if (val) return 'badge-admin'
   return 'badge-student'

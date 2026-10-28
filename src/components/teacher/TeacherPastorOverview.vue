@@ -284,7 +284,7 @@ const pastorLecturerStats = computed(() => {
   for (const username of pastorChurchStudents.value) {
     const userRecords = coursesStore.progressDb[username]
     if (!userRecords) continue
-    for (const record of Object.values(userRecords) as any[]) {
+    for (const record of Object.values(userRecords)) {
       if (record.sessions) {
         for (const s of record.sessions) {
           if (s.lecturer) map.set(s.lecturer, (map.get(s.lecturer) ?? 0) + 1)

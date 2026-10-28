@@ -445,6 +445,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useI18nHelper } from '@/composables/useI18nHelper'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import { useBookingsStore } from '@/stores/bookings'
@@ -453,6 +454,7 @@ import { useToast } from '@/composables/useToast'
 
 const { toast } = useToast()
 const { t } = useI18n()
+const { tStatus } = useI18nHelper()
 
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
@@ -692,7 +694,7 @@ function togglePrepExpand(sessionId: string) {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function bookingStatusLabel(status: string): string {
-  return (t as any)(`booking.status.${status}`) || status
+  return tStatus(status) || status
 }
 
 function attendanceLabel(status: string): string {

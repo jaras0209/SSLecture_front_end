@@ -286,6 +286,7 @@ import { useToast } from '@/composables/useToast'
 import { useStudentList } from '@/composables/useStudentList'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
+import { isCaretakerRole } from '@/types/courses'
 import { useBookingsStore } from '@/stores/bookings'
 import ProfileDialog from '@/components/shared/ProfileDialog.vue'
 import { defineAsyncComponent } from 'vue'
@@ -506,8 +507,9 @@ const myStudentsCount = computed(() => {
   const currentUsername = authStore.currentUser?.username
   if (!currentUserRole || !currentUsername) return 0
   if (currentUserRole === 'admin') return studentsList.value.length
+  if (!isCaretakerRole(currentUserRole)) return 0
   return studentsList.value.filter(
-    (s) => coursesStore.getStudentCaretaker(s.username, currentUserRole as any) === currentUsername
+    (s) => coursesStore.getStudentCaretaker(s.username, currentUserRole) === currentUsername
   ).length
 })
 

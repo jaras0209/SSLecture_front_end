@@ -51,6 +51,14 @@ export interface StudentCaretakers {
   parent?: string
 }
 
+/** 可被指派為學員關懷者的角色 */
+export type CaretakerRole = keyof StudentCaretakers
+
+/** 判斷角色是否為關懷者角色（teacher / pastor / parent） */
+export function isCaretakerRole(role: string | undefined): role is CaretakerRole {
+  return role === 'teacher' || role === 'pastor' || role === 'parent'
+}
+
 /** 學員關懷配對資料庫型別 */
 export type StudentTeacherDb = Record<string, StudentCaretakers>
 
