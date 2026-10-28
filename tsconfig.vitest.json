@@ -6,7 +6,8 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "types": ["vitest/globals"],
+    "types": ["vitest/globals", "node"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "strict": true
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"]

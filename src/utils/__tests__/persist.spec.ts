@@ -1,10 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi, type MockInstance } from 'vitest'
 import { nextTick, ref } from 'vue'
 import { setActivePinia, createPinia } from 'pinia'
 import { persistToStorage, flushPersistence, PERSIST_DELAY_MS } from '@/utils/persist'
 
 describe('persistToStorage()', () => {
-  let setItem: ReturnType<typeof vi.spyOn>
+  let setItem: MockInstance<Storage['setItem']>
 
   beforeEach(() => {
     localStorage.clear()
@@ -96,7 +96,7 @@ describe('persistToStorage()', () => {
 })
 
 describe('persistToStorage() — changes from another tab', () => {
-  let setItem: ReturnType<typeof vi.spyOn>
+  let setItem: MockInstance<Storage['setItem']>
 
   beforeEach(() => {
     localStorage.clear()
