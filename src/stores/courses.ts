@@ -93,7 +93,7 @@ export const useCoursesStore = defineStore('courses', () => {
       } else {
         characterThemesDb.value = _rawCharThemes as Record<string, string[]>
       }
-    } catch (e) { /* ignore */ }
+    } catch { /* ignore */ }
   }
 
   const comingOfAgeThemesDb = ref<Record<string, string[]>>({
@@ -108,7 +108,7 @@ export const useCoursesStore = defineStore('courses', () => {
       } else {
         comingOfAgeThemesDb.value = _rawAgeThemes as Record<string, string[]>
       }
-    } catch (e) { /* ignore */ }
+    } catch { /* ignore */ }
   }
 
   // Lecturers list (persistent) — migrate existing entries to have church

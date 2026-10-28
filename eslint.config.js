@@ -12,9 +12,10 @@ export default [
   // Vue files
   ...pluginVue.configs['flat/recommended'],
 
-  // TypeScript inside Vue and .ts files
+  // Parsers: <script lang="ts"> in .vue goes through vue-eslint-parser → TS parser;
+  // plain .ts files use the TS parser directly
   {
-    files: ['**/*.vue', '**/*.ts', '**/*.tsx'],
+    files: ['**/*.vue'],
     languageOptions: {
       parser: vueParser,
       parserOptions: {
@@ -23,11 +24,38 @@ export default [
         ecmaVersion: 'latest',
         sourceType: 'module'
       }
-    },
+    }
+  },
+  {
+    files: ['**/*.ts', '**/*.tsx'],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module'
+      }
+    }
+  },
+
+  // TypeScript inside Vue and .ts files
+  {
+    files: ['**/*.vue', '**/*.ts', '**/*.tsx'],
     plugins: {
       '@typescript-eslint': tseslint
     },
     rules: {
+      // TypeScript already reports undefined identifiers (and knows DOM/Node globals);
+      // the core rule doesn't understand types and flags window, fetch, setTimeout, etc.
+      'no-undef': 'off',
+
+      // The core rule flags parameter names inside function *types*; use the TS-aware one.
+      // Prefix intentionally unused params/vars with _ (e.g. _from, _code).
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }
+      ],
+
       // TypeScript — discourage unbounded any
       '@typescript-eslint/no-explicit-any': 'warn',
 
@@ -50,6 +78,6 @@ export default [
 
   // Files to ignore
   {
-    ignores: ['dist/**', 'node_modules/**', '*.d.ts', 'coverage/**']
+    ignores: ['dist/**', 'node_modules/**', '**/*.d.ts', 'coverage/**']
   }
 ]
