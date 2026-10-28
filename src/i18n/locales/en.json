@@ -789,5 +789,14 @@
       "export": "Export This Page (PDF/Print)",
       "basicInfo": "Basic Personal Info"
     }
+  },
+  "api": {
+    "errors": {
+      "unauthorized": "Your session has expired. Please sign in again.",
+      "timeout": "The server took too long to respond. Please try again later.",
+      "network": "Unable to reach the server. Please check your connection.",
+      "parse": "The server returned an unexpected response.",
+      "http": "Server error (HTTP {status})"
+    }
   }
 }

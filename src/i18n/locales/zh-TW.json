@@ -789,5 +789,14 @@
       "export": "匯出本頁檔案 (PDF/列印)",
       "basicInfo": "個人基本資料"
     }
+  },
+  "api": {
+    "errors": {
+      "unauthorized": "登入已過期，請重新登入",
+      "timeout": "伺服器回應逾時，請稍後再試",
+      "network": "無法連線到伺服器，請檢查網路連線",
+      "parse": "伺服器回應格式錯誤",
+      "http": "伺服器錯誤（HTTP {status}）"
+    }
   }
 }
