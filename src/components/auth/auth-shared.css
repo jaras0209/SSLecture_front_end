@@ -1,0 +1,38 @@
+.w-full {
+  width: 100%;
+}
+
+/* Password show/hide wrapper */
+.pwd-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.pwd-input-wrap .form-input {
+  padding-right: 2.75rem;
+  width: 100%;
+}
+
+.pwd-eye-btn {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  transition: color var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.pwd-eye-btn:hover {
+  color: var(--primary);
+}
+
+.pwd-eye-btn svg {
+  width: 18px;
+  height: 18px;
+}
