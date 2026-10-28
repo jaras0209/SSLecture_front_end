@@ -11,6 +11,8 @@ interface ImportMetaEnv {
   readonly VITE_GOOGLE_CLIENT_ID: string
   /** LINE Login Channel ID */
   readonly VITE_LINE_CHANNEL_ID: string
+  /** 'true' 時登入頁顯示快速測試帳號（mock 階段使用） */
+  readonly VITE_DEMO_MODE?: string
 }
 
 interface ImportMeta {

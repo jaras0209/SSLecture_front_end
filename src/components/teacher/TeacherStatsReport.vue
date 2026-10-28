@@ -220,7 +220,7 @@ function handleSaveStats() {
 }
 
 /* Pastor Overview Grid */
-/* ?????? Annual Teaching Stats Report Panel ?????? */
+/* ── Annual Teaching Stats Report Panel ── */
 .stats-report-panel {
   padding: 2rem;
   margin-top: 1.5rem;

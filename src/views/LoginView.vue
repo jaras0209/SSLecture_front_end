@@ -40,22 +40,24 @@
       <SocialLoginButtons />
 
       <!-- Quick Demo Access Helper -->
-      <div class="demo-helper">
+      <div v-if="showDemoAccounts" class="demo-helper">
         <p class="demo-title">💡 {{ $t('auth.demo.title') }}</p>
         <div class="demo-chips">
-          <span class="demo-chip" @click="fillDemo('student')">{{
-            $t('auth.demo.chipStudent')
-          }}</span>
-          <span class="demo-chip" @click="fillDemo('teacher')">{{
-            $t('auth.demo.chipTeacher')
-          }}</span>
-          <span class="demo-chip" @click="fillDemo('admin')">{{ $t('auth.demo.chipAdmin') }}</span>
-          <span class="demo-chip" @click="fillDemo('parent')">{{
-            $t('auth.demo.chipParent')
-          }}</span>
-          <span class="demo-chip" @click="fillDemo('pastor')">{{
-            $t('auth.demo.chipPastor')
-          }}</span>
+          <button type="button" class="demo-chip" @click="fillDemo('student')">
+            {{ $t('auth.demo.chipStudent') }}
+          </button>
+          <button type="button" class="demo-chip" @click="fillDemo('teacher')">
+            {{ $t('auth.demo.chipTeacher') }}
+          </button>
+          <button type="button" class="demo-chip" @click="fillDemo('admin')">
+            {{ $t('auth.demo.chipAdmin') }}
+          </button>
+          <button type="button" class="demo-chip" @click="fillDemo('parent')">
+            {{ $t('auth.demo.chipParent') }}
+          </button>
+          <button type="button" class="demo-chip" @click="fillDemo('pastor')">
+            {{ $t('auth.demo.chipPastor') }}
+          </button>
         </div>
       </div>
     </div>
@@ -76,6 +78,9 @@ import ForgotPasswordModal from '@/components/auth/ForgotPasswordModal.vue'
 
 const { toast } = useToast()
 const { t } = useI18n()
+
+// Mock 階段的快速測試帳號；接上真正的後端後在正式環境把 VITE_DEMO_MODE 設為 false
+const showDemoAccounts = import.meta.env.VITE_DEMO_MODE === 'true'
 
 const activeTab = ref<'login' | 'register'>('login')
 const showForgotModal = ref(false)
@@ -192,6 +197,10 @@ function fillDemo(role: string) {
 }
 
 .demo-chip {
+  /* <button> reset so it looks like the former <span> chip */
+  border: none;
+  font-family: inherit;
+  line-height: inherit;
   padding: 0.25rem 0.6rem;
   background: rgba(59, 130, 246, 0.08);
   color: var(--primary);

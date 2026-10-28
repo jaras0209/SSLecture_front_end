@@ -150,14 +150,12 @@
       :student="notesDialogStudent"
       :total-courses="coursesStore.courses.length"
       :can-send-feedback="authStore.currentUser?.role !== 'parent'"
-      @feedback-sent="handleNotesDialogFeedback"
     />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { useI18nHelper } from '@/composables/useI18nHelper'
 import { useStudentList } from '@/composables/useStudentList'
 import { useAuthStore } from '@/stores/auth'
@@ -198,7 +196,6 @@ import { DEFAULT_CHURCH } from '@/types/auth'
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
 const bookingsStore = useBookingsStore()
-const { t } = useI18n()
 const { tDateTime } = useI18nHelper()
 const { studentsList } = useStudentList()
 
@@ -248,9 +245,6 @@ const currentContextChurch = computed(() => {
     ? adminSettingsChurch.value
     : authStore.currentUser?.church || DEFAULT_CHURCH
 })
-
-// feedbacksSent tracks the confirmation message displayed to teacher after sending feedback
-const feedbacksSent = ref<Record<string, string>>({})
 
 // Watch role changes - reset main tab when role changes
 watch(
@@ -324,14 +318,6 @@ function openNotesDialog(student: StudentProgressSummary) {
 
 function viewStudentDetails(student: StudentProgressSummary) {
   selectedStudent.value = student
-}
-
-function handleNotesDialogFeedback(username: string, courseId: string, msg: string) {
-  const key = `${username}_${courseId}`
-  feedbacksSent.value[key] = t('teacher.notes.feedbackSent', { username, msg })
-  setTimeout(() => {
-    delete feedbacksSent.value[key]
-  }, 4000)
 }
 
 // Note: getShining, isStudentManaged, getCaretakerStatusText, getCaretakerBadgeClass,
@@ -1027,7 +1013,7 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   color: #d97706;
 }
 
-/* ?????? Booking Styles ?????????????????????????????????????????????????????????????????????????????????????? */
+/* ── Booking Styles ─────────────────────────────────────────────────────────── */
 
 .tab-badge {
   display: inline-flex;
