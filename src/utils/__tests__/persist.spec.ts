@@ -94,3 +94,81 @@ describe('persistToStorage()', () => {
     expect(saved['愛與話語']).toEqual(expect.arrayContaining(['主題一', '主題二']))
   })
 })
+
+describe('persistToStorage() — changes from another tab', () => {
+  let setItem: ReturnType<typeof vi.spyOn>
+
+  beforeEach(() => {
+    localStorage.clear()
+    vi.useFakeTimers()
+    setItem = vi.spyOn(localStorage, 'setItem')
+  })
+
+  afterEach(() => {
+    flushPersistence()
+    vi.useRealTimers()
+    vi.restoreAllMocks()
+  })
+
+  const writesTo = (key: string) => setItem.mock.calls.filter(([k]) => k === key).length
+  /** What the browser fires in this tab when another tab writes localStorage[key] */
+  const otherTabWrites = (key: string, value: unknown) =>
+    window.dispatchEvent(
+      new StorageEvent('storage', {
+        key,
+        newValue: value === null ? null : typeof value === 'string' ? value : JSON.stringify(value)
+      })
+    )
+
+  it("applies the other tab's value without writing it back", async () => {
+    const state = ref({ items: ['a'] })
+    persistToStorage(state, 'k_remote')
+    otherTabWrites('k_remote', { items: ['a', 'b'] })
+    await nextTick()
+    expect(state.value).toEqual({ items: ['a', 'b'] })
+    vi.advanceTimersByTime(PERSIST_DELAY_MS * 2)
+    expect(writesTo('k_remote')).toBe(0)
+  })
+
+  it("drops this tab's pending write in favour of the other tab's newer save", async () => {
+    const state = ref({ v: 1 })
+    persistToStorage(state, 'k_conflict')
+    state.value.v = 2 // local change, still within the debounce window
+    await nextTick()
+    otherTabWrites('k_conflict', { v: 3 })
+    await nextTick()
+    vi.advanceTimersByTime(PERSIST_DELAY_MS * 2)
+    expect(state.value).toEqual({ v: 3 })
+    expect(writesTo('k_conflict')).toBe(0)
+  })
+
+  it('keeps persisting local changes made after a remote update', async () => {
+    const state = ref({ v: 1 })
+    persistToStorage(state, 'k_after')
+    otherTabWrites('k_after', { v: 2 })
+    await nextTick()
+    state.value.v = 5
+    await nextTick()
+    vi.advanceTimersByTime(PERSIST_DELAY_MS)
+    expect(JSON.parse(localStorage.getItem('k_after') || 'null')).toEqual({ v: 5 })
+  })
+
+  it('ignores other keys, malformed values and removals', async () => {
+    const state = ref({ v: 1 })
+    persistToStorage(state, 'k_ignore')
+    otherTabWrites('some_other_key', { v: 9 })
+    otherTabWrites('k_ignore', '{not json')
+    otherTabWrites('k_ignore', null)
+    await nextTick()
+    expect(state.value).toEqual({ v: 1 })
+  })
+
+  it('updates a store when another tab saves its data', async () => {
+    setActivePinia(createPinia())
+    const { useCoursesStore } = await import('@/stores/courses')
+    const store = useCoursesStore()
+    otherTabWrites('superstart_character_themes_db', { 愛與話語: ['別的分頁新增的主題'] })
+    await nextTick()
+    expect(store.getThemesByChurch('character', '愛與話語')).toEqual(['別的分頁新增的主題'])
+  })
+})

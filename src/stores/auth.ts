@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
-import { ref, computed, watch } from 'vue'
-import { safeGet, safeSet, safeRemove } from '@/utils/storage'
+import { ref, computed, watch, nextTick } from 'vue'
+import { safeGet, safeSet, safeRemove, onStorageChange } from '@/utils/storage'
 import { persistToStorage } from '@/utils/persist'
 import { nowIso, normalizeLegacyDateTime } from '@/utils/datetime'
 import { randomHex } from '@/utils/id'
@@ -99,12 +99,35 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   // Watchers to persist state
+  let applyingRemoteUser = false
   watch(currentUser, (newUser) => {
+    if (applyingRemoteUser) return
     if (newUser) {
       safeSet('superstart_user', newUser)
     } else {
       safeRemove('superstart_user')
     }
+  })
+
+  // Sign-in / sign-out in another tab: follow it. Bumped on each such change so App.vue can
+  // redirect; changes made in this tab don't bump it (their own pages handle navigation).
+  const sessionChangedElsewhere = ref(0)
+  onStorageChange('superstart_user', (raw) => {
+    let next: User | null = null
+    if (raw !== null) {
+      try {
+        next = JSON.parse(raw) as User
+      } catch {
+        return
+      }
+    }
+    applyingRemoteUser = true
+    currentUser.value = next
+    sessionChangedElsewhere.value++
+    // Reset after the watcher has run (or right away if nothing changed and it never fires)
+    void nextTick(() => {
+      applyingRemoteUser = false
+    })
   })
 
   persistToStorage(usersDb, 'superstart_users_db')
@@ -433,6 +456,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   return {
     currentUser,
+    sessionChangedElsewhere,
     isAuthenticated,
     isAuthenticating,
     usersDb,

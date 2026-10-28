@@ -9,7 +9,7 @@ import { createI18n } from 'vue-i18n'
 import type { Ref } from 'vue'
 import zhTW from './locales/zh-TW.json'
 import en from './locales/en.json'
-import { safeGet, safeSet } from '@/utils/storage'
+import { safeGet, safeSet, onStorageChange } from '@/utils/storage'
 
 const LANG_KEY = 'superstart_lang'
 export type SupportedLocale = 'zh-TW' | 'en'
@@ -36,12 +36,26 @@ export function translate(key: string, values?: Record<string, unknown>): string
   return (i18n.global.t as (k: string, v: Record<string, unknown>) => string)(key, values ?? {})
 }
 
-export function setLocale(lang: SupportedLocale) {
+function applyLocale(lang: SupportedLocale) {
   ;(i18n.global.locale as unknown as Ref<SupportedLocale>).value = lang
-  safeSet(LANG_KEY, lang)
   if (typeof document !== 'undefined') {
     document.documentElement.lang = lang === 'zh-TW' ? 'zh-TW' : 'en'
   }
 }
+
+export function setLocale(lang: SupportedLocale) {
+  applyLocale(lang)
+  safeSet(LANG_KEY, lang)
+}
+
+// Language switched in another tab: follow it without writing it back
+onStorageChange(LANG_KEY, (raw) => {
+  if (raw === null) return
+  try {
+    applyLocale(JSON.parse(raw) === 'en' ? 'en' : 'zh-TW')
+  } catch {
+    // ignore malformed values
+  }
+})
 
 export default i18n

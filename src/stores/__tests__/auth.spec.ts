@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { nextTick } from 'vue'
 import { setActivePinia, createPinia } from 'pinia'
 import { useAuthStore } from '@/stores/auth'
 
@@ -347,6 +348,48 @@ describe('useAuthStore', () => {
       expect(auth.generateInviteCode('student', '愛與話語', 'admin')).toBe('SS-STU-ABCD')
       expect(auth.generateInviteCode('student', '愛與話語', 'admin')).toBe('SS-STU-1234')
       expect(Object.keys(auth.inviteCodesDb)).toHaveLength(2)
+    })
+  })
+
+  // ── session changes from another tab ──────────────────────────────────────
+
+  describe('session changes from another tab', () => {
+    const otherTabWrites = (key: string, value: unknown) =>
+      window.dispatchEvent(
+        new StorageEvent('storage', {
+          key,
+          newValue: value === null ? null : JSON.stringify(value)
+        })
+      )
+
+    it('signs out when another tab signs out, and later sign-ins still persist', async () => {
+      const auth = useAuthStore()
+      auth.login('student', '123456')
+      await nextTick()
+
+      localStorage.removeItem('superstart_user') // what the other tab's logout did
+      otherTabWrites('superstart_user', null)
+      await nextTick()
+      expect(auth.currentUser).toBeNull()
+      expect(auth.sessionChangedElsewhere).toBe(1)
+
+      auth.login('teacher', '123456')
+      await nextTick()
+      expect(auth.sessionChangedElsewhere).toBe(1) // local sign-ins don't count
+      expect(JSON.parse(localStorage.getItem('superstart_user') || 'null')?.username).toBe(
+        'teacher'
+      )
+    })
+
+    it('follows a sign-in made in another tab', async () => {
+      const auth = useAuthStore()
+      otherTabWrites('superstart_user', {
+        username: 'admin',
+        role: 'admin',
+        loginMethod: 'credentials'
+      })
+      await nextTick()
+      expect(auth.currentUser?.username).toBe('admin')
     })
   })
 })

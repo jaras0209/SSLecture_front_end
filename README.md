@@ -22,7 +22,7 @@ SSLecture 是一個基於 **Vue 3 + TypeScript + Vite** 技術棧開發的現代
 *   **狀態管理**：Pinia 3（模組化設計：`auth` 權限模組、`courses` 課程與進度模組、`bookings` 預約與出席模組）
 *   **多語系架構**：Vue I18n 10（Composition API 模式，`zh-TW` / `en` 雙語系）
 *   **路由管理**：Vue Router 5（HTML5 History 模式，內建角色與頁面限制導航守衛、平滑捲動）
-*   **測試**：Vitest 3 + Happy DOM（13 個測試檔案、184 項測試，含以本機 HTTP 伺服器驗證 `api.ts` 的整合測試）；Playwright 端對端測試（17 項）
+*   **測試**：Vitest 3 + Happy DOM（14 個測試檔案、192 項測試，含以本機 HTTP 伺服器驗證 `api.ts` 的整合測試）；Playwright 端對端測試（21 項）
 *   **程式碼品質**：TypeScript 5.8（Strict 嚴格模式）、ESLint 10、Prettier 3
 *   **樣式設計**：Vanilla CSS（響應式排版，適配行動端、桌面端與 `@media print` 列印模式）
 
@@ -77,7 +77,7 @@ SSLecture/
 │   │   ├── datetime.ts     # 本地時間 / ISO 時間戳記轉換與依語系顯示
 │   │   ├── id.ts           # 不會碰撞的隨機 ID 產生器
 │   │   ├── avatar.ts       # 在瀏覽器內產生 DiceBear 頭像（按需載入各風格）
-│   │   ├── persist.ts      # store 狀態延遲合併寫入 localStorage
+│   │   ├── persist.ts      # store 狀態延遲合併寫入 localStorage，並與其他分頁同步
 │   │   └── __tests__/      # 工具函式單元與整合測試（storage / datetime / id / avatar / persist / api）
 │   ├── views/              # 各角色的控制面板主頁面
 │   │   ├── AdminDashboard.vue      # 系統管理員後台（帳號權限、邀請碼、年度統計總覽）
@@ -171,7 +171,7 @@ npm run dev
 
 ### 3. 單元測試與覆蓋率
 
-本專案使用 Vitest 進行測試（涵蓋 `auth`、`courses`、`bookings` stores、`router` 導航守衛、語系檔編譯檢查，以及 `storage`、`datetime`、`id`、`avatar`、`persist`、`api` 工具函式，共 184 項測試）：
+本專案使用 Vitest 進行測試（涵蓋 `auth`、`courses`、`bookings` stores、`router` 導航守衛、語系檔編譯檢查，以及 `storage`、`datetime`、`id`、`avatar`、`persist`、`api` 工具函式，共 192 項測試）：
 
 ```bash
 # 單次執行所有測試
@@ -188,7 +188,7 @@ npm run test:coverage
 npm run test:e2e
 ```
 
-E2E 測試涵蓋各角色登入與路由權限、登入／註冊表單、邀請碼註冊、語系切換、學員聽課紀錄與閃耀計畫、教師新增講師、管理員建立帳號與邀請碼，以及頭像與圖示皆在本機產生（不連外部圖片網站）。CI 與部署流程都會執行，失敗時會上傳 Playwright trace 供除錯。
+E2E 測試涵蓋各角色登入與路由權限、登入／註冊表單、邀請碼註冊、語系切換、學員聽課紀錄與閃耀計畫、教師新增講師、管理員建立帳號與邀請碼，以及頭像與圖示皆在本機產生（不連外部圖片網站）；另有多分頁同步測試（資料、語系、登入／登出在分頁間同步）。CI 與部署流程都會執行，失敗時會上傳 Playwright trace 供除錯。
 
 ### 4. 程式碼檢查與格式化
 

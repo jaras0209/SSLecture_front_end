@@ -108,3 +108,22 @@ export function safeGetAll<T extends Record<string, unknown>>(specs: {
   }
   return result
 }
+
+/**
+ * 監聽「其他分頁」對 localStorage[key] 的變更（storage 事件只在別的分頁寫入時觸發）。
+ * newValue 為原始字串；key 被移除或整個 localStorage 被清除時為 null。
+ * 回傳取消監聽的函式。
+ */
+export function onStorageChange(
+  key: string,
+  callback: (newValue: string | null) => void
+): () => void {
+  if (typeof window === 'undefined') return () => {}
+  const handler = (event: StorageEvent) => {
+    if (event.storageArea && event.storageArea !== localStorage) return
+    // key === null means localStorage.clear() in another tab
+    if (event.key === key || event.key === null) callback(event.newValue)
+  }
+  window.addEventListener('storage', handler)
+  return () => window.removeEventListener('storage', handler)
+}

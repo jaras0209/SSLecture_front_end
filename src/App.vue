@@ -283,7 +283,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, toRef } from 'vue'
+import { ref, reactive, toRef, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
@@ -292,6 +292,7 @@ import { usePasswordStrength } from '@/composables/usePasswordStrength'
 import AppToast from '@/components/shared/AppToast.vue'
 import LanguageSwitcher from '@/components/shared/LanguageSwitcher.vue'
 import { avatarSrc } from '@/utils/avatar'
+import { homeRouteFor } from '@/router/homeRoute'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -394,6 +395,19 @@ function handleLogout() {
   authStore.logout()
   router.push('/login')
 }
+
+// Another tab signed in or out (the session lives in localStorage): follow it
+watch(
+  () => authStore.sessionChangedElsewhere,
+  () => {
+    const user = authStore.currentUser
+    if (user) {
+      router.replace(homeRouteFor(user.role))
+    } else if (router.currentRoute.value.matched.some((r) => r.meta.requiresAuth)) {
+      router.replace({ name: 'Login' })
+    }
+  }
+)
 
 function getBadgeClass(role?: string) {
   if (role === 'admin') return 'badge-admin'
