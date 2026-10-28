@@ -34,19 +34,19 @@ async function catchError(p: Promise<unknown>): Promise<unknown> {
 }
 
 describe('api request helpers', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     localStorage.clear()
     fetchMock.mockReset()
     vi.stubGlobal('fetch', fetchMock)
     vi.spyOn(console, 'warn').mockImplementation(() => {})
-    setLocale('zh-TW')
+    await setLocale('zh-TW')
   })
 
-  afterEach(() => {
+  afterEach(async () => {
     vi.unstubAllGlobals()
     vi.restoreAllMocks()
     vi.useRealTimers()
-    setLocale('zh-TW')
+    await setLocale('zh-TW')
   })
 
   // ── success & headers ──────────────────────────────────────────────────────
@@ -224,7 +224,7 @@ describe('api request helpers', () => {
   // ── i18n ───────────────────────────────────────────────────────────────────
 
   it('translates frontend-generated messages into the current locale', async () => {
-    setLocale('en')
+    await setLocale('en')
     fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch'))
     respond(503, '')
     await expect(apiGet('/x')).rejects.toMatchObject({

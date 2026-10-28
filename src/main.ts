@@ -2,7 +2,7 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
-import i18n from '@/i18n'
+import i18n, { initLocale } from '@/i18n'
 import '@/assets/styles/main.css'
 
 const app = createApp(App)
@@ -42,4 +42,5 @@ window.addEventListener('unhandledrejection', (event) => {
   event.preventDefault()
 })
 
-app.mount('#app')
+// Load the saved language (e.g. the English chunk) before the first render
+initLocale().finally(() => app.mount('#app'))

@@ -45,7 +45,7 @@ function handleSelect(lang: SupportedLocale) {
   // 若點擊目前已啟用的語系按鈕，亦自動切換至另一語系，支援單擊切換習慣
   const nextLang: SupportedLocale =
     lang === currentLocale.value ? (currentLocale.value === 'zh-TW' ? 'en' : 'zh-TW') : lang
-  setLocale(nextLang)
+  void setLocale(nextLang)
 }
 </script>
 
