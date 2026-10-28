@@ -209,4 +209,11 @@ test.describe('assets', () => {
     const imageHosts = [...externalHosts].filter((h) => /dicebear|flaticon/.test(h))
     expect(imageHosts).toEqual([])
   })
+
+  test('fonts are self-hosted', async ({ page, openWith, externalHosts }) => {
+    await openWith('login')
+    await page.evaluate(() => document.fonts.ready)
+    expect(await page.evaluate(() => document.fonts.check('600 16px Quicksand'))).toBe(true)
+    expect([...externalHosts].filter((h) => /fonts\.(googleapis|gstatic)/.test(h))).toEqual([])
+  })
 })

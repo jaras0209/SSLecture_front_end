@@ -25,7 +25,7 @@ export const test = base.extend<{
 }>({
   externalHosts: async ({ page }, use) => {
     const hosts = new Set<string>()
-    // Keep tests hermetic: record and block every non-local request (fonts included)
+    // Keep tests hermetic: record and block every non-local request
     await page.route(
       (url) => url.hostname !== 'localhost',
       (route) => {
