@@ -41,9 +41,11 @@ SSLecture/
 │   ├── assets/             # 圖片、樣式等靜態資源
 │   │   └── styles/main.css # 全域 CSS（變數、玻璃擬態、通用工具類、列印基礎樣式）
 │   ├── components/         # 可複用元件
+│   │   ├── admin/          # 管理員後台區塊（新增使用者、使用者列表、教會概況、年度教學統計、邀請碼管理）
+│   │   ├── auth/           # 登入頁元件（登入表單、註冊表單、社群登入按鈕、忘記密碼 Modal）
 │   │   ├── shared/         # 全域共用元件（AppToast、BaseModal、LanguageSwitcher、ProfileDialog、StatusBadge）
 │   │   ├── student/        # 學員專屬子元件（課程卡片、詳情、預約清單、回饋 Modal、閃耀計畫面板）
-│   │   └── teacher/        # 教師/牧者專屬子元件（學員清單、進度抽屜、筆記對話框、預約面板、牧者總覽、年度申報、講師與主題設定）
+│   │   └── teacher/        # 教師/牧者專屬子元件（學員清單、進度抽屜、筆記對話框、預約面板、牧者總覽、年度申報、講師與主題設定、講師新增/編輯 Modal）
 │   ├── composables/        # 可複用邏輯（Composition API）
 │   │   ├── useI18nHelper.ts        # 動態 i18n Key、角色與狀態翻譯輔助函式
 │   │   ├── usePasswordStrength.ts  # 密碼強度計算與多語系提示
