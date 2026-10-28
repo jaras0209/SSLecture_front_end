@@ -13,7 +13,9 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 const router = useRouter()
-function goHome() { router.push('/') }
+function goHome() {
+  router.push('/')
+}
 </script>
 
 <style scoped>

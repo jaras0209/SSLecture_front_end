@@ -1,7 +1,7 @@
 <template>
   <section
-    class="glass-panel stats-report-panel"
     v-if="authStore.currentUser?.role === 'teacher' || authStore.currentUser?.role === 'admin'"
+    class="glass-panel stats-report-panel"
   >
     <div class="stats-report-header">
       <div>
@@ -9,7 +9,9 @@
         <p class="section-desc text-sm text-muted mt-1">{{ $t('teacher.stats.panelDesc') }}</p>
       </div>
       <select v-model="statsYear" class="form-input select-input stats-year-select">
-        <option v-for="y in availableYears" :key="y" :value="y">{{ $t('teacher.stats.yearSuffix', { n: y }) }}</option>
+        <option v-for="y in availableYears" :key="y" :value="y">
+          {{ $t('teacher.stats.yearSuffix', { n: y }) }}
+        </option>
       </select>
     </div>
 
@@ -26,11 +28,12 @@
             </label>
             <div class="stats-input-row">
               <input
+                id="stat-one-on-one-30"
                 v-model.number="statsForm.oneOnOne30"
-                type="number" min="0"
+                type="number"
+                min="0"
                 class="form-input stats-number-input"
                 placeholder="0"
-                id="stat-one-on-one-30"
               />
               <span class="stats-unit">{{ $t('teacher.stats.unit') }}</span>
             </div>
@@ -38,29 +41,36 @@
           <div class="stats-field-item">
             <label class="form-label">
               {{ $t('teacher.stats.oneToMany') }}
-              <span class="stats-badge stats-badge-multi">{{ $t('teacher.stats.oneToManyBadge') }}</span>
+              <span class="stats-badge stats-badge-multi">{{
+                $t('teacher.stats.oneToManyBadge')
+              }}</span>
             </label>
             <div class="stats-input-row">
               <input
+                id="stat-one-to-many-30"
                 v-model.number="statsForm.oneToMany30"
-                type="number" min="0"
+                type="number"
+                min="0"
                 class="form-input stats-number-input"
                 placeholder="0"
-                id="stat-one-to-many-30"
               />
               <span class="stats-unit">{{ $t('teacher.stats.unit') }}</span>
             </div>
           </div>
         </div>
         <div class="stats-subtotal">
-          {{ $t('teacher.stats.subtotal') }}<strong>{{ (statsForm.oneOnOne30 || 0) + (statsForm.oneToMany30 || 0) }}</strong> {{ $t('teacher.stats.unit') }}
+          {{ $t('teacher.stats.subtotal')
+          }}<strong>{{ (statsForm.oneOnOne30 || 0) + (statsForm.oneToMany30 || 0) }}</strong>
+          {{ $t('teacher.stats.unit') }}
         </div>
       </div>
 
       <!-- 閃耀計畫課程 block -->
       <div class="stats-group-card">
         <div class="stats-group-title">{{ $t('teacher.stats.shiningBlock') }}</div>
-        <p class="stats-group-desc text-xs text-muted mb-3">{{ $t('teacher.stats.shiningDesc') }}</p>
+        <p class="stats-group-desc text-xs text-muted mb-3">
+          {{ $t('teacher.stats.shiningDesc') }}
+        </p>
         <div class="stats-fields">
           <div class="stats-field-item">
             <label class="form-label">
@@ -69,11 +79,12 @@
             </label>
             <div class="stats-input-row">
               <input
+                id="stat-one-on-one-shining"
                 v-model.number="statsForm.oneOnOneShining"
-                type="number" min="0"
+                type="number"
+                min="0"
                 class="form-input stats-number-input"
                 placeholder="0"
-                id="stat-one-on-one-shining"
               />
               <span class="stats-unit">{{ $t('teacher.stats.unit') }}</span>
             </div>
@@ -81,22 +92,29 @@
           <div class="stats-field-item">
             <label class="form-label">
               {{ $t('teacher.stats.oneToMany') }}
-              <span class="stats-badge stats-badge-multi">{{ $t('teacher.stats.oneToManyBadge') }}</span>
+              <span class="stats-badge stats-badge-multi">{{
+                $t('teacher.stats.oneToManyBadge')
+              }}</span>
             </label>
             <div class="stats-input-row">
               <input
+                id="stat-one-to-many-shining"
                 v-model.number="statsForm.oneToManyShining"
-                type="number" min="0"
+                type="number"
+                min="0"
                 class="form-input stats-number-input"
                 placeholder="0"
-                id="stat-one-to-many-shining"
               />
               <span class="stats-unit">{{ $t('teacher.stats.unit') }}</span>
             </div>
           </div>
         </div>
         <div class="stats-subtotal">
-          {{ $t('teacher.stats.subtotal') }}<strong>{{ (statsForm.oneOnOneShining || 0) + (statsForm.oneToManyShining || 0) }}</strong> {{ $t('teacher.stats.unit') }}
+          {{ $t('teacher.stats.subtotal')
+          }}<strong>{{
+            (statsForm.oneOnOneShining || 0) + (statsForm.oneToManyShining || 0)
+          }}</strong>
+          {{ $t('teacher.stats.unit') }}
         </div>
       </div>
     </div>
@@ -105,14 +123,19 @@
     <div class="stats-total-row mt-4">
       <span>{{ $t('teacher.stats.grandTotal', { year: statsYear }) }}</span>
       <span class="stats-total-num">
-        {{ (statsForm.oneOnOne30 || 0) + (statsForm.oneToMany30 || 0) + (statsForm.oneOnOneShining || 0) + (statsForm.oneToManyShining || 0) }}
+        {{
+          (statsForm.oneOnOne30 || 0) +
+          (statsForm.oneToMany30 || 0) +
+          (statsForm.oneOnOneShining || 0) +
+          (statsForm.oneToManyShining || 0)
+        }}
         {{ $t('teacher.stats.unit') }}
       </span>
     </div>
 
     <div class="stats-action-row mt-4">
       <span v-if="statsSavedMsg" class="stats-saved-msg">{{ statsSavedMsg }}</span>
-      <button class="btn btn-primary" @click="handleSaveStats" id="btn-save-stats">
+      <button id="btn-save-stats" class="btn btn-primary" @click="handleSaveStats">
         {{ $t('teacher.stats.saveBtn', { year: statsYear }) }}
       </button>
     </div>
@@ -179,7 +202,9 @@ function handleSaveStats() {
   })
   statsLastSubmit.value = new Date().toLocaleString('zh-TW', { hour12: false })
   statsSavedMsg.value = t('teacher.stats.savedMsg')
-  setTimeout(() => { statsSavedMsg.value = '' }, 3000)
+  setTimeout(() => {
+    statsSavedMsg.value = ''
+  }, 3000)
 }
 </script>
 
@@ -188,8 +213,8 @@ function handleSaveStats() {
 @media (max-width: 480px) {
   /* Stats form */
   .stats-form-grid {
-      grid-template-columns: 1fr;
-    }
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Pastor Overview Grid */
@@ -220,8 +245,8 @@ function handleSaveStats() {
 
 @media (max-width: 768px) {
   .stats-form-grid {
-      grid-template-columns: 1fr;
-    }
+    grid-template-columns: 1fr;
+  }
 }
 
 .stats-group-card {
@@ -261,7 +286,7 @@ function handleSaveStats() {
 
 .stats-badge-multi {
   background: rgba(245, 158, 11, 0.1);
-  color: #D97706;
+  color: #d97706;
   border-color: rgba(245, 158, 11, 0.2);
 }
 
@@ -302,8 +327,8 @@ function handleSaveStats() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(139,92,246,0.08) 100%);
-  border: 1px solid rgba(99,102,241,0.15);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.08) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.15);
   border-radius: 10px;
   padding: 0.85rem 1.25rem;
   font-weight: 600;
@@ -327,7 +352,7 @@ function handleSaveStats() {
 
 .stats-saved-msg {
   font-size: 0.85rem;
-  color: #10B981;
+  color: #10b981;
   font-weight: 600;
 }
 

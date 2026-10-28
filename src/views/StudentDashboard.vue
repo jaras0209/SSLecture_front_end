@@ -3,7 +3,11 @@
     <!-- Header Summary Panel -->
     <header class="dashboard-header glass-panel no-print">
       <div class="user-greeting">
-        <div class="avatar-clickable" @click="showProfileDialog = true" :title="$t('common.editProfileHint')">
+        <div
+          class="avatar-clickable"
+          :title="$t('common.editProfileHint')"
+          @click="showProfileDialog = true"
+        >
           <img :src="authStore.currentUser?.avatarUrl" alt="Avatar" class="avatar-lg" />
           <span class="avatar-edit-hint">✏️</span>
           <div class="role-badge-overlay">{{ roleBadge }}</div>
@@ -15,10 +19,26 @@
             🕐 {{ $t('student.header.lastLogin', { time: authStore.currentUser?.lastLoginAt }) }}
           </p>
           <div class="flex flex-wrap gap-2 mt-2">
-            <span v-if="assignedTeacher" class="assigned-teacher-label">🛡️ {{ $t('student.header.teacher') }}<strong>{{ assignedTeacher }}</strong></span>
-            <span v-if="assignedPastor" class="assigned-teacher-label" style="background: rgba(139, 92, 246, 0.08); color: var(--info);">⛪ {{ $t('student.header.pastor') }}<strong>{{ assignedPastor }}</strong></span>
-            <span v-if="assignedParent" class="assigned-teacher-label" style="background: rgba(59, 130, 246, 0.08); color: var(--primary);">👨‍👩‍👦 {{ $t('student.header.parent') }}<strong>{{ assignedParent }}</strong></span>
-            <span v-if="!assignedTeacher && !assignedPastor && !assignedParent" class="no-teacher-hint">{{ $t('student.header.noCaretaker') }}</span>
+            <span v-if="assignedTeacher" class="assigned-teacher-label"
+              >🛡️ {{ $t('student.header.teacher') }}<strong>{{ assignedTeacher }}</strong></span
+            >
+            <span
+              v-if="assignedPastor"
+              class="assigned-teacher-label"
+              style="background: rgba(139, 92, 246, 0.08); color: var(--info)"
+              >⛪ {{ $t('student.header.pastor') }}<strong>{{ assignedPastor }}</strong></span
+            >
+            <span
+              v-if="assignedParent"
+              class="assigned-teacher-label"
+              style="background: rgba(59, 130, 246, 0.08); color: var(--primary)"
+              >👨‍👩‍👦 {{ $t('student.header.parent') }}<strong>{{ assignedParent }}</strong></span
+            >
+            <span
+              v-if="!assignedTeacher && !assignedPastor && !assignedParent"
+              class="no-teacher-hint"
+              >{{ $t('student.header.noCaretaker') }}</span
+            >
           </div>
         </div>
       </div>
@@ -31,8 +51,12 @@
           <span class="summary-num">{{ overallProgressPercent }}%</span>
           <span class="summary-label">{{ $t('student.header.overallProgress') }}</span>
         </div>
-        <div class="summary-card clickable-card" @click="showProfileDialog = true" :title="$t('common.editProfileHint')">
-          <span class="summary-num" style="font-size: 1.4rem;">⚙️</span>
+        <div
+          class="summary-card clickable-card"
+          :title="$t('common.editProfileHint')"
+          @click="showProfileDialog = true"
+        >
+          <span class="summary-num" style="font-size: 1.4rem">⚙️</span>
           <span class="summary-label">{{ $t('student.header.profileCard') }}</span>
         </div>
       </div>
@@ -44,35 +68,37 @@
     <!-- Main Navigation Tab (Sermons vs Shining Project) -->
     <div class="main-tabs mb-4 no-print" role="tablist" :aria-label="$t('student.tabs.ariaLabel')">
       <button
+        id="tab-sermons"
         role="tab"
         :aria-selected="activeDashboardTab === 'sermons'"
         aria-controls="tabpanel-sermons"
-        id="tab-sermons"
         :class="['main-tab-btn', { active: activeDashboardTab === 'sermons' }]"
         @click="activeDashboardTab = 'sermons'"
       >
         {{ $t('student.tabs.sermons') }}
       </button>
       <button
+        id="tab-shining"
         role="tab"
         :aria-selected="activeDashboardTab === 'shining'"
         aria-controls="tabpanel-shining"
-        id="tab-shining"
         :class="['main-tab-btn', { active: activeDashboardTab === 'shining' }]"
         @click="activeDashboardTab = 'shining'"
       >
         {{ $t('student.tabs.shining') }}
       </button>
       <button
+        id="tab-my-bookings"
         role="tab"
         :aria-selected="activeDashboardTab === 'bookings'"
         aria-controls="tabpanel-bookings"
-        id="tab-my-bookings"
         :class="['main-tab-btn', { active: activeDashboardTab === 'bookings' }]"
         @click="activeDashboardTab = 'bookings'"
       >
         {{ $t('student.tabs.bookings') }}
-        <span v-if="upcomingBookingsCount > 0" class="booking-badge">{{ upcomingBookingsCount }}</span>
+        <span v-if="upcomingBookingsCount > 0" class="booking-badge">{{
+          upcomingBookingsCount
+        }}</span>
       </button>
     </div>
 
@@ -115,7 +141,6 @@
       :initial-feedback="feedbackItem?.attendee.studentFeedback ?? ''"
       @submit="submitStudentFeedback"
     />
-
   </div>
 </template>
 
@@ -134,12 +159,22 @@ import { defineAsyncComponent } from 'vue'
 import type { FeedbackItem } from '@/components/student/StudentBookingList.vue'
 
 // --- 大型子元件：改用 defineAsyncComponent 按需載入，縮短首次渲染時間 ---
-const ProfileDialog          = defineAsyncComponent(() => import('@/components/shared/ProfileDialog.vue'))
-const StudentFeedbackModal   = defineAsyncComponent(() => import('@/components/student/StudentFeedbackModal.vue'))
-const StudentShiningDashboard = defineAsyncComponent(() => import('@/components/student/StudentShiningDashboard.vue'))
-const StudentBookingList     = defineAsyncComponent(() => import('@/components/student/StudentBookingList.vue'))
-const StudentCourseGrid      = defineAsyncComponent(() => import('@/components/student/StudentCourseGrid.vue'))
-const StudentCourseDetail    = defineAsyncComponent(() => import('@/components/student/StudentCourseDetail.vue'))
+const ProfileDialog = defineAsyncComponent(() => import('@/components/shared/ProfileDialog.vue'))
+const StudentFeedbackModal = defineAsyncComponent(
+  () => import('@/components/student/StudentFeedbackModal.vue')
+)
+const StudentShiningDashboard = defineAsyncComponent(
+  () => import('@/components/student/StudentShiningDashboard.vue')
+)
+const StudentBookingList = defineAsyncComponent(
+  () => import('@/components/student/StudentBookingList.vue')
+)
+const StudentCourseGrid = defineAsyncComponent(
+  () => import('@/components/student/StudentCourseGrid.vue')
+)
+const StudentCourseDetail = defineAsyncComponent(
+  () => import('@/components/student/StudentCourseDetail.vue')
+)
 
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
@@ -155,7 +190,10 @@ const upcomingBookingsCount = computed(() => {
 
 // ── Student Feedback Modal (kept in parent to work with StudentBookingList event) ──
 
-interface FeedbackItemLocal { session: BookingSession; attendee: BookingAttendee }
+interface FeedbackItemLocal {
+  session: BookingSession
+  attendee: BookingAttendee
+}
 
 const showStudentFeedbackModal = ref(false)
 const feedbackItem = ref<FeedbackItemLocal | null>(null)
@@ -174,11 +212,9 @@ function submitStudentFeedback(feedback: string) {
   toast(t('student.feedbackSaved'))
 }
 
-
 const activeDashboardTab = ref<'sermons' | 'shining' | 'bookings'>('sermons')
 const selectedCourse = ref<Course | null>(null)
 const showProfileDialog = ref(false)
-
 
 // Display name: use nickname if set, else username
 const displayName = computed(() => {
@@ -188,7 +224,11 @@ const displayName = computed(() => {
 
 // Role badge emoji for avatar overlay
 const badgeMap: Record<string, string> = {
-  student: '🎒', teacher: '👨‍🏫', pastor: '⛪', parent: '👨‍👩‍👦', admin: '👑'
+  student: '🎒',
+  teacher: '👨‍🏫',
+  pastor: '⛪',
+  parent: '👨‍👩‍👦',
+  admin: '👑'
 }
 const roleBadge = computed(() => badgeMap[authStore.currentUser?.role || ''] || '👤')
 
@@ -196,15 +236,13 @@ const roleBadge = computed(() => badgeMap[authStore.currentUser?.role || ''] || 
 const motivationText = computed(() => {
   const pct = overallProgressPercent.value
   if (pct === 0) return t('student.motivation.start')
-  if (pct < 30)  return t('student.motivation.low')
-  if (pct < 60)  return t('student.motivation.mid')
+  if (pct < 30) return t('student.motivation.low')
+  if (pct < 60) return t('student.motivation.mid')
   if (pct < 100) return t('student.motivation.high')
   return t('student.motivation.done')
 })
 
-
 // Edit session state is now managed by StudentCourseDetail
-
 
 const assignedTeacher = computed(() => {
   const username = authStore.currentUser?.username || ''
@@ -225,7 +263,7 @@ const completedCount = computed(() => {
   const username = authStore.currentUser?.username || ''
   const userRecords = coursesStore.progressDb[username]
   if (!userRecords) return 0
-  return Object.values(userRecords).filter(r => r.completed).length
+  return Object.values(userRecords).filter((r) => r.completed).length
 })
 
 const overallProgressPercent = computed(() => {
@@ -234,8 +272,6 @@ const overallProgressPercent = computed(() => {
 })
 
 // ── Session inline edit handlers moved to StudentCourseDetail ──
-
-
 </script>
 
 <style>
@@ -264,12 +300,12 @@ const overallProgressPercent = computed(() => {
 }
 
 .main-tab-btn:hover {
-  background: #F8FAFC;
+  background: #f8fafc;
   color: var(--primary);
 }
 
 .main-tab-btn.active {
-  background: linear-gradient(135deg, var(--primary) 0%, #4F46E5 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%);
   color: white;
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
@@ -431,7 +467,7 @@ const overallProgressPercent = computed(() => {
   align-items: center;
   justify-content: center;
   font-size: 0.85rem;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
 }
 
 /* Motivational + last-login text */
@@ -449,16 +485,23 @@ const overallProgressPercent = computed(() => {
 /* Clickable summary card */
 .clickable-card {
   cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s;
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
 }
 .clickable-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(99,102,241,0.15);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.15);
 }
 
 @keyframes float-pulse {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 /* HIGH FIDELITY PRINT MEDIA OVERRIDES */
@@ -592,7 +635,14 @@ const overallProgressPercent = computed(() => {
 
 @media print {
   /* Hide all screen elements completely */
-  .no-print, nav, header, .main-tabs, .btn, .shining-toolbar, #app-container, .main-content {
+  .no-print,
+  nav,
+  header,
+  .main-tabs,
+  .btn,
+  .shining-toolbar,
+  #app-container,
+  .main-content {
     display: none !important;
   }
 
@@ -646,9 +696,15 @@ const overallProgressPercent = computed(() => {
     gap: 15px;
   }
 
-  .print-w-45 { width: 45%; }
-  .print-w-48 { width: 48%; }
-  .print-w-50 { width: 50%; }
+  .print-w-45 {
+    width: 45%;
+  }
+  .print-w-48 {
+    width: 48%;
+  }
+  .print-w-50 {
+    width: 50%;
+  }
 
   .print-box {
     border: 1px solid #000;
@@ -723,7 +779,8 @@ const overallProgressPercent = computed(() => {
     margin-top: 10px;
   }
 
-  .print-table th, .print-table td {
+  .print-table th,
+  .print-table td {
     border: 1px solid #000;
     padding: 6px 10px;
     font-size: 0.85rem;
@@ -769,7 +826,9 @@ const overallProgressPercent = computed(() => {
 /* ── Review slide transition ── */
 .review-slide-enter-active,
 .review-slide-leave-active {
-  transition: max-height 0.3s ease, opacity 0.3s ease;
+  transition:
+    max-height 0.3s ease,
+    opacity 0.3s ease;
   overflow: hidden;
   max-height: 600px;
 }
@@ -814,7 +873,7 @@ const overallProgressPercent = computed(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #EF4444;
+  background: #ef4444;
   color: white;
   font-size: 0.65rem;
   font-weight: 700;
@@ -840,17 +899,33 @@ const overallProgressPercent = computed(() => {
   font-size: 0.76rem;
   font-weight: 700;
 }
-.status-pending  { background: rgba(245,158,11,0.12); color: #D97706; border: 1px solid rgba(245,158,11,0.3); }
-.status-confirmed{ background: rgba(99,102,241,0.1);  color: var(--primary); border: 1px solid rgba(99,102,241,0.25); }
-.status-completed{ background: rgba(16,185,129,0.1);  color: #059669; border: 1px solid rgba(16,185,129,0.25); }
-.status-cancelled{ background: rgba(107,114,128,0.1); color: #6B7280; border: 1px solid rgba(107,114,128,0.25); }
+.status-pending {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+.status-confirmed {
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--primary);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+}
+.status-completed {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+.status-cancelled {
+  background: rgba(107, 114, 128, 0.1);
+  color: #6b7280;
+  border: 1px solid rgba(107, 114, 128, 0.25);
+}
 
 .booking-group-badge {
   font-size: 0.72rem;
   font-weight: 600;
   padding: 2px 8px;
   border-radius: 20px;
-  background: rgba(99,102,241,0.08);
+  background: rgba(99, 102, 241, 0.08);
   color: var(--primary);
 }
 
@@ -863,13 +938,25 @@ const overallProgressPercent = computed(() => {
   font-size: 0.73rem;
   font-weight: 600;
 }
-.att-invited  { background: rgba(107,114,128,0.08); color: #6B7280; border: 1px solid rgba(107,114,128,0.2); }
-.att-attended { background: rgba(16,185,129,0.1);  color: #059669; border: 1px solid rgba(16,185,129,0.25); }
-.att-absent   { background: rgba(239,68,68,0.08);  color: #DC2626; border: 1px solid rgba(239,68,68,0.2); }
+.att-invited {
+  background: rgba(107, 114, 128, 0.08);
+  color: #6b7280;
+  border: 1px solid rgba(107, 114, 128, 0.2);
+}
+.att-attended {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+.att-absent {
+  background: rgba(239, 68, 68, 0.08);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
 
 .scripture-chip {
   display: inline-block;
-  background: rgba(99,102,241,0.08);
+  background: rgba(99, 102, 241, 0.08);
   color: var(--primary);
   border-radius: 6px;
   padding: 1px 8px;
@@ -878,6 +965,3 @@ const overallProgressPercent = computed(() => {
   margin: 2px 3px 2px 0;
 }
 </style>
-
-
-

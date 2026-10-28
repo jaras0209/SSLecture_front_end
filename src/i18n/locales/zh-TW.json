@@ -724,7 +724,7 @@
   },
   "booking": {
     "status": {
-      "pending":   "⏳ 待確認",
+      "pending": "⏳ 待確認",
       "confirmed": "✅ 已確認",
       "completed": "🎉 已完成",
       "cancelled": "❌ 已取消"
@@ -759,13 +759,13 @@
     "errMismatch": "新密碼與確認新密碼不相符！",
     "errWeak": "新密碼強度不足（需達中等強度以上）",
     "avatar": {
-      "funEmoji":   "趣味",
-      "lorelei":    "人像",
-      "bottts":     "機器人",
+      "funEmoji": "趣味",
+      "lorelei": "人像",
+      "bottts": "機器人",
       "adventurer": "冒險家",
-      "pixelArt":   "像素風",
-      "avataaars":  "卡通",
-      "micah":      "簡約",
+      "pixelArt": "像素風",
+      "avataaars": "卡通",
+      "micah": "簡約",
       "notionists": "插畫"
     },
     "course": {

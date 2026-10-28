@@ -724,7 +724,7 @@
   },
   "booking": {
     "status": {
-      "pending":   "⏳ Pending",
+      "pending": "⏳ Pending",
       "confirmed": "✅ Confirmed",
       "completed": "🎉 Completed",
       "cancelled": "❌ Cancelled"
@@ -759,13 +759,13 @@
     "errMismatch": "New password and confirmation do not match!",
     "errWeak": "Password is too weak (at least medium strength required)",
     "avatar": {
-      "funEmoji":   "Fun",
-      "lorelei":    "Portrait",
-      "bottts":     "Robot",
+      "funEmoji": "Fun",
+      "lorelei": "Portrait",
+      "bottts": "Robot",
       "adventurer": "Adventurer",
-      "pixelArt":   "Pixel",
-      "avataaars":  "Cartoon",
-      "micah":      "Minimal",
+      "pixelArt": "Pixel",
+      "avataaars": "Cartoon",
+      "micah": "Minimal",
       "notionists": "Illustration"
     },
     "course": {

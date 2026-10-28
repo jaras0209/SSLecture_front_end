@@ -19,7 +19,12 @@
             <div class="form-group-inline">
               <span class="info-dot">✦</span>
               <label class="info-lbl">{{ $t('student.shining.fieldName') }}</label>
-              <input v-model="basicInfo.name" type="text" class="form-input-clean" :placeholder="$t('student.shining.fieldNamePlaceholder')" />
+              <input
+                v-model="basicInfo.name"
+                type="text"
+                class="form-input-clean"
+                :placeholder="$t('student.shining.fieldNamePlaceholder')"
+              />
             </div>
             <div class="form-group-inline">
               <span class="info-dot">✦</span>
@@ -29,15 +34,27 @@
             <div class="form-group-inline">
               <span class="info-dot">✦</span>
               <label class="info-lbl">{{ $t('student.shining.fieldChurch') }}</label>
-              <input v-model="basicInfo.church" type="text" class="form-input-clean" :placeholder="$t('student.shining.fieldChurchPlaceholder')" />
+              <input
+                v-model="basicInfo.church"
+                type="text"
+                class="form-input-clean"
+                :placeholder="$t('student.shining.fieldChurchPlaceholder')"
+              />
             </div>
             <div class="form-group-inline">
               <span class="info-dot">✦</span>
               <label class="info-lbl">{{ $t('student.shining.fieldSchool') }}</label>
-              <input v-model="basicInfo.schoolGrade" type="text" class="form-input-clean" :placeholder="$t('student.shining.fieldSchoolPlaceholder')" />
+              <input
+                v-model="basicInfo.schoolGrade"
+                type="text"
+                class="form-input-clean"
+                :placeholder="$t('student.shining.fieldSchoolPlaceholder')"
+              />
             </div>
             <div class="text-right mt-2">
-              <button class="btn btn-secondary btn-sm" @click="saveBasicInfo">{{ $t('student.shining.saveBasicBtn') }}</button>
+              <button class="btn btn-secondary btn-sm" @click="saveBasicInfo">
+                {{ $t('student.shining.saveBasicBtn') }}
+              </button>
               <span v-if="basicSaveMsg" class="save-alert-msg">{{ basicSaveMsg }}</span>
             </div>
           </div>
@@ -47,11 +64,7 @@
         <div class="glass-panel checklist-card">
           <h4 class="shining-card-title">{{ $t('student.shining.phase1Title') }}</h4>
           <div class="checklist-items mt-4">
-            <label
-              v-for="(label, key) in phase1Labels"
-              :key="key"
-              class="check-item-row"
-            >
+            <label v-for="(label, key) in phase1Labels" :key="key" class="check-item-row">
               <div class="check-box-wrapper">
                 <input
                   type="checkbox"
@@ -85,11 +98,13 @@
                   />
                   <span class="styled-checkbox"></span>
                 </div>
-                <div class="check-label-text-progress" v-if="key === 'courses30'">
+                <div v-if="key === 'courses30'" class="check-label-text-progress">
                   <span>{{ $t('student.shining.phase2Progress') }}</span>
-                  <span class="progress-sub">{{ $t('student.shining.phase2ProgressSub', { count: completedCount }) }}</span>
+                  <span class="progress-sub">{{
+                    $t('student.shining.phase2ProgressSub', { count: completedCount })
+                  }}</span>
                 </div>
-                <span class="check-label-text" v-else>{{ label }}</span>
+                <span v-else class="check-label-text">{{ label }}</span>
               </label>
             </template>
           </div>
@@ -99,11 +114,7 @@
         <div class="glass-panel checklist-card">
           <h4 class="shining-card-title">{{ $t('student.shining.advancedTitle') }}</h4>
           <div class="checklist-items mt-4">
-            <label
-              v-for="(label, key) in advancedLabels"
-              :key="key"
-              class="check-item-row"
-            >
+            <label v-for="(label, key) in advancedLabels" :key="key" class="check-item-row">
               <div class="check-box-wrapper">
                 <input
                   type="checkbox"
@@ -115,8 +126,8 @@
               <!-- Custom item template -->
               <span v-if="key === 'custom'" class="custom-challenge-wrap">
                 <input
-                  type="text"
                   v-model="customChallengeText"
+                  type="text"
                   class="form-input-clean-custom"
                   :placeholder="$t('student.shining.customChallengePlaceholder')"
                   @blur="saveCustomChallengeText"
@@ -151,13 +162,17 @@
                   <span v-if="shiningProject.characterLectures[theme]?.speaker">
                     {{ shiningProject.characterLectures[theme].speaker }}
                   </span>
-                  <span v-else class="empty-input-cell">{{ $t('student.shining.pendingTeacher') }}</span>
+                  <span v-else class="empty-input-cell">{{
+                    $t('student.shining.pendingTeacher')
+                  }}</span>
                 </td>
                 <td>
                   <span v-if="shiningProject.characterLectures[theme]?.date">
                     {{ shiningProject.characterLectures[theme].date }}
                   </span>
-                  <span v-else class="empty-input-cell">{{ $t('student.shining.pendingTeacher') }}</span>
+                  <span v-else class="empty-input-cell">{{
+                    $t('student.shining.pendingTeacher')
+                  }}</span>
                 </td>
               </tr>
             </tbody>
@@ -185,13 +200,17 @@
                   <span v-if="shiningProject.comingOfAgeTopics[theme]?.speaker">
                     {{ shiningProject.comingOfAgeTopics[theme].speaker }}
                   </span>
-                  <span v-else class="empty-input-cell">{{ $t('student.shining.pendingTeacher') }}</span>
+                  <span v-else class="empty-input-cell">{{
+                    $t('student.shining.pendingTeacher')
+                  }}</span>
                 </td>
                 <td>
                   <span v-if="shiningProject.comingOfAgeTopics[theme]?.date">
                     {{ shiningProject.comingOfAgeTopics[theme].date }}
                   </span>
-                  <span v-else class="empty-input-cell">{{ $t('student.shining.pendingTeacher') }}</span>
+                  <span v-else class="empty-input-cell">{{
+                    $t('student.shining.pendingTeacher')
+                  }}</span>
                 </td>
               </tr>
             </tbody>
@@ -224,148 +243,161 @@
   <!-- Teleport 到 body 以避開列印時 #app-container display:none 的限制 -->
   <Teleport to="body">
     <div class="print-page-layout print-only">
-    <div class="print-container">
-      <!-- Banner Header -->
-      <div class="print-banner">
-        <div class="print-banner-logo">{{ $t('student.shining.printBannerLogo') }}</div>
-        <div class="print-banner-sub">{{ $t('student.shining.printBannerSub') }}</div>
-      </div>
-
-      <!-- Grid Row 1: Basic Info & Phase 1 Check list -->
-      <div class="print-flex-row mt-4">
-        <!-- Basic Info Box -->
-        <div class="print-box print-w-45">
-          <h4 class="print-box-title">{{ $t('student.shining.printBasicTitle') }}</h4>
-          <div class="print-box-content">
-            <p class="print-info-line"><span>✦ {{ $t('student.shining.fieldName') }}</span><strong>{{ shiningProject.name || '____________' }}</strong></p>
-            <p class="print-info-line"><span>✦ {{ $t('student.shining.fieldBirthday') }}</span><strong>{{ shiningProject.birthday || '____________' }}</strong></p>
-            <p class="print-info-line"><span>✦ {{ $t('student.shining.fieldChurch') }}</span><strong>{{ shiningProject.church || '____________' }}</strong></p>
-            <p class="print-info-line"><span>✦ {{ $t('student.shining.fieldSchool') }}</span><strong>{{ shiningProject.schoolGrade || '____________' }}</strong></p>
-          </div>
+      <div class="print-container">
+        <!-- Banner Header -->
+        <div class="print-banner">
+          <div class="print-banner-logo">{{ $t('student.shining.printBannerLogo') }}</div>
+          <div class="print-banner-sub">{{ $t('student.shining.printBannerSub') }}</div>
         </div>
 
-        <!-- Phase 1 Checklist Box -->
-        <div class="print-box print-w-50">
-          <h4 class="print-box-title">{{ $t('student.shining.printPhase1Title') }}</h4>
-          <div class="print-box-content print-checklist">
-            <div
-              v-for="(label, key) in phase1Labels"
-              :key="key"
-              class="print-check-line"
-            >
-              <span class="print-check-circle" :class="{ checked: shiningProject.faithPhase1[key] }">
-                {{ shiningProject.faithPhase1[key] ? '✓' : '' }}
-              </span>
-              <span class="print-check-text">{{ label }}</span>
+        <!-- Grid Row 1: Basic Info & Phase 1 Check list -->
+        <div class="print-flex-row mt-4">
+          <!-- Basic Info Box -->
+          <div class="print-box print-w-45">
+            <h4 class="print-box-title">{{ $t('student.shining.printBasicTitle') }}</h4>
+            <div class="print-box-content">
+              <p class="print-info-line">
+                <span>✦ {{ $t('student.shining.fieldName') }}</span
+                ><strong>{{ shiningProject.name || '____________' }}</strong>
+              </p>
+              <p class="print-info-line">
+                <span>✦ {{ $t('student.shining.fieldBirthday') }}</span
+                ><strong>{{ shiningProject.birthday || '____________' }}</strong>
+              </p>
+              <p class="print-info-line">
+                <span>✦ {{ $t('student.shining.fieldChurch') }}</span
+                ><strong>{{ shiningProject.church || '____________' }}</strong>
+              </p>
+              <p class="print-info-line">
+                <span>✦ {{ $t('student.shining.fieldSchool') }}</span
+                ><strong>{{ shiningProject.schoolGrade || '____________' }}</strong>
+              </p>
             </div>
           </div>
-        </div>
-      </div>
 
-      <!-- Grid Row 2: Phase 2 Checklist & Advanced Challenges -->
-      <div class="print-flex-row mt-4">
-        <!-- Phase 2 Checklist Box -->
-        <div class="print-box print-w-48">
-          <h4 class="print-box-title">{{ $t('student.shining.printPhase2Title') }}</h4>
-          <div class="print-box-content print-checklist">
-            <template v-for="(label, key) in phase2Labels" :key="key">
-              <div class="print-check-line">
-                <span class="print-check-circle" :class="{ checked: shiningProject.faithPhase2[key] }">
-                  {{ shiningProject.faithPhase2[key] ? '✓' : '' }}
+          <!-- Phase 1 Checklist Box -->
+          <div class="print-box print-w-50">
+            <h4 class="print-box-title">{{ $t('student.shining.printPhase1Title') }}</h4>
+            <div class="print-box-content print-checklist">
+              <div v-for="(label, key) in phase1Labels" :key="key" class="print-check-line">
+                <span
+                  class="print-check-circle"
+                  :class="{ checked: shiningProject.faithPhase1[key] }"
+                >
+                  {{ shiningProject.faithPhase1[key] ? '✓' : '' }}
                 </span>
-                <span class="print-check-text" v-if="key === 'courses30'">
-                  {{ $t('student.shining.printPhase2Progress', { count: completedCount }) }}
-                </span>
-                <span class="print-check-text" v-else>{{ label }}</span>
+                <span class="print-check-text">{{ label }}</span>
               </div>
-            </template>
+            </div>
           </div>
         </div>
 
-        <!-- Advanced Challenges Box -->
-        <div class="print-box print-w-48">
-          <h4 class="print-box-title">{{ $t('student.shining.printAdvancedTitle') }}</h4>
-          <div class="print-box-content print-checklist">
-            <div
-              v-for="(label, key) in advancedLabels"
-              :key="key"
-              class="print-check-line"
-            >
-              <span class="print-check-circle" :class="{ checked: shiningProject.advancedChallenges[key] }">
-                {{ shiningProject.advancedChallenges[key] ? '✓' : '' }}
-              </span>
-              <span class="print-check-text" v-if="key === 'custom'">
-                {{ shiningProject.customChallenge || $t('student.shining.printCustomEmpty') }}
-              </span>
-              <span class="print-check-text" v-else>{{ label }}</span>
+        <!-- Grid Row 2: Phase 2 Checklist & Advanced Challenges -->
+        <div class="print-flex-row mt-4">
+          <!-- Phase 2 Checklist Box -->
+          <div class="print-box print-w-48">
+            <h4 class="print-box-title">{{ $t('student.shining.printPhase2Title') }}</h4>
+            <div class="print-box-content print-checklist">
+              <template v-for="(label, key) in phase2Labels" :key="key">
+                <div class="print-check-line">
+                  <span
+                    class="print-check-circle"
+                    :class="{ checked: shiningProject.faithPhase2[key] }"
+                  >
+                    {{ shiningProject.faithPhase2[key] ? '✓' : '' }}
+                  </span>
+                  <span v-if="key === 'courses30'" class="print-check-text">
+                    {{ $t('student.shining.printPhase2Progress', { count: completedCount }) }}
+                  </span>
+                  <span v-else class="print-check-text">{{ label }}</span>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- Advanced Challenges Box -->
+          <div class="print-box print-w-48">
+            <h4 class="print-box-title">{{ $t('student.shining.printAdvancedTitle') }}</h4>
+            <div class="print-box-content print-checklist">
+              <div v-for="(label, key) in advancedLabels" :key="key" class="print-check-line">
+                <span
+                  class="print-check-circle"
+                  :class="{ checked: shiningProject.advancedChallenges[key] }"
+                >
+                  {{ shiningProject.advancedChallenges[key] ? '✓' : '' }}
+                </span>
+                <span v-if="key === 'custom'" class="print-check-text">
+                  {{ shiningProject.customChallenge || $t('student.shining.printCustomEmpty') }}
+                </span>
+                <span v-else class="print-check-text">{{ label }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table 1: Character -->
+        <div class="print-table-box mt-4">
+          <h4 class="print-box-title">{{ $t('student.shining.printCharacterTitle') }}</h4>
+          <p class="print-box-subtitle">{{ $t('student.shining.characterSubtitle') }}</p>
+          <table class="print-table">
+            <thead>
+              <tr>
+                <th>{{ $t('student.shining.colTheme') }}</th>
+                <th>{{ $t('student.shining.colLecturer') }}</th>
+                <th>{{ $t('student.shining.colDate') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(theme, index) in characterThemes" :key="index">
+                <td>✦ {{ theme }}</td>
+                <td>{{ shiningProject.characterLectures[theme]?.speaker || '' }}</td>
+                <td>{{ shiningProject.characterLectures[theme]?.date || '' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Table 2: Coming of Age -->
+        <div class="print-table-box mt-4">
+          <h4 class="print-box-title">{{ $t('student.shining.printComingOfAgeTitle') }}</h4>
+          <p class="print-box-subtitle">{{ $t('student.shining.comingOfAgeSubtitle') }}</p>
+          <table class="print-table">
+            <thead>
+              <tr>
+                <th>{{ $t('student.shining.colTheme') }}</th>
+                <th>{{ $t('student.shining.colLecturer') }}</th>
+                <th>{{ $t('student.shining.colDate') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(theme, index) in comingOfAgeThemes" :key="index">
+                <td>✦ {{ theme }}</td>
+                <td>{{ shiningProject.comingOfAgeTopics[theme]?.speaker || '' }}</td>
+                <td>{{ shiningProject.comingOfAgeTopics[theme]?.date || '' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Bottom Signatures row -->
+        <div class="print-signatures-box mt-4">
+          <h4 class="print-box-title">{{ $t('student.shining.printSignaturesTitle') }}</h4>
+          <div class="print-signatures-row mt-2">
+            <div class="print-sig-col">
+              <span class="print-sig-lbl">{{ $t('student.shining.printSigTeacher') }}</span>
+              <div class="print-sig-space">{{ assignedTeacher }}</div>
+            </div>
+            <div class="print-sig-col">
+              <span class="print-sig-lbl">{{ $t('student.shining.printSigPastor') }}</span>
+              <div class="print-sig-space">{{ assignedPastor }}</div>
+            </div>
+            <div class="print-sig-col">
+              <span class="print-sig-lbl">{{ $t('student.shining.printSigParent') }}</span>
+              <div class="print-sig-space">{{ assignedParent }}</div>
             </div>
           </div>
         </div>
       </div>
-
-      <!-- Table 1: Character -->
-      <div class="print-table-box mt-4">
-        <h4 class="print-box-title">{{ $t('student.shining.printCharacterTitle') }}</h4>
-        <p class="print-box-subtitle">{{ $t('student.shining.characterSubtitle') }}</p>
-        <table class="print-table">
-          <thead>
-            <tr>
-              <th>{{ $t('student.shining.colTheme') }}</th>
-              <th>{{ $t('student.shining.colLecturer') }}</th>
-              <th>{{ $t('student.shining.colDate') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(theme, index) in characterThemes" :key="index">
-              <td>✦ {{ theme }}</td>
-              <td>{{ shiningProject.characterLectures[theme]?.speaker || '' }}</td>
-              <td>{{ shiningProject.characterLectures[theme]?.date || '' }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Table 2: Coming of Age -->
-      <div class="print-table-box mt-4">
-        <h4 class="print-box-title">{{ $t('student.shining.printComingOfAgeTitle') }}</h4>
-        <p class="print-box-subtitle">{{ $t('student.shining.comingOfAgeSubtitle') }}</p>
-        <table class="print-table">
-          <thead>
-            <tr>
-              <th>{{ $t('student.shining.colTheme') }}</th>
-              <th>{{ $t('student.shining.colLecturer') }}</th>
-              <th>{{ $t('student.shining.colDate') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(theme, index) in comingOfAgeThemes" :key="index">
-              <td>✦ {{ theme }}</td>
-              <td>{{ shiningProject.comingOfAgeTopics[theme]?.speaker || '' }}</td>
-              <td>{{ shiningProject.comingOfAgeTopics[theme]?.date || '' }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Bottom Signatures row -->
-      <div class="print-signatures-box mt-4">
-        <h4 class="print-box-title">{{ $t('student.shining.printSignaturesTitle') }}</h4>
-        <div class="print-signatures-row mt-2">
-          <div class="print-sig-col">
-            <span class="print-sig-lbl">{{ $t('student.shining.printSigTeacher') }}</span>
-            <div class="print-sig-space">{{ assignedTeacher }}</div>
-          </div>
-          <div class="print-sig-col">
-            <span class="print-sig-lbl">{{ $t('student.shining.printSigPastor') }}</span>
-            <div class="print-sig-space">{{ assignedPastor }}</div>
-          </div>
-          <div class="print-sig-col">
-            <span class="print-sig-lbl">{{ $t('student.shining.printSigParent') }}</span>
-            <div class="print-sig-space">{{ assignedParent }}</div>
-          </div>
-        </div>
-      </div>
-    </div>
     </div>
   </Teleport>
 </template>
@@ -397,15 +429,19 @@ const basicInfo = reactive({
 const customChallengeText = ref('')
 const basicSaveMsg = ref('')
 
-watch(shiningProject, (newProj) => {
-  if (newProj) {
-    basicInfo.name = newProj.name || ''
-    basicInfo.birthday = newProj.birthday || ''
-    basicInfo.church = newProj.church || ''
-    basicInfo.schoolGrade = newProj.schoolGrade || ''
-    customChallengeText.value = newProj.customChallenge || ''
-  }
-}, { immediate: true })
+watch(
+  shiningProject,
+  (newProj) => {
+    if (newProj) {
+      basicInfo.name = newProj.name || ''
+      basicInfo.birthday = newProj.birthday || ''
+      basicInfo.church = newProj.church || ''
+      basicInfo.schoolGrade = newProj.schoolGrade || ''
+      customChallengeText.value = newProj.customChallenge || ''
+    }
+  },
+  { immediate: true }
+)
 
 // ── Caretaker Info (for print signatures) ────────────────────────────────────
 
@@ -441,7 +477,7 @@ const completedCount = computed(() => {
   const username = authStore.currentUser?.username || ''
   const userRecords = coursesStore.progressDb[username]
   if (!userRecords) return 0
-  return Object.values(userRecords).filter(r => r.completed).length
+  return Object.values(userRecords).filter((r) => r.completed).length
 })
 
 // ── Actions ───────────────────────────────────────────────────────────────────
@@ -450,10 +486,15 @@ function saveBasicInfo() {
   const username = authStore.currentUser?.username || ''
   coursesStore.updateShiningBasicInfo(username, basicInfo)
   basicSaveMsg.value = t('student.shining.saveMsgSuccess')
-  setTimeout(() => { basicSaveMsg.value = '' }, 3000)
+  setTimeout(() => {
+    basicSaveMsg.value = ''
+  }, 3000)
 }
 
-function toggleCheck(category: 'faithPhase1' | 'faithPhase2' | 'advancedChallenges', key: ShiningChecklistKey) {
+function toggleCheck(
+  category: 'faithPhase1' | 'faithPhase2' | 'advancedChallenges',
+  key: ShiningChecklistKey
+) {
   const username = authStore.currentUser?.username || ''
   const checklist = shiningProject.value[category] as Record<string, boolean>
   const currentValue = checklist[key]
@@ -544,8 +585,8 @@ const advancedLabels = computed(() => ({
 
 @media (max-width: 768px) {
   .shining-row-cols {
-      grid-template-columns: 1fr;
-    }
+    grid-template-columns: 1fr;
+  }
 }
 
 .shining-card-title {
@@ -586,7 +627,7 @@ const advancedLabels = computed(() => ({
 .form-input-clean {
   flex-grow: 1;
   border: none;
-  border-bottom: 2px dashed #E2E8F0;
+  border-bottom: 2px dashed #e2e8f0;
   padding: 0.35rem 0.5rem;
   font-family: var(--font-family);
   font-size: 0.95rem;
@@ -643,8 +684,8 @@ const advancedLabels = computed(() => ({
   left: 0;
   height: 20px;
   width: 20px;
-  background-color: #F1F5F9;
-  border: 2px solid #CBD5E1;
+  background-color: #f1f5f9;
+  border: 2px solid #cbd5e1;
   border-radius: 50%; /* Circles matching images */
   transition: all var(--transition-fast);
 }
@@ -655,7 +696,7 @@ const advancedLabels = computed(() => ({
 }
 
 .check-box-wrapper input:checked + .styled-checkbox:after {
-  content: "✓";
+  content: '✓';
   position: absolute;
   color: white;
   font-weight: 800;
@@ -671,7 +712,7 @@ const advancedLabels = computed(() => ({
 }
 
 .special-progress-row {
-  background-color: #EFF6FF;
+  background-color: #eff6ff;
   padding: 0.5rem 0.75rem;
   border-radius: var(--radius-sm);
   border-left: 4px solid var(--primary);
@@ -702,7 +743,7 @@ const advancedLabels = computed(() => ({
 .form-input-clean-custom {
   width: 100%;
   border: none;
-  border-bottom: 2px dashed #E2E8F0;
+  border-bottom: 2px dashed #e2e8f0;
   padding: 0.25rem 0.5rem;
   font-family: var(--font-family);
   font-size: 0.9rem;
@@ -724,8 +765,8 @@ const advancedLabels = computed(() => ({
 
 @media (max-width: 900px) {
   .shining-row-cols-tables {
-      grid-template-columns: 1fr;
-    }
+    grid-template-columns: 1fr;
+  }
 }
 
 .table-card {
@@ -748,17 +789,17 @@ const advancedLabels = computed(() => ({
 }
 
 .shining-lecture-table th {
-  background-color: #F8FAFC;
+  background-color: #f8fafc;
   padding: 0.6rem 0.85rem;
   font-weight: 700;
   color: var(--text-secondary);
-  border-bottom: 2px solid #E2E8F0;
+  border-bottom: 2px solid #e2e8f0;
   font-size: 0.85rem;
 }
 
 .shining-lecture-table td {
   padding: 0.75rem 0.85rem;
-  border-bottom: 1px solid #F1F5F9;
+  border-bottom: 1px solid #f1f5f9;
   font-size: 0.9rem;
 }
 
@@ -817,23 +858,23 @@ const advancedLabels = computed(() => ({
 @media (max-width: 480px) {
   /* Shining panel */
   .shining-dashboard-body {
-      padding: 0.5rem;
-    }
+    padding: 0.5rem;
+  }
 
   .shining-row-cols {
-      grid-template-columns: 1fr !important;
-    }
+    grid-template-columns: 1fr !important;
+  }
 
   /* Form inline */
   .form-group-inline {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.25rem;
-    }
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
 
   .info-lbl {
-      min-width: unset;
-      font-size: 0.8rem;
-    }
+    min-width: unset;
+    font-size: 0.8rem;
+  }
 }
 </style>

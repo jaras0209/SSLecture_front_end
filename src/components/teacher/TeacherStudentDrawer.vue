@@ -12,15 +12,12 @@
           <p>{{ $t('teacher.studentList.progress') }}：{{ student.totalProgressPercent }}%</p>
         </div>
       </div>
-      <button @click="emit('close')" class="close-btn">×</button>
+      <button class="close-btn" @click="emit('close')">×</button>
     </div>
 
     <!-- Tab switches inside drawer -->
     <div class="drawer-tabs mt-4">
-      <button
-        class="drawer-tab-btn"
-        @click="emit('open-notes', student)"
-      >
+      <button class="drawer-tab-btn" @click="emit('open-notes', student)">
         {{ $t('teacher.drawer.openNotesBtn') }}
       </button>
       <button
@@ -45,10 +42,30 @@
         <div class="basic-info-readonly-card mb-4">
           <h6>📋 {{ $t('teacher.studentList.studentInfo') }}</h6>
           <div class="readonly-grid mt-2">
-            <div><span>{{ $t('profile.name') }}：</span><strong>{{ getShining(student.username).name || $t('teacher.booking.notFilled') }}</strong></div>
-            <div><span>{{ $t('profile.birthday') }}：</span><strong>{{ getShining(student.username).birthday || $t('teacher.booking.notFilled') }}</strong></div>
-            <div><span>{{ $t('profile.church') }}：</span><strong>{{ getShining(student.username).church || $t('teacher.booking.notFilled') }}</strong></div>
-            <div><span>{{ $t('profile.grade') }}：</span><strong>{{ getShining(student.username).schoolGrade || $t('teacher.booking.notFilled') }}</strong></div>
+            <div>
+              <span>{{ $t('profile.name') }}：</span
+              ><strong>{{
+                getShining(student.username).name || $t('teacher.booking.notFilled')
+              }}</strong>
+            </div>
+            <div>
+              <span>{{ $t('profile.birthday') }}：</span
+              ><strong>{{
+                getShining(student.username).birthday || $t('teacher.booking.notFilled')
+              }}</strong>
+            </div>
+            <div>
+              <span>{{ $t('profile.church') }}：</span
+              ><strong>{{
+                getShining(student.username).church || $t('teacher.booking.notFilled')
+              }}</strong>
+            </div>
+            <div>
+              <span>{{ $t('profile.grade') }}：</span
+              ><strong>{{
+                getShining(student.username).schoolGrade || $t('teacher.booking.notFilled')
+              }}</strong>
+            </div>
           </div>
         </div>
 
@@ -63,7 +80,10 @@
                 <div
                   v-for="(label, key) in phase1Labels"
                   :key="key"
-                  :class="['ro-check-row', { active: getShining(student.username).faithPhase1[key] }]"
+                  :class="[
+                    'ro-check-row',
+                    { active: getShining(student.username).faithPhase1[key] }
+                  ]"
                 >
                   <span>{{ getShining(student.username).faithPhase1[key] ? '✅' : '❌' }}</span>
                   <span class="text-ro">{{ label }}</span>
@@ -76,12 +96,21 @@
               <div class="checklist-ro-title">{{ $t('teacher.studentList.faithPhase2') }}</div>
               <div class="checklist-ro-list">
                 <template v-for="(label, key) in phase2Labels" :key="key">
-                  <div :class="['ro-check-row', { active: getShining(student.username).faithPhase2[key] }]">
+                  <div
+                    :class="[
+                      'ro-check-row',
+                      { active: getShining(student.username).faithPhase2[key] }
+                    ]"
+                  >
                     <span>{{ getShining(student.username).faithPhase2[key] ? '✅' : '❌' }}</span>
-                    <span class="text-ro" v-if="key === 'courses30'">
-                      {{ $t('teacher.studentList.completedCourses', { count: student.completedCount }) }}
+                    <span v-if="key === 'courses30'" class="text-ro">
+                      {{
+                        $t('teacher.studentList.completedCourses', {
+                          count: student.completedCount
+                        })
+                      }}
                     </span>
-                    <span class="text-ro" v-else>{{ label }}</span>
+                    <span v-else class="text-ro">{{ label }}</span>
                   </div>
                 </template>
               </div>
@@ -89,18 +118,29 @@
 
             <!-- Challenges -->
             <div class="checklist-ro-column">
-              <div class="checklist-ro-title">{{ $t('teacher.studentList.advancedChallenges') }}</div>
+              <div class="checklist-ro-title">
+                {{ $t('teacher.studentList.advancedChallenges') }}
+              </div>
               <div class="checklist-ro-list">
                 <div
                   v-for="(label, key) in advancedLabels"
                   :key="key"
-                  :class="['ro-check-row', { active: getShining(student.username).advancedChallenges[key] }]"
+                  :class="[
+                    'ro-check-row',
+                    { active: getShining(student.username).advancedChallenges[key] }
+                  ]"
                 >
-                  <span>{{ getShining(student.username).advancedChallenges[key] ? '✅' : '❌' }}</span>
-                  <span class="text-ro" v-if="key === 'custom'">
-                    {{ $t('teacher.studentList.customChallenge') }}{{ getShining(student.username).customChallenge || $t('teacher.booking.notFilled') }}
+                  <span>{{
+                    getShining(student.username).advancedChallenges[key] ? '✅' : '❌'
+                  }}</span>
+                  <span v-if="key === 'custom'" class="text-ro">
+                    {{ $t('teacher.studentList.customChallenge')
+                    }}{{
+                      getShining(student.username).customChallenge ||
+                      $t('teacher.booking.notFilled')
+                    }}
                   </span>
-                  <span class="text-ro" v-else>{{ label }}</span>
+                  <span v-else class="text-ro">{{ label }}</span>
                 </div>
               </div>
             </div>
@@ -113,39 +153,45 @@
           <div class="lecture-edit-group mb-4">
             <h6>📖 {{ $t('teacher.studentList.characterThemes') }}</h6>
             <div class="lecture-inputs-stack mt-2">
-              <div
-                v-for="theme in characterThemes"
-                :key="theme"
-                class="lecture-edit-row"
-              >
+              <div v-for="theme in characterThemes" :key="theme" class="lecture-edit-row">
                 <div class="row-theme-name">✦ {{ theme }}</div>
 
                 <!-- Editable row for teachers/admins/pastors -->
-                <div class="inputs-row" v-if="authStore.currentUser?.role !== 'parent'">
+                <div v-if="authStore.currentUser?.role !== 'parent'" class="inputs-row">
                   <input
-                    type="text"
                     v-model="lectureForms[theme].speaker"
+                    type="text"
                     class="form-input text-xs pt-1 pb-1"
                     :placeholder="$t('teacher.drawer.lecturerPlaceholder')"
                   />
                   <input
-                    type="date"
                     v-model="lectureForms[theme].date"
+                    type="date"
                     class="form-input text-xs pt-1 pb-1"
                   />
                   <button
-                    @click="saveLectureRow(student.username, 'character', theme)"
                     class="btn btn-secondary btn-sm pt-1 pb-1"
+                    @click="saveLectureRow(student.username, 'character', theme)"
                   >
                     {{ $t('teacher.drawer.saveLectureBtn') }}
                   </button>
                 </div>
 
                 <!-- Readonly row for parents -->
-                <div class="inputs-row-readonly text-sm" v-else>
-                  <span v-if="lectureForms[theme]?.speaker" class="mr-4">{{ $t('teacher.drawer.lecturerLabel') }}<strong>{{ lectureForms[theme].speaker }}</strong></span>
-                  <span v-if="lectureForms[theme]?.date">{{ $t('teacher.drawer.dateLabel') }}<strong>{{ lectureForms[theme].date }}</strong></span>
-                  <span v-if="!lectureForms[theme]?.speaker && !lectureForms[theme]?.date" class="text-muted text-xs italic">{{ $t('teacher.drawer.notRegistered') }}</span>
+                <div v-else class="inputs-row-readonly text-sm">
+                  <span v-if="lectureForms[theme]?.speaker" class="mr-4"
+                    >{{ $t('teacher.drawer.lecturerLabel')
+                    }}<strong>{{ lectureForms[theme].speaker }}</strong></span
+                  >
+                  <span v-if="lectureForms[theme]?.date"
+                    >{{ $t('teacher.drawer.dateLabel')
+                    }}<strong>{{ lectureForms[theme].date }}</strong></span
+                  >
+                  <span
+                    v-if="!lectureForms[theme]?.speaker && !lectureForms[theme]?.date"
+                    class="text-muted text-xs italic"
+                    >{{ $t('teacher.drawer.notRegistered') }}</span
+                  >
                 </div>
               </div>
             </div>
@@ -155,39 +201,45 @@
           <div class="lecture-edit-group mb-4">
             <h6>🎓 {{ $t('teacher.studentList.comingOfAgeThemes') }}</h6>
             <div class="lecture-inputs-stack mt-2">
-              <div
-                v-for="theme in comingOfAgeThemes"
-                :key="theme"
-                class="lecture-edit-row"
-              >
+              <div v-for="theme in comingOfAgeThemes" :key="theme" class="lecture-edit-row">
                 <div class="row-theme-name">✦ {{ theme }}</div>
 
                 <!-- Editable row for teachers/admins/pastors -->
-                <div class="inputs-row" v-if="authStore.currentUser?.role !== 'parent'">
+                <div v-if="authStore.currentUser?.role !== 'parent'" class="inputs-row">
                   <input
-                    type="text"
                     v-model="lectureForms[theme].speaker"
+                    type="text"
                     class="form-input text-xs pt-1 pb-1"
                     :placeholder="$t('teacher.drawer.lecturerPlaceholder')"
                   />
                   <input
-                    type="date"
                     v-model="lectureForms[theme].date"
+                    type="date"
                     class="form-input text-xs pt-1 pb-1"
                   />
                   <button
-                    @click="saveLectureRow(student.username, 'comingOfAge', theme)"
                     class="btn btn-secondary btn-sm pt-1 pb-1"
+                    @click="saveLectureRow(student.username, 'comingOfAge', theme)"
                   >
                     {{ $t('teacher.drawer.saveLectureBtn') }}
                   </button>
                 </div>
 
                 <!-- Readonly row for parents -->
-                <div class="inputs-row-readonly text-sm" v-else>
-                  <span v-if="lectureForms[theme]?.speaker" class="mr-4">{{ $t('teacher.drawer.lecturerLabel') }}<strong>{{ lectureForms[theme].speaker }}</strong></span>
-                  <span v-if="lectureForms[theme]?.date">{{ $t('teacher.drawer.dateLabel') }}<strong>{{ lectureForms[theme].date }}</strong></span>
-                  <span v-if="!lectureForms[theme]?.speaker && !lectureForms[theme]?.date" class="text-muted text-xs italic">{{ $t('teacher.drawer.notRegistered') }}</span>
+                <div v-else class="inputs-row-readonly text-sm">
+                  <span v-if="lectureForms[theme]?.speaker" class="mr-4"
+                    >{{ $t('teacher.drawer.lecturerLabel')
+                    }}<strong>{{ lectureForms[theme].speaker }}</strong></span
+                  >
+                  <span v-if="lectureForms[theme]?.date"
+                    >{{ $t('teacher.drawer.dateLabel')
+                    }}<strong>{{ lectureForms[theme].date }}</strong></span
+                  >
+                  <span
+                    v-if="!lectureForms[theme]?.speaker && !lectureForms[theme]?.date"
+                    class="text-muted text-xs italic"
+                    >{{ $t('teacher.drawer.notRegistered') }}</span
+                  >
                 </div>
               </div>
             </div>
@@ -208,140 +260,171 @@
   <!-- Teleport 到 body 以避免被 #app-container display:none 遮蔽 -->
   <Teleport to="body">
     <div v-if="student" class="print-page-layout print-only">
-    <div class="print-container">
-      <!-- Banner Header -->
-      <div class="print-banner">
-        <div class="print-banner-logo">{{ $t('teacher.drawer.print.logoTitle') }}</div>
-        <div class="print-banner-sub">SHINING PROJECT</div>
-      </div>
-
-      <!-- Grid Row 1: Basic Info & Phase 1 -->
-      <div class="print-flex-row mt-4">
-        <div class="print-box print-w-45">
-          <h4 class="print-box-title">{{ $t('teacher.drawer.print.basicInfo') }}</h4>
-          <div class="print-box-content">
-            <p class="print-info-line"><span>{{ $t('teacher.drawer.print.name') }}</span><strong>{{ getShining(student.username).name || '____________' }}</strong></p>
-            <p class="print-info-line"><span>{{ $t('teacher.drawer.print.birthday') }}</span><strong>{{ getShining(student.username).birthday || '____________' }}</strong></p>
-            <p class="print-info-line"><span>{{ $t('teacher.drawer.print.church') }}</span><strong>{{ getShining(student.username).church || '____________' }}</strong></p>
-            <p class="print-info-line"><span>{{ $t('teacher.drawer.print.schoolGrade') }}</span><strong>{{ getShining(student.username).schoolGrade || '____________' }}</strong></p>
-          </div>
+      <div class="print-container">
+        <!-- Banner Header -->
+        <div class="print-banner">
+          <div class="print-banner-logo">{{ $t('teacher.drawer.print.logoTitle') }}</div>
+          <div class="print-banner-sub">SHINING PROJECT</div>
         </div>
 
-        <div class="print-box print-w-50">
-          <h4 class="print-box-title">{{ $t('teacher.drawer.print.faithPhase1') }}</h4>
-          <div class="print-box-content print-checklist">
-            <div v-for="(label, key) in phase1Labels" :key="key" class="print-check-line">
-              <span class="print-check-circle" :class="{ checked: getShining(student.username).faithPhase1[key] }">
-                {{ getShining(student.username).faithPhase1[key] ? '✓' : '' }}
-              </span>
-              <span class="print-check-text">{{ label }}</span>
+        <!-- Grid Row 1: Basic Info & Phase 1 -->
+        <div class="print-flex-row mt-4">
+          <div class="print-box print-w-45">
+            <h4 class="print-box-title">{{ $t('teacher.drawer.print.basicInfo') }}</h4>
+            <div class="print-box-content">
+              <p class="print-info-line">
+                <span>{{ $t('teacher.drawer.print.name') }}</span
+                ><strong>{{ getShining(student.username).name || '____________' }}</strong>
+              </p>
+              <p class="print-info-line">
+                <span>{{ $t('teacher.drawer.print.birthday') }}</span
+                ><strong>{{ getShining(student.username).birthday || '____________' }}</strong>
+              </p>
+              <p class="print-info-line">
+                <span>{{ $t('teacher.drawer.print.church') }}</span
+                ><strong>{{ getShining(student.username).church || '____________' }}</strong>
+              </p>
+              <p class="print-info-line">
+                <span>{{ $t('teacher.drawer.print.schoolGrade') }}</span
+                ><strong>{{ getShining(student.username).schoolGrade || '____________' }}</strong>
+              </p>
             </div>
           </div>
-        </div>
-      </div>
 
-      <!-- Grid Row 2: Phase 2 & Advanced Challenges -->
-      <div class="print-flex-row mt-4">
-        <div class="print-box print-w-48">
-          <h4 class="print-box-title">{{ $t('teacher.drawer.print.faithPhase2') }}</h4>
-          <div class="print-box-content print-checklist">
-            <template v-for="(label, key) in phase2Labels" :key="key">
-              <div class="print-check-line">
-                <span class="print-check-circle" :class="{ checked: getShining(student.username).faithPhase2[key] }">
-                  {{ getShining(student.username).faithPhase2[key] ? '✓' : '' }}
+          <div class="print-box print-w-50">
+            <h4 class="print-box-title">{{ $t('teacher.drawer.print.faithPhase1') }}</h4>
+            <div class="print-box-content print-checklist">
+              <div v-for="(label, key) in phase1Labels" :key="key" class="print-check-line">
+                <span
+                  class="print-check-circle"
+                  :class="{ checked: getShining(student.username).faithPhase1[key] }"
+                >
+                  {{ getShining(student.username).faithPhase1[key] ? '✓' : '' }}
                 </span>
-                <span class="print-check-text" v-if="key === 'courses30'">
-                  {{ $t('teacher.drawer.print.courses30Done', { count: student.completedCount }) }}
-                </span>
-                <span class="print-check-text" v-else>{{ label }}</span>
+                <span class="print-check-text">{{ label }}</span>
               </div>
-            </template>
+            </div>
           </div>
         </div>
 
-        <div class="print-box print-w-48">
-          <h4 class="print-box-title">{{ $t('teacher.drawer.print.advancedChallenges') }}</h4>
-          <div class="print-box-content print-checklist">
-            <div v-for="(label, key) in advancedLabels" :key="key" class="print-check-line">
-              <span class="print-check-circle" :class="{ checked: getShining(student.username).advancedChallenges[key] }">
-                {{ getShining(student.username).advancedChallenges[key] ? '✓' : '' }}
-              </span>
-              <span class="print-check-text" v-if="key === 'custom'">
-                {{ getShining(student.username).customChallenge || $t('teacher.drawer.print.customChallengeFallback') }}
-              </span>
-              <span class="print-check-text" v-else>{{ label }}</span>
+        <!-- Grid Row 2: Phase 2 & Advanced Challenges -->
+        <div class="print-flex-row mt-4">
+          <div class="print-box print-w-48">
+            <h4 class="print-box-title">{{ $t('teacher.drawer.print.faithPhase2') }}</h4>
+            <div class="print-box-content print-checklist">
+              <template v-for="(label, key) in phase2Labels" :key="key">
+                <div class="print-check-line">
+                  <span
+                    class="print-check-circle"
+                    :class="{ checked: getShining(student.username).faithPhase2[key] }"
+                  >
+                    {{ getShining(student.username).faithPhase2[key] ? '✓' : '' }}
+                  </span>
+                  <span v-if="key === 'courses30'" class="print-check-text">
+                    {{
+                      $t('teacher.drawer.print.courses30Done', { count: student.completedCount })
+                    }}
+                  </span>
+                  <span v-else class="print-check-text">{{ label }}</span>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <div class="print-box print-w-48">
+            <h4 class="print-box-title">{{ $t('teacher.drawer.print.advancedChallenges') }}</h4>
+            <div class="print-box-content print-checklist">
+              <div v-for="(label, key) in advancedLabels" :key="key" class="print-check-line">
+                <span
+                  class="print-check-circle"
+                  :class="{ checked: getShining(student.username).advancedChallenges[key] }"
+                >
+                  {{ getShining(student.username).advancedChallenges[key] ? '✓' : '' }}
+                </span>
+                <span v-if="key === 'custom'" class="print-check-text">
+                  {{
+                    getShining(student.username).customChallenge ||
+                    $t('teacher.drawer.print.customChallengeFallback')
+                  }}
+                </span>
+                <span v-else class="print-check-text">{{ label }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table 1: Character -->
+        <div class="print-table-box mt-4">
+          <h4 class="print-box-title">{{ $t('teacher.drawer.print.characterThemes') }}</h4>
+          <p class="print-box-subtitle">{{ $t('teacher.drawer.print.characterSubtitle') }}</p>
+          <table class="print-table">
+            <thead>
+              <tr>
+                <th>{{ $t('teacher.drawer.print.tableColTheme') }}</th>
+                <th>{{ $t('teacher.drawer.print.tableColLecturer') }}</th>
+                <th>{{ $t('teacher.drawer.print.tableColDate') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(theme, index) in characterThemes" :key="index">
+                <td>✦ {{ theme }}</td>
+                <td>{{ getShining(student.username).characterLectures[theme]?.speaker || '' }}</td>
+                <td>{{ getShining(student.username).characterLectures[theme]?.date || '' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Table 2: Coming of Age -->
+        <div class="print-table-box mt-4">
+          <h4 class="print-box-title">{{ $t('teacher.drawer.print.comingOfAgeThemes') }}</h4>
+          <p class="print-box-subtitle">{{ $t('teacher.drawer.print.comingOfAgeSubtitle') }}</p>
+          <table class="print-table">
+            <thead>
+              <tr>
+                <th>{{ $t('teacher.drawer.print.tableColTheme') }}</th>
+                <th>{{ $t('teacher.drawer.print.tableColLecturer') }}</th>
+                <th>{{ $t('teacher.drawer.print.tableColDate') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(theme, index) in comingOfAgeThemes" :key="index">
+                <td>✦ {{ theme }}</td>
+                <td>{{ getShining(student.username).comingOfAgeTopics[theme]?.speaker || '' }}</td>
+                <td>{{ getShining(student.username).comingOfAgeTopics[theme]?.date || '' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Signatures -->
+        <div class="print-signatures-box mt-4">
+          <h4 class="print-box-title">{{ $t('teacher.drawer.print.signature') }}</h4>
+          <div class="print-signatures-row mt-2">
+            <div class="print-sig-col">
+              <span class="print-sig-lbl">{{ $t('teacher.drawer.print.sigTeacher') }}</span>
+              <div class="print-sig-space">
+                {{ coursesStore.getStudentCaretaker(student.username, 'teacher') }}
+              </div>
+            </div>
+            <div class="print-sig-col">
+              <span class="print-sig-lbl">{{ $t('teacher.drawer.print.sigPastor') }}</span>
+              <div class="print-sig-space">
+                {{ coursesStore.getStudentCaretaker(student.username, 'pastor') }}
+              </div>
+            </div>
+            <div class="print-sig-col">
+              <span class="print-sig-lbl">{{ $t('teacher.drawer.print.sigParent') }}</span>
+              <div class="print-sig-space">
+                {{ coursesStore.getStudentCaretaker(student.username, 'parent') }}
+              </div>
             </div>
           </div>
         </div>
       </div>
-
-      <!-- Table 1: Character -->
-      <div class="print-table-box mt-4">
-        <h4 class="print-box-title">{{ $t('teacher.drawer.print.characterThemes') }}</h4>
-        <p class="print-box-subtitle">{{ $t('teacher.drawer.print.characterSubtitle') }}</p>
-        <table class="print-table">
-          <thead><tr><th>{{ $t('teacher.drawer.print.tableColTheme') }}</th><th>{{ $t('teacher.drawer.print.tableColLecturer') }}</th><th>{{ $t('teacher.drawer.print.tableColDate') }}</th></tr></thead>
-          <tbody>
-            <tr v-for="(theme, index) in characterThemes" :key="index">
-              <td>✦ {{ theme }}</td>
-              <td>{{ getShining(student.username).characterLectures[theme]?.speaker || '' }}</td>
-              <td>{{ getShining(student.username).characterLectures[theme]?.date || '' }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Table 2: Coming of Age -->
-      <div class="print-table-box mt-4">
-        <h4 class="print-box-title">{{ $t('teacher.drawer.print.comingOfAgeThemes') }}</h4>
-        <p class="print-box-subtitle">{{ $t('teacher.drawer.print.comingOfAgeSubtitle') }}</p>
-        <table class="print-table">
-          <thead><tr><th>{{ $t('teacher.drawer.print.tableColTheme') }}</th><th>{{ $t('teacher.drawer.print.tableColLecturer') }}</th><th>{{ $t('teacher.drawer.print.tableColDate') }}</th></tr></thead>
-          <tbody>
-            <tr v-for="(theme, index) in comingOfAgeThemes" :key="index">
-              <td>✦ {{ theme }}</td>
-              <td>{{ getShining(student.username).comingOfAgeTopics[theme]?.speaker || '' }}</td>
-              <td>{{ getShining(student.username).comingOfAgeTopics[theme]?.date || '' }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Signatures -->
-      <div class="print-signatures-box mt-4">
-        <h4 class="print-box-title">{{ $t('teacher.drawer.print.signature') }}</h4>
-        <div class="print-signatures-row mt-2">
-          <div class="print-sig-col">
-            <span class="print-sig-lbl">{{ $t('teacher.drawer.print.sigTeacher') }}</span>
-            <div class="print-sig-space">{{ coursesStore.getStudentCaretaker(student.username, 'teacher') }}</div>
-          </div>
-          <div class="print-sig-col">
-            <span class="print-sig-lbl">{{ $t('teacher.drawer.print.sigPastor') }}</span>
-            <div class="print-sig-space">{{ coursesStore.getStudentCaretaker(student.username, 'pastor') }}</div>
-          </div>
-          <div class="print-sig-col">
-            <span class="print-sig-lbl">{{ $t('teacher.drawer.print.sigParent') }}</span>
-            <div class="print-sig-space">{{ coursesStore.getStudentCaretaker(student.username, 'parent') }}</div>
-          </div>
-        </div>
-      </div>
-    </div>
     </div>
   </Teleport>
 </template>
-
-<style>
-/* 螢幕上隱藏列印模板 */
-.print-page-layout.print-only {
-  display: none;
-}
-/* 列印時顯示（Teleport 到 body 後可正常運作） */
-@media print {
-  .print-page-layout.print-only {
-    display: block !important;
-  }
-}
-</style>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
@@ -378,21 +461,29 @@ const lectureForms = ref<Record<string, { speaker: string; date: string }>>({})
 
 const currentContextChurch = computed(() => {
   return authStore.currentUser?.role === 'admin'
-    ? (authStore.currentUser?.church || '愛與話語')
-    : (authStore.currentUser?.church || '愛與話語')
+    ? authStore.currentUser?.church || '愛與話語'
+    : authStore.currentUser?.church || '愛與話語'
 })
 
-const characterThemes = computed(() => coursesStore.getThemesByChurch('character', currentContextChurch.value))
-const comingOfAgeThemes = computed(() => coursesStore.getThemesByChurch('comingOfAge', currentContextChurch.value))
+const characterThemes = computed(() =>
+  coursesStore.getThemesByChurch('character', currentContextChurch.value)
+)
+const comingOfAgeThemes = computed(() =>
+  coursesStore.getThemesByChurch('comingOfAge', currentContextChurch.value)
+)
 
 // ── Watch Student Changes → Re-init forms ────────────────────────────────────
 
-watch(() => props.student, (newStudent) => {
-  if (newStudent) {
-    activeDrawerTab.value = 'shining'
-    initShiningForm(newStudent.username)
-  }
-}, { immediate: true })
+watch(
+  () => props.student,
+  (newStudent) => {
+    if (newStudent) {
+      activeDrawerTab.value = 'shining'
+      initShiningForm(newStudent.username)
+    }
+  },
+  { immediate: true }
+)
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -404,7 +495,7 @@ function initShiningForm(username: string) {
   const proj = coursesStore.getShiningProject(username)
   const form: Record<string, { speaker: string; date: string }> = {}
   const allThemes = [...characterThemes.value, ...comingOfAgeThemes.value]
-  allThemes.forEach(theme => {
+  allThemes.forEach((theme) => {
     const charLecture = proj.characterLectures[theme]
     const ageLecture = proj.comingOfAgeTopics[theme]
     form[theme] = {
@@ -425,7 +516,6 @@ function saveLectureRow(username: string, type: 'character' | 'comingOfAge', the
 function triggerPrint(_username: string) {
   window.print()
 }
-
 
 // ── Static Checklist Labels ───────────────────────────────────────────────────
 
@@ -455,11 +545,24 @@ const advancedLabels = computed(() => ({
 </script>
 
 <style>
+/* 螢幕上隱藏列印模板 */
+.print-page-layout.print-only {
+  display: none;
+}
+/* 列印時顯示（Teleport 到 body 後可正常運作） */
+@media print {
+  .print-page-layout.print-only {
+    display: block !important;
+  }
+}
+</style>
+
+<style>
 /* [css-migration] moved from TeacherDashboard.vue */
 /* Drawer Tabs Selector Styles */
 .drawer-tabs {
   display: flex;
-  background: #F1F5F9;
+  background: #f1f5f9;
   padding: 0.25rem;
   border-radius: var(--radius-sm);
   gap: 0.25rem;
@@ -499,7 +602,7 @@ const advancedLabels = computed(() => ({
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid #e2e8f0;
   padding-bottom: 1rem;
 }
 
@@ -541,15 +644,15 @@ const advancedLabels = computed(() => ({
 
 /* SHINING AUDIT VIEW STYLES */
 .basic-info-readonly-card {
-  background-color: #F8FAFC;
-  border: 1px solid #E2E8F0;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: var(--radius-sm);
   padding: 1rem;
 }
 
 .basic-info-readonly-card h6 {
   font-size: 0.9rem;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid #e2e8f0;
   padding-bottom: 0.25rem;
   margin-bottom: 0.5rem;
   color: var(--text-primary);
@@ -575,8 +678,8 @@ const advancedLabels = computed(() => ({
 }
 
 .checklist-ro-column {
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: var(--radius-sm);
   padding: 0.75rem;
 }
@@ -585,7 +688,7 @@ const advancedLabels = computed(() => ({
   font-size: 0.8rem;
   font-weight: 700;
   color: var(--secondary-hover);
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid #e2e8f0;
   padding-bottom: 0.25rem;
   margin-bottom: 0.5rem;
 }
@@ -616,8 +719,8 @@ const advancedLabels = computed(() => ({
 }
 
 .lecture-edit-row {
-  background-color: #F8FAFC;
-  border: 1px solid #E2E8F0;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: var(--radius-sm);
   padding: 0.65rem 0.85rem;
 }
@@ -644,10 +747,10 @@ const advancedLabels = computed(() => ({
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  background: #F8FAFC;
+  background: #f8fafc;
   padding: 0.5rem 0.75rem;
   border-radius: var(--radius-sm);
-  border: 1px dashed #E2E8F0;
+  border: 1px dashed #e2e8f0;
   color: var(--text-secondary);
 }
 </style>

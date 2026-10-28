@@ -30,7 +30,7 @@ function collectProblems(obj: Messages, prefix = ''): string[] {
 describe('i18n locale messages', () => {
   it.each([
     ['zh-TW', zhTW],
-    ['en', en],
+    ['en', en]
   ])('%s messages compile without syntax errors', (_locale, messages) => {
     expect(collectProblems(messages as Messages)).toEqual([])
   })

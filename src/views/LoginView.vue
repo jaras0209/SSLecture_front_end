@@ -12,13 +12,13 @@
 
       <!-- Tab Buttons -->
       <div class="auth-tabs">
-        <button 
+        <button
           :class="['tab-btn', { active: activeTab === 'login' }]"
           @click="activeTab = 'login'"
         >
           {{ $t('auth.tabs.login') }}
         </button>
-        <button 
+        <button
           :class="['tab-btn', { active: activeTab === 'register' }]"
           @click="activeTab = 'register'"
         >
@@ -27,32 +27,59 @@
       </div>
 
       <!-- Login Form -->
-      <form v-if="activeTab === 'login'" @submit.prevent="handleLogin" class="auth-form">
+      <form v-if="activeTab === 'login'" class="auth-form" @submit.prevent="handleLogin">
         <div class="form-group">
           <label class="form-label" for="login-username">{{ $t('auth.login.username') }}</label>
-          <input 
-            v-model="loginForm.username" 
-            id="login-username" 
-            type="text" 
-            class="form-input" 
-            :placeholder="$t('auth.login.usernamePlaceholder')" 
-            required 
+          <input
+            id="login-username"
+            v-model="loginForm.username"
+            type="text"
+            class="form-input"
+            :placeholder="$t('auth.login.usernamePlaceholder')"
+            required
           />
         </div>
         <div class="form-group">
           <label class="form-label" for="login-password">{{ $t('auth.login.password') }}</label>
           <div class="pwd-input-wrap">
-            <input 
-              v-model="loginForm.password" 
-              id="login-password" 
-              :type="showLoginPwd ? 'text' : 'password'" 
-              class="form-input" 
-              :placeholder="$t('auth.login.passwordPlaceholder')" 
-              required 
+            <input
+              id="login-password"
+              v-model="loginForm.password"
+              :type="showLoginPwd ? 'text' : 'password'"
+              class="form-input"
+              :placeholder="$t('auth.login.passwordPlaceholder')"
+              required
             />
-            <button type="button" class="pwd-eye-btn" @click="showLoginPwd = !showLoginPwd" :title="showLoginPwd ? $t('common.hidePwd') : $t('common.showPwd')">
-              <svg v-if="!showLoginPwd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            <button
+              type="button"
+              class="pwd-eye-btn"
+              :title="showLoginPwd ? $t('common.hidePwd') : $t('common.showPwd')"
+              @click="showLoginPwd = !showLoginPwd"
+            >
+              <svg
+                v-if="!showLoginPwd"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              <svg
+                v-else
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                />
+                <line x1="1" y1="1" x2="23" y2="23" />
+              </svg>
             </button>
           </div>
         </div>
@@ -65,8 +92,7 @@
       </form>
 
       <!-- Register Form -->
-      <form v-else @submit.prevent="handleRegister" class="auth-form">
-
+      <form v-else class="auth-form" @submit.prevent="handleRegister">
         <!-- Step 1: Invite Code (optional) -->
         <div class="form-group">
           <label class="form-label" for="reg-invite-code">
@@ -75,23 +101,31 @@
           </label>
           <div class="invite-code-wrap">
             <input
-              v-model="inviteCodeInput"
               id="reg-invite-code"
+              v-model="inviteCodeInput"
               type="text"
               class="form-input"
               :placeholder="$t('common.inviteCodePlaceholder')"
-              @input="onInviteCodeInput"
               autocomplete="off"
-              style="text-transform: uppercase; letter-spacing: 0.1em;"
+              style="text-transform: uppercase; letter-spacing: 0.1em"
+              @input="onInviteCodeInput"
             />
-            <span v-if="inviteCodeStatus === 'valid'" class="invite-badge valid">{{ $t('auth.register.inviteCodeBadgeValid') }}</span>
-            <span v-else-if="inviteCodeStatus === 'invalid'" class="invite-badge invalid">{{ $t('auth.register.inviteCodeBadgeInvalid') }}</span>
+            <span v-if="inviteCodeStatus === 'valid'" class="invite-badge valid">{{
+              $t('auth.register.inviteCodeBadgeValid')
+            }}</span>
+            <span v-else-if="inviteCodeStatus === 'invalid'" class="invite-badge invalid">{{
+              $t('auth.register.inviteCodeBadgeInvalid')
+            }}</span>
           </div>
           <!-- Validated invite info -->
           <div v-if="validatedInvite" class="invite-info-row">
             <span class="invite-tag role-tag">{{ roleLabel(validatedInvite.role) }}</span>
-            <span v-if="validatedInvite.church" class="invite-tag church-tag">⛪ {{ validatedInvite.church }}</span>
-            <span class="invite-expiry">{{ $t('auth.register.inviteExpiry', { date: formatExpiry(validatedInvite.expiresAt) }) }}</span>
+            <span v-if="validatedInvite.church" class="invite-tag church-tag"
+              >⛪ {{ validatedInvite.church }}</span
+            >
+            <span class="invite-expiry">{{
+              $t('auth.register.inviteExpiry', { date: formatExpiry(validatedInvite.expiresAt) })
+            }}</span>
           </div>
           <p v-if="inviteCodeStatus === 'invalid'" class="field-hint error-hint">
             {{ $t('auth.register.inviteInvalidHint') }}
@@ -105,8 +139,8 @@
         <div class="form-group">
           <label class="form-label" for="reg-username">{{ $t('auth.register.username') }}</label>
           <input
-            v-model="registerForm.username"
             id="reg-username"
+            v-model="registerForm.username"
             type="text"
             class="form-input"
             :placeholder="$t('auth.register.usernamePlaceholder')"
@@ -119,16 +153,43 @@
           <label class="form-label" for="reg-password">{{ $t('auth.register.password') }}</label>
           <div class="pwd-input-wrap">
             <input
-              v-model="registerForm.password"
               id="reg-password"
+              v-model="registerForm.password"
               :type="showRegPwd ? 'text' : 'password'"
               class="form-input"
               :placeholder="$t('auth.register.passwordPlaceholder')"
               required
             />
-            <button type="button" class="pwd-eye-btn" @click="showRegPwd = !showRegPwd" :title="showRegPwd ? $t('common.hidePwd') : $t('common.showPwd')">
-              <svg v-if="!showRegPwd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            <button
+              type="button"
+              class="pwd-eye-btn"
+              :title="showRegPwd ? $t('common.hidePwd') : $t('common.showPwd')"
+              @click="showRegPwd = !showRegPwd"
+            >
+              <svg
+                v-if="!showRegPwd"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              <svg
+                v-else
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                />
+                <line x1="1" y1="1" x2="23" y2="23" />
+              </svg>
             </button>
           </div>
           <!-- Password Strength Indicator -->
@@ -137,23 +198,30 @@
               <div class="pwd-bar" :class="regPwdBarClass(0)"></div>
               <div class="pwd-bar" :class="regPwdBarClass(1)"></div>
               <div class="pwd-bar" :class="regPwdBarClass(2)"></div>
-              <span class="pwd-strength-label" :class="regPwdStrengthTextClass">{{ regPwdStrengthLabel }}</span>
+              <span class="pwd-strength-label" :class="regPwdStrengthTextClass">{{
+                regPwdStrengthLabel
+              }}</span>
             </div>
             <ul class="pwd-rules-list">
               <li :class="{ 'rule-ok': registerForm.password.length >= 8 }">
-                {{ registerForm.password.length >= 8 ? '✅' : '❌' }} {{ $t('auth.passwordRules.minLength') }}
+                {{ registerForm.password.length >= 8 ? '✅' : '❌' }}
+                {{ $t('auth.passwordRules.minLength') }}
               </li>
               <li :class="{ 'rule-ok': /[A-Z]/.test(registerForm.password) }">
-                {{ /[A-Z]/.test(registerForm.password) ? '✅' : '❌' }} {{ $t('auth.passwordRules.uppercase') }}
+                {{ /[A-Z]/.test(registerForm.password) ? '✅' : '❌' }}
+                {{ $t('auth.passwordRules.uppercase') }}
               </li>
               <li :class="{ 'rule-ok': /[a-z]/.test(registerForm.password) }">
-                {{ /[a-z]/.test(registerForm.password) ? '✅' : '❌' }} {{ $t('auth.passwordRules.lowercase') }}
+                {{ /[a-z]/.test(registerForm.password) ? '✅' : '❌' }}
+                {{ $t('auth.passwordRules.lowercase') }}
               </li>
               <li :class="{ 'rule-ok': /[0-9]/.test(registerForm.password) }">
-                {{ /[0-9]/.test(registerForm.password) ? '✅' : '❌' }} {{ $t('auth.passwordRules.number') }}
+                {{ /[0-9]/.test(registerForm.password) ? '✅' : '❌' }}
+                {{ $t('auth.passwordRules.number') }}
               </li>
               <li :class="{ 'rule-ok': /[^A-Za-z0-9]/.test(registerForm.password) }">
-                {{ /[^A-Za-z0-9]/.test(registerForm.password) ? '✅' : '❌' }} {{ $t('auth.passwordRules.special') }}
+                {{ /[^A-Za-z0-9]/.test(registerForm.password) ? '✅' : '❌' }}
+                {{ $t('auth.passwordRules.special') }}
               </li>
             </ul>
           </div>
@@ -173,7 +241,7 @@
         </div>
 
         <!-- Church: locked by invite (or selectable for student without invite) -->
-        <div class="form-group" v-if="!validatedInvite || validatedInvite.role !== 'admin'">
+        <div v-if="!validatedInvite || validatedInvite.role !== 'admin'" class="form-group">
           <label class="form-label" for="reg-church">⛪ {{ $t('auth.register.church') }}</label>
           <div v-if="validatedInvite && validatedInvite.church" class="locked-field-display">
             {{ validatedInvite.church }}
@@ -181,8 +249,8 @@
           </div>
           <select
             v-else
-            v-model="registerForm.church"
             id="reg-church"
+            v-model="registerForm.church"
             class="form-input select-input"
             required
           >
@@ -191,7 +259,7 @@
         </div>
 
         <!-- Parent: Student Binding (only when invite is parent role) -->
-        <div class="form-group" v-if="effectiveRole === 'parent'">
+        <div v-if="effectiveRole === 'parent'" class="form-group">
           <label class="form-label">👶 {{ $t('auth.register.bindChildren') }}</label>
           <div v-if="registerAvailableStudents.length === 0" class="alert-box error">
             ⚠️ {{ $t('auth.register.noStudentsAlert', { church: effectiveChurch }) }}
@@ -202,20 +270,21 @@
               :key="std"
               class="student-binding-option"
             >
-              <input
-                type="checkbox"
-                :value="std"
-                v-model="registerForm.childUsernames"
-              />
+              <input v-model="registerForm.childUsernames" type="checkbox" :value="std" />
               <span>🎒 {{ std }}</span>
             </label>
           </div>
-          <p v-if="registerForm.childUsernames.length === 0 && registerAvailableStudents.length > 0" class="field-hint">
+          <p
+            v-if="registerForm.childUsernames.length === 0 && registerAvailableStudents.length > 0"
+            class="field-hint"
+          >
             {{ $t('auth.register.atLeastOneStudent') }}
           </p>
         </div>
 
-        <button type="submit" class="btn btn-secondary w-full">{{ $t('auth.register.submit') }}</button>
+        <button type="submit" class="btn btn-secondary w-full">
+          {{ $t('auth.register.submit') }}
+        </button>
       </form>
 
       <!-- Divider -->
@@ -226,22 +295,38 @@
       <!-- Third Party Logins -->
       <div class="social-login-grid">
         <button
-          @click="loginWithGoogle"
           type="button"
           class="social-btn google-btn"
           :disabled="isRedirecting"
+          @click="loginWithGoogle"
         >
-          <img src="https://cdn-icons-png.flaticon.com/512/300/300221.png" alt="Google" class="social-icon" />
-          {{ isRedirecting && redirectTarget === 'google' ? $t('auth.social.connecting') : $t('auth.social.google') }}
+          <img
+            src="https://cdn-icons-png.flaticon.com/512/300/300221.png"
+            alt="Google"
+            class="social-icon"
+          />
+          {{
+            isRedirecting && redirectTarget === 'google'
+              ? $t('auth.social.connecting')
+              : $t('auth.social.google')
+          }}
         </button>
         <button
-          @click="loginWithLine"
           type="button"
           class="social-btn line-btn"
           :disabled="isRedirecting"
+          @click="loginWithLine"
         >
-          <img src="https://cdn-icons-png.flaticon.com/512/124/124027.png" alt="LINE" class="social-icon" />
-          {{ isRedirecting && redirectTarget === 'line' ? $t('auth.social.connecting') : $t('auth.social.line') }}
+          <img
+            src="https://cdn-icons-png.flaticon.com/512/124/124027.png"
+            alt="LINE"
+            class="social-icon"
+          />
+          {{
+            isRedirecting && redirectTarget === 'line'
+              ? $t('auth.social.connecting')
+              : $t('auth.social.line')
+          }}
         </button>
       </div>
 
@@ -249,11 +334,19 @@
       <div class="demo-helper">
         <p class="demo-title">💡 {{ $t('auth.demo.title') }}</p>
         <div class="demo-chips">
-          <span class="demo-chip" @click="fillDemo('student')">{{ $t('auth.demo.chipStudent') }}</span>
-          <span class="demo-chip" @click="fillDemo('teacher')">{{ $t('auth.demo.chipTeacher') }}</span>
+          <span class="demo-chip" @click="fillDemo('student')">{{
+            $t('auth.demo.chipStudent')
+          }}</span>
+          <span class="demo-chip" @click="fillDemo('teacher')">{{
+            $t('auth.demo.chipTeacher')
+          }}</span>
           <span class="demo-chip" @click="fillDemo('admin')">{{ $t('auth.demo.chipAdmin') }}</span>
-          <span class="demo-chip" @click="fillDemo('parent')">{{ $t('auth.demo.chipParent') }}</span>
-          <span class="demo-chip" @click="fillDemo('pastor')">{{ $t('auth.demo.chipPastor') }}</span>
+          <span class="demo-chip" @click="fillDemo('parent')">{{
+            $t('auth.demo.chipParent')
+          }}</span>
+          <span class="demo-chip" @click="fillDemo('pastor')">{{
+            $t('auth.demo.chipPastor')
+          }}</span>
         </div>
       </div>
     </div>
@@ -282,10 +375,11 @@
             <span>{{ $t('auth.forgotModal.step3') }}</span>
           </div>
         </div>
-        <button @click="showForgotModal = false" class="btn btn-primary w-full mt-4">{{ $t('auth.forgotModal.understood') }}</button>
+        <button class="btn btn-primary w-full mt-4" @click="showForgotModal = false">
+          {{ $t('auth.forgotModal.understood') }}
+        </button>
       </div>
     </div>
-
   </div>
 </template>
 
@@ -343,9 +437,7 @@ const effectiveRole = computed<UserRole>(() =>
 )
 
 // The church that will be used (invite-specified, or form-selected)
-const effectiveChurch = computed(() =>
-  validatedInvite.value?.church || registerForm.church
-)
+const effectiveChurch = computed(() => validatedInvite.value?.church || registerForm.church)
 
 /** 角色標籤（i18n 版） */
 function roleLabel(role: UserRole): string {
@@ -378,8 +470,9 @@ const registerForm = reactive({
 // Compute available students for parent binding (uses effectiveChurch)
 const registerAvailableStudents = computed(() => {
   return Object.keys(authStore.usersDb).filter(
-    username => authStore.usersDb[username].role === 'student' &&
-                authStore.usersDb[username].church === effectiveChurch.value
+    (username) =>
+      authStore.usersDb[username].role === 'student' &&
+      authStore.usersDb[username].church === effectiveChurch.value
   )
 })
 
@@ -391,15 +484,21 @@ function handleLogin() {
   const result = authStore.login(loginForm.username, loginForm.password)
   if (result.success) {
     toast(result.message, 'success')
-    setTimeout(() => { router.push('/') }, 500)
+    setTimeout(() => {
+      router.push('/')
+    }, 500)
   } else {
     toast(result.message, 'error')
   }
 }
 
 // ── Password strength (register form) ──
-const { strength: regPwdStrength, label: regPwdStrengthLabel, textClass: regPwdStrengthTextClass, barClass: regPwdBarClass } =
-  usePasswordStrength(toRef(registerForm, 'password'))
+const {
+  strength: regPwdStrength,
+  label: regPwdStrengthLabel,
+  textClass: regPwdStrengthTextClass,
+  barClass: regPwdBarClass
+} = usePasswordStrength(toRef(registerForm, 'password'))
 
 function handleRegister() {
   if (!registerForm.username || !registerForm.password) {
@@ -438,7 +537,9 @@ function handleRegister() {
       authStore.consumeInviteCode(validatedInvite.value.code, registerForm.username)
     }
     toast(result.message, 'success')
-    setTimeout(() => { router.push('/') }, 500)
+    setTimeout(() => {
+      router.push('/')
+    }, 500)
   } else {
     toast(result.message, 'error')
   }
@@ -515,7 +616,7 @@ function loginWithLine() {
 /* Tabs */
 .auth-tabs {
   display: flex;
-  background: #F1F5F9;
+  background: #f1f5f9;
   padding: 0.25rem;
   border-radius: var(--radius-full);
   margin-bottom: 1.5rem;
@@ -555,13 +656,13 @@ function loginWithLine() {
 }
 
 .alert-box.success {
-  background-color: #D1FAE5;
-  color: #065F46;
+  background-color: #d1fae5;
+  color: #065f46;
 }
 
 .alert-box.error {
-  background-color: #FEE2E2;
-  color: #991B1B;
+  background-color: #fee2e2;
+  color: #991b1b;
 }
 
 /* Role selector grid */
@@ -581,7 +682,7 @@ function loginWithLine() {
 }
 
 .role-card {
-  border: 2px solid #E2E8F0;
+  border: 2px solid #e2e8f0;
   border-radius: var(--radius-md);
   padding: 0.75rem 0.5rem;
   text-align: center;
@@ -618,11 +719,12 @@ function loginWithLine() {
   margin: 1.5rem 0;
 }
 
-.divider::before, .divider::after {
+.divider::before,
+.divider::after {
   content: '';
   flex: 1;
   height: 1px;
-  background: #E2E8F0;
+  background: #e2e8f0;
 }
 
 .divider-text {
@@ -646,7 +748,7 @@ function loginWithLine() {
   gap: 0.5rem;
   padding: 0.6rem 1rem;
   border-radius: var(--radius-full);
-  border: 1px solid #E2E8F0;
+  border: 1px solid #e2e8f0;
   background: white;
   font-family: var(--font-family);
   font-weight: 600;
@@ -658,7 +760,7 @@ function loginWithLine() {
 }
 
 .social-btn:hover {
-  background: #F8FAFC;
+  background: #f8fafc;
   transform: translateY(-1px);
 }
 
@@ -669,15 +771,15 @@ function loginWithLine() {
 
 /* Google / LINE 品牌色 */
 .google-btn:hover {
-  border-color: #4285F4;
-  color: #4285F4;
+  border-color: #4285f4;
+  color: #4285f4;
   background: rgba(66, 133, 244, 0.06);
   transform: translateY(-1px);
 }
 
 .line-btn:hover {
-  border-color: #06C755;
-  color: #06C755;
+  border-color: #06c755;
+  color: #06c755;
   background: rgba(6, 199, 85, 0.06);
   transform: translateY(-1px);
 }
@@ -692,7 +794,7 @@ function loginWithLine() {
 .demo-helper {
   margin-top: 2rem;
   padding-top: 1rem;
-  border-top: 1px dashed #E2E8F0;
+  border-top: 1px dashed #e2e8f0;
   text-align: center;
 }
 
@@ -798,13 +900,21 @@ function loginWithLine() {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes spin-pulse {
-  0% { transform: rotate(0deg) scale(1); }
-  50% { transform: rotate(180deg) scale(1.1); }
-  100% { transform: rotate(360deg) scale(1); }
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.1);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
 }
 
 /* Church select dropdown */
@@ -825,10 +935,10 @@ function loginWithLine() {
   margin-top: 0.5rem;
   max-height: 180px;
   overflow-y: auto;
-  border: 1px solid #E2E8F0;
+  border: 1px solid #e2e8f0;
   border-radius: var(--radius-sm);
   padding: 0.75rem;
-  background: #F8FAFC;
+  background: #f8fafc;
 }
 
 .student-binding-option {
@@ -848,7 +958,7 @@ function loginWithLine() {
   background: rgba(59, 130, 246, 0.06);
 }
 
-.student-binding-option input[type="checkbox"] {
+.student-binding-option input[type='checkbox'] {
   width: 16px;
   height: 16px;
   accent-color: var(--primary);
@@ -857,13 +967,17 @@ function loginWithLine() {
 
 .field-hint {
   font-size: 0.78rem;
-  color: #B45309;
+  color: #b45309;
   margin-top: 0.35rem;
   font-weight: 600;
 }
 
-.mb-4 { margin-bottom: 1rem; }
-.mt-2 { margin-top: 0.5rem; }
+.mb-4 {
+  margin-bottom: 1rem;
+}
+.mt-2 {
+  margin-top: 0.5rem;
+}
 
 /* ── Password Strength ── */
 .pwd-strength-section {
@@ -884,21 +998,39 @@ function loginWithLine() {
   transition: background 0.3s;
 }
 
-.bar-empty  { background: #e2e8f0; }
-.bar-weak   { background: #ef4444; }
-.bar-fair   { background: #f59e0b; }
-.bar-medium { background: #3b82f6; }
-.bar-strong { background: #10b981; }
+.bar-empty {
+  background: #e2e8f0;
+}
+.bar-weak {
+  background: #ef4444;
+}
+.bar-fair {
+  background: #f59e0b;
+}
+.bar-medium {
+  background: #3b82f6;
+}
+.bar-strong {
+  background: #10b981;
+}
 
 .pwd-strength-label {
   font-size: 0.72rem;
   font-weight: 700;
   white-space: nowrap;
 }
-.text-weak   { color: #ef4444; }
-.text-fair   { color: #f59e0b; }
-.text-medium { color: #3b82f6; }
-.text-strong { color: #10b981; }
+.text-weak {
+  color: #ef4444;
+}
+.text-fair {
+  color: #f59e0b;
+}
+.text-medium {
+  color: #3b82f6;
+}
+.text-strong {
+  color: #10b981;
+}
 
 .pwd-rules-list {
   list-style: none;
@@ -949,7 +1081,7 @@ function loginWithLine() {
 
 .invite-badge.invalid {
   background: rgba(239, 68, 68, 0.1);
-  color: #DC2626;
+  color: #dc2626;
   border: 1px solid rgba(239, 68, 68, 0.25);
 }
 
@@ -1027,14 +1159,13 @@ function loginWithLine() {
 }
 
 .error-hint {
-  color: var(--danger, #DC2626);
+  color: var(--danger, #dc2626);
   font-size: 0.8rem;
   margin-top: 0.35rem;
 }
 
 /* Password show/hide wrapper */
 .pwd-input-wrap {
-
   position: relative;
   display: flex;
   align-items: center;
@@ -1070,7 +1201,6 @@ function loginWithLine() {
 
 /* Forgot Password */
 .forgot-pwd-row {
-
   text-align: center;
   margin-top: 0.75rem;
 }
@@ -1141,6 +1271,7 @@ function loginWithLine() {
   font-weight: 700;
 }
 
-.mt-4 { margin-top: 1rem; }
-
+.mt-4 {
+  margin-top: 1rem;
+}
 </style>

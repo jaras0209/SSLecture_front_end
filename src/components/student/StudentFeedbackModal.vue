@@ -1,35 +1,28 @@
 <template>
   <Teleport to="body">
     <Transition name="modal-fade">
-      <div
-        v-if="modelValue"
-        class="modal-overlay"
-        @click.self="close"
-      >
-        <div class="glass-panel modal-card" style="max-width: 480px; width: 92%; padding: 1.75rem;">
+      <div v-if="modelValue" class="modal-overlay" @click.self="close">
+        <div class="glass-panel modal-card" style="max-width: 480px; width: 92%; padding: 1.75rem">
           <h3>{{ $t('student.course.feedbackTitle') }}</h3>
-          <p class="text-muted text-sm mt-1" v-if="session">
-            {{ session.courseTitle }} ／
-            {{ session.lecturerTitle }} {{ session.lecturerName }} ／
+          <p v-if="session" class="text-muted text-sm mt-1">
+            {{ session.courseTitle }} ／ {{ session.lecturerTitle }} {{ session.lecturerName }} ／
             {{ formatBookingTime(session) }}
           </p>
           <div class="form-group mt-4">
             <label class="form-label">📝 {{ $t('student.course.feedbackLabel') }}</label>
             <textarea
+              id="student-feedback-textarea"
               v-model="localFeedback"
               class="form-input"
               rows="5"
               :placeholder="$t('student.course.feedbackPlaceholder')"
-              id="student-feedback-textarea"
             ></textarea>
           </div>
           <div class="modal-footer mt-4">
             <button class="btn btn-outline" @click="close">{{ $t('common.cancel') }}</button>
-            <button
-              class="btn btn-primary"
-              @click="submit"
-              id="btn-submit-student-feedback"
-            >{{ $t('student.course.save') }}</button>
+            <button id="btn-submit-student-feedback" class="btn btn-primary" @click="submit">
+              {{ $t('student.course.save') }}
+            </button>
           </div>
         </div>
       </div>
@@ -50,15 +43,18 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
-  'submit': [feedback: string]
+  submit: [feedback: string]
 }>()
 
 const localFeedback = ref(props.initialFeedback ?? '')
 
 // When the modal opens with new data, sync the initial feedback
-watch(() => props.initialFeedback, (val) => {
-  localFeedback.value = val ?? ''
-})
+watch(
+  () => props.initialFeedback,
+  (val) => {
+    localFeedback.value = val ?? ''
+  }
+)
 
 function close() {
   emit('update:modelValue', false)
@@ -69,7 +65,11 @@ function submit() {
   close()
 }
 
-function formatBookingTime(session: { proposedAt: string; confirmedAt?: string; status: string }): string {
+function formatBookingTime(session: {
+  proposedAt: string
+  confirmedAt?: string
+  status: string
+}): string {
   const dt = session.confirmedAt || session.proposedAt
   if (!dt) return '—'
   const d = new Date(dt)
@@ -94,7 +94,9 @@ function formatBookingTime(session: { proposedAt: string; confirmedAt?: string; 
 }
 .modal-fade-enter-active .modal-card,
 .modal-fade-leave-active .modal-card {
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
 }
 .modal-fade-enter-from,
 .modal-fade-leave-to {

@@ -10,7 +10,13 @@
           :class="['filter-btn', { active: currentFilter === tab }]"
           @click="currentFilter = tab"
         >
-          {{ tab === 'all' ? $t('profile.course.all') : tab === 'bible' ? $t('profile.course.bible') : $t('profile.course.topic') }}
+          {{
+            tab === 'all'
+              ? $t('profile.course.all')
+              : tab === 'bible'
+                ? $t('profile.course.bible')
+                : $t('profile.course.topic')
+          }}
         </button>
       </div>
     </div>
@@ -24,8 +30,14 @@
         @click="emit('select-course', course)"
       >
         <div class="card-cover" :style="{ background: course.coverColor }">
-          <span class="category-badge">{{ course.category === 'bible' ? $t('profile.course.bibleBadge') : $t('profile.course.topicBadge') }}</span>
-          <span v-if="getRecord(course.id).completed" class="completed-check">✓ {{ $t('student.motivation.done') }}</span>
+          <span class="category-badge">{{
+            course.category === 'bible'
+              ? $t('profile.course.bibleBadge')
+              : $t('profile.course.topicBadge')
+          }}</span>
+          <span v-if="getRecord(course.id).completed" class="completed-check"
+            >✓ {{ $t('student.motivation.done') }}</span
+          >
         </div>
         <div class="card-content">
           <h4 class="course-title">{{ course.title }}</h4>
@@ -47,11 +59,14 @@
             </span>
             <!-- Show latest session lecturer -->
             <span
-              class="lecturer-tag text-xs text-muted mt-1"
               v-if="getRecord(course.id).sessions.length > 0"
-              style="display: block;"
+              class="lecturer-tag text-xs text-muted mt-1"
+              style="display: block"
             >
-              🎤 {{ $t('student.course.lecturerLabel') }}：{{ getRecord(course.id).sessions[getRecord(course.id).sessions.length - 1].lecturer || $t('student.course.noLecturer') }}
+              🎤 {{ $t('student.course.lecturerLabel') }}：{{
+                getRecord(course.id).sessions[getRecord(course.id).sessions.length - 1].lecturer ||
+                $t('student.course.noLecturer')
+              }}
             </span>
           </div>
         </div>
@@ -90,7 +105,7 @@ const filterTabs = ['all', 'bible', 'lecture'] as const
 
 const filteredCourses = computed(() => {
   if (currentFilter.value === 'all') return coursesStore.courses
-  return coursesStore.courses.filter(c => c.category === currentFilter.value)
+  return coursesStore.courses.filter((c) => c.category === currentFilter.value)
 })
 
 // ── Record Access ─────────────────────────────────────────────────────────────
@@ -200,29 +215,29 @@ function getRecord(courseId: string) {
 @media (max-width: 640px) {
   /* Course card: vertical on mobile */
   .course-card {
-      flex-direction: column;
-    }
+    flex-direction: column;
+  }
 
   .card-cover {
-      width: 100%;
-      height: 140px;
-    }
+    width: 100%;
+    height: 140px;
+  }
 
   .card-content {
-      padding: 0.85rem;
-    }
+    padding: 0.85rem;
+  }
 
   .course-title {
-      font-size: 1rem;
-    }
+    font-size: 1rem;
+  }
 
   /* Filter tabs: horizontal scroll */
   .filter-tabs {
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      flex-wrap: nowrap;
-      max-width: 100%;
-    }
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    max-width: 100%;
+  }
 }
 
 /* ── Card selected state ── */

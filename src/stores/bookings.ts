@@ -24,11 +24,9 @@ import type {
   BookingAttendeesDb
 } from '@/types/bookings'
 
-
 // ─── Store ───────────────────────────────────────────────────────────────────
 
 export const useBookingsStore = defineStore('bookings', () => {
-
   // ── State ──────────────────────────────────────────────────────────────────
 
   const sessionsDb = ref<BookingSessionsDb>(
@@ -41,29 +39,37 @@ export const useBookingsStore = defineStore('bookings', () => {
 
   // ── Persistence ────────────────────────────────────────────────────────────
 
-  watch(sessionsDb, (val) => {
-    safeSet('superstart_booking_sessions_db', val)
-  }, { deep: true })
+  watch(
+    sessionsDb,
+    (val) => {
+      safeSet('superstart_booking_sessions_db', val)
+    },
+    { deep: true }
+  )
 
-  watch(attendeesDb, (val) => {
-    safeSet('superstart_booking_attendees_db', val)
-  }, { deep: true })
+  watch(
+    attendeesDb,
+    (val) => {
+      safeSet('superstart_booking_attendees_db', val)
+    },
+    { deep: true }
+  )
 
   // ── Getters ────────────────────────────────────────────────────────────────
 
   function getAttendeesForSession(sessionId: string): BookingAttendee[] {
-    return Object.values(attendeesDb.value).filter(a => a.sessionId === sessionId)
+    return Object.values(attendeesDb.value).filter((a) => a.sessionId === sessionId)
   }
 
   function getSessionsByChurch(church: string): BookingSession[] {
     return Object.values(sessionsDb.value)
-      .filter(s => s.church === church)
+      .filter((s) => s.church === church)
       .sort((a, b) => b.proposedAt.localeCompare(a.proposedAt))
   }
 
   function getSessionsByTeacher(teacherUsername: string): BookingSession[] {
     return Object.values(sessionsDb.value)
-      .filter(s => s.teacherUsername === teacherUsername)
+      .filter((s) => s.teacherUsername === teacherUsername)
       .sort((a, b) => b.proposedAt.localeCompare(a.proposedAt))
   }
 
@@ -72,26 +78,28 @@ export const useBookingsStore = defineStore('bookings', () => {
     attendee: BookingAttendee
   }> {
     return Object.values(attendeesDb.value)
-      .filter(a => a.studentUsername === studentUsername)
-      .map(a => ({ session: sessionsDb.value[a.sessionId], attendee: a }))
-      .filter(x => !!x.session)
+      .filter((a) => a.studentUsername === studentUsername)
+      .map((a) => ({ session: sessionsDb.value[a.sessionId], attendee: a }))
+      .filter((x) => !!x.session)
       .sort((a, b) => b.session.proposedAt.localeCompare(a.session.proposedAt))
   }
 
   function getUpcomingSessions(studentUsername: string) {
     const now = toLocalDateTimeInput()
-    return getSessionsForStudent(studentUsername).filter(x =>
-      (x.session.status === 'pending' || x.session.status === 'confirmed') &&
-      x.session.proposedAt >= now
+    return getSessionsForStudent(studentUsername).filter(
+      (x) =>
+        (x.session.status === 'pending' || x.session.status === 'confirmed') &&
+        x.session.proposedAt >= now
     )
   }
 
   function getPastSessions(studentUsername: string) {
     const now = toLocalDateTimeInput()
-    return getSessionsForStudent(studentUsername).filter(x =>
-      x.session.status === 'completed' ||
-      x.session.status === 'cancelled' ||
-      x.session.proposedAt < now
+    return getSessionsForStudent(studentUsername).filter(
+      (x) =>
+        x.session.status === 'completed' ||
+        x.session.status === 'cancelled' ||
+        x.session.proposedAt < now
     )
   }
 
@@ -134,7 +142,7 @@ export const useBookingsStore = defineStore('bookings', () => {
 
     sessionsDb.value[sessionId] = session
 
-    params.studentUsernames.forEach(username => {
+    params.studentUsernames.forEach((username) => {
       const attendeeId = `att_${sessionId}_${username}`
       attendeesDb.value[attendeeId] = {
         id: attendeeId,
@@ -193,7 +201,12 @@ export const useBookingsStore = defineStore('bookings', () => {
   function updateAttendee(
     sessionId: string,
     studentUsername: string,
-    updates: Partial<Pick<BookingAttendee, 'attendanceStatus' | 'studentFeedback' | 'teacherFeedback' | 'linkedListenSessionId'>>
+    updates: Partial<
+      Pick<
+        BookingAttendee,
+        'attendanceStatus' | 'studentFeedback' | 'teacherFeedback' | 'linkedListenSessionId'
+      >
+    >
   ): void {
     const attendeeId = `att_${sessionId}_${studentUsername}`
     const attendee = attendeesDb.value[attendeeId]
@@ -210,10 +223,14 @@ export const useBookingsStore = defineStore('bookings', () => {
     if (attendeesDb.value[attendeeId]) return
     const now = new Date().toISOString()
     attendeesDb.value[attendeeId] = {
-      id: attendeeId, sessionId, studentUsername,
+      id: attendeeId,
+      sessionId,
+      studentUsername,
       attendanceStatus: 'invited',
-      studentFeedback: '', teacherFeedback: '',
-      createdAt: now, updatedAt: now
+      studentFeedback: '',
+      teacherFeedback: '',
+      createdAt: now,
+      updatedAt: now
     }
     const session = sessionsDb.value[sessionId]
     if (session) {
@@ -225,18 +242,28 @@ export const useBookingsStore = defineStore('bookings', () => {
   function deleteSession(sessionId: string): void {
     delete sessionsDb.value[sessionId]
     Object.keys(attendeesDb.value)
-      .filter(k => k.startsWith(`att_${sessionId}_`))
-      .forEach(k => delete attendeesDb.value[k])
+      .filter((k) => k.startsWith(`att_${sessionId}_`))
+      .forEach((k) => delete attendeesDb.value[k])
   }
 
   // ── Return ─────────────────────────────────────────────────────────────────
 
   return {
-    sessionsDb, attendeesDb,
-    getAttendeesForSession, getSessionsByChurch, getSessionsByTeacher,
-    getSessionsForStudent, getUpcomingSessions, getPastSessions,
-    createSession, updateSessionStatus, updateSessionProp,
-    updatePrep, completeSession, updateAttendee,
-    addAttendeeToSession, deleteSession
+    sessionsDb,
+    attendeesDb,
+    getAttendeesForSession,
+    getSessionsByChurch,
+    getSessionsByTeacher,
+    getSessionsForStudent,
+    getUpcomingSessions,
+    getPastSessions,
+    createSession,
+    updateSessionStatus,
+    updateSessionProp,
+    updatePrep,
+    completeSession,
+    updateAttendee,
+    addAttendeeToSession,
+    deleteSession
   }
 })

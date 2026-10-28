@@ -24,8 +24,8 @@ export const i18n = createI18n<[MessageSchema], SupportedLocale>({
   fallbackLocale: 'zh-TW',
   messages: {
     'zh-TW': zhTW,
-    en,
-  },
+    en
+  }
 })
 
 export function setLocale(lang: SupportedLocale) {

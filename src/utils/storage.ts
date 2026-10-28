@@ -33,11 +33,7 @@ export interface SafeGetOptions {
  * @param options   選項（clearOnError）
  * @returns 解析後的值，或 fallback
  */
-export function safeGet<T>(
-  key: string,
-  fallback: T,
-  options: SafeGetOptions = {}
-): T {
+export function safeGet<T>(key: string, fallback: T, options: SafeGetOptions = {}): T {
   const { clearOnError = false } = options
   try {
     const raw = localStorage.getItem(key)
@@ -102,11 +98,9 @@ export function safeRemove(key: string): void {
  *     attendeesDb: { key: 'superstart_attendees_db', fallback: {} },
  *   })
  */
-export function safeGetAll<T extends Record<string, unknown>>(
-  specs: {
-    [K in keyof T]: { key: string; fallback: T[K]; options?: SafeGetOptions }
-  }
-): T {
+export function safeGetAll<T extends Record<string, unknown>>(specs: {
+  [K in keyof T]: { key: string; fallback: T[K]; options?: SafeGetOptions }
+}): T {
   const result = {} as T
   for (const name in specs) {
     const { key, fallback, options } = specs[name]

@@ -9,7 +9,11 @@
         </router-link>
 
         <!-- Hamburger Button (mobile only) -->
-        <button class="hamburger-btn" @click="mobileMenuOpen = !mobileMenuOpen" :aria-label="mobileMenuOpen ? $t('nav.closeMenu') : $t('nav.openMenu')">
+        <button
+          class="hamburger-btn"
+          :aria-label="mobileMenuOpen ? $t('nav.closeMenu') : $t('nav.openMenu')"
+          @click="mobileMenuOpen = !mobileMenuOpen"
+        >
           <span class="hamburger-line" :class="{ open: mobileMenuOpen }"></span>
           <span class="hamburger-line" :class="{ open: mobileMenuOpen }"></span>
           <span class="hamburger-line" :class="{ open: mobileMenuOpen }"></span>
@@ -21,15 +25,21 @@
         <ul class="navbar-menu">
           <!-- Student Link (hidden if restricted) -->
           <li v-if="canAccess('/student')">
-            <router-link to="/student" class="navbar-link" @click="mobileMenuOpen = false">🎒 {{ $t('nav.studentLink') }}</router-link>
+            <router-link to="/student" class="navbar-link" @click="mobileMenuOpen = false"
+              >🎒 {{ $t('nav.studentLink') }}</router-link
+            >
           </li>
           <!-- Teacher Link (hidden if restricted) -->
           <li v-if="canAccess('/teacher')">
-            <router-link to="/teacher" class="navbar-link" @click="mobileMenuOpen = false">👨‍🏫 {{ $t('nav.teacherLink') }}</router-link>
+            <router-link to="/teacher" class="navbar-link" @click="mobileMenuOpen = false"
+              >👨‍🏫 {{ $t('nav.teacherLink') }}</router-link
+            >
           </li>
           <!-- Admin Link -->
           <li v-if="canAccess('/admin')">
-            <router-link to="/admin" class="navbar-link" @click="mobileMenuOpen = false">⚙️ {{ $t('nav.adminLink') }}</router-link>
+            <router-link to="/admin" class="navbar-link" @click="mobileMenuOpen = false"
+              >⚙️ {{ $t('nav.adminLink') }}</router-link
+            >
           </li>
         </ul>
 
@@ -49,10 +59,10 @@
           </div>
           <!-- Language Switcher -->
           <LanguageSwitcher />
-          <button @click="showPasswordModal = true" class="btn btn-outline btn-sm action-btn">
+          <button class="btn btn-outline btn-sm action-btn" @click="showPasswordModal = true">
             🔒 {{ $t('nav.changePassword') }}
           </button>
-          <button @click="handleLogout" class="btn btn-outline btn-sm action-btn logout-btn">
+          <button class="btn btn-outline btn-sm action-btn logout-btn" @click="handleLogout">
             {{ $t('nav.logout') }} ➔
           </button>
         </div>
@@ -61,12 +71,19 @@
 
     <!-- Password Change Modal -->
     <div v-if="showPasswordModal" class="modal-overlay" @click.self="closePasswordModal">
-      <div class="glass-panel modal-card" role="dialog" aria-modal="true" :aria-label="$t('passwordModal.title')">
+      <div
+        class="glass-panel modal-card"
+        role="dialog"
+        aria-modal="true"
+        :aria-label="$t('passwordModal.title')"
+      >
         <div class="modal-header">
           <h3>{{ $t('passwordModal.title') }}</h3>
-          <button @click="closePasswordModal" class="close-btn" :aria-label="$t('common.close')">&times;</button>
+          <button class="close-btn" :aria-label="$t('common.close')" @click="closePasswordModal">
+            &times;
+          </button>
         </div>
-        <form @submit.prevent="handlePasswordChange" class="mt-4">
+        <form class="mt-4" @submit.prevent="handlePasswordChange">
           <div v-if="pwdAlertMsg" :class="['alert-box', pwdAlertType]">
             {{ pwdAlertMsg }}
           </div>
@@ -80,9 +97,36 @@
                 required
                 :placeholder="$t('passwordModal.oldPlaceholder')"
               />
-              <button type="button" class="pwd-eye-btn" @click="showOldPwd = !showOldPwd" :title="showOldPwd ? $t('common.hidePwd') : $t('common.showPwd')">
-                <svg v-if="!showOldPwd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              <button
+                type="button"
+                class="pwd-eye-btn"
+                :title="showOldPwd ? $t('common.hidePwd') : $t('common.showPwd')"
+                @click="showOldPwd = !showOldPwd"
+              >
+                <svg
+                  v-if="!showOldPwd"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+                <svg
+                  v-else
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                  />
+                  <line x1="1" y1="1" x2="23" y2="23" />
+                </svg>
               </button>
             </div>
           </div>
@@ -96,9 +140,36 @@
                 required
                 :placeholder="$t('passwordModal.newPlaceholder')"
               />
-              <button type="button" class="pwd-eye-btn" @click="showNewPwd = !showNewPwd" :title="showNewPwd ? $t('common.hidePwd') : $t('common.showPwd')">
-                <svg v-if="!showNewPwd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              <button
+                type="button"
+                class="pwd-eye-btn"
+                :title="showNewPwd ? $t('common.hidePwd') : $t('common.showPwd')"
+                @click="showNewPwd = !showNewPwd"
+              >
+                <svg
+                  v-if="!showNewPwd"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+                <svg
+                  v-else
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                  />
+                  <line x1="1" y1="1" x2="23" y2="23" />
+                </svg>
               </button>
             </div>
             <!-- Password Strength Indicator & Rules -->
@@ -111,19 +182,24 @@
               </div>
               <ul class="pwd-rules-list">
                 <li :class="{ 'rule-ok': pwdForm.newPassword.length >= 8 }">
-                  {{ pwdForm.newPassword.length >= 8 ? '✅' : '❌' }} {{ $t('auth.passwordRules.minLength') }}
+                  {{ pwdForm.newPassword.length >= 8 ? '✅' : '❌' }}
+                  {{ $t('auth.passwordRules.minLength') }}
                 </li>
                 <li :class="{ 'rule-ok': /[A-Z]/.test(pwdForm.newPassword) }">
-                  {{ /[A-Z]/.test(pwdForm.newPassword) ? '✅' : '❌' }} {{ $t('auth.passwordRules.uppercase') }}
+                  {{ /[A-Z]/.test(pwdForm.newPassword) ? '✅' : '❌' }}
+                  {{ $t('auth.passwordRules.uppercase') }}
                 </li>
                 <li :class="{ 'rule-ok': /[a-z]/.test(pwdForm.newPassword) }">
-                  {{ /[a-z]/.test(pwdForm.newPassword) ? '✅' : '❌' }} {{ $t('auth.passwordRules.lowercase') }}
+                  {{ /[a-z]/.test(pwdForm.newPassword) ? '✅' : '❌' }}
+                  {{ $t('auth.passwordRules.lowercase') }}
                 </li>
                 <li :class="{ 'rule-ok': /[0-9]/.test(pwdForm.newPassword) }">
-                  {{ /[0-9]/.test(pwdForm.newPassword) ? '✅' : '❌' }} {{ $t('auth.passwordRules.number') }}
+                  {{ /[0-9]/.test(pwdForm.newPassword) ? '✅' : '❌' }}
+                  {{ $t('auth.passwordRules.number') }}
                 </li>
                 <li :class="{ 'rule-ok': /[^A-Za-z0-9]/.test(pwdForm.newPassword) }">
-                  {{ /[^A-Za-z0-9]/.test(pwdForm.newPassword) ? '✅' : '❌' }} {{ $t('auth.passwordRules.special') }}
+                  {{ /[^A-Za-z0-9]/.test(pwdForm.newPassword) ? '✅' : '❌' }}
+                  {{ $t('auth.passwordRules.special') }}
                 </li>
               </ul>
             </div>
@@ -138,18 +214,52 @@
                 required
                 :placeholder="$t('passwordModal.confirmPlaceholder')"
               />
-              <button type="button" class="pwd-eye-btn" @click="showConfirmPwd = !showConfirmPwd" :title="showConfirmPwd ? $t('common.hidePwd') : $t('common.showPwd')">
-                <svg v-if="!showConfirmPwd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              <button
+                type="button"
+                class="pwd-eye-btn"
+                :title="showConfirmPwd ? $t('common.hidePwd') : $t('common.showPwd')"
+                @click="showConfirmPwd = !showConfirmPwd"
+              >
+                <svg
+                  v-if="!showConfirmPwd"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+                <svg
+                  v-else
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                  />
+                  <line x1="1" y1="1" x2="23" y2="23" />
+                </svg>
               </button>
             </div>
-            <p v-if="pwdForm.confirmPassword && pwdForm.newPassword !== pwdForm.confirmPassword" class="pwd-mismatch">
+            <p
+              v-if="pwdForm.confirmPassword && pwdForm.newPassword !== pwdForm.confirmPassword"
+              class="pwd-mismatch"
+            >
               {{ $t('profile.pwdMismatch') }}
             </p>
           </div>
           <div class="modal-actions mt-4 flex gap-2">
-            <button type="button" @click="closePasswordModal" class="btn btn-outline w-full">{{ $t('passwordModal.cancelBtn') }}</button>
-            <button type="submit" class="btn btn-primary w-full">{{ $t('passwordModal.submitBtn') }}</button>
+            <button type="button" class="btn btn-outline w-full" @click="closePasswordModal">
+              {{ $t('passwordModal.cancelBtn') }}
+            </button>
+            <button type="submit" class="btn btn-primary w-full">
+              {{ $t('passwordModal.submitBtn') }}
+            </button>
           </div>
         </form>
       </div>
@@ -237,7 +347,11 @@ function handlePasswordChange() {
   }
   if (!authStore.currentUser) return
 
-  const result = authStore.updatePassword(authStore.currentUser.username, pwdForm.oldPassword, pwdForm.newPassword)
+  const result = authStore.updatePassword(
+    authStore.currentUser.username,
+    pwdForm.oldPassword,
+    pwdForm.newPassword
+  )
   if (result.success) {
     showPwdAlert(result.message, 'success')
     setTimeout(() => {
@@ -317,7 +431,7 @@ function getRoleLabel(role?: string) {
   height: 38px;
   border-radius: var(--radius-full);
   background: white;
-  border: 2px solid #E2E8F0;
+  border: 2px solid #e2e8f0;
 }
 
 .user-labels {
@@ -336,17 +450,17 @@ function getRoleLabel(role?: string) {
 .action-btn {
   font-size: 0.75rem;
   padding: 0.35rem 0.75rem;
-  border-color: #E2E8F0;
+  border-color: #e2e8f0;
 }
 
 .action-btn:hover {
-  background-color: #F8FAFC;
+  background-color: #f8fafc;
   border-color: var(--primary);
   color: var(--primary);
 }
 
 .logout-btn:hover {
-  background-color: #FEF2F2;
+  background-color: #fef2f2;
   border-color: var(--danger);
   color: var(--danger);
 }
@@ -380,7 +494,7 @@ function getRoleLabel(role?: string) {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid #e2e8f0;
   padding-bottom: 1rem;
 }
 
@@ -393,9 +507,15 @@ function getRoleLabel(role?: string) {
   color: var(--text-muted);
 }
 
-.flex { display: flex; }
-.gap-2 { gap: 0.5rem; }
-.w-full { width: 100%; }
+.flex {
+  display: flex;
+}
+.gap-2 {
+  gap: 0.5rem;
+}
+.w-full {
+  width: 100%;
+}
 
 .alert-box {
   padding: 0.75rem 1rem;
@@ -405,8 +525,14 @@ function getRoleLabel(role?: string) {
   margin-bottom: 1.25rem;
   text-align: center;
 }
-.alert-box.success { background-color: #D1FAE5; color: #065F46; }
-.alert-box.error { background-color: #FEE2E2; color: #991B1B; }
+.alert-box.success {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+.alert-box.error {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
 
 /* Password input eye button & strength indicator */
 .pwd-input-wrap {
@@ -452,11 +578,21 @@ function getRoleLabel(role?: string) {
   border-radius: 3px;
   transition: background 0.3s ease;
 }
-.bar-empty  { background: #E2E8F0; }
-.bar-weak   { background: #EF4444; }
-.bar-fair   { background: #F59E0B; }
-.bar-medium { background: #3B82F6; }
-.bar-strong { background: #10B981; }
+.bar-empty {
+  background: #e2e8f0;
+}
+.bar-weak {
+  background: #ef4444;
+}
+.bar-fair {
+  background: #f59e0b;
+}
+.bar-medium {
+  background: #3b82f6;
+}
+.bar-strong {
+  background: #10b981;
+}
 
 .pwd-strength-label {
   font-size: 0.75rem;
@@ -464,17 +600,25 @@ function getRoleLabel(role?: string) {
   margin-left: 4px;
   white-space: nowrap;
 }
-.text-weak   { color: #EF4444; }
-.text-fair   { color: #F59E0B; }
-.text-medium { color: #3B82F6; }
-.text-strong { color: #10B981; }
+.text-weak {
+  color: #ef4444;
+}
+.text-fair {
+  color: #f59e0b;
+}
+.text-medium {
+  color: #3b82f6;
+}
+.text-strong {
+  color: #10b981;
+}
 
 .pwd-rules-list {
   list-style: none;
   padding: 0.5rem 0.75rem;
   margin: 0.5rem 0 0;
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: var(--radius-sm);
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -489,7 +633,7 @@ function getRoleLabel(role?: string) {
 
 .pwd-mismatch {
   font-size: 0.75rem;
-  color: #EF4444;
+  color: #ef4444;
   font-weight: 600;
   margin-top: 0.35rem;
 }
@@ -540,17 +684,24 @@ function getRoleLabel(role?: string) {
     transform-origin: center;
   }
 
-  .hamburger-line.open:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
-  .hamburger-line.open:nth-child(2) { opacity: 0; transform: scaleX(0); }
-  .hamburger-line.open:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+  .hamburger-line.open:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+  }
+  .hamburger-line.open:nth-child(2) {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+  .hamburger-line.open:nth-child(3) {
+    transform: rotate(-45deg) translate(5px, -5px);
+  }
 
   .navbar-collapse {
     display: none;
     flex-direction: column;
     gap: 0.5rem;
     padding: 0.75rem 1rem 1rem;
-    border-top: 1px solid rgba(0,0,0,0.06);
-    background: rgba(255,255,255,0.98);
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    background: rgba(255, 255, 255, 0.98);
   }
 
   .navbar-collapse.is-open {
@@ -563,7 +714,9 @@ function getRoleLabel(role?: string) {
     width: 100%;
   }
 
-  .navbar-menu li { width: 100%; }
+  .navbar-menu li {
+    width: 100%;
+  }
 
   .navbar-link {
     display: block;
@@ -576,7 +729,7 @@ function getRoleLabel(role?: string) {
     flex-wrap: wrap;
     gap: 0.5rem;
     padding-top: 0.5rem;
-    border-top: 1px solid #F1F5F9;
+    border-top: 1px solid #f1f5f9;
     width: 100%;
   }
 
@@ -594,7 +747,9 @@ function getRoleLabel(role?: string) {
 
 /* Desktop: hide hamburger, restore horizontal layout with centered menu */
 @media (min-width: 641px) {
-  .hamburger-btn { display: none; }
+  .hamburger-btn {
+    display: none;
+  }
 
   /* Three-column grid: logo | nav links (centered) | user controls */
   .navbar {

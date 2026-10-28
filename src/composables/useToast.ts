@@ -26,7 +26,7 @@ let _idCounter = 0
 const _confirm = ref<ConfirmState>({
   visible: false,
   message: '',
-  resolve: null,
+  resolve: null
 })
 
 /** Used by ToastProvider component in App.vue */
@@ -46,9 +46,9 @@ export function useToast() {
 
   // 語意捷徑方法（避免每次手動傳第二個參數）
   const success = (text: string, duration?: number) => toast(text, 'success', duration)
-  const error   = (text: string, duration?: number) => toast(text, 'error',   duration)
+  const error = (text: string, duration?: number) => toast(text, 'error', duration)
   const warning = (text: string, duration?: number) => toast(text, 'warning', duration)
-  const info    = (text: string, duration?: number) => toast(text, 'info',    duration)
+  const info = (text: string, duration?: number) => toast(text, 'info', duration)
 
   function confirm(message: string): Promise<boolean> {
     return new Promise((resolve) => {
@@ -68,4 +68,3 @@ export function resolveConfirm(result: boolean) {
   _confirm.value.resolve?.(result)
   _confirm.value = { visible: false, message: '', resolve: null }
 }
-

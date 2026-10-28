@@ -9,14 +9,17 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { BookingStatus } from '@/stores/bookings'
 
-const props = withDefaults(defineProps<{
-  /** 預約狀態 */
-  status: BookingStatus
-  /** 字體大小，sm=較小，md=預設 */
-  size?: 'sm' | 'md'
-}>(), {
-  size: 'md',
-})
+const props = withDefaults(
+  defineProps<{
+    /** 預約狀態 */
+    status: BookingStatus
+    /** 字體大小，sm=較小，md=預設 */
+    size?: 'sm' | 'md'
+  }>(),
+  {
+    size: 'md'
+  }
+)
 
 const { t } = useI18n()
 const label = computed(() => t(`booking.status.${props.status}`))
@@ -46,7 +49,7 @@ const label = computed(() => t(`booking.status.${props.status}`))
 /* ── Status Colours ── */
 .sb-pending {
   background: rgba(245, 158, 11, 0.12);
-  color: #D97706;
+  color: #d97706;
   border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
@@ -64,7 +67,7 @@ const label = computed(() => t(`booking.status.${props.status}`))
 
 .sb-cancelled {
   background: rgba(107, 114, 128, 0.1);
-  color: #6B7280;
+  color: #6b7280;
   border: 1px solid rgba(107, 114, 128, 0.25);
 }
 </style>

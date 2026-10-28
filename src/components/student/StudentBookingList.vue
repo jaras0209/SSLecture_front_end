@@ -19,7 +19,9 @@
                 <span :class="['booking-status-badge', `status-${item.session.status}`]">
                   {{ bookingStatusLabel(item.session.status) }}
                 </span>
-                <span v-if="item.session.isGroupSession" class="booking-group-badge">{{ $t('student.course.groupSession') }}</span>
+                <span v-if="item.session.isGroupSession" class="booking-group-badge">{{
+                  $t('student.course.groupSession')
+                }}</span>
               </div>
             </div>
 
@@ -30,33 +32,48 @@
               </div>
               <div class="sbc-info-item">
                 <span class="sbc-label">{{ $t('student.course.lecturer') }}</span>
-                <span class="sbc-value">{{ item.session.lecturerTitle }} {{ item.session.lecturerName }}</span>
+                <span class="sbc-value"
+                  >{{ item.session.lecturerTitle }} {{ item.session.lecturerName }}</span
+                >
               </div>
               <div class="sbc-info-item">
                 <span class="sbc-label">{{ $t('student.course.time') }}</span>
                 <span class="sbc-value">{{ formatBookingTime(item.session) }}</span>
               </div>
-              <div class="sbc-info-item" v-if="item.session.durationMinutes">
+              <div v-if="item.session.durationMinutes" class="sbc-info-item">
                 <span class="sbc-label">{{ $t('student.course.duration') }}</span>
-                <span class="sbc-value">{{ $t('student.course.minutes', { n: item.session.durationMinutes }) }}</span>
+                <span class="sbc-value">{{
+                  $t('student.course.minutes', { n: item.session.durationMinutes })
+                }}</span>
               </div>
             </div>
 
             <!-- Prep content (if any) -->
             <div
-              v-if="item.session.prep.scriptures.length || item.session.prep.readingNotes || item.session.prep.materials"
+              v-if="
+                item.session.prep.scriptures.length ||
+                item.session.prep.readingNotes ||
+                item.session.prep.materials
+              "
               class="sbc-prep mt-3"
             >
               <div class="sbc-prep-title">{{ $t('student.course.prepTitle') }}</div>
               <div v-if="item.session.prep.scriptures.length" class="sbc-prep-row">
                 <strong>📜 {{ $t('student.course.scriptures') }}：</strong>
-                <span v-for="(s, i) in item.session.prep.scriptures" :key="i" class="scripture-chip">{{ s }}</span>
+                <span
+                  v-for="(s, i) in item.session.prep.scriptures"
+                  :key="i"
+                  class="scripture-chip"
+                  >{{ s }}</span
+                >
               </div>
               <div v-if="item.session.prep.readingNotes" class="sbc-prep-row">
-                <strong>📝 {{ $t('student.course.readingNotes') }}：</strong>{{ item.session.prep.readingNotes }}
+                <strong>📝 {{ $t('student.course.readingNotes') }}：</strong
+                >{{ item.session.prep.readingNotes }}
               </div>
               <div v-if="item.session.prep.materials" class="sbc-prep-row">
-                <strong>📎 {{ $t('student.course.materials') }}：</strong>{{ item.session.prep.materials }}
+                <strong>📎 {{ $t('student.course.materials') }}：</strong
+                >{{ item.session.prep.materials }}
               </div>
             </div>
           </div>
@@ -83,22 +100,30 @@
                   {{ bookingStatusLabel(item.session.status) }}
                 </span>
                 <span :class="['att-chip', `att-${item.attendee.attendanceStatus}`]">
-                  {{ item.attendee.attendanceStatus === 'attended' ? $t('student.attendance.attended')
-                    : item.attendee.attendanceStatus === 'absent' ? $t('student.attendance.absent')
-                    : $t('student.attendance.invited') }}
+                  {{
+                    item.attendee.attendanceStatus === 'attended'
+                      ? $t('student.attendance.attended')
+                      : item.attendee.attendanceStatus === 'absent'
+                        ? $t('student.attendance.absent')
+                        : $t('student.attendance.invited')
+                  }}
                 </span>
               </div>
               <button
                 v-if="item.session.status === 'completed' && !item.attendee.studentFeedback"
+                :id="`btn-feedback-${item.session.id}`"
                 class="btn btn-sm btn-outline"
                 @click="emit('open-feedback', item)"
-                :id="`btn-feedback-${item.session.id}`"
-              >✍️ {{ $t('student.attendance.writeFeedback') }}</button>
+              >
+                ✍️ {{ $t('student.attendance.writeFeedback') }}
+              </button>
               <button
                 v-else-if="item.session.status === 'completed' && item.attendee.studentFeedback"
                 class="btn btn-sm btn-ghost"
                 @click="emit('open-feedback', item)"
-              >📝 {{ $t('student.attendance.viewFeedback') }}</button>
+              >
+                📝 {{ $t('student.attendance.viewFeedback') }}
+              </button>
             </div>
 
             <div class="sbc-info mt-2">
@@ -108,7 +133,9 @@
               </div>
               <div class="sbc-info-item">
                 <span class="sbc-label">{{ $t('student.course.lecturer') }}</span>
-                <span class="sbc-value">{{ item.session.lecturerTitle }} {{ item.session.lecturerName }}</span>
+                <span class="sbc-value"
+                  >{{ item.session.lecturerTitle }} {{ item.session.lecturerName }}</span
+                >
               </div>
               <div class="sbc-info-item">
                 <span class="sbc-label">{{ $t('student.course.time') }}</span>
@@ -118,12 +145,14 @@
 
             <!-- Teacher feedback (if any) -->
             <div v-if="item.attendee.teacherFeedback" class="sbc-teacher-feedback mt-2">
-              <strong>💬 {{ $t('student.attendance.teacherFeedback') }}：</strong>{{ item.attendee.teacherFeedback }}
+              <strong>💬 {{ $t('student.attendance.teacherFeedback') }}：</strong
+              >{{ item.attendee.teacherFeedback }}
             </div>
 
             <!-- My reflection -->
             <div v-if="item.attendee.studentFeedback" class="sbc-my-feedback mt-2">
-              <strong>✍️ {{ $t('student.attendance.myFeedback') }}：</strong>{{ item.attendee.studentFeedback }}
+              <strong>✍️ {{ $t('student.attendance.myFeedback') }}：</strong
+              >{{ item.attendee.studentFeedback }}
             </div>
           </div>
 
@@ -176,12 +205,16 @@ function bookingStatusLabel(status: string): string {
   return t(`booking.status.${status}`) || status
 }
 
-function formatBookingTime(session: { proposedAt: string; confirmedAt?: string; status: string }): string {
+function formatBookingTime(session: {
+  proposedAt: string
+  confirmedAt?: string
+  status: string
+}): string {
   const dt = session.confirmedAt || session.proposedAt
   if (!dt) return '—'
   const d = new Date(dt)
-  const dateStr = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`
-  const timeStr = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
+  const dateStr = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`
+  const timeStr = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
   const isPending = !session.confirmedAt && session.status === 'pending'
   return `${dateStr} ${timeStr}${isPending ? t('student.attendance.proposed') : ''}`
 }
@@ -192,12 +225,12 @@ function formatBookingTime(session: { proposedAt: string; confirmedAt?: string; 
 @media (max-width: 480px) {
   /* Booking panel styles */
   .student-bookings-panel {
-      padding: 0.75rem !important;
-    }
+    padding: 0.75rem !important;
+  }
 
   .sbc-prep-row {
-      font-size: 0.8rem;
-    }
+    font-size: 0.8rem;
+  }
 }
 
 .student-bookings-panel {
@@ -214,23 +247,23 @@ function formatBookingTime(session: { proposedAt: string; confirmedAt?: string; 
   color: var(--text-secondary);
   margin-bottom: 0.75rem;
   padding-bottom: 0.4rem;
-  border-bottom: 1px solid rgba(99,102,241,0.1);
+  border-bottom: 1px solid rgba(99, 102, 241, 0.1);
 }
 
 .student-booking-card {
   padding: 1rem 1.25rem;
   border-radius: 12px;
   background: white;
-  border: 1px solid rgba(99,102,241,0.1);
+  border: 1px solid rgba(99, 102, 241, 0.1);
   transition: box-shadow 0.2s;
 }
 
 .student-booking-card:hover {
-  box-shadow: 0 4px 16px rgba(99,102,241,0.1);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.1);
 }
 
 .student-booking-card.card-completed {
-  border-color: rgba(16,185,129,0.2);
+  border-color: rgba(16, 185, 129, 0.2);
 }
 
 .sbc-header {
@@ -273,8 +306,8 @@ function formatBookingTime(session: { proposedAt: string; confirmedAt?: string; 
 
 /* Prep box */
 .sbc-prep {
-  background: rgba(99,102,241,0.04);
-  border: 1px dashed rgba(99,102,241,0.18);
+  background: rgba(99, 102, 241, 0.04);
+  border: 1px dashed rgba(99, 102, 241, 0.18);
   border-radius: 8px;
   padding: 0.6rem 0.85rem;
 }
@@ -295,20 +328,20 @@ function formatBookingTime(session: { proposedAt: string; confirmedAt?: string; 
 /* Feedback boxes */
 .sbc-teacher-feedback {
   font-size: 0.8rem;
-  color: #2563EB;
+  color: #2563eb;
   background: rgba(37, 99, 235, 0.05);
   border-radius: 6px;
   padding: 0.4rem 0.75rem;
-  border-left: 3px solid rgba(37,99,235,0.3);
+  border-left: 3px solid rgba(37, 99, 235, 0.3);
 }
 
 .sbc-my-feedback {
   font-size: 0.8rem;
   color: #059669;
-  background: rgba(16,185,129,0.05);
+  background: rgba(16, 185, 129, 0.05);
   border-radius: 6px;
   padding: 0.4rem 0.75rem;
-  border-left: 3px solid rgba(16,185,129,0.3);
+  border-left: 3px solid rgba(16, 185, 129, 0.3);
 }
 
 .empty-booking-hint {

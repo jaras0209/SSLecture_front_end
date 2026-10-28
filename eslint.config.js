@@ -60,7 +60,7 @@ export default [
       '@typescript-eslint/no-explicit-any': 'warn',
 
       // Vue — enforce best practices
-      'vue/multi-word-component-names': 'off',   // our components use single words (App, Login...)
+      'vue/multi-word-component-names': 'off', // our components use single words (App, Login...)
       'vue/no-unused-vars': 'warn',
       'vue/require-v-for-key': 'error',
       'vue/no-use-v-if-with-v-for': 'error',
@@ -75,6 +75,13 @@ export default [
 
   // Prettier must be last to override conflicting rules
   prettierConfig,
+
+  // The codebase is fully Prettier-formatted — fail lint on formatting drift
+  {
+    rules: {
+      'prettier/prettier': 'error'
+    }
+  },
 
   // Files to ignore
   {

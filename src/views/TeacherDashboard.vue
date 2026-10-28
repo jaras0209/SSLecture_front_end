@@ -4,16 +4,26 @@
     <header class="dashboard-header glass-panel no-print">
       <div class="header-intro">
         <div class="header-user-row">
-          <div class="teacher-avatar-wrap" @click="showProfileDialog = true" :title="$t('common.editProfileHint')">
+          <div
+            class="teacher-avatar-wrap"
+            :title="$t('common.editProfileHint')"
+            @click="showProfileDialog = true"
+          >
             <img :src="authStore.currentUser?.avatarUrl" alt="avatar" class="teacher-avatar-sm" />
             <span class="teacher-role-badge">{{ teacherRoleBadge }}</span>
           </div>
           <div>
-            <h2 v-if="authStore.currentUser?.role === 'pastor'">{{ $t('teacher.header.pastorTitle') }}</h2>
-            <h2 v-else-if="authStore.currentUser?.role === 'admin'">{{ $t('teacher.header.adminTitle') }}</h2>
+            <h2 v-if="authStore.currentUser?.role === 'pastor'">
+              {{ $t('teacher.header.pastorTitle') }}
+            </h2>
+            <h2 v-else-if="authStore.currentUser?.role === 'admin'">
+              {{ $t('teacher.header.adminTitle') }}
+            </h2>
             <h2 v-else>{{ $t('teacher.header.teacherTitle') }}</h2>
             <p>{{ $t('teacher.header.welcome', { name: teacherDisplayName }) }}</p>
-            <p v-if="authStore.currentUser?.lastLoginAt" class="last-login-hint-sm">🕐 {{ $t('teacher.header.lastLogin', { time: authStore.currentUser?.lastLoginAt }) }}</p>
+            <p v-if="authStore.currentUser?.lastLoginAt" class="last-login-hint-sm">
+              🕐 {{ $t('teacher.header.lastLogin', { time: authStore.currentUser?.lastLoginAt }) }}
+            </p>
           </div>
         </div>
       </div>
@@ -37,24 +47,28 @@
     <ProfileDialog v-model="showProfileDialog" />
 
     <!-- Main Tab Switcher for settings tab -->
-    <div class="main-tabs mb-4 no-print" v-if="authStore.currentUser?.role !== 'parent'">
-      <button 
+    <div v-if="authStore.currentUser?.role !== 'parent'" class="main-tabs mb-4 no-print">
+      <button
         :class="['main-tab-btn', { active: activeMainTab === 'care' }]"
         @click="activeMainTab = 'care'"
       >
-        <span v-if="authStore.currentUser?.role === 'pastor'">⛪ {{ $t('teacher.tabs.carePastor') }}</span>
-        <span v-else-if="authStore.currentUser?.role === 'admin'">👑 {{ $t('teacher.tabs.careAdmin') }}</span>
+        <span v-if="authStore.currentUser?.role === 'pastor'"
+          >⛪ {{ $t('teacher.tabs.carePastor') }}</span
+        >
+        <span v-else-if="authStore.currentUser?.role === 'admin'"
+          >👑 {{ $t('teacher.tabs.careAdmin') }}</span
+        >
         <span v-else>👨‍🏫 {{ $t('teacher.tabs.careTeacher') }}</span>
       </button>
       <!-- Pastor-only: Church Overview Tab -->
-      <button 
+      <button
         v-if="authStore.currentUser?.role === 'pastor'"
         :class="['main-tab-btn', { active: activeMainTab === 'pastor-overview' }]"
         @click="activeMainTab = 'pastor-overview'"
       >
         ⛪ {{ $t('teacher.tabs.pastorOverview') }}
       </button>
-      <button 
+      <button
         :class="['main-tab-btn', { active: activeMainTab === 'settings' }]"
         @click="activeMainTab = 'settings'"
       >
@@ -63,9 +77,9 @@
       <!-- Booking Tab: teacher + admin -->
       <button
         v-if="authStore.currentUser?.role === 'teacher' || authStore.currentUser?.role === 'admin'"
+        id="tab-bookings"
         :class="['main-tab-btn', { active: activeMainTab === 'bookings' }]"
         @click="activeMainTab = 'bookings'"
-        id="tab-bookings"
       >
         📅 {{ $t('teacher.tabs.bookings') }}
         <span v-if="bookingPendingCount > 0" class="tab-badge">{{ bookingPendingCount }}</span>
@@ -103,117 +117,165 @@
 
     <!-- Tab: Bookings Management -->
     <div
-      v-if="activeMainTab === 'bookings' && (authStore.currentUser?.role === 'teacher' || authStore.currentUser?.role === 'admin')"
+      v-if="
+        activeMainTab === 'bookings' &&
+        (authStore.currentUser?.role === 'teacher' || authStore.currentUser?.role === 'admin')
+      "
     >
       <TeacherBookingPanel />
     </div>
 
     <Teleport to="body">
-      <div v-if="showLecturerModal" class="modal-overlay" role="dialog" aria-modal="true" :aria-label="editingLecturerId ? $t('teacher.lecturer.editTitle') : $t('teacher.lecturer.addTitle')">
-      <div class="glass-panel modal-card lecturer-modal-card">
-        <h3>{{ editingLecturerId ? '✏️ ' + $t('teacher.lecturer.editTitle') : '➕ ' + $t('teacher.lecturer.addTitle') }}</h3>
+      <div
+        v-if="showLecturerModal"
+        class="modal-overlay"
+        role="dialog"
+        aria-modal="true"
+        :aria-label="
+          editingLecturerId ? $t('teacher.lecturer.editTitle') : $t('teacher.lecturer.addTitle')
+        "
+      >
+        <div class="glass-panel modal-card lecturer-modal-card">
+          <h3>
+            {{
+              editingLecturerId
+                ? '✏️ ' + $t('teacher.lecturer.editTitle')
+                : '➕ ' + $t('teacher.lecturer.addTitle')
+            }}
+          </h3>
 
-        <!-- Mode Toggle -->
-        <div class="link-mode-toggle mt-4">
-          <button
-            class="link-mode-btn"
-            :class="{ active: lecturerForm.linkMode === 'link' }"
-            @click="lecturerForm.linkMode = 'link'; lecturerForm.linkedUsername = ''; lecturerForm.name = ''"
-            id="btn-link-mode"
-          >
-            🔗 {{ $t('teacher.lecturer.linkMode') }}
-          </button>
-          <button
-            class="link-mode-btn"
-            :class="{ active: lecturerForm.linkMode === 'custom' }"
-            @click="lecturerForm.linkMode = 'custom'; lecturerForm.linkedUsername = ''"
-            id="btn-custom-mode"
-          >
-            ✍️ {{ $t('teacher.lecturer.customMode') }}
-          </button>
-        </div>
-
-        <!-- Link Mode: pick from teachers in church -->
-        <div v-if="lecturerForm.linkMode === 'link'" class="form-group mt-4">
-          <label class="form-label">{{ $t('teacher.lecturer.selectAccount') }}</label>
-          <select
-            v-model="lecturerForm.linkedUsername"
-            class="form-input select-input"
-            @change="onLinkedUsernameChange(lecturerForm.linkedUsername)"
-            id="select-linked-teacher"
-          >
-            <option value="">{{ $t('teacher.lecturer.selectPlaceholder') }}</option>
-            <option v-for="tc in teachersInChurch" :key="tc.username" :value="tc.username">
-              {{ tc.displayLabel }}
-            </option>
-          </select>
-          <p v-if="teachersInChurch.length === 0" class="text-xs text-muted mt-1">
-            {{ $t('teacher.lecturer.noTeachersHint') }}
-          </p>
-          <div v-if="lecturerForm.linkedUsername" class="linked-user-preview mt-2">
-            <span class="linked-chip">🔗 {{ $t('teacher.lecturer.linkedChip', { username: lecturerForm.linkedUsername }) }}</span>
-            <span class="text-xs text-muted ml-2">{{ $t('teacher.lecturer.autoFillHint') }}</span>
+          <!-- Mode Toggle -->
+          <div class="link-mode-toggle mt-4">
+            <button
+              id="btn-link-mode"
+              class="link-mode-btn"
+              :class="{ active: lecturerForm.linkMode === 'link' }"
+              @click="setLinkMode('link')"
+            >
+              🔗 {{ $t('teacher.lecturer.linkMode') }}
+            </button>
+            <button
+              id="btn-custom-mode"
+              class="link-mode-btn"
+              :class="{ active: lecturerForm.linkMode === 'custom' }"
+              @click="setLinkMode('custom')"
+            >
+              ✍️ {{ $t('teacher.lecturer.customMode') }}
+            </button>
           </div>
-        </div>
 
-        <!-- Lecturer display name (editable in custom mode, auto in link mode) -->
-        <div class="form-group" :class="{ 'mt-4': lecturerForm.linkMode !== 'link' }">
-          <label class="form-label">
-            🎤 {{ $t('teacher.lecturer.displayName') }}
-            <span v-if="lecturerForm.linkMode === 'link'" class="text-xs text-muted ml-1">{{ $t('teacher.lecturer.autoFillNote') }}</span>
-          </label>
-          <input
-            v-model="lecturerForm.name"
-            type="text"
-            class="form-input"
-            :placeholder="$t('teacher.lecturer.namePlaceholder')"
-            id="input-lecturer-name"
-          />
-        </div>
+          <!-- Link Mode: pick from teachers in church -->
+          <div v-if="lecturerForm.linkMode === 'link'" class="form-group mt-4">
+            <label class="form-label">{{ $t('teacher.lecturer.selectAccount') }}</label>
+            <select
+              id="select-linked-teacher"
+              v-model="lecturerForm.linkedUsername"
+              class="form-input select-input"
+              @change="onLinkedUsernameChange(lecturerForm.linkedUsername)"
+            >
+              <option value="">{{ $t('teacher.lecturer.selectPlaceholder') }}</option>
+              <option v-for="tc in teachersInChurch" :key="tc.username" :value="tc.username">
+                {{ tc.displayLabel }}
+              </option>
+            </select>
+            <p v-if="teachersInChurch.length === 0" class="text-xs text-muted mt-1">
+              {{ $t('teacher.lecturer.noTeachersHint') }}
+            </p>
+            <div v-if="lecturerForm.linkedUsername" class="linked-user-preview mt-2">
+              <span class="linked-chip"
+                >🔗
+                {{
+                  $t('teacher.lecturer.linkedChip', { username: lecturerForm.linkedUsername })
+                }}</span
+              >
+              <span class="text-xs text-muted ml-2">{{ $t('teacher.lecturer.autoFillHint') }}</span>
+            </div>
+          </div>
 
-        <div class="form-group">
-          <label class="form-label">{{ $t('teacher.lecturer.titleLabel') }}</label>
-          <select v-model="lecturerForm.title" class="form-input select-input" id="select-lecturer-title">
-            <option value="講師">{{ $t('teacher.lecturer.titleOptions.lecturer') }}</option>
-            <option value="牧師">{{ $t('teacher.lecturer.titleOptions.pastor') }}</option>
-            <option value="傳道人">{{ $t('teacher.lecturer.titleOptions.preacher') }}</option>
-            <option value="師母">{{ $t('teacher.lecturer.titleOptions.pastor_wife') }}</option>
-            <option value="特約講師">{{ $t('teacher.lecturer.titleOptions.guest') }}</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">{{ $t('teacher.lecturer.courses') }} <span class="text-xs text-muted">{{ $t('teacher.lecturer.coursesHint') }}</span></label>
-          <div class="courses-checkboxes-grid mt-2">
-            <label v-for="c in coursesStore.courses" :key="c.id" class="check-item-row">
-              <input type="checkbox" :value="c.id" v-model="lecturerForm.courseIds" />
-              <span>{{ c.title }} <span class="text-xs text-muted">({{ c.category === 'bible' ? $t('teacher.lecturer.courseCategory.bible') : $t('teacher.lecturer.courseCategory.topic') }})</span></span>
+          <!-- Lecturer display name (editable in custom mode, auto in link mode) -->
+          <div class="form-group" :class="{ 'mt-4': lecturerForm.linkMode !== 'link' }">
+            <label class="form-label">
+              🎤 {{ $t('teacher.lecturer.displayName') }}
+              <span v-if="lecturerForm.linkMode === 'link'" class="text-xs text-muted ml-1">{{
+                $t('teacher.lecturer.autoFillNote')
+              }}</span>
             </label>
+            <input
+              id="input-lecturer-name"
+              v-model="lecturerForm.name"
+              type="text"
+              class="form-input"
+              :placeholder="$t('teacher.lecturer.namePlaceholder')"
+            />
           </div>
-        </div>
 
-        <div class="flex justify-end gap-2 mt-6" style="display: flex; justify-content: flex-end;">
-          <button @click="showLecturerModal = false" class="btn btn-outline btn-sm">{{ $t('teacher.lecturer.cancelBtn') }}</button>
-          <button @click="saveLecturer" class="btn btn-secondary btn-sm" id="btn-save-lecturer">{{ $t('teacher.lecturer.saveBtn') }}</button>
+          <div class="form-group">
+            <label class="form-label">{{ $t('teacher.lecturer.titleLabel') }}</label>
+            <select
+              id="select-lecturer-title"
+              v-model="lecturerForm.title"
+              class="form-input select-input"
+            >
+              <option value="講師">{{ $t('teacher.lecturer.titleOptions.lecturer') }}</option>
+              <option value="牧師">{{ $t('teacher.lecturer.titleOptions.pastor') }}</option>
+              <option value="傳道人">{{ $t('teacher.lecturer.titleOptions.preacher') }}</option>
+              <option value="師母">{{ $t('teacher.lecturer.titleOptions.pastor_wife') }}</option>
+              <option value="特約講師">{{ $t('teacher.lecturer.titleOptions.guest') }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label"
+              >{{ $t('teacher.lecturer.courses') }}
+              <span class="text-xs text-muted">{{
+                $t('teacher.lecturer.coursesHint')
+              }}</span></label
+            >
+            <div class="courses-checkboxes-grid mt-2">
+              <label v-for="c in coursesStore.courses" :key="c.id" class="check-item-row">
+                <input v-model="lecturerForm.courseIds" type="checkbox" :value="c.id" />
+                <span
+                  >{{ c.title }}
+                  <span class="text-xs text-muted"
+                    >({{
+                      c.category === 'bible'
+                        ? $t('teacher.lecturer.courseCategory.bible')
+                        : $t('teacher.lecturer.courseCategory.topic')
+                    }})</span
+                  ></span
+                >
+              </label>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-2 mt-6" style="display: flex; justify-content: flex-end">
+            <button class="btn btn-outline btn-sm" @click="showLecturerModal = false">
+              {{ $t('teacher.lecturer.cancelBtn') }}
+            </button>
+            <button id="btn-save-lecturer" class="btn btn-secondary btn-sm" @click="saveLecturer">
+              {{ $t('teacher.lecturer.saveBtn') }}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
     </Teleport>
-
 
     <!-- Stats Report (Phase B component) -->
     <TeacherStatsReport
-      v-if="activeMainTab === 'settings' && (authStore.currentUser?.role === 'teacher' || authStore.currentUser?.role === 'admin')"
+      v-if="
+        activeMainTab === 'settings' &&
+        (authStore.currentUser?.role === 'teacher' || authStore.currentUser?.role === 'admin')
+      "
     />
 
-  <!-- Notes Dialog (using extracted TeacherNotesDialog component) -->
-  <TeacherNotesDialog
-    v-model="showNotesDialog"
-    :student="notesDialogStudent"
-    :total-courses="coursesStore.courses.length"
-    :can-send-feedback="authStore.currentUser?.role !== 'parent'"
-    @feedback-sent="handleNotesDialogFeedback"
-  />
+    <!-- Notes Dialog (using extracted TeacherNotesDialog component) -->
+    <TeacherNotesDialog
+      v-model="showNotesDialog"
+      :student="notesDialogStudent"
+      :total-courses="coursesStore.courses.length"
+      :can-send-feedback="authStore.currentUser?.role !== 'parent'"
+      @feedback-sent="handleNotesDialogFeedback"
+    />
   </div>
 </template>
 
@@ -230,13 +292,27 @@ import { defineAsyncComponent } from 'vue'
 import type { StudentProgressSummary } from '@/components/teacher/TeacherStudentList.vue'
 
 // --- 大型子元件：改用 defineAsyncComponent 按需載入，縮減首次渲染負擔 ---
-const TeacherNotesDialog    = defineAsyncComponent(() => import('@/components/teacher/TeacherNotesDialog.vue'))
-const TeacherPastorOverview = defineAsyncComponent(() => import('@/components/teacher/TeacherPastorOverview.vue'))
-const TeacherSettingsPanel  = defineAsyncComponent(() => import('@/components/teacher/TeacherSettingsPanel.vue'))
-const TeacherStatsReport    = defineAsyncComponent(() => import('@/components/teacher/TeacherStatsReport.vue'))
-const TeacherBookingPanel   = defineAsyncComponent(() => import('@/components/teacher/TeacherBookingPanel.vue'))
-const TeacherStudentList    = defineAsyncComponent(() => import('@/components/teacher/TeacherStudentList.vue'))
-const TeacherStudentDrawer  = defineAsyncComponent(() => import('@/components/teacher/TeacherStudentDrawer.vue'))
+const TeacherNotesDialog = defineAsyncComponent(
+  () => import('@/components/teacher/TeacherNotesDialog.vue')
+)
+const TeacherPastorOverview = defineAsyncComponent(
+  () => import('@/components/teacher/TeacherPastorOverview.vue')
+)
+const TeacherSettingsPanel = defineAsyncComponent(
+  () => import('@/components/teacher/TeacherSettingsPanel.vue')
+)
+const TeacherStatsReport = defineAsyncComponent(
+  () => import('@/components/teacher/TeacherStatsReport.vue')
+)
+const TeacherBookingPanel = defineAsyncComponent(
+  () => import('@/components/teacher/TeacherBookingPanel.vue')
+)
+const TeacherStudentList = defineAsyncComponent(
+  () => import('@/components/teacher/TeacherStudentList.vue')
+)
+const TeacherStudentDrawer = defineAsyncComponent(
+  () => import('@/components/teacher/TeacherStudentDrawer.vue')
+)
 import type { Lecturer } from '@/stores/courses'
 import type { BookingSession } from '@/stores/bookings'
 
@@ -255,7 +331,11 @@ const teacherDisplayName = computed(() => {
 })
 
 const teacherBadgeMap: Record<string, string> = {
-  student: '🎒', teacher: '👨‍🏫', pastor: '⛪', parent: '👨‍👩‍👦', admin: '👑'
+  student: '🎒',
+  teacher: '👨‍🏫',
+  pastor: '⛪',
+  parent: '👨‍👩‍👦',
+  admin: '👑'
 }
 const teacherRoleBadge = computed(() => teacherBadgeMap[authStore.currentUser?.role || ''] || '👤')
 
@@ -268,7 +348,9 @@ const activeMainTab = ref<'care' | 'settings' | 'pastor-overview' | 'bookings'>(
 const bookingPendingCount = computed(() => {
   const me = authStore.currentUser
   if (!me) return 0
-  return bookingsStore.getSessionsByTeacher(me.username).filter((s: BookingSession) => s.status === 'pending').length
+  return bookingsStore
+    .getSessionsByTeacher(me.username)
+    .filter((s: BookingSession) => s.status === 'pending').length
 })
 
 // Lecturer Form Modal States
@@ -278,8 +360,8 @@ const lecturerForm = ref({
   name: '',
   title: '牧師',
   courseIds: [] as string[],
-  linkedUsername: '',   // '' = 未連結輔導教師帳號
-  linkMode: 'custom' as 'link' | 'custom'  // 'link'=連結帳號, 'custom'=自訂
+  linkedUsername: '', // '' = 未連結輔導教師帳號
+  linkMode: 'custom' as 'link' | 'custom' // 'link'=連結帳號, 'custom'=自訂
 })
 
 // Teachers available in current church for the link-account dropdown
@@ -297,6 +379,14 @@ const teachersInChurch = computed(() => {
       name: u.realName || u.displayName || username
     }))
 })
+
+// Switch between linking a teacher account and a custom lecturer name.
+// Link mode clears the name so it is re-filled from the selected account.
+function setLinkMode(mode: 'link' | 'custom') {
+  lecturerForm.value.linkMode = mode
+  lecturerForm.value.linkedUsername = ''
+  if (mode === 'link') lecturerForm.value.name = ''
+}
 
 // When linkedUsername changes in link-mode, auto-fill name from user db
 function onLinkedUsernameChange(username: string) {
@@ -317,19 +407,22 @@ const adminSettingsChurch = ref('愛與話語')
 const currentContextChurch = computed(() => {
   return authStore.currentUser?.role === 'admin'
     ? adminSettingsChurch.value
-    : (authStore.currentUser?.church || '愛與話語')
+    : authStore.currentUser?.church || '愛與話語'
 })
 
 // feedbacksSent tracks the confirmation message displayed to teacher after sending feedback
 const feedbacksSent = ref<Record<string, string>>({})
 
-
 // Watch role changes - reset main tab when role changes
-watch(() => authStore.currentUser?.role, (role) => {
-  if (role === 'parent' || role === 'pastor' || role === 'admin') {
-    activeMainTab.value = 'care'
-  }
-}, { immediate: true })
+watch(
+  () => authStore.currentUser?.role,
+  (role) => {
+    if (role === 'parent' || role === 'pastor' || role === 'admin') {
+      activeMainTab.value = 'care'
+    }
+  },
+  { immediate: true }
+)
 
 // Actions
 function manageStudent(studentUsername: string) {
@@ -350,9 +443,7 @@ function unmanageStudent(studentUsername: string) {
   }
 }
 
-
 // Lecturer Actions
-
 
 function openAddLecturer() {
   editingLecturerId.value = null
@@ -383,9 +474,8 @@ function saveLecturer() {
     toast(t('teacher.lecturer.nameRequired'), 'warning')
     return
   }
-  const linkedUsername = lecturerForm.value.linkMode === 'link'
-    ? (lecturerForm.value.linkedUsername || '')
-    : ''
+  const linkedUsername =
+    lecturerForm.value.linkMode === 'link' ? lecturerForm.value.linkedUsername || '' : ''
 
   if (editingLecturerId.value) {
     coursesStore.updateLecturer(
@@ -416,33 +506,29 @@ const myStudentsCount = computed(() => {
   const currentUsername = authStore.currentUser?.username
   if (!currentUserRole || !currentUsername) return 0
   if (currentUserRole === 'admin') return studentsList.value.length
-  return studentsList.value.filter(s =>
-    coursesStore.getStudentCaretaker(s.username, currentUserRole as any) === currentUsername
+  return studentsList.value.filter(
+    (s) => coursesStore.getStudentCaretaker(s.username, currentUserRole as any) === currentUsername
   ).length
 })
 
-
 const totalNotesSubmitted = computed(() => {
   let count = 0
-  studentsList.value.forEach(s => {
-    s.records.forEach(r => {
+  studentsList.value.forEach((s) => {
+    s.records.forEach((r) => {
       if (r.notes && r.notes.trim() !== '') count++
     })
   })
   return count
 })
 
-
 function openNotesDialog(student: StudentProgressSummary) {
   notesDialogStudent.value = student
   showNotesDialog.value = true
 }
 
-
 function viewStudentDetails(student: StudentProgressSummary) {
   selectedStudent.value = student
 }
-
 
 function handleNotesDialogFeedback(username: string, courseId: string, msg: string) {
   const key = `${username}_${courseId}`
@@ -452,14 +538,12 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   }, 4000)
 }
 
-
 // Note: getShining, isStudentManaged, getCaretakerStatusText, getCaretakerBadgeClass,
 // initShiningForm, saveLectureRow, triggerPrint, phase labels, and theme computeds
 // have been moved to TeacherStudentList.vue and TeacherStudentDrawer.vue
 </script>
 
 <style>
-
 .dashboard-header {
   display: flex;
   justify-content: space-between;
@@ -484,7 +568,7 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  border: 2px solid rgba(99,102,241,0.25);
+  border: 2px solid rgba(99, 102, 241, 0.25);
   object-fit: cover;
   transition: opacity 0.2s;
 }
@@ -503,7 +587,7 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   align-items: center;
   justify-content: center;
   font-size: 0.75rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 .last-login-hint-sm {
   font-size: 0.72rem;
@@ -594,13 +678,13 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   padding: 0.75rem 1rem;
   color: var(--text-secondary);
   font-weight: 700;
-  border-bottom: 2px solid #E2E8F0;
+  border-bottom: 2px solid #e2e8f0;
   font-size: 0.9rem;
 }
 
 .students-table td {
   padding: 1rem;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid #e2e8f0;
   vertical-align: middle;
   font-size: 0.9rem;
 }
@@ -615,7 +699,7 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   width: 38px;
   height: 38px;
   border-radius: var(--radius-full);
-  background: #F1F5F9;
+  background: #f1f5f9;
   border: 2px solid var(--secondary);
 }
 
@@ -643,7 +727,7 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   font-size: 0.72rem;
   color: var(--text-muted);
   font-weight: 500;
-  background: rgba(0,0,0,0.05);
+  background: rgba(0, 0, 0, 0.05);
   padding: 1px 6px;
   border-radius: 4px;
   margin-left: 6px;
@@ -659,7 +743,7 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   width: 50px;
   height: 50px;
   border-radius: var(--radius-full);
-  background: #F1F5F9;
+  background: #f1f5f9;
   border: 2px solid var(--secondary);
 }
 
@@ -686,7 +770,9 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   display: flex;
   align-items: center;
 }
-.text-xs { font-size: 0.75rem; }
+.text-xs {
+  font-size: 0.75rem;
+}
 
 .ro-check-row.active {
   color: var(--text-primary);
@@ -846,7 +932,15 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
 
 @media print {
   /* Hide all screen elements completely */
-  .no-print, nav, header, .main-tabs, .btn, .tab-selectors, #app-container, .main-content, .student-details-drawer {
+  .no-print,
+  nav,
+  header,
+  .main-tabs,
+  .btn,
+  .tab-selectors,
+  #app-container,
+  .main-content,
+  .student-details-drawer {
     display: none !important;
   }
 
@@ -900,9 +994,15 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
     gap: 15px;
   }
 
-  .print-w-45 { width: 45%; }
-  .print-w-48 { width: 48%; }
-  .print-w-50 { width: 50%; }
+  .print-w-45 {
+    width: 45%;
+  }
+  .print-w-48 {
+    width: 48%;
+  }
+  .print-w-50 {
+    width: 50%;
+  }
 
   .print-box {
     border: 1px solid #000;
@@ -977,7 +1077,8 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
     margin-top: 10px;
   }
 
-  .print-table th, .print-table td {
+  .print-table th,
+  .print-table td {
     border: 1px solid #000;
     padding: 6px 10px;
     font-size: 0.85rem;
@@ -1045,12 +1146,12 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
 }
 
 .main-tab-btn:hover {
-  background: #F8FAFC;
+  background: #f8fafc;
   color: var(--primary);
 }
 
 .main-tab-btn.active {
-  background: linear-gradient(135deg, var(--primary) 0%, #4F46E5 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%);
   color: white;
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
@@ -1109,7 +1210,7 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
 .link-mode-btn.active {
   background: var(--primary);
   color: white;
-  box-shadow: 0 2px 8px rgba(99,102,241,0.3);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
 }
 
 .linked-user-preview {
@@ -1134,7 +1235,7 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   max-height: 220px;
   overflow-y: auto;
   padding: 8px;
-  border: 1px solid rgba(99,102,241,0.12);
+  border: 1px solid rgba(99, 102, 241, 0.12);
   border-radius: 8px;
   background: rgba(248, 250, 252, 0.8);
 }
@@ -1159,27 +1260,27 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
 
 .filter-btn {
   padding: 0.35rem 0.9rem;
-  border: 2px solid #E2E8F0;
+  border: 2px solid #e2e8f0;
   border-radius: 999px;
   background: white;
   font-family: inherit;
   font-size: 0.8rem;
   font-weight: 600;
-  color: #64748B;
+  color: #64748b;
   cursor: pointer;
   transition: all 0.15s ease;
   line-height: 1.5;
 }
 
 .filter-btn:hover {
-  border-color: #6366F1;
-  color: #6366F1;
-  background: #EEF2FF;
+  border-color: #6366f1;
+  color: #6366f1;
+  background: #eef2ff;
 }
 
 .filter-btn.active {
-  background: #6366F1;
-  border-color: #6366F1;
+  background: #6366f1;
+  border-color: #6366f1;
   color: white;
   box-shadow: 0 3px 10px rgba(99, 102, 241, 0.3);
 }
@@ -1191,7 +1292,7 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
 
 .status-pending {
   background: rgba(245, 158, 11, 0.1);
-  color: #D97706;
+  color: #d97706;
 }
 
 /* ?????? Booking Styles ?????????????????????????????????????????????????????????????????????????????????????? */
@@ -1200,7 +1301,7 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #EF4444;
+  background: #ef4444;
   color: white;
   font-size: 0.65rem;
   font-weight: 700;
@@ -1236,7 +1337,7 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
 
 .status-pending {
   background: rgba(245, 158, 11, 0.12);
-  color: #D97706;
+  color: #d97706;
   border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
@@ -1254,7 +1355,7 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
 
 .status-cancelled {
   background: rgba(107, 114, 128, 0.1);
-  color: #6B7280;
+  color: #6b7280;
   border: 1px solid rgba(107, 114, 128, 0.25);
 }
 
@@ -1277,9 +1378,21 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   font-weight: 600;
 }
 
-.att-invited  { background: rgba(107, 114, 128, 0.08); color: #6B7280; border: 1px solid rgba(107,114,128,0.2); }
-.att-attended { background: rgba(16, 185, 129, 0.1); color: #059669; border: 1px solid rgba(16,185,129,0.25); }
-.att-absent   { background: rgba(239, 68, 68, 0.08); color: #DC2626; border: 1px solid rgba(239,68,68,0.2); }
+.att-invited {
+  background: rgba(107, 114, 128, 0.08);
+  color: #6b7280;
+  border: 1px solid rgba(107, 114, 128, 0.2);
+}
+.att-attended {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+.att-absent {
+  background: rgba(239, 68, 68, 0.08);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
 
 .scripture-chip {
   display: inline-block;
@@ -1307,7 +1420,7 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
   font-size: 0.75rem;
   font-weight: 600;
   border-radius: 20px;
-  border: 1.5px solid rgba(99,102,241,0.2);
+  border: 1.5px solid rgba(99, 102, 241, 0.2);
   background: transparent;
   cursor: pointer;
   transition: all 0.18s;
@@ -1317,17 +1430,16 @@ function handleNotesDialogFeedback(username: string, courseId: string, msg: stri
 .att-toggle-btn.active {
   background: rgba(16, 185, 129, 0.15);
   color: #059669;
-  border-color: rgba(16,185,129,0.4);
+  border-color: rgba(16, 185, 129, 0.4);
 }
 
 .att-toggle-btn.danger.active {
   background: rgba(239, 68, 68, 0.12);
-  color: #DC2626;
-  border-color: rgba(239,68,68,0.35);
+  color: #dc2626;
+  border-color: rgba(239, 68, 68, 0.35);
 }
 
 .form-input-sm {
   font-size: 0.82rem;
 }
-
 </style>

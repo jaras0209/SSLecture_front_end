@@ -2,7 +2,7 @@
   <!-- Search & Student List -->
   <section class="students-list-panel glass-panel">
     <div class="panel-header-row">
-      <div class="tab-selectors" v-if="authStore.currentUser?.role !== 'parent'">
+      <div v-if="authStore.currentUser?.role !== 'parent'" class="tab-selectors">
         <button
           v-if="authStore.currentUser?.role === 'teacher'"
           :class="['tab-btn', { active: currentTab === 'my-students' }]"
@@ -18,22 +18,35 @@
         </button>
       </div>
       <div v-else class="tab-selectors-parent-title">
-        <h3 style="margin: 0; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem; color: var(--primary);">
+        <h3
+          style="
+            margin: 0;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+          "
+        >
           {{ $t('teacher.studentList.childrenTitle') }}
         </h3>
       </div>
       <input
+        v-if="authStore.currentUser?.role !== 'parent'"
         v-model="searchQuery"
         type="text"
         class="form-input search-input"
         :placeholder="$t('teacher.studentList.searchPlaceholder')"
-        v-if="authStore.currentUser?.role !== 'parent'"
       />
     </div>
 
     <div class="table-container mt-4">
       <table class="students-table">
-        <caption class="sr-only">{{ $t('teacher.studentList.tableCaption') }}</caption>
+        <caption class="sr-only">
+          {{
+            $t('teacher.studentList.tableCaption')
+          }}
+        </caption>
         <thead>
           <tr>
             <th>{{ $t('teacher.studentList.colName') }}</th>
@@ -75,25 +88,30 @@
             </td>
             <td>
               <div class="action-buttons">
-                <button
-                  @click="emit('view-student', student)"
-                  class="btn btn-secondary btn-sm"
-                >
+                <button class="btn btn-secondary btn-sm" @click="emit('view-student', student)">
                   {{ $t('teacher.studentList.viewProgress') }}
                 </button>
 
                 <template v-if="authStore.currentUser?.role !== 'parent'">
                   <button
-                    v-if="isStudentManaged(student.username) && authStore.currentUser?.role === 'teacher'"
-                    @click="emit('unmanage-student', student.username)"
+                    v-if="
+                      isStudentManaged(student.username) &&
+                      authStore.currentUser?.role === 'teacher'
+                    "
                     class="btn btn-danger btn-sm"
+                    @click="emit('unmanage-student', student.username)"
                   >
                     {{ $t('teacher.studentList.unmanage') }}
                   </button>
                   <button
-                    v-else-if="!coursesStore.getStudentCaretaker(student.username, authStore.currentUser?.role as any) && authStore.currentUser?.role === 'teacher'"
-                    @click="emit('manage-student', student.username)"
+                    v-else-if="
+                      !coursesStore.getStudentCaretaker(
+                        student.username,
+                        authStore.currentUser?.role as any
+                      ) && authStore.currentUser?.role === 'teacher'
+                    "
                     class="btn btn-primary btn-sm"
+                    @click="emit('manage-student', student.username)"
                   >
                     {{ $t('teacher.studentList.manage') }}
                   </button>
@@ -147,13 +165,17 @@ const searchQuery = ref('')
 
 // ── Watch role changes ────────────────────────────────────────────────────────
 
-watch(() => authStore.currentUser?.role, (role) => {
-  if (role === 'parent') {
-    currentTab.value = 'my-students'
-  } else if (role === 'pastor' || role === 'admin') {
-    currentTab.value = 'all-students'
-  }
-}, { immediate: true })
+watch(
+  () => authStore.currentUser?.role,
+  (role) => {
+    if (role === 'parent') {
+      currentTab.value = 'my-students'
+    } else if (role === 'pastor' || role === 'admin') {
+      currentTab.value = 'all-students'
+    }
+  },
+  { immediate: true }
+)
 
 // ── Students Data (via shared composable) ─────────────────────────────────────
 
@@ -161,8 +183,12 @@ const { studentsList } = useStudentList()
 const myStudentsCount = computed(() => {
   const currentUserRole = authStore.currentUser?.role
   const currentUsername = authStore.currentUser?.username
-  return studentsList.value.filter(s => {
-    if (currentUserRole === 'teacher' || currentUserRole === 'pastor' || currentUserRole === 'parent') {
+  return studentsList.value.filter((s) => {
+    if (
+      currentUserRole === 'teacher' ||
+      currentUserRole === 'pastor' ||
+      currentUserRole === 'parent'
+    ) {
       return coursesStore.getStudentCaretaker(s.username, currentUserRole) === currentUsername
     }
     return false
@@ -175,15 +201,17 @@ const filteredStudents = computed(() => {
   const currentUsername = authStore.currentUser?.username
 
   if (currentUserRole !== 'parent' && currentTab.value === 'my-students') {
-    list = list.filter(student => {
+    list = list.filter((student) => {
       if (currentUserRole === 'teacher' || currentUserRole === 'pastor') {
-        return coursesStore.getStudentCaretaker(student.username, currentUserRole) === currentUsername
+        return (
+          coursesStore.getStudentCaretaker(student.username, currentUserRole) === currentUsername
+        )
       }
       return true
     })
   }
 
-  return list.filter(student =>
+  return list.filter((student) =>
     student.username.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
 })
@@ -194,7 +222,9 @@ function isStudentManaged(studentUsername: string): boolean {
   if (!authStore.currentUser) return false
   const role = authStore.currentUser.role
   if (role === 'teacher' || role === 'pastor' || role === 'parent') {
-    return coursesStore.getStudentCaretaker(studentUsername, role) === authStore.currentUser.username
+    return (
+      coursesStore.getStudentCaretaker(studentUsername, role) === authStore.currentUser.username
+    )
   }
   return false
 }
@@ -205,17 +235,23 @@ function getCaretakerStatusText(studentUsername: string): string {
     const tc = coursesStore.getStudentCaretaker(studentUsername, 'teacher')
     return tc === authStore.currentUser?.username
       ? t('teacher.studentList.youManage')
-      : (tc ? t('teacher.studentList.managedBy', { name: tc }) : t('teacher.studentList.noManager'))
+      : tc
+        ? t('teacher.studentList.managedBy', { name: tc })
+        : t('teacher.studentList.noManager')
   } else if (role === 'pastor') {
     const p = coursesStore.getStudentCaretaker(studentUsername, 'pastor')
     return p === authStore.currentUser?.username
       ? t('teacher.studentList.youPastor')
-      : (p ? t('teacher.studentList.pastoredBy', { name: p }) : t('teacher.studentList.noPastor'))
+      : p
+        ? t('teacher.studentList.pastoredBy', { name: p })
+        : t('teacher.studentList.noPastor')
   } else if (role === 'parent') {
     const pa = coursesStore.getStudentCaretaker(studentUsername, 'parent')
     return pa === authStore.currentUser?.username
       ? t('teacher.studentList.youParent')
-      : (pa ? t('teacher.studentList.caredBy', { name: pa }) : t('teacher.studentList.noCarer'))
+      : pa
+        ? t('teacher.studentList.caredBy', { name: pa })
+        : t('teacher.studentList.noCarer')
   }
   const tc = coursesStore.getStudentCaretaker(studentUsername, 'teacher')
   return tc ? t('teacher.studentList.managedBy', { name: tc }) : t('teacher.studentList.noAssigned')
@@ -280,15 +316,15 @@ function getCaretakerBadgeClass(studentUsername: string): string {
 @media (max-width: 640px) {
   /* Tab selectors (inner tabs) also scrollable */
   .tab-selectors {
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      flex-wrap: nowrap;
-    }
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+  }
 
   /* Search input */
   .search-input {
-      max-width: 100%;
-      width: 100%;
-    }
+    max-width: 100%;
+    width: 100%;
+  }
 }
 </style>

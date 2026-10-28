@@ -75,12 +75,12 @@ const router = createRouter({
 router.beforeEach((to, _from) => {
   const authStore = useAuthStore()
   const coursesStore = useCoursesStore()
-  
+
   const isAuthenticated = authStore.isAuthenticated
   const currentUser = authStore.currentUser
-  
+
   // 1. Guest-only route check (e.g., Login page should not be accessed if logged in)
-  if (to.matched.some(record => record.meta.guestOnly)) {
+  if (to.matched.some((record) => record.meta.guestOnly)) {
     if (isAuthenticated && currentUser) {
       if (currentUser.role === 'student') {
         return '/student'
@@ -94,7 +94,7 @@ router.beforeEach((to, _from) => {
   }
 
   // 2. Auth checking
-  if (to.matched.some(record => record.meta.requiresAuth)) {
+  if (to.matched.some((record) => record.meta.requiresAuth)) {
     if (!isAuthenticated || !currentUser) {
       // Redirect to login if not logged in
       return { name: 'Login', query: { redirect: to.fullPath } }

@@ -3,12 +3,16 @@
   <teleport to="body">
     <transition name="dialog-fade">
       <div v-if="modelValue" class="pd-overlay" @click.self="close">
-        <div class="pd-card glass-panel" role="dialog" aria-modal="true" :aria-label="$t('profile.title')">
-
+        <div
+          class="pd-card glass-panel"
+          role="dialog"
+          aria-modal="true"
+          :aria-label="$t('profile.title')"
+        >
           <!-- ── Header ── -->
           <div class="pd-header">
             <h3 class="pd-title">⚙️ {{ $t('profile.title') }}</h3>
-            <button class="pd-close" @click="close" :aria-label="$t('common.close')">✕</button>
+            <button class="pd-close" :aria-label="$t('common.close')" @click="close">✕</button>
           </div>
 
           <!-- ── Avatar Section ── -->
@@ -27,8 +31,8 @@
                   :key="style.id"
                   class="pd-preset-btn"
                   :class="{ active: selectedStyle === style.id }"
-                  @click="applyPresetStyle(style.id)"
                   :title="style.label"
+                  @click="applyPresetStyle(style.id)"
                 >
                   <img :src="style.previewUrl" :alt="style.label" />
                   <span>{{ style.label }}</span>
@@ -52,14 +56,16 @@
           <div class="form-group mt-4">
             <label class="form-label" for="pd-nickname">✏️ {{ $t('profile.nickname') }}</label>
             <input
-              v-model="draftDisplayName"
               id="pd-nickname"
+              v-model="draftDisplayName"
               type="text"
               maxlength="20"
               class="form-input"
               :placeholder="$t('profile.nicknamePlaceholder')"
             />
-            <p class="pd-char-hint">{{ $t('profile.charCount', { n: draftDisplayName.length }) }}</p>
+            <p class="pd-char-hint">
+              {{ $t('profile.charCount', { n: draftDisplayName.length }) }}
+            </p>
           </div>
 
           <!-- ── Real Name ── -->
@@ -69,8 +75,8 @@
               <span class="pd-field-badge">{{ $t('profile.adminVisible') }}</span>
             </label>
             <input
-              v-model="draftRealName"
               id="pd-realname"
+              v-model="draftRealName"
               type="text"
               maxlength="20"
               class="form-input"
@@ -89,11 +95,11 @@
               <span class="pd-info-lbl">👤 {{ $t('profile.infoRole') }}</span>
               <span class="pd-info-val">{{ roleLabel }}</span>
             </div>
-            <div class="pd-info-item" v-if="authStore.currentUser?.church">
+            <div v-if="authStore.currentUser?.church" class="pd-info-item">
               <span class="pd-info-lbl">⛪ {{ $t('profile.infoChurch') }}</span>
               <span class="pd-info-val">{{ authStore.currentUser?.church }}</span>
             </div>
-            <div class="pd-info-item" v-if="authStore.currentUser?.lastLoginAt">
+            <div v-if="authStore.currentUser?.lastLoginAt" class="pd-info-item">
               <span class="pd-info-lbl">🕐 {{ $t('profile.infoLastLogin') }}</span>
               <span class="pd-info-val">{{ authStore.currentUser?.lastLoginAt }}</span>
             </div>
@@ -119,9 +125,36 @@
                       class="form-input form-input-sm"
                       :placeholder="$t('profile.oldPwdPlaceholder')"
                     />
-                    <button type="button" class="pwd-eye-btn" @click="showOldPwd = !showOldPwd" :title="showOldPwd ? $t('common.hidePwd') : $t('common.showPwd')">
-                      <svg v-if="!showOldPwd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                      <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    <button
+                      type="button"
+                      class="pwd-eye-btn"
+                      :title="showOldPwd ? $t('common.hidePwd') : $t('common.showPwd')"
+                      @click="showOldPwd = !showOldPwd"
+                    >
+                      <svg
+                        v-if="!showOldPwd"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                      <svg
+                        v-else
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path
+                          d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                        />
+                        <line x1="1" y1="1" x2="23" y2="23" />
+                      </svg>
                     </button>
                   </div>
                 </div>
@@ -134,9 +167,36 @@
                       class="form-input form-input-sm"
                       :placeholder="$t('profile.newPwdPlaceholder')"
                     />
-                    <button type="button" class="pwd-eye-btn" @click="showNewPwd = !showNewPwd" :title="showNewPwd ? $t('common.hidePwd') : $t('common.showPwd')">
-                      <svg v-if="!showNewPwd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                      <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    <button
+                      type="button"
+                      class="pwd-eye-btn"
+                      :title="showNewPwd ? $t('common.hidePwd') : $t('common.showPwd')"
+                      @click="showNewPwd = !showNewPwd"
+                    >
+                      <svg
+                        v-if="!showNewPwd"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                      <svg
+                        v-else
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path
+                          d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                        />
+                        <line x1="1" y1="1" x2="23" y2="23" />
+                      </svg>
                     </button>
                   </div>
                   <!-- Password Strength Indicator & Rules -->
@@ -147,23 +207,30 @@
                         <div class="pwd-bar" :class="pwdStrengthClass(1)"></div>
                         <div class="pwd-bar" :class="pwdStrengthClass(2)"></div>
                       </div>
-                      <span class="pwd-label" :class="pwdStrengthTextClass">{{ pwdStrengthLabel }}</span>
+                      <span class="pwd-label" :class="pwdStrengthTextClass">{{
+                        pwdStrengthLabel
+                      }}</span>
                     </div>
                     <ul class="pwd-rules-list">
                       <li :class="{ 'rule-ok': pwd.new1.length >= 8 }">
-                        {{ pwd.new1.length >= 8 ? '✅' : '❌' }} {{ $t('auth.passwordRules.minLength') }}
+                        {{ pwd.new1.length >= 8 ? '✅' : '❌' }}
+                        {{ $t('auth.passwordRules.minLength') }}
                       </li>
                       <li :class="{ 'rule-ok': /[A-Z]/.test(pwd.new1) }">
-                        {{ /[A-Z]/.test(pwd.new1) ? '✅' : '❌' }} {{ $t('auth.passwordRules.uppercase') }}
+                        {{ /[A-Z]/.test(pwd.new1) ? '✅' : '❌' }}
+                        {{ $t('auth.passwordRules.uppercase') }}
                       </li>
                       <li :class="{ 'rule-ok': /[a-z]/.test(pwd.new1) }">
-                        {{ /[a-z]/.test(pwd.new1) ? '✅' : '❌' }} {{ $t('auth.passwordRules.lowercase') }}
+                        {{ /[a-z]/.test(pwd.new1) ? '✅' : '❌' }}
+                        {{ $t('auth.passwordRules.lowercase') }}
                       </li>
                       <li :class="{ 'rule-ok': /[0-9]/.test(pwd.new1) }">
-                        {{ /[0-9]/.test(pwd.new1) ? '✅' : '❌' }} {{ $t('auth.passwordRules.number') }}
+                        {{ /[0-9]/.test(pwd.new1) ? '✅' : '❌' }}
+                        {{ $t('auth.passwordRules.number') }}
                       </li>
                       <li :class="{ 'rule-ok': /[^A-Za-z0-9]/.test(pwd.new1) }">
-                        {{ /[^A-Za-z0-9]/.test(pwd.new1) ? '✅' : '❌' }} {{ $t('auth.passwordRules.special') }}
+                        {{ /[^A-Za-z0-9]/.test(pwd.new1) ? '✅' : '❌' }}
+                        {{ $t('auth.passwordRules.special') }}
                       </li>
                     </ul>
                   </div>
@@ -177,16 +244,47 @@
                       class="form-input form-input-sm"
                       :placeholder="$t('profile.confirmPwdPlaceholder')"
                     />
-                    <button type="button" class="pwd-eye-btn" @click="showConfirmPwd = !showConfirmPwd" :title="showConfirmPwd ? $t('common.hidePwd') : $t('common.showPwd')">
-                      <svg v-if="!showConfirmPwd" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                      <svg v-else xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    <button
+                      type="button"
+                      class="pwd-eye-btn"
+                      :title="showConfirmPwd ? $t('common.hidePwd') : $t('common.showPwd')"
+                      @click="showConfirmPwd = !showConfirmPwd"
+                    >
+                      <svg
+                        v-if="!showConfirmPwd"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                      <svg
+                        v-else
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path
+                          d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                        />
+                        <line x1="1" y1="1" x2="23" y2="23" />
+                      </svg>
                     </button>
                   </div>
-                  <p v-if="pwd.new2 && pwd.new1 !== pwd.new2" class="pwd-mismatch">{{ $t('profile.pwdMismatch') }}</p>
+                  <p v-if="pwd.new2 && pwd.new1 !== pwd.new2" class="pwd-mismatch">
+                    {{ $t('profile.pwdMismatch') }}
+                  </p>
                 </div>
                 <div class="save-row">
                   <span></span>
-                  <button type="button" class="btn btn-secondary btn-sm" @click="changePassword">{{ $t('profile.updatePwdBtn') }}</button>
+                  <button type="button" class="btn btn-secondary btn-sm" @click="changePassword">
+                    {{ $t('profile.updatePwdBtn') }}
+                  </button>
                 </div>
               </div>
             </transition>
@@ -197,10 +295,11 @@
             <span v-if="saveMsg" class="save-status">{{ saveMsg }}</span>
             <div class="pd-footer-btns">
               <button class="btn btn-ghost btn-sm" @click="close">{{ $t('common.cancel') }}</button>
-              <button class="btn btn-primary btn-sm" @click="saveProfile">💾 {{ $t('common.save') }}</button>
+              <button class="btn btn-primary btn-sm" @click="saveProfile">
+                💾 {{ $t('common.save') }}
+              </button>
             </div>
           </div>
-
         </div>
       </div>
     </transition>
@@ -235,23 +334,27 @@ const pwdMsgType = ref<'success' | 'error'>('success')
 const pwd = ref({ old: '', new1: '', new2: '' })
 
 // Sync drafts when dialog opens
-watch(() => props.modelValue, (open) => {
-  if (open) {
-    const u = authStore.currentUser
-    draftDisplayName.value = u?.displayName || ''
-    draftRealName.value = u?.realName || ''
-    draftAvatarUrl.value = u?.avatarUrl || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${u?.username}`
-    customAvatarUrl.value = ''
-    selectedStyle.value = ''
-    showPwd.value = false
-    showOldPwd.value = false
-    showNewPwd.value = false
-    showConfirmPwd.value = false
-    saveMsg.value = ''
-    pwdMsg.value = ''
-    pwd.value = { old: '', new1: '', new2: '' }
+watch(
+  () => props.modelValue,
+  (open) => {
+    if (open) {
+      const u = authStore.currentUser
+      draftDisplayName.value = u?.displayName || ''
+      draftRealName.value = u?.realName || ''
+      draftAvatarUrl.value =
+        u?.avatarUrl || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${u?.username}`
+      customAvatarUrl.value = ''
+      selectedStyle.value = ''
+      showPwd.value = false
+      showOldPwd.value = false
+      showNewPwd.value = false
+      showConfirmPwd.value = false
+      saveMsg.value = ''
+      pwdMsg.value = ''
+      pwd.value = { old: '', new1: '', new2: '' }
+    }
   }
-})
+)
 
 // ── Role display ──
 const badgeMap: Record<string, string> = {
@@ -269,14 +372,46 @@ const roleBadge = computed(() => badgeMap[authStore.currentUser?.role || ''] || 
 const seed = computed(() => authStore.currentUser?.username || 'default')
 
 const avatarStyles = computed(() => [
-  { id: 'fun-emoji',   label: t('profile.avatar.funEmoji'),   previewUrl: `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${seed.value}` },
-  { id: 'lorelei',     label: t('profile.avatar.lorelei'),     previewUrl: `https://api.dicebear.com/7.x/lorelei/svg?seed=${seed.value}` },
-  { id: 'bottts',      label: t('profile.avatar.bottts'),      previewUrl: `https://api.dicebear.com/7.x/bottts/svg?seed=${seed.value}` },
-  { id: 'adventurer',  label: t('profile.avatar.adventurer'),  previewUrl: `https://api.dicebear.com/7.x/adventurer/svg?seed=${seed.value}` },
-  { id: 'pixel-art',   label: t('profile.avatar.pixelArt'),    previewUrl: `https://api.dicebear.com/7.x/pixel-art/svg?seed=${seed.value}` },
-  { id: 'avataaars',   label: t('profile.avatar.avataaars'),   previewUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed.value}` },
-  { id: 'micah',       label: t('profile.avatar.micah'),       previewUrl: `https://api.dicebear.com/7.x/micah/svg?seed=${seed.value}` },
-  { id: 'notionists',  label: t('profile.avatar.notionists'),  previewUrl: `https://api.dicebear.com/7.x/notionists/svg?seed=${seed.value}` },
+  {
+    id: 'fun-emoji',
+    label: t('profile.avatar.funEmoji'),
+    previewUrl: `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${seed.value}`
+  },
+  {
+    id: 'lorelei',
+    label: t('profile.avatar.lorelei'),
+    previewUrl: `https://api.dicebear.com/7.x/lorelei/svg?seed=${seed.value}`
+  },
+  {
+    id: 'bottts',
+    label: t('profile.avatar.bottts'),
+    previewUrl: `https://api.dicebear.com/7.x/bottts/svg?seed=${seed.value}`
+  },
+  {
+    id: 'adventurer',
+    label: t('profile.avatar.adventurer'),
+    previewUrl: `https://api.dicebear.com/7.x/adventurer/svg?seed=${seed.value}`
+  },
+  {
+    id: 'pixel-art',
+    label: t('profile.avatar.pixelArt'),
+    previewUrl: `https://api.dicebear.com/7.x/pixel-art/svg?seed=${seed.value}`
+  },
+  {
+    id: 'avataaars',
+    label: t('profile.avatar.avataaars'),
+    previewUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed.value}`
+  },
+  {
+    id: 'micah',
+    label: t('profile.avatar.micah'),
+    previewUrl: `https://api.dicebear.com/7.x/micah/svg?seed=${seed.value}`
+  },
+  {
+    id: 'notionists',
+    label: t('profile.avatar.notionists'),
+    previewUrl: `https://api.dicebear.com/7.x/notionists/svg?seed=${seed.value}`
+  }
 ])
 
 function applyPresetStyle(styleId: string) {
@@ -343,7 +478,9 @@ function changePassword() {
     showOldPwd.value = false
     showNewPwd.value = false
     showConfirmPwd.value = false
-    setTimeout(() => { pwdMsg.value = '' }, 2000)
+    setTimeout(() => {
+      pwdMsg.value = ''
+    }, 2000)
   }
 }
 
@@ -403,7 +540,9 @@ function close() {
   border-radius: 6px;
   transition: background 0.15s;
 }
-.pd-close:hover { background: rgba(0,0,0,0.06); }
+.pd-close:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
 
 /* ── Avatar Section ── */
 .pd-avatar-section {
@@ -440,7 +579,7 @@ function close() {
   align-items: center;
   justify-content: center;
   font-size: 0.9rem;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
 }
 
 .pd-avatar-presets {
@@ -528,7 +667,6 @@ function close() {
   padding: 0.3rem 0.5rem;
 }
 
-
 /* ── Info Grid ── */
 .pd-info-grid {
   display: grid;
@@ -576,7 +714,9 @@ function close() {
   cursor: pointer;
   padding: 0.4rem 0;
 }
-.pd-toggle-arrow { font-size: 0.75rem; }
+.pd-toggle-arrow {
+  font-size: 0.75rem;
+}
 
 .pd-pwd-form {
   padding-top: 0.75rem;
@@ -590,8 +730,14 @@ function close() {
   margin-bottom: 0.75rem;
   text-align: center;
 }
-.pd-pwd-alert.success { background-color: #D1FAE5; color: #065F46; }
-.pd-pwd-alert.error   { background-color: #FEE2E2; color: #991B1B; }
+.pd-pwd-alert.success {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+.pd-pwd-alert.error {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
 
 .pwd-input-wrap {
   position: relative;
@@ -642,18 +788,41 @@ function close() {
   border-radius: 2px;
   transition: background 0.3s;
 }
-.bar-empty  { background: #e2e8f0; }
-.bar-weak   { background: #ef4444; }
-.bar-fair   { background: #f59e0b; }
-.bar-medium { background: #3b82f6; }
-.bar-strong { background: #10b981; }
+.bar-empty {
+  background: #e2e8f0;
+}
+.bar-weak {
+  background: #ef4444;
+}
+.bar-fair {
+  background: #f59e0b;
+}
+.bar-medium {
+  background: #3b82f6;
+}
+.bar-strong {
+  background: #10b981;
+}
 
-.pwd-label { font-size: 0.72rem; font-weight: 700; }
-.text-weak   { color: #ef4444; }
-.text-fair   { color: #f59e0b; }
-.text-medium { color: #3b82f6; }
-.text-strong { color: #10b981; }
-.text-error  { color: #ef4444; }
+.pwd-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.text-weak {
+  color: #ef4444;
+}
+.text-fair {
+  color: #f59e0b;
+}
+.text-medium {
+  color: #3b82f6;
+}
+.text-strong {
+  color: #10b981;
+}
+.text-error {
+  color: #ef4444;
+}
 
 .pwd-rules-list {
   list-style: none;
@@ -685,7 +854,7 @@ function close() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 1px solid rgba(0,0,0,0.06);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
   padding-top: 1rem;
 }
 
@@ -701,17 +870,27 @@ function close() {
 }
 .dialog-fade-enter-active .pd-card,
 .dialog-fade-leave-active .pd-card {
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
 }
 .dialog-fade-enter-from,
-.dialog-fade-leave-to { opacity: 0; }
-.dialog-fade-enter-from .pd-card { transform: scale(0.95) translateY(10px); }
-.dialog-fade-leave-to .pd-card  { transform: scale(0.95) translateY(10px); }
+.dialog-fade-leave-to {
+  opacity: 0;
+}
+.dialog-fade-enter-from .pd-card {
+  transform: scale(0.95) translateY(10px);
+}
+.dialog-fade-leave-to .pd-card {
+  transform: scale(0.95) translateY(10px);
+}
 
 /* Review slide (reused) */
 .review-slide-enter-active,
 .review-slide-leave-active {
-  transition: max-height 0.3s ease, opacity 0.3s ease;
+  transition:
+    max-height 0.3s ease,
+    opacity 0.3s ease;
   overflow: hidden;
   max-height: 600px;
 }
@@ -722,16 +901,30 @@ function close() {
 }
 
 /* ── Utils ── */
-.mt-1 { margin-top: 0.25rem; }
-.mt-3 { margin-top: 0.75rem; }
-.mt-4 { margin-top: 1rem; }
-.mb-2 { margin-bottom: 0.5rem; }
-.mb-3 { margin-bottom: 0.75rem; }
+.mt-1 {
+  margin-top: 0.25rem;
+}
+.mt-3 {
+  margin-top: 0.75rem;
+}
+.mt-4 {
+  margin-top: 1rem;
+}
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+.mb-3 {
+  margin-bottom: 0.75rem;
+}
 .save-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 0.5rem;
 }
-.save-status { font-size: 0.82rem; font-weight: 700; color: #10b981; }
+.save-status {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #10b981;
+}
 </style>

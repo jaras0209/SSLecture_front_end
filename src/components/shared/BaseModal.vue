@@ -9,10 +9,7 @@
         :aria-label="title || $t('common.dialog')"
         @click.self="closeOnBackdrop && close()"
       >
-        <div
-          class="bm-card glass-panel"
-          :style="maxWidth ? `max-width: ${maxWidth}` : undefined"
-        >
+        <div class="bm-card glass-panel" :style="maxWidth ? `max-width: ${maxWidth}` : undefined">
           <!-- Header -->
           <div v-if="title || $slots.header" class="bm-header">
             <slot name="header">
@@ -37,18 +34,21 @@
 </template>
 
 <script setup lang="ts">
-withDefaults(defineProps<{
-  /** v-model 控制是否顯示 */
-  modelValue: boolean
-  /** 標題列文字（不傳則可用 #header slot） */
-  title?: string
-  /** 內容最大寬度，例如 '600px'、'90vw' */
-  maxWidth?: string
-  /** 點擊背景是否關閉（預設 true） */
-  closeOnBackdrop?: boolean
-}>(), {
-  closeOnBackdrop: true,
-})
+withDefaults(
+  defineProps<{
+    /** v-model 控制是否顯示 */
+    modelValue: boolean
+    /** 標題列文字（不傳則可用 #header slot） */
+    title?: string
+    /** 內容最大寬度，例如 '600px'、'90vw' */
+    maxWidth?: string
+    /** 點擊背景是否關閉（預設 true） */
+    closeOnBackdrop?: boolean
+  }>(),
+  {
+    closeOnBackdrop: true
+  }
+)
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
@@ -109,7 +109,9 @@ function close() {
   padding: 0.25rem 0.5rem;
   border-radius: var(--radius-sm);
   line-height: 1;
-  transition: color var(--transition-fast), background var(--transition-fast);
+  transition:
+    color var(--transition-fast),
+    background var(--transition-fast);
   flex-shrink: 0;
 }
 
@@ -142,7 +144,9 @@ function close() {
 
 .base-modal-fade-enter-active .bm-card,
 .base-modal-fade-leave-active .bm-card {
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
+  transition:
+    transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 0.2s ease;
 }
 
 .base-modal-fade-enter-from,

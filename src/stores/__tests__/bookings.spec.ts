@@ -8,10 +8,12 @@ import type { BookingPrep } from '@/stores/bookings'
 const defaultPrep: BookingPrep = {
   scriptures: ['約翰福音 1:1'],
   readingNotes: '請先閱讀',
-  materials: '無',
+  materials: '無'
 }
 
-function makeSession(overrides: Partial<Parameters<ReturnType<typeof useBookingsStore>['createSession']>[0]> = {}) {
+function makeSession(
+  overrides: Partial<Parameters<ReturnType<typeof useBookingsStore>['createSession']>[0]> = {}
+) {
   const store = useBookingsStore()
   return store.createSession({
     courseId: 'bible-01',
@@ -25,7 +27,7 @@ function makeSession(overrides: Partial<Parameters<ReturnType<typeof useBookings
     prep: defaultPrep,
     studentUsernames: ['student'],
     church: '愛與話語',
-    ...overrides,
+    ...overrides
   })
 }
 
@@ -57,8 +59,8 @@ describe('useBookingsStore', () => {
       const session = makeSession({ studentUsernames: ['student', 'student2'] })
       const attendees = store.getAttendeesForSession(session.id)
       expect(attendees).toHaveLength(2)
-      expect(attendees.map(a => a.studentUsername)).toContain('student')
-      expect(attendees.map(a => a.studentUsername)).toContain('student2')
+      expect(attendees.map((a) => a.studentUsername)).toContain('student')
+      expect(attendees.map((a) => a.studentUsername)).toContain('student2')
     })
 
     it('sets isGroupSession=true for multiple students', () => {
@@ -75,7 +77,7 @@ describe('useBookingsStore', () => {
       const store = useBookingsStore()
       const session = makeSession()
       const attendees = store.getAttendeesForSession(session.id)
-      expect(attendees.every(a => a.attendanceStatus === 'invited')).toBe(true)
+      expect(attendees.every((a) => a.attendanceStatus === 'invited')).toBe(true)
     })
   })
 

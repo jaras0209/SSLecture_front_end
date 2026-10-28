@@ -127,7 +127,7 @@ async function request<T>(
   const res = await fetch(url, {
     method,
     headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    body: body !== undefined ? JSON.stringify(body) : undefined
   })
 
   // 401 → 嘗試 refresh token 再重試一次
@@ -165,17 +165,29 @@ export function apiGet<T>(path: string, options?: { skipAuth?: boolean }): Promi
 }
 
 /** POST 請求 */
-export function apiPost<T>(path: string, body?: unknown, options?: { skipAuth?: boolean }): Promise<T> {
+export function apiPost<T>(
+  path: string,
+  body?: unknown,
+  options?: { skipAuth?: boolean }
+): Promise<T> {
   return request<T>('POST', path, body, options)
 }
 
 /** PUT 請求 */
-export function apiPut<T>(path: string, body?: unknown, options?: { skipAuth?: boolean }): Promise<T> {
+export function apiPut<T>(
+  path: string,
+  body?: unknown,
+  options?: { skipAuth?: boolean }
+): Promise<T> {
   return request<T>('PUT', path, body, options)
 }
 
 /** PATCH 請求 */
-export function apiPatch<T>(path: string, body?: unknown, options?: { skipAuth?: boolean }): Promise<T> {
+export function apiPatch<T>(
+  path: string,
+  body?: unknown,
+  options?: { skipAuth?: boolean }
+): Promise<T> {
   return request<T>('PATCH', path, body, options)
 }
 

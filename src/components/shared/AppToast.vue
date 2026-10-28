@@ -3,27 +3,23 @@
   <Teleport to="body">
     <div class="toast-container" aria-live="polite">
       <TransitionGroup name="toast">
-        <div
-          v-for="t in toasts"
-          :key="t.id"
-          :class="['toast-item', `toast-${t.type}`]"
-        >
+        <div v-for="t in toasts" :key="t.id" :class="['toast-item', `toast-${t.type}`]">
           {{ t.text }}
         </div>
       </TransitionGroup>
     </div>
 
     <!-- Confirm Dialog -->
-    <div
-      v-if="confirmState.visible"
-      class="confirm-overlay"
-      @click.self="resolve(false)"
-    >
+    <div v-if="confirmState.visible" class="confirm-overlay" @click.self="resolve(false)">
       <div class="confirm-dialog glass-panel">
         <p class="confirm-message">{{ confirmState.message }}</p>
         <div class="confirm-actions">
-          <button class="btn btn-outline btn-sm" @click="resolve(false)">{{ $t('common.cancel') }}</button>
-          <button class="btn btn-danger btn-sm" @click="resolve(true)">{{ $t('common.confirm') }}</button>
+          <button class="btn btn-outline btn-sm" @click="resolve(false)">
+            {{ $t('common.cancel') }}
+          </button>
+          <button class="btn btn-danger btn-sm" @click="resolve(true)">
+            {{ $t('common.confirm') }}
+          </button>
         </div>
       </div>
     </div>
@@ -58,19 +54,28 @@ function resolve(ok: boolean) {
   border-radius: var(--radius-md, 0.75rem);
   font-size: 0.9rem;
   font-weight: 600;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   pointer-events: auto;
   max-width: 360px;
   color: white;
 }
 
-.toast-success { background: #22c55e; }
-.toast-warning { background: #f59e0b; }
-.toast-error   { background: #ef4444; }
-.toast-info    { background: #6366f1; }
+.toast-success {
+  background: #22c55e;
+}
+.toast-warning {
+  background: #f59e0b;
+}
+.toast-error {
+  background: #ef4444;
+}
+.toast-info {
+  background: #6366f1;
+}
 
 /* TransitionGroup animation */
-.toast-enter-active, .toast-leave-active {
+.toast-enter-active,
+.toast-leave-active {
   transition: all 0.3s ease;
 }
 .toast-enter-from {

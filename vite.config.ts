@@ -22,15 +22,16 @@ export default defineConfig({
          */
         manualChunks(id) {
           // Vue 核心生態系 → vue-vendor chunk
-          if (id.includes('node_modules/vue') ||
-              id.includes('node_modules/@vue') ||
-              id.includes('node_modules/vue-router') ||
-              id.includes('node_modules/pinia')) {
+          if (
+            id.includes('node_modules/vue') ||
+            id.includes('node_modules/@vue') ||
+            id.includes('node_modules/vue-router') ||
+            id.includes('node_modules/pinia')
+          ) {
             return 'vue-vendor'
           }
           // vue-i18n → 獨立 chunk，語系檔更新時不影響其他 vendor 快取
-          if (id.includes('node_modules/vue-i18n') ||
-              id.includes('node_modules/@intlify')) {
+          if (id.includes('node_modules/vue-i18n') || id.includes('node_modules/@intlify')) {
             return 'i18n'
           }
           // 其他 node_modules → vendor chunk（未來若新增 lodash、dayjs 等也會進來）

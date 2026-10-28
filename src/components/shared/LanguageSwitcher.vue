@@ -44,11 +44,7 @@ const currentLocale = computed(() => locale.value as SupportedLocale)
 function handleSelect(lang: SupportedLocale) {
   // 若點擊目前已啟用的語系按鈕，亦自動切換至另一語系，支援單擊切換習慣
   const nextLang: SupportedLocale =
-    lang === currentLocale.value
-      ? currentLocale.value === 'zh-TW'
-        ? 'en'
-        : 'zh-TW'
-      : lang
+    lang === currentLocale.value ? (currentLocale.value === 'zh-TW' ? 'en' : 'zh-TW') : lang
   setLocale(nextLang)
 }
 </script>
@@ -61,8 +57,8 @@ function handleSelect(lang: SupportedLocale) {
   grid-template-columns: 1fr 1fr;
   align-items: center;
   border-radius: 9999px;
-  background: #F1F5F9;
-  border: 1px solid #CBD5E1;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
   padding: 3px;
   flex-shrink: 0;
   box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.06);
@@ -75,7 +71,7 @@ function handleSelect(lang: SupportedLocale) {
   left: 3px;
   bottom: 3px;
   width: calc(50% - 3px);
-  background: #FFFFFF;
+  background: #ffffff;
   border: 1px solid rgba(59, 130, 246, 0.25);
   border-radius: 9999px;
   box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
@@ -104,23 +100,23 @@ function handleSelect(lang: SupportedLocale) {
   padding: 4px 12px;
   border-radius: 9999px;
   white-space: nowrap;
-  color: #64748B;
+  color: #64748b;
   transition: color 200ms ease;
   user-select: none;
   letter-spacing: 0.02em;
 }
 
 .lang-btn:hover {
-  color: #1E293B;
+  color: #1e293b;
 }
 
 .lang-btn.active {
-  color: var(--primary, #3B82F6);
+  color: var(--primary, #3b82f6);
   font-weight: 700;
 }
 
 .lang-btn:focus-visible {
-  outline: 2px solid var(--primary, #3B82F6);
+  outline: 2px solid var(--primary, #3b82f6);
   outline-offset: 2px;
   border-radius: 9999px;
 }

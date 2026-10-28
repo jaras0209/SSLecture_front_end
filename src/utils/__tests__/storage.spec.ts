@@ -71,7 +71,9 @@ describe('safeSet', () => {
     // Directly patch JSON.stringify to throw so the catch branch is exercised
     // (happy-dom localStorage is not patchable, but JSON.stringify is)
     const origStringify = JSON.stringify
-    JSON.stringify = () => { throw new Error('Simulated serialization error') }
+    JSON.stringify = () => {
+      throw new Error('Simulated serialization error')
+    }
     try {
       expect(safeSet('err_key', { x: 1 })).toBe(false)
       expect(console.warn).toHaveBeenCalledOnce()
@@ -111,7 +113,7 @@ describe('safeGetAll', () => {
 
     const result = safeGetAll({
       first: { key: 'k1', fallback: {} as { a: number } },
-      second: { key: 'k2', fallback: [] as number[] },
+      second: { key: 'k2', fallback: [] as number[] }
     })
 
     expect(result.first).toEqual({ a: 1 })
@@ -121,7 +123,7 @@ describe('safeGetAll', () => {
   it('returns individual fallbacks for missing keys', () => {
     const result = safeGetAll({
       sessions: { key: 'missing_sessions', fallback: {} as Record<string, unknown> },
-      attendees: { key: 'missing_attendees', fallback: [] as unknown[] },
+      attendees: { key: 'missing_attendees', fallback: [] as unknown[] }
     })
     expect(result.sessions).toEqual({})
     expect(result.attendees).toEqual([])

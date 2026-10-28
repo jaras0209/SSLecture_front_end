@@ -123,27 +123,33 @@ describe('Router Guard Logic', () => {
   describe('requiresAuth: unauthenticated access', () => {
     it('redirects unauthenticated user to Login with redirect query for /student', () => {
       const result = runGuard(
-        '/student', 'StudentDashboard',
+        '/student',
+        'StudentDashboard',
         { requiresAuth: true, roles: ['student'] },
-        authStore, coursesStore
+        authStore,
+        coursesStore
       )
       expect(result).toEqual({ name: 'Login', query: { redirect: '/student' } })
     })
 
     it('redirects unauthenticated user to Login for /teacher', () => {
       const result = runGuard(
-        '/teacher', 'TeacherDashboard',
+        '/teacher',
+        'TeacherDashboard',
         { requiresAuth: true, roles: ['teacher', 'pastor', 'parent'] },
-        authStore, coursesStore
+        authStore,
+        coursesStore
       )
       expect(result).toEqual({ name: 'Login', query: { redirect: '/teacher' } })
     })
 
     it('redirects unauthenticated user to Login for /admin', () => {
       const result = runGuard(
-        '/admin', 'AdminDashboard',
+        '/admin',
+        'AdminDashboard',
         { requiresAuth: true, roles: ['admin'] },
-        authStore, coursesStore
+        authStore,
+        coursesStore
       )
       expect(result).toEqual({ name: 'Login', query: { redirect: '/admin' } })
     })
@@ -155,9 +161,11 @@ describe('Router Guard Logic', () => {
     it('allows student to access /student', () => {
       authStore.login('student', '123456')
       const result = runGuard(
-        '/student', 'StudentDashboard',
+        '/student',
+        'StudentDashboard',
         { requiresAuth: true, roles: ['student'] },
-        authStore, coursesStore
+        authStore,
+        coursesStore
       )
       expect(result).toBeUndefined()
     })
@@ -165,9 +173,11 @@ describe('Router Guard Logic', () => {
     it('blocks student from /teacher → /unauthorized', () => {
       authStore.login('student', '123456')
       const result = runGuard(
-        '/teacher', 'TeacherDashboard',
+        '/teacher',
+        'TeacherDashboard',
         { requiresAuth: true, roles: ['teacher', 'pastor', 'parent'] },
-        authStore, coursesStore
+        authStore,
+        coursesStore
       )
       expect(result).toBe('/unauthorized')
     })
@@ -175,9 +185,11 @@ describe('Router Guard Logic', () => {
     it('blocks student from /admin → /unauthorized', () => {
       authStore.login('student', '123456')
       const result = runGuard(
-        '/admin', 'AdminDashboard',
+        '/admin',
+        'AdminDashboard',
         { requiresAuth: true, roles: ['admin'] },
-        authStore, coursesStore
+        authStore,
+        coursesStore
       )
       expect(result).toBe('/unauthorized')
     })
@@ -185,9 +197,11 @@ describe('Router Guard Logic', () => {
     it('allows teacher to access /teacher', () => {
       authStore.login('teacher', '123456')
       const result = runGuard(
-        '/teacher', 'TeacherDashboard',
+        '/teacher',
+        'TeacherDashboard',
         { requiresAuth: true, roles: ['teacher', 'pastor', 'parent'] },
-        authStore, coursesStore
+        authStore,
+        coursesStore
       )
       expect(result).toBeUndefined()
     })
@@ -195,9 +209,11 @@ describe('Router Guard Logic', () => {
     it('allows pastor to access /teacher (shared role)', () => {
       authStore.login('pastor', '123456')
       const result = runGuard(
-        '/teacher', 'TeacherDashboard',
+        '/teacher',
+        'TeacherDashboard',
         { requiresAuth: true, roles: ['teacher', 'pastor', 'parent'] },
-        authStore, coursesStore
+        authStore,
+        coursesStore
       )
       expect(result).toBeUndefined()
     })
@@ -205,9 +221,11 @@ describe('Router Guard Logic', () => {
     it('allows parent to access /teacher (shared role)', () => {
       authStore.login('parent', '123456')
       const result = runGuard(
-        '/teacher', 'TeacherDashboard',
+        '/teacher',
+        'TeacherDashboard',
         { requiresAuth: true, roles: ['teacher', 'pastor', 'parent'] },
-        authStore, coursesStore
+        authStore,
+        coursesStore
       )
       expect(result).toBeUndefined()
     })
@@ -215,9 +233,11 @@ describe('Router Guard Logic', () => {
     it('allows admin to access /admin', () => {
       authStore.login('admin', '123456')
       const result = runGuard(
-        '/admin', 'AdminDashboard',
+        '/admin',
+        'AdminDashboard',
         { requiresAuth: true, roles: ['admin'] },
-        authStore, coursesStore
+        authStore,
+        coursesStore
       )
       expect(result).toBeUndefined()
     })
@@ -225,9 +245,11 @@ describe('Router Guard Logic', () => {
     it('blocks admin from /student → /unauthorized', () => {
       authStore.login('admin', '123456')
       const result = runGuard(
-        '/student', 'StudentDashboard',
+        '/student',
+        'StudentDashboard',
         { requiresAuth: true, roles: ['student'] },
-        authStore, coursesStore
+        authStore,
+        coursesStore
       )
       expect(result).toBe('/unauthorized')
     })
@@ -235,9 +257,11 @@ describe('Router Guard Logic', () => {
     it('blocks teacher from /admin → /unauthorized', () => {
       authStore.login('teacher', '123456')
       const result = runGuard(
-        '/admin', 'AdminDashboard',
+        '/admin',
+        'AdminDashboard',
         { requiresAuth: true, roles: ['admin'] },
-        authStore, coursesStore
+        authStore,
+        coursesStore
       )
       expect(result).toBe('/unauthorized')
     })
@@ -249,18 +273,22 @@ describe('Router Guard Logic', () => {
     it('allows any authenticated user to access /onboarding regardless of role', () => {
       authStore.login('student', '123456')
       const result = runGuard(
-        '/onboarding', 'Onboarding',
+        '/onboarding',
+        'Onboarding',
         { requiresAuth: true },
-        authStore, coursesStore
+        authStore,
+        coursesStore
       )
       expect(result).toBeUndefined()
     })
 
     it('blocks unauthenticated user from /onboarding', () => {
       const result = runGuard(
-        '/onboarding', 'Onboarding',
+        '/onboarding',
+        'Onboarding',
         { requiresAuth: true },
-        authStore, coursesStore
+        authStore,
+        coursesStore
       )
       expect(result).toEqual({ name: 'Login', query: { redirect: '/onboarding' } })
     })

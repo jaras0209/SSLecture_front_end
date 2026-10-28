@@ -11,13 +11,7 @@ const t = (key: string, values?: Record<string, unknown>): string =>
 // 移除 mock 區塊，改用 src/utils/api.ts 的 apiPost / apiPut 取代 fetch 呼叫
 
 // 型別定義集中至 src/types/auth.ts—從這裡 re-export 保持向下相容
-export type {
-  UserRole,
-  LoginMethod,
-  User,
-  InviteCode,
-  Church
-} from '@/types/auth'
+export type { UserRole, LoginMethod, User, InviteCode, Church } from '@/types/auth'
 export { CHURCHES, DEFAULT_RESET_PASSWORD } from '@/types/auth'
 
 // 引入型別供 store 內部使用
@@ -33,7 +27,6 @@ const ROLE_CODE_PREFIX: Record<UserRole, string> = {
   admin: 'ADM'
 }
 
-
 export const useAuthStore = defineStore('auth', () => {
   // Load initial state from LocalStorage if available
   const currentUser = ref<User | null>(
@@ -44,37 +37,42 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticating = ref<boolean>(false)
 
   // Pre-configured mock accounts database
-  const usersDb = ref<Record<string, {
-    passwordHash: string
-    role: UserRole
-    church?: string
-    childUsernames?: string[]
-    displayName?: string
-    realName?: string
-    lastLoginAt?: string
-    avatarUrl?: string
-  }>>({
+  const usersDb = ref<
+    Record<
+      string,
+      {
+        passwordHash: string
+        role: UserRole
+        church?: string
+        childUsernames?: string[]
+        displayName?: string
+        realName?: string
+        lastLoginAt?: string
+        avatarUrl?: string
+      }
+    >
+  >({
     student: { passwordHash: '123456', role: 'student', church: '愛與話語' },
     teacher: { passwordHash: '123456', role: 'teacher', church: '愛與話語' },
     admin: { passwordHash: '123456', role: 'admin' },
-    parent: { passwordHash: '123456', role: 'parent', church: '愛與話語', childUsernames: ['student'] },
+    parent: {
+      passwordHash: '123456',
+      role: 'parent',
+      church: '愛與話語',
+      childUsernames: ['student']
+    },
     pastor: { passwordHash: '123456', role: 'pastor', church: '愛與話語' }
   })
 
-
   // Load registered users from localStorage if exists
-  const savedDb = safeGet<typeof usersDb.value>(
-    'superstart_users_db',
-    {},
-    { clearOnError: true }
-  )
+  const savedDb = safeGet<typeof usersDb.value>('superstart_users_db', {}, { clearOnError: true })
   if (Object.keys(savedDb).length > 0) {
     // Merge to preserve default mock accounts while applying saved data
     usersDb.value = { ...usersDb.value, ...savedDb }
   }
 
   // Migrate old accounts: add default church if missing
-  Object.keys(usersDb.value).forEach(username => {
+  Object.keys(usersDb.value).forEach((username) => {
     const user = usersDb.value[username]
     if (user.role !== 'admin' && !user.church) {
       user.church = '愛與話語'
@@ -90,9 +88,13 @@ export const useAuthStore = defineStore('auth', () => {
     }
   })
 
-  watch(usersDb, (newDb) => {
-    safeSet('superstart_users_db', newDb)
-  }, { deep: true })
+  watch(
+    usersDb,
+    (newDb) => {
+      safeSet('superstart_users_db', newDb)
+    },
+    { deep: true }
+  )
 
   // ── Invite Codes DB ──────────────────────────────────────────────────────────
 
@@ -100,9 +102,13 @@ export const useAuthStore = defineStore('auth', () => {
     safeGet<Record<string, InviteCode>>('superstart_invite_codes', {}, { clearOnError: true })
   )
 
-  watch(inviteCodesDb, (newCodes) => {
-    safeSet('superstart_invite_codes', newCodes)
-  }, { deep: true })
+  watch(
+    inviteCodesDb,
+    (newCodes) => {
+      safeSet('superstart_invite_codes', newCodes)
+    },
+    { deep: true }
+  )
 
   // Actions
   function login(username: string, passwordHash: string): { success: boolean; message: string } {
@@ -113,7 +119,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (user.passwordHash !== passwordHash) {
       return { success: false, message: t('stores.auth.wrongPassword') }
     }
-    
+
     const now = new Date().toLocaleString('zh-TW', { hour12: false })
     // Save last login time
     usersDb.value[username].lastLoginAt = now
@@ -142,12 +148,12 @@ export const useAuthStore = defineStore('auth', () => {
     if (usersDb.value[username]) {
       return { success: false, message: t('stores.auth.usernameTaken') }
     }
-    
+
     usersDb.value[username] = {
       passwordHash,
       role,
-      church: role === 'admin' ? undefined : (church || '愛與話語'),
-      childUsernames: role === 'parent' ? (childUsernames || []) : undefined
+      church: role === 'admin' ? undefined : church || '愛與話語',
+      childUsernames: role === 'parent' ? childUsernames || [] : undefined
     }
 
     currentUser.value = {
@@ -155,13 +161,11 @@ export const useAuthStore = defineStore('auth', () => {
       role,
       loginMethod: 'credentials',
       avatarUrl: `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${username}`,
-      church: role === 'admin' ? undefined : (church || '愛與話語'),
-      childUsernames: role === 'parent' ? (childUsernames || []) : undefined
+      church: role === 'admin' ? undefined : church || '愛與話語',
+      childUsernames: role === 'parent' ? childUsernames || [] : undefined
     }
     return { success: true, message: t('stores.auth.registerSuccess') }
   }
-
-
 
   /**
    * 用短效一次性 code 換取 JWT。
@@ -196,7 +200,7 @@ export const useAuthStore = defineStore('auth', () => {
     // === 開發期 mock（後端就緒後移除）===
     console.warn('[AUTH] exchangeOAuthCode: Using dev mock — 後端就緒後請替換為真實 API 呼叫')
     isAuthenticating.value = true
-    await new Promise(r => setTimeout(r, 1000))
+    await new Promise((r) => setTimeout(r, 1000))
     isAuthenticating.value = false
     currentUser.value = {
       username: `oauth_${Date.now()}`,
@@ -267,7 +271,11 @@ export const useAuthStore = defineStore('auth', () => {
     currentUser.value = null
   }
 
-  function updatePassword(username: string, oldPasswordHash: string, newPasswordHash: string): { success: boolean; message: string } {
+  function updatePassword(
+    username: string,
+    oldPasswordHash: string,
+    newPasswordHash: string
+  ): { success: boolean; message: string } {
     const user = usersDb.value[username]
     if (!user) {
       return { success: false, message: t('stores.auth.accountNotFoundShort') }

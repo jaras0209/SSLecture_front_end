@@ -8,7 +8,7 @@ import '@/assets/styles/main.css'
 const app = createApp(App)
 
 app.use(createPinia())
-app.use(i18n)     // i18n 必須在 router 之前注入，以便 store 可呼叫 i18n.global.t()
+app.use(i18n) // i18n 必須在 router 之前注入，以便 store 可呼叫 i18n.global.t()
 app.use(router)
 
 /**

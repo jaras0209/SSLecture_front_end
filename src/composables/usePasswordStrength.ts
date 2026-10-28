@@ -32,11 +32,11 @@ const LABEL_KEYS = [
   'passwordStrength.weak',
   'passwordStrength.fair',
   'passwordStrength.medium',
-  'passwordStrength.strong',
+  'passwordStrength.strong'
 ] as const
 
 const TEXT_CLASSES = ['text-weak', 'text-fair', 'text-medium', 'text-strong'] as const
-const BAR_CLASSES  = ['bar-weak',  'bar-fair',  'bar-medium',  'bar-strong']  as const
+const BAR_CLASSES = ['bar-weak', 'bar-fair', 'bar-medium', 'bar-strong'] as const
 
 /**
  * 密碼強度 composable
@@ -45,7 +45,7 @@ const BAR_CLASSES  = ['bar-weak',  'bar-fair',  'bar-medium',  'bar-strong']  as
 export function usePasswordStrength(password: Ref<string>) {
   const { t } = useI18n()
   const strength = computed(() => calcPasswordStrength(password.value))
-  const label     = computed(() => {
+  const label = computed(() => {
     const key = LABEL_KEYS[strength.value] ?? LABEL_KEYS[0]
     // Use the same explicit cast pattern as useI18nHelper to handle dynamic keys
     return (t as (k: string) => string)(key)
@@ -62,4 +62,3 @@ export function usePasswordStrength(password: Ref<string>) {
 
   return { strength, label, textClass, barClass }
 }
-

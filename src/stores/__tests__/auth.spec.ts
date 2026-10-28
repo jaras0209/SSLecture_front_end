@@ -15,7 +15,7 @@ describe('useAuthStore', () => {
       const auth = useAuthStore()
       const result = auth.login('ghost', '123456')
       expect(result.success).toBe(false)
-      expect(result.message).toBeTruthy()  // message is i18n-translated; locale depends on test env
+      expect(result.message).toBeTruthy() // message is i18n-translated; locale depends on test env
     })
 
     it('returns failure when password is wrong', () => {

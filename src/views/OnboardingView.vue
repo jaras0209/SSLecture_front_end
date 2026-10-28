@@ -1,7 +1,6 @@
 <template>
   <div class="onboarding-wrapper">
     <div class="glass-panel onboarding-card">
-
       <!-- Header -->
       <div class="onboarding-header text-center">
         <img
@@ -15,27 +14,23 @@
         <h1 class="onboarding-title">{{ $t('onboarding.title') }}</h1>
         <p class="onboarding-greeting">
           <i18n-t keypath="onboarding.greeting">
-            <template #name><strong>{{ displayName }}</strong></template>
+            <template #name
+              ><strong>{{ displayName }}</strong></template
+            >
           </i18n-t>
           <br />{{ $t('onboarding.greetingDesc') }}
         </p>
       </div>
 
       <!-- Form -->
-      <form @submit.prevent="handleComplete" class="auth-form">
-
+      <form class="auth-form" @submit.prevent="handleComplete">
         <!-- 教會選擇（必填） -->
         <div class="form-group">
           <label class="form-label" for="ob-church">
             ⛪ {{ $t('onboarding.church') }}
             <span class="field-required">*</span>
           </label>
-          <select
-            v-model="selectedChurch"
-            id="ob-church"
-            class="form-input select-input"
-            required
-          >
+          <select id="ob-church" v-model="selectedChurch" class="form-input select-input" required>
             <option value="" disabled>{{ $t('onboarding.churchPlaceholder') }}</option>
             <option v-for="church in CHURCHES" :key="church" :value="church">
               {{ church }}
@@ -50,8 +45,8 @@
             <span class="field-hint-inline">{{ $t('onboarding.usernameHint') }}</span>
           </label>
           <input
-            v-model="customUsername"
             id="ob-username"
+            v-model="customUsername"
             type="text"
             class="form-input"
             :placeholder="authStore.currentUser?.displayName || displayName"
@@ -67,23 +62,29 @@
           </label>
           <div class="invite-code-wrap">
             <input
-              v-model="inviteCodeInput"
               id="ob-invite-code"
+              v-model="inviteCodeInput"
               type="text"
               class="form-input"
               :placeholder="$t('common.inviteCodePlaceholder')"
-              @input="onInviteCodeInput"
               autocomplete="off"
-              style="text-transform: uppercase; letter-spacing: 0.1em;"
+              style="text-transform: uppercase; letter-spacing: 0.1em"
+              @input="onInviteCodeInput"
             />
-            <span v-if="inviteCodeStatus === 'valid'" class="invite-badge valid">{{ $t('onboarding.inviteValid') }}</span>
-            <span v-else-if="inviteCodeStatus === 'invalid'" class="invite-badge invalid">{{ $t('onboarding.inviteInvalid') }}</span>
+            <span v-if="inviteCodeStatus === 'valid'" class="invite-badge valid">{{
+              $t('onboarding.inviteValid')
+            }}</span>
+            <span v-else-if="inviteCodeStatus === 'invalid'" class="invite-badge invalid">{{
+              $t('onboarding.inviteInvalid')
+            }}</span>
           </div>
           <!-- 邀請碼有效時顯示角色與教會資訊 -->
           <div v-if="inviteCodeStatus === 'valid' && validatedInvite" class="invite-info">
             🎉
             <i18n-t keypath="onboarding.inviteRoleInfo">
-              <template #role><strong>{{ getRoleLabel(validatedInvite.role) }}</strong></template>
+              <template #role
+                ><strong>{{ getRoleLabel(validatedInvite.role) }}</strong></template
+              >
             </i18n-t>
             <span v-if="validatedInvite.church">（{{ validatedInvite.church }}）</span>
           </div>
@@ -115,10 +116,11 @@ const { toast } = useToast()
 const { t } = useI18n()
 
 /** 顯示名稱（顯示於 greeting） */
-const displayName = computed(() =>
-  authStore.currentUser?.displayName ||
-  authStore.currentUser?.username ||
-  t('onboarding.defaultName')
+const displayName = computed(
+  () =>
+    authStore.currentUser?.displayName ||
+    authStore.currentUser?.username ||
+    t('onboarding.defaultName')
 )
 
 /** 角色標籤（i18n 版） */
@@ -127,12 +129,12 @@ function getRoleLabel(role: UserRole): string {
   return (t as any)(`roleLabel.${role}`) as string
 }
 
-const selectedChurch  = ref('')
-const customUsername  = ref('')
+const selectedChurch = ref('')
+const customUsername = ref('')
 const inviteCodeInput = ref('')
 const inviteCodeStatus = ref<'idle' | 'valid' | 'invalid'>('idle')
-const validatedInvite  = ref<InviteCode | null>(null)
-const isSubmitting     = ref(false)
+const validatedInvite = ref<InviteCode | null>(null)
+const isSubmitting = ref(false)
 
 function getRoleRedirectPath(role?: UserRole | string): string {
   if (role === 'student') return '/student'
@@ -173,8 +175,8 @@ async function handleComplete() {
 
   isSubmitting.value = true
   const result = await authStore.completeProfile({
-    churchId:   selectedChurch.value,
-    username:   customUsername.value || undefined,
+    churchId: selectedChurch.value,
+    username: customUsername.value || undefined,
     inviteCode: inviteCodeInput.value || undefined
   })
   isSubmitting.value = false

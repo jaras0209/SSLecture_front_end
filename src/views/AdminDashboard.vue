@@ -3,14 +3,23 @@
     <!-- Header banner -->
     <header class="dashboard-header glass-panel">
       <div class="admin-header-user-row">
-        <div class="admin-avatar-wrap" @click="showProfileDialog = true" :title="$t('common.editProfileHint')">
+        <div
+          class="admin-avatar-wrap"
+          :title="$t('common.editProfileHint')"
+          @click="showProfileDialog = true"
+        >
           <img :src="authStore.currentUser?.avatarUrl" alt="avatar" class="admin-avatar-sm" />
           <span class="admin-role-badge">👑</span>
         </div>
         <div>
           <h2>{{ $t('admin.header.title') }}</h2>
           <p>{{ $t('admin.header.desc', { name: adminDisplayName }) }}</p>
-          <p v-if="authStore.currentUser?.lastLoginAt" style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">🕐 {{ $t('admin.header.lastLogin', { time: authStore.currentUser?.lastLoginAt }) }}</p>
+          <p
+            v-if="authStore.currentUser?.lastLoginAt"
+            style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px"
+          >
+            🕐 {{ $t('admin.header.lastLogin', { time: authStore.currentUser?.lastLoginAt }) }}
+          </p>
         </div>
       </div>
     </header>
@@ -24,32 +33,36 @@
         <h3>➕ {{ $t('admin.createUser.title') }}</h3>
         <p class="section-desc mb-4">{{ $t('admin.createUser.desc') }}</p>
 
-        <form @submit.prevent="createUser" class="create-form">
+        <form class="create-form" @submit.prevent="createUser">
           <div class="form-group">
-            <label class="form-label" for="new-username">{{ $t('admin.createUser.username') }}</label>
-            <input 
-              v-model="newUser.username" 
+            <label class="form-label" for="new-username">{{
+              $t('admin.createUser.username')
+            }}</label>
+            <input
               id="new-username"
-              type="text" 
-              class="form-input" 
-              :placeholder="$t('admin.createUser.usernamePlaceholder')" 
+              v-model="newUser.username"
+              type="text"
+              class="form-input"
+              :placeholder="$t('admin.createUser.usernamePlaceholder')"
               required
             />
           </div>
           <div class="form-group">
-            <label class="form-label" for="new-password">{{ $t('admin.createUser.password') }}</label>
-            <input 
-              v-model="newUser.password" 
+            <label class="form-label" for="new-password">{{
+              $t('admin.createUser.password')
+            }}</label>
+            <input
               id="new-password"
-              type="password" 
-              class="form-input" 
-              :placeholder="$t('admin.createUser.passwordPlaceholder')" 
+              v-model="newUser.password"
+              type="password"
+              class="form-input"
+              :placeholder="$t('admin.createUser.passwordPlaceholder')"
               required
             />
           </div>
           <div class="form-group">
             <label class="form-label" for="new-role">{{ $t('admin.createUser.role') }}</label>
-            <select v-model="newUser.role" id="new-role" class="form-input select-input">
+            <select id="new-role" v-model="newUser.role" class="form-input select-input">
               <option value="student">🎒 {{ $t('admin.roles.student') }}</option>
               <option value="teacher">👨‍🏫 {{ $t('admin.roles.teacher') }}</option>
               <option value="parent">👨‍👩‍👦 {{ $t('admin.roles.parent') }}</option>
@@ -57,14 +70,14 @@
               <option value="admin">👑 {{ $t('admin.roles.admin') }}</option>
             </select>
           </div>
-          
-          <div class="form-group" v-if="newUser.role !== 'admin'">
+
+          <div v-if="newUser.role !== 'admin'" class="form-group">
             <label class="form-label" for="new-church">{{ $t('admin.createUser.church') }}</label>
-            <select v-model="newUser.church" id="new-church" class="form-input select-input">
+            <select id="new-church" v-model="newUser.church" class="form-input select-input">
               <option v-for="church in CHURCHES" :key="church" :value="church">{{ church }}</option>
             </select>
           </div>
-          
+
           <button type="submit" class="btn btn-secondary btn-block mt-4">
             {{ $t('admin.createUser.submit') }}
           </button>
@@ -73,19 +86,24 @@
         <div v-if="alertMsg" :class="['alert-box mt-4', alertType]">
           {{ alertMsg }}
         </div>
-
       </section>
 
       <!-- Users Management Table -->
       <section class="admin-main glass-panel">
         <div class="main-header">
           <h3>👥 {{ $t('admin.userList.title') }}</h3>
-          <span class="user-count-badge">{{ $t('admin.userList.count', { n: usersList.length }) }}</span>
+          <span class="user-count-badge">{{
+            $t('admin.userList.count', { n: usersList.length })
+          }}</span>
         </div>
 
         <div class="table-container mt-4">
           <table class="admin-table">
-            <caption class="sr-only">{{ $t('admin.userList.tableCaption') }}</caption>
+            <caption class="sr-only">
+              {{
+                $t('admin.userList.tableCaption')
+              }}
+            </caption>
             <thead>
               <tr>
                 <th>{{ $t('admin.userList.colName') }}</th>
@@ -105,15 +123,17 @@
                     <span v-if="user.realName" class="admin-id-tag">@{{ user.username }}</span>
                     <span v-if="user.church" class="admin-church-tag">{{ user.church }}</span>
                   </div>
-                  <span v-if="user.username === authStore.currentUser?.username" class="me-tag">{{ $t('admin.userList.me') }}</span>
+                  <span v-if="user.username === authStore.currentUser?.username" class="me-tag">{{
+                    $t('admin.userList.me')
+                  }}</span>
                 </td>
                 <td>
                   <!-- Dynamic Role Selector -->
-                  <select 
-                    v-model="user.role" 
-                    @change="updateUserRole(user.username, user.role)"
+                  <select
+                    v-model="user.role"
                     class="form-input table-select-input"
                     :disabled="user.username === authStore.currentUser?.username"
+                    @change="updateUserRole(user.username, user.role)"
                   >
                     <option value="student">🎒 {{ $t('admin.roles.student') }}</option>
                     <option value="teacher">👨‍🏫 {{ $t('admin.roles.teacher') }}</option>
@@ -125,11 +145,11 @@
                 <td class="text-center">
                   <!-- Checkbox to restrict student dashboard -->
                   <label class="check-container">
-                    <input 
+                    <input
                       type="checkbox"
                       :checked="coursesStore.isPageRestricted(user.username, '/student')"
-                      @change="toggleRestriction(user.username, '/student')"
                       :disabled="user.username === authStore.currentUser?.username"
+                      @change="toggleRestriction(user.username, '/student')"
                     />
                     <span class="checkmark"></span>
                   </label>
@@ -137,30 +157,30 @@
                 <td class="text-center">
                   <!-- Checkbox to restrict teacher dashboard -->
                   <label class="check-container">
-                    <input 
+                    <input
                       type="checkbox"
                       :checked="coursesStore.isPageRestricted(user.username, '/teacher')"
-                      @change="toggleRestriction(user.username, '/teacher')"
                       :disabled="user.username === authStore.currentUser?.username"
+                      @change="toggleRestriction(user.username, '/teacher')"
                     />
                     <span class="checkmark"></span>
                   </label>
                 </td>
                 <td>
                   <button
-                    @click="resetUserPassword(user.username)"
                     class="reset-pwd-btn"
                     :disabled="user.username === authStore.currentUser?.username"
                     :title="$t('admin.userList.colResetPwd')"
+                    @click="resetUserPassword(user.username)"
                   >
                     🔑
                   </button>
                 </td>
                 <td>
-                  <button 
-                    @click="deleteUser(user.username)"
+                  <button
                     class="delete-btn"
                     :disabled="user.username === authStore.currentUser?.username"
+                    @click="deleteUser(user.username)"
                   >
                     🗑️
                   </button>
@@ -176,12 +196,14 @@
     <section class="church-overview-panel glass-panel mt-4">
       <div class="main-header">
         <h3>{{ $t('admin.churchOverview.title') }}</h3>
-        <span class="user-count-badge">{{ $t('admin.churchOverview.count', { n: churchSummaries.length }) }}</span>
+        <span class="user-count-badge">{{
+          $t('admin.churchOverview.count', { n: churchSummaries.length })
+        }}</span>
       </div>
       <!-- Card Grid -->
       <div class="church-cards-grid mt-4">
-        <div 
-          v-for="summary in churchSummaries" 
+        <div
+          v-for="summary in churchSummaries"
           :key="summary.church"
           class="church-card"
           :class="{ 'church-card-expanded': expandedChurch === summary.church }"
@@ -208,40 +230,54 @@
           </div>
 
           <!-- View button -->
-          <button 
+          <button
             class="church-card-btn"
             :class="{ active: expandedChurch === summary.church }"
             @click="toggleChurchExpand(summary.church)"
           >
-            {{ expandedChurch === summary.church ? $t('admin.churchOverview.collapse') : $t('admin.churchOverview.expand') }}
+            {{
+              expandedChurch === summary.church
+                ? $t('admin.churchOverview.collapse')
+                : $t('admin.churchOverview.expand')
+            }}
           </button>
 
           <!-- Expanded Detail -->
           <div v-if="expandedChurch === summary.church" class="church-card-detail">
             <!-- Teachers -->
             <div class="church-detail-section">
-              <div class="church-detail-label">{{ $t('admin.churchOverview.teacherListLabel') }}</div>
+              <div class="church-detail-label">
+                {{ $t('admin.churchOverview.teacherListLabel') }}
+              </div>
               <div class="church-chips-row">
-                <span 
-                  v-for="t in getChurchTeacherList(summary.church)" 
-                  :key="t" 
+                <span
+                  v-for="t in getChurchTeacherList(summary.church)"
+                  :key="t"
                   class="church-chip chip-teacher"
                   :title="`@${t}`"
-                >✍️ {{ authStore.usersDb[t]?.realName || t }}</span>
-                <span v-if="getChurchTeacherList(summary.church).length === 0" class="chip-empty">{{ $t('admin.churchOverview.noTeachers') }}</span>
+                  >✍️ {{ authStore.usersDb[t]?.realName || t }}</span
+                >
+                <span v-if="getChurchTeacherList(summary.church).length === 0" class="chip-empty">{{
+                  $t('admin.churchOverview.noTeachers')
+                }}</span>
               </div>
             </div>
             <!-- Students -->
             <div class="church-detail-section mt-2">
-              <div class="church-detail-label">{{ $t('admin.churchOverview.studentListLabel') }}</div>
+              <div class="church-detail-label">
+                {{ $t('admin.churchOverview.studentListLabel') }}
+              </div>
               <div class="church-chips-row">
-                <span 
-                  v-for="std in getChurchStudentList(summary.church)" 
-                  :key="std" 
+                <span
+                  v-for="std in getChurchStudentList(summary.church)"
+                  :key="std"
                   class="church-chip chip-student"
                   :title="`@${std}`"
-                >🎒 {{ authStore.usersDb[std]?.realName || std }}</span>
-                <span v-if="getChurchStudentList(summary.church).length === 0" class="chip-empty">{{ $t('admin.churchOverview.noStudents') }}</span>
+                  >🎒 {{ authStore.usersDb[std]?.realName || std }}</span
+                >
+                <span v-if="getChurchStudentList(summary.church).length === 0" class="chip-empty">{{
+                  $t('admin.churchOverview.noStudents')
+                }}</span>
               </div>
             </div>
           </div>
@@ -259,25 +295,49 @@
       <div class="main-header">
         <h3>{{ $t('admin.statsOverview.title') }}</h3>
         <div class="stats-header-controls">
-          <select v-model="adminStatsYear" class="form-input select-input" style="min-width:120px;">
-            <option v-for="y in adminAvailableYears" :key="y" :value="y">{{ $t('admin.statsOverview.yearSuffix', { n: y }) }}</option>
+          <select v-model="adminStatsYear" class="form-input select-input" style="min-width: 120px">
+            <option v-for="y in adminAvailableYears" :key="y" :value="y">
+              {{ $t('admin.statsOverview.yearSuffix', { n: y }) }}
+            </option>
           </select>
-          <span class="user-count-badge">{{ $t('admin.statsOverview.recordCount', { n: adminTeachingStats.length }) }}</span>
+          <span class="user-count-badge">{{
+            $t('admin.statsOverview.recordCount', { n: adminTeachingStats.length })
+          }}</span>
         </div>
       </div>
 
       <div class="table-container mt-4">
         <table class="admin-table stats-table">
-          <caption class="sr-only">{{ $t('admin.statsOverview.tableCaption') }}</caption>
+          <caption class="sr-only">
+            {{
+              $t('admin.statsOverview.tableCaption')
+            }}
+          </caption>
           <thead>
             <tr>
               <th>{{ $t('admin.statsOverview.colTeacher') }}</th>
               <th>{{ $t('admin.statsOverview.colChurch') }}</th>
               <th>{{ $t('admin.statsOverview.colLecturerDb') }}</th>
-              <th>{{ $t('admin.statsOverview.col1on1Label') }}<br/>{{ $t('teacher.stats.sermonBlock') }}</th>
-              <th>{{ $t('admin.statsOverview.col1manyLabel') }}<br/>{{ $t('teacher.stats.sermonBlock') }}</th>
-              <th>{{ $t('admin.statsOverview.col1on1Label') }}<br/>{{ $t('teacher.stats.shiningBlock') }}</th>
-              <th>{{ $t('admin.statsOverview.col1manyLabel') }}<br/>{{ $t('teacher.stats.shiningBlock') }}</th>
+              <th>
+                {{ $t('admin.statsOverview.col1on1Label') }}<br />{{
+                  $t('teacher.stats.sermonBlock')
+                }}
+              </th>
+              <th>
+                {{ $t('admin.statsOverview.col1manyLabel') }}<br />{{
+                  $t('teacher.stats.sermonBlock')
+                }}
+              </th>
+              <th>
+                {{ $t('admin.statsOverview.col1on1Label') }}<br />{{
+                  $t('teacher.stats.shiningBlock')
+                }}
+              </th>
+              <th>
+                {{ $t('admin.statsOverview.col1manyLabel') }}<br />{{
+                  $t('teacher.stats.shiningBlock')
+                }}
+              </th>
               <th>{{ $t('admin.statsOverview.colTotal') }}</th>
               <th>{{ $t('admin.statsOverview.colLastUpdate') }}</th>
             </tr>
@@ -287,24 +347,39 @@
               <td class="username-cell">
                 <span class="avatar-dot" :class="getAvatarClass('teacher')"></span>
                 <div class="admin-name-col">
-                  <strong>{{ authStore.usersDb[row.teacherUsername]?.realName || row.teacherUsername }}</strong>
-                  <span v-if="authStore.usersDb[row.teacherUsername]?.realName" class="admin-id-tag">
+                  <strong>{{
+                    authStore.usersDb[row.teacherUsername]?.realName || row.teacherUsername
+                  }}</strong>
+                  <span
+                    v-if="authStore.usersDb[row.teacherUsername]?.realName"
+                    class="admin-id-tag"
+                  >
                     @{{ row.teacherUsername }}
                   </span>
                 </div>
               </td>
               <td>
-                <span class="admin-church-tag" style="font-size:0.78rem;">{{ row.church || '—' }}</span>
+                <span class="admin-church-tag" style="font-size: 0.78rem">{{
+                  row.church || '—'
+                }}</span>
               </td>
               <td class="text-center">
                 <!-- Linked lecturer info -->
                 <template v-if="getLinkedLecturer(row.teacherUsername)">
                   <div class="linked-lec-cell">
-                    <span class="linked-lec-name">{{ getLinkedLecturer(row.teacherUsername)?.name }}</span>
-                    <span class="lec-course-count">{{ $t('admin.statsOverview.courseSuffix', { n: getLinkedLecturer(row.teacherUsername)?.courseIds.length }) }}</span>
+                    <span class="linked-lec-name">{{
+                      getLinkedLecturer(row.teacherUsername)?.name
+                    }}</span>
+                    <span class="lec-course-count">{{
+                      $t('admin.statsOverview.courseSuffix', {
+                        n: getLinkedLecturer(row.teacherUsername)?.courseIds.length
+                      })
+                    }}</span>
                   </div>
                 </template>
-                <span v-else class="text-xs text-muted">{{ $t('admin.statsOverview.noLecturerDb') }}</span>
+                <span v-else class="text-xs text-muted">{{
+                  $t('admin.statsOverview.noLecturerDb')
+                }}</span>
               </td>
               <td class="text-center">
                 <span class="stat-num">{{ row.oneOnOne30 }}</span>
@@ -320,7 +395,9 @@
               </td>
               <td class="text-center">
                 <span class="badge badge-total">
-                  {{ row.oneOnOne30 + row.oneToMany30 + row.oneOnOneShining + row.oneToManyShining }}
+                  {{
+                    row.oneOnOne30 + row.oneToMany30 + row.oneOnOneShining + row.oneToManyShining
+                  }}
                 </span>
               </td>
               <td class="text-xs text-muted">{{ row.submittedAt || '—' }}</td>
@@ -332,13 +409,26 @@
             </tr>
             <!-- Grand Total Row -->
             <tr v-if="adminTeachingStats.length > 0" class="stats-grand-total-row">
-              <td colspan="3"><strong>{{ $t('admin.statsOverview.grandTotal') }}</strong></td>
-              <td class="text-center"><strong>{{ adminStatsTotals.oneOnOne30 }}</strong></td>
-              <td class="text-center"><strong>{{ adminStatsTotals.oneToMany30 }}</strong></td>
-              <td class="text-center"><strong>{{ adminStatsTotals.oneOnOneShining }}</strong></td>
-              <td class="text-center"><strong>{{ adminStatsTotals.oneToManyShining }}</strong></td>
+              <td colspan="3">
+                <strong>{{ $t('admin.statsOverview.grandTotal') }}</strong>
+              </td>
               <td class="text-center">
-                <span class="badge badge-total" style="background: var(--primary); color: white; font-size:0.9rem;">
+                <strong>{{ adminStatsTotals.oneOnOne30 }}</strong>
+              </td>
+              <td class="text-center">
+                <strong>{{ adminStatsTotals.oneToMany30 }}</strong>
+              </td>
+              <td class="text-center">
+                <strong>{{ adminStatsTotals.oneOnOneShining }}</strong>
+              </td>
+              <td class="text-center">
+                <strong>{{ adminStatsTotals.oneToManyShining }}</strong>
+              </td>
+              <td class="text-center">
+                <span
+                  class="badge badge-total"
+                  style="background: var(--primary); color: white; font-size: 0.9rem"
+                >
                   {{ adminStatsTotals.total }}
                 </span>
               </td>
@@ -361,7 +451,11 @@
         <div class="invite-generate-fields">
           <div class="form-group">
             <label class="form-label">{{ $t('admin.inviteCode.fieldRole') }}</label>
-            <select v-model="inviteForm.role" class="form-input select-input" id="invite-role-select">
+            <select
+              id="invite-role-select"
+              v-model="inviteForm.role"
+              class="form-input select-input"
+            >
               <option value="student">{{ $t('admin.inviteCode.roleStudent') }}</option>
               <option value="teacher">{{ $t('admin.inviteCode.roleTeacher') }}</option>
               <option value="pastor">{{ $t('admin.inviteCode.rolePastor') }}</option>
@@ -369,15 +463,23 @@
               <option value="admin">{{ $t('admin.inviteCode.roleAdmin') }}</option>
             </select>
           </div>
-          <div class="form-group" v-if="inviteForm.role !== 'admin'">
+          <div v-if="inviteForm.role !== 'admin'" class="form-group">
             <label class="form-label">{{ $t('admin.inviteCode.fieldChurch') }}</label>
-            <select v-model="inviteForm.church" class="form-input select-input" id="invite-church-select">
+            <select
+              id="invite-church-select"
+              v-model="inviteForm.church"
+              class="form-input select-input"
+            >
               <option v-for="c in CHURCHES" :key="c" :value="c">{{ c }}</option>
             </select>
           </div>
           <div class="form-group">
             <label class="form-label">{{ $t('admin.inviteCode.fieldExpiry') }}</label>
-            <select v-model="inviteForm.expiryDays" class="form-input select-input" id="invite-expiry-select">
+            <select
+              id="invite-expiry-select"
+              v-model="inviteForm.expiryDays"
+              class="form-input select-input"
+            >
               <option :value="3">{{ $t('admin.inviteCode.days3') }}</option>
               <option :value="7">{{ $t('admin.inviteCode.days7') }}</option>
               <option :value="14">{{ $t('admin.inviteCode.days14') }}</option>
@@ -385,14 +487,18 @@
             </select>
           </div>
         </div>
-        <button class="btn btn-primary" @click="generateInviteCode" id="btn-generate-invite">
+        <button id="btn-generate-invite" class="btn btn-primary" @click="generateInviteCode">
           {{ $t('admin.inviteCode.generateBtn') }}
         </button>
 
         <!-- Generated Code Display -->
         <div v-if="lastGeneratedCode" class="generated-code-display">
           <span class="generated-code-text">{{ lastGeneratedCode }}</span>
-          <button class="btn btn-outline btn-sm" @click="copyInviteCode(lastGeneratedCode)" id="btn-copy-invite">
+          <button
+            id="btn-copy-invite"
+            class="btn btn-outline btn-sm"
+            @click="copyInviteCode(lastGeneratedCode)"
+          >
             {{ $t('admin.inviteCode.copyBtn') }}
           </button>
         </div>
@@ -404,7 +510,11 @@
           {{ $t('admin.inviteCode.emptyList') }}
         </div>
         <table v-else class="invite-table">
-          <caption class="sr-only">{{ $t('admin.inviteCode.tableCaption') }}</caption>
+          <caption class="sr-only">
+            {{
+              $t('admin.inviteCode.tableCaption')
+            }}
+          </caption>
           <thead>
             <tr>
               <th>{{ $t('admin.inviteCode.colCode') }}</th>
@@ -417,18 +527,26 @@
           </thead>
           <tbody>
             <tr v-for="code in allInviteCodes" :key="code.code" :class="inviteRowClass(code)">
-              <td><code class="invite-code-cell">{{ code.code }}</code></td>
+              <td>
+                <code class="invite-code-cell">{{ code.code }}</code>
+              </td>
               <td>{{ inviteRoleLabel(code.role) }}</td>
               <td>{{ code.church || '—' }}</td>
               <td>{{ formatInviteDate(code.expiresAt) }}</td>
-              <td><span :class="['invite-status-badge', inviteStatusClass(code)]">{{ inviteStatusLabel(code) }}</span></td>
+              <td>
+                <span :class="['invite-status-badge', inviteStatusClass(code)]">{{
+                  inviteStatusLabel(code)
+                }}</span>
+              </td>
               <td>
                 <button
                   v-if="!code.usedBy && !code.revoked"
                   class="btn btn-danger btn-sm"
                   @click="revokeCode(code.code)"
-                >{{ $t('admin.inviteCode.revokeBtn') }}</button>
-                <span v-else class="text-muted" style="font-size:0.75rem;">—</span>
+                >
+                  {{ $t('admin.inviteCode.revokeBtn') }}
+                </button>
+                <span v-else class="text-muted" style="font-size: 0.75rem">—</span>
               </td>
             </tr>
           </tbody>
@@ -487,7 +605,12 @@ function generateInviteCode() {
   const me = authStore.currentUser
   if (!me) return
   const church = inviteForm.role !== 'admin' ? inviteForm.church : undefined
-  const code = authStore.generateInviteCode(inviteForm.role, church, me.username, inviteForm.expiryDays)
+  const code = authStore.generateInviteCode(
+    inviteForm.role,
+    church,
+    me.username,
+    inviteForm.expiryDays
+  )
   lastGeneratedCode.value = code
   toast(t('admin.inviteCode.generated', { code }), 'success')
 }
@@ -500,11 +623,14 @@ async function revokeCode(code: string) {
 }
 
 function copyInviteCode(code: string) {
-  navigator.clipboard.writeText(code).then(() => {
-    toast(t('admin.inviteCode.copySuccess'), 'success')
-  }).catch(() => {
-    toast(t('admin.inviteCode.copyFallback', { code }), 'info')
-  })
+  navigator.clipboard
+    .writeText(code)
+    .then(() => {
+      toast(t('admin.inviteCode.copySuccess'), 'success')
+    })
+    .catch(() => {
+      toast(t('admin.inviteCode.copyFallback', { code }), 'info')
+    })
 }
 
 function inviteRoleLabel(role: UserRole): string {
@@ -544,7 +670,7 @@ function inviteRowClass(code: InviteCode): string {
 
 // Transform db object into array
 const usersList = computed(() => {
-  return Object.keys(authStore.usersDb).map(username => ({
+  return Object.keys(authStore.usersDb).map((username) => ({
     username,
     role: authStore.usersDb[username].role,
     realName: authStore.usersDb[username].realName,
@@ -552,20 +678,18 @@ const usersList = computed(() => {
   }))
 })
 
-
 // ── Teaching Stats Overview ──
 const adminCurrentYear = new Date().getFullYear()
 const adminAvailableYears = Array.from({ length: 5 }, (_, i) => adminCurrentYear - i)
 const adminStatsYear = ref(adminCurrentYear)
 
 const adminTeachingStats = computed(() => {
-  return coursesStore.getAllTeachingStats(adminStatsYear.value)
-    .sort((a, b) => {
-      // Sort by church, then teacher
-      const churchDiff = (a.church || '').localeCompare(b.church || '', 'zh-TW')
-      if (churchDiff !== 0) return churchDiff
-      return a.teacherUsername.localeCompare(b.teacherUsername)
-    })
+  return coursesStore.getAllTeachingStats(adminStatsYear.value).sort((a, b) => {
+    // Sort by church, then teacher
+    const churchDiff = (a.church || '').localeCompare(b.church || '', 'zh-TW')
+    if (churchDiff !== 0) return churchDiff
+    return a.teacherUsername.localeCompare(b.teacherUsername)
+  })
 })
 
 const adminStatsTotals = computed(() => {
@@ -575,7 +699,10 @@ const adminStatsTotals = computed(() => {
     oneToMany30: rows.reduce((s, r) => s + r.oneToMany30, 0),
     oneOnOneShining: rows.reduce((s, r) => s + r.oneOnOneShining, 0),
     oneToManyShining: rows.reduce((s, r) => s + r.oneToManyShining, 0),
-    total: rows.reduce((s, r) => s + r.oneOnOne30 + r.oneToMany30 + r.oneOnOneShining + r.oneToManyShining, 0)
+    total: rows.reduce(
+      (s, r) => s + r.oneOnOne30 + r.oneToMany30 + r.oneOnOneShining + r.oneToManyShining,
+      0
+    )
   }
 })
 
@@ -595,14 +722,12 @@ function showAlert(msg: string, type: 'success' | 'error' = 'success') {
   }, 4000)
 }
 
-
-
 function createUser() {
   if (!newUser.username || !newUser.password) {
     showAlert(t('auth.validation.fillAll'), 'error')
     return
   }
-  
+
   if (authStore.usersDb[newUser.username]) {
     showAlert(t('admin.createUser.usernameTaken'), 'error')
     return
@@ -644,7 +769,9 @@ async function deleteUser(username: string) {
 }
 
 async function resetUserPassword(username: string) {
-  const ok = await confirm(t('admin.userList.resetPwdConfirm', { username, pwd: DEFAULT_RESET_PASSWORD }))
+  const ok = await confirm(
+    t('admin.userList.resetPwdConfirm', { username, pwd: DEFAULT_RESET_PASSWORD })
+  )
   if (!ok) return
   const result = authStore.adminResetPassword(username)
   if (result.success) {
@@ -700,11 +827,13 @@ function getChurchTeacherList(church: string): string[] {
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  border: 2px solid rgba(99,102,241,0.3);
+  border: 2px solid rgba(99, 102, 241, 0.3);
   object-fit: cover;
   transition: opacity 0.2s;
 }
-.admin-avatar-wrap:hover .admin-avatar-sm { opacity: 0.8; }
+.admin-avatar-wrap:hover .admin-avatar-sm {
+  opacity: 0.8;
+}
 .admin-role-badge {
   position: absolute;
   bottom: -3px;
@@ -717,9 +846,8 @@ function getChurchTeacherList(church: string): string[] {
   align-items: center;
   justify-content: center;
   font-size: 0.75rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-
 
 .dashboard-body {
   display: grid;
@@ -768,12 +896,12 @@ function getChurchTeacherList(church: string): string[] {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid #e2e8f0;
   padding-bottom: 1rem;
 }
 
 .user-count-badge {
-  background: #EFF6FF;
+  background: #eff6ff;
   color: var(--primary);
   font-size: 0.8rem;
   font-weight: 700;
@@ -796,13 +924,13 @@ function getChurchTeacherList(church: string): string[] {
   padding: 0.75rem 1rem;
   color: var(--text-secondary);
   font-weight: 700;
-  border-bottom: 2px solid #E2E8F0;
+  border-bottom: 2px solid #e2e8f0;
   font-size: 0.9rem;
 }
 
 .admin-table td {
   padding: 0.85rem 1rem;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid #e2e8f0;
   vertical-align: middle;
   font-size: 0.9rem;
 }
@@ -837,7 +965,6 @@ function getChurchTeacherList(church: string): string[] {
   width: fit-content;
 }
 
-
 .avatar-dot {
   width: 10px;
   height: 10px;
@@ -845,9 +972,15 @@ function getChurchTeacherList(church: string): string[] {
   display: inline-block;
 }
 
-.avatar-student { background-color: var(--primary); }
-.avatar-teacher { background-color: var(--secondary); }
-.avatar-admin { background-color: var(--info); }
+.avatar-student {
+  background-color: var(--primary);
+}
+.avatar-teacher {
+  background-color: var(--secondary);
+}
+.avatar-admin {
+  background-color: var(--info);
+}
 
 .me-tag {
   font-size: 0.75rem;
@@ -960,15 +1093,15 @@ function getChurchTeacherList(church: string): string[] {
   left: 0;
   height: 20px;
   width: 20px;
-  background-color: #F1F5F9;
-  border: 2px solid #CBD5E1;
+  background-color: #f1f5f9;
+  border: 2px solid #cbd5e1;
   border-radius: 4px;
   transition: all var(--transition-fast);
 }
 
 .check-container:hover input ~ .checkmark {
   border-color: var(--danger);
-  background-color: #FEF2F2;
+  background-color: #fef2f2;
 }
 
 .check-container input:checked ~ .checkmark {
@@ -977,7 +1110,7 @@ function getChurchTeacherList(church: string): string[] {
 }
 
 .checkmark:after {
-  content: "";
+  content: '';
   position: absolute;
   display: none;
 }
@@ -1009,7 +1142,7 @@ function getChurchTeacherList(church: string): string[] {
 }
 
 .reset-pwd-btn:hover:not(:disabled) {
-  background-color: #FEF3C7;
+  background-color: #fef3c7;
 }
 
 .reset-pwd-btn:disabled {
@@ -1018,7 +1151,6 @@ function getChurchTeacherList(church: string): string[] {
 }
 
 .delete-btn {
-
   background: transparent;
   border: none;
   cursor: pointer;
@@ -1029,7 +1161,7 @@ function getChurchTeacherList(church: string): string[] {
 }
 
 .delete-btn:hover:not(:disabled) {
-  background-color: #FEE2E2;
+  background-color: #fee2e2;
 }
 
 .delete-btn:disabled {
@@ -1047,18 +1179,18 @@ function getChurchTeacherList(church: string): string[] {
 }
 
 .alert-box.success {
-  background-color: #D1FAE5;
-  color: #065F46;
+  background-color: #d1fae5;
+  color: #065f46;
 }
 
 .alert-box.error {
-  background-color: #FEE2E2;
-  color: #991B1B;
+  background-color: #fee2e2;
+  color: #991b1b;
 }
 
 /* Match Table styling */
 .border-t {
-  border-top: 1px dashed #E2E8F0;
+  border-top: 1px dashed #e2e8f0;
 }
 
 .match-list-panel h3 {
@@ -1069,9 +1201,9 @@ function getChurchTeacherList(church: string): string[] {
 .match-table-wrapper {
   max-height: 200px;
   overflow-y: auto;
-  border: 1px solid #E2E8F0;
+  border: 1px solid #e2e8f0;
   border-radius: var(--radius-sm);
-  background-color: #F8FAFC;
+  background-color: #f8fafc;
 }
 
 .match-table {
@@ -1081,16 +1213,16 @@ function getChurchTeacherList(church: string): string[] {
 }
 
 .match-table th {
-  background-color: #F1F5F9;
+  background-color: #f1f5f9;
   padding: 0.5rem;
   font-weight: 700;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid #e2e8f0;
   text-align: left;
 }
 
 .match-table td {
   padding: 0.5rem;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 /* Church Overview - Card Grid */
@@ -1102,22 +1234,24 @@ function getChurchTeacherList(church: string): string[] {
 
 .church-card {
   border-radius: 14px;
-  border: 1.5px solid #E2E8F0;
+  border: 1.5px solid #e2e8f0;
   background: white;
   overflow: hidden;
-  transition: box-shadow 0.2s, border-color 0.2s;
+  transition:
+    box-shadow 0.2s,
+    border-color 0.2s;
   display: flex;
   flex-direction: column;
 }
 
 .church-card:hover {
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-  border-color: #C7D2FE;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border-color: #c7d2fe;
 }
 
 .church-card-expanded {
-  border-color: #6366F1;
-  box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
 .church-card-header {
@@ -1125,8 +1259,8 @@ function getChurchTeacherList(church: string): string[] {
   align-items: center;
   gap: 0.75rem;
   padding: 1rem 1.25rem;
-  background: linear-gradient(135deg, #EEF2FF 0%, #F8FAFC 100%);
-  border-bottom: 1px solid #E2E8F0;
+  background: linear-gradient(135deg, #eef2ff 0%, #f8fafc 100%);
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .church-card-icon {
@@ -1138,7 +1272,7 @@ function getChurchTeacherList(church: string): string[] {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
   flex-shrink: 0;
 }
 
@@ -1167,13 +1301,13 @@ function getChurchTeacherList(church: string): string[] {
 .church-stat-val {
   font-size: 1.6rem;
   font-weight: 800;
-  color: #6366F1;
+  color: #6366f1;
   line-height: 1;
 }
 
 .church-stat-lbl {
   font-size: 0.72rem;
-  color: #64748B;
+  color: #64748b;
   font-weight: 600;
   text-align: center;
 }
@@ -1181,7 +1315,7 @@ function getChurchTeacherList(church: string): string[] {
 .church-stat-divider {
   width: 1px;
   height: 36px;
-  background: #E2E8F0;
+  background: #e2e8f0;
   margin: 0 0.5rem;
 }
 
@@ -1189,38 +1323,41 @@ function getChurchTeacherList(church: string): string[] {
   width: 100%;
   padding: 0.6rem;
   border: none;
-  border-top: 1px solid #E2E8F0;
-  background: #F8FAFC;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
   font-family: inherit;
   font-size: 0.8rem;
   font-weight: 700;
-  color: #6366F1;
+  color: #6366f1;
   cursor: pointer;
   transition: background 0.15s;
 }
 
 .church-card-btn:hover {
-  background: #EEF2FF;
+  background: #eef2ff;
 }
 
 .church-card-btn.active {
-  background: #EEF2FF;
-  color: #4F46E5;
+  background: #eef2ff;
+  color: #4f46e5;
 }
 
 .church-card-detail {
   padding: 0.85rem 1.25rem 1rem;
-  background: #FAFBFF;
-  border-top: 1px dashed #E2E8F0;
+  background: #fafbff;
+  border-top: 1px dashed #e2e8f0;
 }
 
-.church-detail-section { }
-.church-detail-section.mt-2 { margin-top: 0.65rem; }
+.church-detail-section {
+}
+.church-detail-section.mt-2 {
+  margin-top: 0.65rem;
+}
 
 .church-detail-label {
   font-size: 0.72rem;
   font-weight: 700;
-  color: #64748B;
+  color: #64748b;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 0.4rem;
@@ -1242,18 +1379,18 @@ function getChurchTeacherList(church: string): string[] {
 .chip-teacher {
   background: rgba(16, 185, 129, 0.1);
   color: #059669;
-  border: 1px solid #A7F3D0;
+  border: 1px solid #a7f3d0;
 }
 
 .chip-student {
   background: rgba(99, 102, 241, 0.08);
-  color: #4F46E5;
-  border: 1px solid #C7D2FE;
+  color: #4f46e5;
+  border: 1px solid #c7d2fe;
 }
 
 .chip-empty {
   font-size: 0.75rem;
-  color: #94A3B8;
+  color: #94a3b8;
   font-style: italic;
 }
 
@@ -1261,7 +1398,7 @@ function getChurchTeacherList(church: string): string[] {
   grid-column: 1 / -1;
   text-align: center;
   padding: 3rem;
-  color: #94A3B8;
+  color: #94a3b8;
   font-size: 2rem;
 }
 
@@ -1286,8 +1423,12 @@ function getChurchTeacherList(church: string): string[] {
   font-size: 0.9rem;
 }
 
-.mt-4 { margin-top: 1rem; }
-.mt-6 { margin-top: 1.5rem; }
+.mt-4 {
+  margin-top: 1rem;
+}
+.mt-6 {
+  margin-top: 1.5rem;
+}
 
 /* Invite Code Management */
 .admin-section {
@@ -1409,7 +1550,6 @@ function getChurchTeacherList(church: string): string[] {
 .row-used td {
   opacity: 0.7;
 }
-
 
 /* ══════════════════════════════════════════
    AdminDashboard — Mobile RWD (640px)

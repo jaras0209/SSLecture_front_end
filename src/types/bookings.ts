@@ -13,9 +13,9 @@ export type AttendanceStatus = 'invited' | 'attended' | 'absent'
 
 /** 場次預習資料 */
 export interface BookingPrep {
-  scriptures: string[]  // 預習經文，如 ["約翰福音 1:1-18"]
-  readingNotes: string  // 閱讀/準備說明
-  materials: string     // 補充材料說明
+  scriptures: string[] // 預習經文，如 ["約翰福音 1:1-18"]
+  readingNotes: string // 閱讀/準備說明
+  materials: string // 補充材料說明
 }
 
 /** 預約場次 */
@@ -24,20 +24,20 @@ export interface BookingSession {
 
   // 課程
   courseId: string
-  courseTitle: string       // 冗餘，方便顯示
+  courseTitle: string // 冗餘，方便顯示
 
   // 講師
   lecturerId: string
   lecturerName: string
-  lecturerTitle: string     // 牧師/傳道/長老等
+  lecturerTitle: string // 牧師/傳道/長老等
 
   // 發起教師
   teacherUsername: string
 
   // 時間
-  proposedAt: string        // ISO8601，如 "2025-06-25T14:00"
-  confirmedAt?: string      // 最終確認時間（講師確認後填）
-  durationMinutes: number   // 預計時長（分鐘），如 90
+  proposedAt: string // ISO8601，如 "2025-06-25T14:00"
+  confirmedAt?: string // 最終確認時間（講師確認後填）
+  durationMinutes: number // 預計時長（分鐘），如 90
 
   // 狀態
   status: BookingStatus
@@ -58,7 +58,7 @@ export interface BookingSession {
 
 /** 場次學員出席記錄 */
 export interface BookingAttendee {
-  id: string              // `att_${sessionId}_${studentUsername}`
+  id: string // `att_${sessionId}_${studentUsername}`
   sessionId: string
 
   studentUsername: string
@@ -67,8 +67,8 @@ export interface BookingAttendee {
   attendanceStatus: AttendanceStatus
 
   // 課後回饋
-  studentFeedback: string   // 學員心得（學員或教師代填）
-  teacherFeedback: string   // 教師對此學員的個別回饋
+  studentFeedback: string // 學員心得（學員或教師代填）
+  teacherFeedback: string // 教師對此學員的個別回饋
   feedbackAt?: string
 
   // 手動連結聽課紀錄（選填）

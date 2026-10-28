@@ -38,7 +38,6 @@ import type {
   ShiningChecklistKey
 } from '@/types/courses'
 
-
 export const useCoursesStore = defineStore('courses', () => {
   // Course catalog — dev seed data lives in src/mocks/courses.ts
   // TODO（後端就緒後）：replace with GET /courses
@@ -56,11 +55,15 @@ export const useCoursesStore = defineStore('courses', () => {
 
   // Student-Teacher care assignments mapping database (persistent)
   const studentTeacherDb = ref<StudentTeacherDb>({})
-  const _rawStudentTeacher = safeGet<Record<string, unknown>>('superstart_student_teacher_db', {}, { clearOnError: true })
+  const _rawStudentTeacher = safeGet<Record<string, unknown>>(
+    'superstart_student_teacher_db',
+    {},
+    { clearOnError: true }
+  )
   if (Object.keys(_rawStudentTeacher).length > 0) {
     try {
       const migrated: StudentTeacherDb = {}
-      Object.keys(_rawStudentTeacher).forEach(studentKey => {
+      Object.keys(_rawStudentTeacher).forEach((studentKey) => {
         const val = _rawStudentTeacher[studentKey]
         if (typeof val === 'string') {
           migrated[studentKey] = { teacher: val }
@@ -82,7 +85,7 @@ export const useCoursesStore = defineStore('courses', () => {
 
   // Dynamic themes (persistent)
   const characterThemesDb = ref<Record<string, string[]>>({
-    '愛與話語': ['品格力 - 自律', '品格力 - 感謝', '品格力 - 勇氣', '品格力 - 正直']
+    愛與話語: ['品格力 - 自律', '品格力 - 感謝', '品格力 - 勇氣', '品格力 - 正直']
   })
   const _rawCharThemes = safeGet<unknown>('superstart_character_themes_db', null)
   if (_rawCharThemes !== null) {
@@ -93,11 +96,13 @@ export const useCoursesStore = defineStore('courses', () => {
       } else {
         characterThemesDb.value = _rawCharThemes as Record<string, string[]>
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   const comingOfAgeThemesDb = ref<Record<string, string[]>>({
-    '愛與話語': ['基督教歷史', '台灣攝理歷史', '情感教育', 'R的使命與精神']
+    愛與話語: ['基督教歷史', '台灣攝理歷史', '情感教育', 'R的使命與精神']
   })
   const _rawAgeThemes = safeGet<unknown>('superstart_coming_of_age_themes_db', null)
   if (_rawAgeThemes !== null) {
@@ -108,7 +113,9 @@ export const useCoursesStore = defineStore('courses', () => {
       } else {
         comingOfAgeThemesDb.value = _rawAgeThemes as Record<string, string[]>
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }
 
   // Lecturers list (persistent) — migrate existing entries to have church
@@ -117,15 +124,66 @@ export const useCoursesStore = defineStore('courses', () => {
   )
   if (lecturers.value.length > 0) {
     // Migrate existing to have church
-    lecturers.value.forEach(l => {
+    lecturers.value.forEach((l) => {
       if (!l.church) l.church = '愛與話語'
     })
   } else {
     // Default initial mock database
     lecturers.value = [
-      { id: 'l1', name: '張牧師', title: '牧師', courseIds: ['bible-01', 'bible-02', 'bible-03', 'bible-04', 'bible-05', 'bible-06', 'bible-07', 'bible-08', 'bible-09', 'bible-10'], church: '愛與話語' },
-      { id: 'l2', name: '陳傳道', title: '傳道', courseIds: ['bible-11', 'bible-12', 'bible-13', 'bible-14', 'bible-15', 'lecture-01', 'lecture-02', 'lecture-03', 'lecture-04', 'lecture-05'], church: '愛與話語' },
-      { id: 'l3', name: '林輔導', title: '輔導', courseIds: ['lecture-06', 'lecture-07', 'lecture-08', 'lecture-09', 'lecture-10', 'lecture-11', 'lecture-12', 'lecture-13', 'lecture-14', 'lecture-15'], church: '愛與話語' }
+      {
+        id: 'l1',
+        name: '張牧師',
+        title: '牧師',
+        courseIds: [
+          'bible-01',
+          'bible-02',
+          'bible-03',
+          'bible-04',
+          'bible-05',
+          'bible-06',
+          'bible-07',
+          'bible-08',
+          'bible-09',
+          'bible-10'
+        ],
+        church: '愛與話語'
+      },
+      {
+        id: 'l2',
+        name: '陳傳道',
+        title: '傳道',
+        courseIds: [
+          'bible-11',
+          'bible-12',
+          'bible-13',
+          'bible-14',
+          'bible-15',
+          'lecture-01',
+          'lecture-02',
+          'lecture-03',
+          'lecture-04',
+          'lecture-05'
+        ],
+        church: '愛與話語'
+      },
+      {
+        id: 'l3',
+        name: '林輔導',
+        title: '輔導',
+        courseIds: [
+          'lecture-06',
+          'lecture-07',
+          'lecture-08',
+          'lecture-09',
+          'lecture-10',
+          'lecture-11',
+          'lecture-12',
+          'lecture-13',
+          'lecture-14',
+          'lecture-15'
+        ],
+        church: '愛與話語'
+      }
     ]
   }
 
@@ -135,37 +193,69 @@ export const useCoursesStore = defineStore('courses', () => {
   )
 
   // Watchers to persist state
-  watch(progressDb, (newDb) => {
-    safeSet('superstart_progress_db', newDb)
-  }, { deep: true })
+  watch(
+    progressDb,
+    (newDb) => {
+      safeSet('superstart_progress_db', newDb)
+    },
+    { deep: true }
+  )
 
-  watch(restrictionsDb, (newDb) => {
-    safeSet('superstart_restrictions_db', newDb)
-  }, { deep: true })
+  watch(
+    restrictionsDb,
+    (newDb) => {
+      safeSet('superstart_restrictions_db', newDb)
+    },
+    { deep: true }
+  )
 
-  watch(studentTeacherDb, (newDb) => {
-    safeSet('superstart_student_teacher_db', newDb)
-  }, { deep: true })
+  watch(
+    studentTeacherDb,
+    (newDb) => {
+      safeSet('superstart_student_teacher_db', newDb)
+    },
+    { deep: true }
+  )
 
-  watch(shiningProjectDb, (newDb) => {
-    safeSet('superstart_shining_project_db', newDb)
-  }, { deep: true })
+  watch(
+    shiningProjectDb,
+    (newDb) => {
+      safeSet('superstart_shining_project_db', newDb)
+    },
+    { deep: true }
+  )
 
-  watch(characterThemesDb, (newThemes) => {
-    safeSet('superstart_character_themes_db', newThemes)
-  }, { deep: true })
+  watch(
+    characterThemesDb,
+    (newThemes) => {
+      safeSet('superstart_character_themes_db', newThemes)
+    },
+    { deep: true }
+  )
 
-  watch(comingOfAgeThemesDb, (newThemes) => {
-    safeSet('superstart_coming_of_age_themes_db', newThemes)
-  }, { deep: true })
+  watch(
+    comingOfAgeThemesDb,
+    (newThemes) => {
+      safeSet('superstart_coming_of_age_themes_db', newThemes)
+    },
+    { deep: true }
+  )
 
-  watch(lecturers, (newLecturers) => {
-    safeSet('superstart_lecturers_db', newLecturers)
-  }, { deep: true })
+  watch(
+    lecturers,
+    (newLecturers) => {
+      safeSet('superstart_lecturers_db', newLecturers)
+    },
+    { deep: true }
+  )
 
-  watch(teachingStatsDb, (newStats) => {
-    safeSet('superstart_teaching_stats_db', newStats)
-  }, { deep: true })
+  watch(
+    teachingStatsDb,
+    (newStats) => {
+      safeSet('superstart_teaching_stats_db', newStats)
+    },
+    { deep: true }
+  )
 
   // Blank template initializer
   function createBlankShiningProject(): ShiningProject {
@@ -177,15 +267,32 @@ export const useCoursesStore = defineStore('courses', () => {
       birthday: '',
       church: '',
       schoolGrade: '',
-      faithPhase1: { worship: false, prayer: false, independent: false, reply: false, share: false },
-      faithPhase2: { courses30: false, prayerLong: false, morningWorship: false, readBible: false, churchService: false },
-      advancedChallenges: { wednesday: false, shareFaith: false, copySermon: false, morningProverb: false, custom: false },
+      faithPhase1: {
+        worship: false,
+        prayer: false,
+        independent: false,
+        reply: false,
+        share: false
+      },
+      faithPhase2: {
+        courses30: false,
+        prayerLong: false,
+        morningWorship: false,
+        readBible: false,
+        churchService: false
+      },
+      advancedChallenges: {
+        wednesday: false,
+        shareFaith: false,
+        copySermon: false,
+        morningProverb: false,
+        custom: false
+      },
       customChallenge: '',
       characterLectures: charLectures,
       comingOfAgeTopics: ageTopics
     }
   }
-
 
   // Actions
 
@@ -283,7 +390,7 @@ export const useCoursesStore = defineStore('courses', () => {
     const record = progressDb.value[username]?.[courseId]
     if (!record) return false
     migrateRecord(record)
-    const session = record.sessions.find(s => s.id === sessionId)
+    const session = record.sessions.find((s) => s.id === sessionId)
     if (!session) return false
     if (patch.listenedAt !== undefined) session.listenedAt = patch.listenedAt
     if (patch.notes !== undefined) session.notes = patch.notes
@@ -293,7 +400,6 @@ export const useCoursesStore = defineStore('courses', () => {
     progressDb.value = { ...progressDb.value }
     return true
   }
-
 
   function getStudentProgress(username: string, courseId: string): ProgressRecord {
     const userRecords = progressDb.value[username]
@@ -331,16 +437,29 @@ export const useCoursesStore = defineStore('courses', () => {
   }
 
   // Student-Teacher care actions
-  function assignStudentCaretaker(studentUsername: string, role: 'teacher' | 'pastor' | 'parent', username: string): void {
-    if (!studentTeacherDb.value[studentUsername] || typeof studentTeacherDb.value[studentUsername] !== 'object') {
+  function assignStudentCaretaker(
+    studentUsername: string,
+    role: 'teacher' | 'pastor' | 'parent',
+    username: string
+  ): void {
+    if (
+      !studentTeacherDb.value[studentUsername] ||
+      typeof studentTeacherDb.value[studentUsername] !== 'object'
+    ) {
       studentTeacherDb.value[studentUsername] = {}
     }
     studentTeacherDb.value[studentUsername][role] = username
     studentTeacherDb.value = { ...studentTeacherDb.value }
   }
 
-  function removeStudentCaretaker(studentUsername: string, role: 'teacher' | 'pastor' | 'parent'): void {
-    if (studentTeacherDb.value[studentUsername] && typeof studentTeacherDb.value[studentUsername] === 'object') {
+  function removeStudentCaretaker(
+    studentUsername: string,
+    role: 'teacher' | 'pastor' | 'parent'
+  ): void {
+    if (
+      studentTeacherDb.value[studentUsername] &&
+      typeof studentTeacherDb.value[studentUsername] === 'object'
+    ) {
       delete studentTeacherDb.value[studentUsername][role]
       if (Object.keys(studentTeacherDb.value[studentUsername]).length === 0) {
         delete studentTeacherDb.value[studentUsername]
@@ -349,7 +468,10 @@ export const useCoursesStore = defineStore('courses', () => {
     }
   }
 
-  function getStudentCaretaker(studentUsername: string, role: 'teacher' | 'pastor' | 'parent'): string {
+  function getStudentCaretaker(
+    studentUsername: string,
+    role: 'teacher' | 'pastor' | 'parent'
+  ): string {
     const caretakers = studentTeacherDb.value[studentUsername]
     if (caretakers && typeof caretakers === 'object') {
       return caretakers[role] || ''
@@ -409,7 +531,12 @@ export const useCoursesStore = defineStore('courses', () => {
     }
   }
 
-  function updateTheme(type: 'character' | 'comingOfAge', oldName: string, newName: string, church: string): void {
+  function updateTheme(
+    type: 'character' | 'comingOfAge',
+    oldName: string,
+    newName: string,
+    church: string
+  ): void {
     const db = type === 'character' ? characterThemesDb : comingOfAgeThemesDb
     if (db.value[church]) {
       const index = db.value[church].indexOf(oldName)
@@ -421,16 +548,29 @@ export const useCoursesStore = defineStore('courses', () => {
 
   // Lecturer actions
   function getLecturersByChurch(church: string): Lecturer[] {
-    return lecturers.value.filter(l => l.church === church || !l.church)
+    return lecturers.value.filter((l) => l.church === church || !l.church)
   }
 
-  function addLecturer(name: string, title: string, courseIds: string[], church: string, linkedUsername?: string): void {
+  function addLecturer(
+    name: string,
+    title: string,
+    courseIds: string[],
+    church: string,
+    linkedUsername?: string
+  ): void {
     const id = 'l_' + Date.now()
     lecturers.value.push({ id, name, title, courseIds, church, linkedUsername })
   }
 
-  function updateLecturer(id: string, name: string, title: string, courseIds: string[], church?: string, linkedUsername?: string): void {
-    const lec = lecturers.value.find(l => l.id === id)
+  function updateLecturer(
+    id: string,
+    name: string,
+    title: string,
+    courseIds: string[],
+    church?: string,
+    linkedUsername?: string
+  ): void {
+    const lec = lecturers.value.find((l) => l.id === id)
     if (lec) {
       lec.name = name
       lec.title = title
@@ -444,7 +584,7 @@ export const useCoursesStore = defineStore('courses', () => {
   }
 
   function deleteLecturer(id: string): void {
-    const index = lecturers.value.findIndex(l => l.id === id)
+    const index = lecturers.value.findIndex((l) => l.id === id)
     if (index > -1) {
       lecturers.value.splice(index, 1)
     }
@@ -456,17 +596,15 @@ export const useCoursesStore = defineStore('courses', () => {
    * 不修改 record，可安全用於統計。
    */
   function getSessionLecturers(record: ProgressRecord): string[] {
-    const names = record.sessions
-      ? record.sessions.map(s => s.lecturer)
-      : [record.lecturer]
-    return names.map(n => (n ?? '').trim()).filter(n => n !== '')
+    const names = record.sessions ? record.sessions.map((s) => s.lecturer) : [record.lecturer]
+    return names.map((n) => (n ?? '').trim()).filter((n) => n !== '')
   }
 
   /**
    * 取得教師帳號在講師資料庫中的 linked 紀錄
    */
   function getLecturerByUsername(username: string): Lecturer | undefined {
-    return lecturers.value.find(l => l.linkedUsername === username)
+    return lecturers.value.find((l) => l.linkedUsername === username)
   }
 
   /**
@@ -480,9 +618,9 @@ export const useCoursesStore = defineStore('courses', () => {
   ): number {
     const target = lecturerName.trim()
     let count = 0
-    getStudentsByChurch(authUsersDb, church).forEach(studentUsername => {
-      Object.values(progressDb.value[studentUsername] ?? {}).forEach(record => {
-        count += getSessionLecturers(record).filter(name => name === target).length
+    getStudentsByChurch(authUsersDb, church).forEach((studentUsername) => {
+      Object.values(progressDb.value[studentUsername] ?? {}).forEach((record) => {
+        count += getSessionLecturers(record).filter((name) => name === target).length
       })
     })
     return count
@@ -493,7 +631,7 @@ export const useCoursesStore = defineStore('courses', () => {
     if (!shiningProjectDb.value[username]) {
       shiningProjectDb.value[username] = createBlankShiningProject()
     }
-    
+
     // Check missing dynamic themes if store dynamic list changed
     const proj = shiningProjectDb.value[username]
     if (!proj.characterLectures) {
@@ -502,11 +640,11 @@ export const useCoursesStore = defineStore('courses', () => {
     if (!proj.comingOfAgeTopics) {
       proj.comingOfAgeTopics = {}
     }
-    
+
     // Auto check 'courses30' if the student completed all 30 courses
     const userRecords = progressDb.value[username]
     if (userRecords) {
-      const completedCount = Object.values(userRecords).filter(r => r.completed).length
+      const completedCount = Object.values(userRecords).filter((r) => r.completed).length
       if (completedCount >= courses.value.length) {
         shiningProjectDb.value[username].faithPhase2.courses30 = true
       }
@@ -516,7 +654,7 @@ export const useCoursesStore = defineStore('courses', () => {
   }
 
   function updateShiningBasicInfo(
-    username: string, 
+    username: string,
     info: { name: string; birthday: string; church: string; schoolGrade: string }
   ): void {
     const project = getShiningProject(username)
@@ -527,19 +665,17 @@ export const useCoursesStore = defineStore('courses', () => {
   }
 
   function updateShiningChecklist(
-    username: string, 
-    category: 'faithPhase1' | 'faithPhase2' | 'advancedChallenges', 
+    username: string,
+    category: 'faithPhase1' | 'faithPhase2' | 'advancedChallenges',
     key: ShiningChecklistKey,
     value: boolean
   ): void {
     const project = getShiningProject(username)
-    
+
     // Type casting to ensure typescript compatibility
     const checklist = project[category] as Record<string, boolean>
     checklist[key] = value
   }
-
-
 
   function updateShiningCustomChallenge(username: string, text: string): void {
     const project = getShiningProject(username)
@@ -547,10 +683,10 @@ export const useCoursesStore = defineStore('courses', () => {
   }
 
   function updateShiningLecture(
-    username: string, 
-    type: 'character' | 'comingOfAge', 
-    theme: string, 
-    speaker: string, 
+    username: string,
+    type: 'character' | 'comingOfAge',
+    theme: string,
+    speaker: string,
     date: string
   ): void {
     const project = getShiningProject(username)
@@ -562,29 +698,41 @@ export const useCoursesStore = defineStore('courses', () => {
   }
 
   // Church-based query functions
-  function getStudentsByChurch(authUsersDb: Record<string, { role: string; church?: string }>, church: string): string[] {
-    return Object.keys(authUsersDb).filter(username => {
+  function getStudentsByChurch(
+    authUsersDb: Record<string, { role: string; church?: string }>,
+    church: string
+  ): string[] {
+    return Object.keys(authUsersDb).filter((username) => {
       const user = authUsersDb[username]
       return user.role === 'student' && user.church === church
     })
   }
 
-  function getTeachersByChurch(authUsersDb: Record<string, { role: string; church?: string }>, church: string): string[] {
-    return Object.keys(authUsersDb).filter(username => {
+  function getTeachersByChurch(
+    authUsersDb: Record<string, { role: string; church?: string }>,
+    church: string
+  ): string[] {
+    return Object.keys(authUsersDb).filter((username) => {
       const u = authUsersDb[username]
       return u.role === 'teacher' && u.church === church
     })
   }
 
-  function getPastorsByChurch(authUsersDb: Record<string, { role: string; church?: string }>, church: string): string[] {
-    return Object.keys(authUsersDb).filter(username => {
+  function getPastorsByChurch(
+    authUsersDb: Record<string, { role: string; church?: string }>,
+    church: string
+  ): string[] {
+    return Object.keys(authUsersDb).filter((username) => {
       const u = authUsersDb[username]
       return u.role === 'pastor' && u.church === church
     })
   }
 
-  function getParentsByChurch(authUsersDb: Record<string, { role: string; church?: string }>, church: string): string[] {
-    return Object.keys(authUsersDb).filter(username => {
+  function getParentsByChurch(
+    authUsersDb: Record<string, { role: string; church?: string }>,
+    church: string
+  ): string[] {
+    return Object.keys(authUsersDb).filter((username) => {
       const u = authUsersDb[username]
       return u.role === 'parent' && u.church === church
     })
@@ -592,7 +740,7 @@ export const useCoursesStore = defineStore('courses', () => {
 
   function getStudentsManagedByTeacher(teacherUsername: string): string[] {
     const managed: string[] = []
-    Object.keys(studentTeacherDb.value).forEach(studentUsername => {
+    Object.keys(studentTeacherDb.value).forEach((studentUsername) => {
       const caretakers = studentTeacherDb.value[studentUsername]
       if (caretakers && typeof caretakers === 'object' && caretakers.teacher === teacherUsername) {
         managed.push(studentUsername)
@@ -601,9 +749,11 @@ export const useCoursesStore = defineStore('courses', () => {
     return managed
   }
 
-  function getChurchSummaries(authUsersDb: Record<string, { role: string; church?: string }>): { church: string; teacherCount: number; studentCount: number }[] {
+  function getChurchSummaries(
+    authUsersDb: Record<string, { role: string; church?: string }>
+  ): { church: string; teacherCount: number; studentCount: number }[] {
     const churchMap: Record<string, { teacherCount: number; studentCount: number }> = {}
-    Object.keys(authUsersDb).forEach(username => {
+    Object.keys(authUsersDb).forEach((username) => {
       const user = authUsersDb[username]
       if (!user.church) return
       if (!churchMap[user.church]) {
@@ -623,9 +773,9 @@ export const useCoursesStore = defineStore('courses', () => {
     const churchStudents = getStudentsByChurch(authUsersDb, church)
     const lecturerCounts: Record<string, number> = {}
 
-    churchStudents.forEach(studentUsername => {
-      Object.values(progressDb.value[studentUsername] ?? {}).forEach(record => {
-        getSessionLecturers(record).forEach(name => {
+    churchStudents.forEach((studentUsername) => {
+      Object.values(progressDb.value[studentUsername] ?? {}).forEach((record) => {
+        getSessionLecturers(record).forEach((name) => {
           lecturerCounts[name] = (lecturerCounts[name] || 0) + 1
         })
       })
@@ -662,15 +812,17 @@ export const useCoursesStore = defineStore('courses', () => {
    */
   function getTeachingStats(teacherUsername: string, year: number): TeachingStats {
     const key = `${teacherUsername}_${year}`
-    return teachingStatsDb.value[key] ?? {
-      teacherUsername,
-      year,
-      church: '',
-      oneOnOne30: 0,
-      oneToMany30: 0,
-      oneOnOneShining: 0,
-      oneToManyShining: 0
-    }
+    return (
+      teachingStatsDb.value[key] ?? {
+        teacherUsername,
+        year,
+        church: '',
+        oneOnOne30: 0,
+        oneToMany30: 0,
+        oneOnOneShining: 0,
+        oneToManyShining: 0
+      }
+    )
   }
 
   /**
@@ -679,7 +831,7 @@ export const useCoursesStore = defineStore('courses', () => {
   function getAllTeachingStats(year?: number): TeachingStats[] {
     const all = Object.values(teachingStatsDb.value)
     if (year !== undefined) {
-      return all.filter(s => s.year === year)
+      return all.filter((s) => s.year === year)
     }
     return all
   }
@@ -733,5 +885,3 @@ export const useCoursesStore = defineStore('courses', () => {
     getActualTeachingCourseCounts
   }
 })
-
-

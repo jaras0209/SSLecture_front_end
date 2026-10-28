@@ -14,7 +14,9 @@
         <h2 class="callback-title">{{ $t('callback.errorTitle') }}</h2>
         <p class="callback-desc">{{ errorMessage }}</p>
         <p class="callback-countdown">{{ $t('callback.countdown', { n: countdown }) }}</p>
-        <button @click="goToLogin" class="btn btn-primary mt-4">{{ $t('callback.goToLogin') }}</button>
+        <button class="btn btn-primary mt-4" @click="goToLogin">
+          {{ $t('callback.goToLogin') }}
+        </button>
       </div>
     </div>
   </div>
@@ -28,7 +30,7 @@ import { useI18n } from 'vue-i18n'
 import type { UserRole } from '@/stores/auth'
 
 const router = useRouter()
-const route  = useRoute()
+const route = useRoute()
 const authStore = useAuthStore()
 const { t } = useI18n()
 
@@ -57,15 +59,13 @@ function startCountdown() {
 }
 
 onMounted(async () => {
-  const code  = route.query.code as string | undefined
+  const code = route.query.code as string | undefined
   const error = route.query.error as string | undefined
 
   // 後端回傳錯誤
   if (error || !code) {
     status.value = 'error'
-    errorMessage.value = error
-      ? t('callback.errorDenied', { error })
-      : t('callback.errorNoCode')
+    errorMessage.value = error ? t('callback.errorDenied', { error }) : t('callback.errorNoCode')
     startCountdown()
     return
   }
@@ -124,7 +124,9 @@ onMounted(async () => {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .callback-title {
@@ -159,5 +161,7 @@ onMounted(async () => {
   margin: 0;
 }
 
-.mt-4 { margin-top: 1rem; }
+.mt-4 {
+  margin-top: 1rem;
+}
 </style>

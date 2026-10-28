@@ -33,7 +33,7 @@ describe('useCoursesStore', () => {
     it('assigns unique ids to all courses', async () => {
       const { useCoursesStore } = await import('@/stores/courses')
       const store = useCoursesStore()
-      const ids = store.courses.map(c => c.id)
+      const ids = store.courses.map((c) => c.id)
       const uniqueIds = new Set(ids)
       expect(uniqueIds.size).toBe(ids.length)
     })
@@ -46,7 +46,7 @@ describe('useCoursesStore', () => {
       // Seed OLD format: { "student1": "teacher1" }
       seedLocalStorage('superstart_student_teacher_db', {
         student1: 'teacher_alice',
-        student2: 'teacher_bob',
+        student2: 'teacher_bob'
       })
 
       const { useCoursesStore } = await import('@/stores/courses')
@@ -59,7 +59,7 @@ describe('useCoursesStore', () => {
     it('keeps new-format object values unchanged', async () => {
       // Seed NEW format
       seedLocalStorage('superstart_student_teacher_db', {
-        student1: { teacher: 'teacher_alice', pastor: 'pastor_bob' },
+        student1: { teacher: 'teacher_alice', pastor: 'pastor_bob' }
       })
 
       const { useCoursesStore } = await import('@/stores/courses')
@@ -67,7 +67,7 @@ describe('useCoursesStore', () => {
 
       expect(store.studentTeacherDb['student1']).toEqual({
         teacher: 'teacher_alice',
-        pastor: 'pastor_bob',
+        pastor: 'pastor_bob'
       })
     })
 
@@ -96,8 +96,8 @@ describe('useCoursesStore', () => {
 
     it('keeps new-format object unchanged', async () => {
       seedLocalStorage('superstart_character_themes_db', {
-        '愛與話語': ['品格力 - 正直'],
-        '主大明': ['誠實'],
+        愛與話語: ['品格力 - 正直'],
+        主大明: ['誠實']
       })
 
       const { useCoursesStore } = await import('@/stores/courses')
@@ -131,7 +131,7 @@ describe('useCoursesStore', () => {
 
     it('restores persisted lecturers from localStorage', async () => {
       seedLocalStorage('superstart_lecturers_db', [
-        { id: 'custom1', name: '自訂講師', title: '傳道', courseIds: [], church: '愛與話語' },
+        { id: 'custom1', name: '自訂講師', title: '傳道', courseIds: [], church: '愛與話語' }
       ])
 
       const { useCoursesStore } = await import('@/stores/courses')
@@ -142,7 +142,7 @@ describe('useCoursesStore', () => {
 
     it('migrates lecturers missing church field', async () => {
       seedLocalStorage('superstart_lecturers_db', [
-        { id: 'l_old', name: '舊講師', title: '牧師', courseIds: [] },  // no church
+        { id: 'l_old', name: '舊講師', title: '牧師', courseIds: [] } // no church
       ])
 
       const { useCoursesStore } = await import('@/stores/courses')
@@ -169,9 +169,9 @@ describe('useCoursesStore', () => {
             completed: true,
             notes: '',
             lastUpdated: '2025-01-01',
-            sessions: [],
-          },
-        },
+            sessions: []
+          }
+        }
       })
 
       const { useCoursesStore } = await import('@/stores/courses')
@@ -196,37 +196,63 @@ describe('useCoursesStore', () => {
   describe('lecturer statistics', () => {
     const usersDb = {
       student: { role: 'student', church: '愛與話語' },
-      other: { role: 'student', church: '其他教會' },
+      other: { role: 'student', church: '其他教會' }
     }
 
     it('counts lecturers recorded on listen sessions', async () => {
       const { useCoursesStore } = await import('@/stores/courses')
       const store = useCoursesStore()
-      store.addListenSession('student', 'bible-01', { lecturer: '張牧師', listenedAt: '2026-10-01T10:00', notes: '' })
-      store.addListenSession('student', 'bible-01', { lecturer: ' 張牧師 ', listenedAt: '2026-10-08T10:00', notes: '' })
-      store.addListenSession('student', 'bible-02', { lecturer: '陳傳道', listenedAt: '2026-10-15T10:00', notes: '' })
-      store.addListenSession('student', 'bible-03', { lecturer: '', listenedAt: '2026-10-22T10:00', notes: '' })
-      store.addListenSession('other', 'bible-01', { lecturer: '張牧師', listenedAt: '2026-10-01T10:00', notes: '' })
+      store.addListenSession('student', 'bible-01', {
+        lecturer: '張牧師',
+        listenedAt: '2026-10-01T10:00',
+        notes: ''
+      })
+      store.addListenSession('student', 'bible-01', {
+        lecturer: ' 張牧師 ',
+        listenedAt: '2026-10-08T10:00',
+        notes: ''
+      })
+      store.addListenSession('student', 'bible-02', {
+        lecturer: '陳傳道',
+        listenedAt: '2026-10-15T10:00',
+        notes: ''
+      })
+      store.addListenSession('student', 'bible-03', {
+        lecturer: '',
+        listenedAt: '2026-10-22T10:00',
+        notes: ''
+      })
+      store.addListenSession('other', 'bible-01', {
+        lecturer: '張牧師',
+        listenedAt: '2026-10-01T10:00',
+        notes: ''
+      })
 
       expect(store.getActualTeachingCourseCounts(usersDb, '張牧師', '愛與話語')).toBe(2)
       expect(store.getLecturerStatsForChurch(usersDb, '愛與話語')).toEqual([
         { lecturerName: '張牧師', sessionCount: 2 },
-        { lecturerName: '陳傳道', sessionCount: 1 },
+        { lecturerName: '陳傳道', sessionCount: 1 }
       ])
     })
 
     it('falls back to the legacy record.lecturer field for unmigrated records', async () => {
       seedLocalStorage('superstart_progress_db', {
         student: {
-          'bible-01': { courseId: 'bible-01', completed: true, notes: '', lastUpdated: '', lecturer: '張牧師' },
-        },
+          'bible-01': {
+            courseId: 'bible-01',
+            completed: true,
+            notes: '',
+            lastUpdated: '',
+            lecturer: '張牧師'
+          }
+        }
       })
       const { useCoursesStore } = await import('@/stores/courses')
       const store = useCoursesStore()
 
       expect(store.getActualTeachingCourseCounts(usersDb, '張牧師', '愛與話語')).toBe(1)
       expect(store.getLecturerStatsForChurch(usersDb, '愛與話語')).toEqual([
-        { lecturerName: '張牧師', sessionCount: 1 },
+        { lecturerName: '張牧師', sessionCount: 1 }
       ])
     })
   })
