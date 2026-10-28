@@ -190,4 +190,44 @@ describe('useCoursesStore', () => {
       expect(console.warn).toHaveBeenCalled()
     })
   })
+
+  // ── lecturer statistics ───────────────────────────────────────────────────
+
+  describe('lecturer statistics', () => {
+    const usersDb = {
+      student: { role: 'student', church: '愛與話語' },
+      other: { role: 'student', church: '其他教會' },
+    }
+
+    it('counts lecturers recorded on listen sessions', async () => {
+      const { useCoursesStore } = await import('@/stores/courses')
+      const store = useCoursesStore()
+      store.addListenSession('student', 'bible-01', { lecturer: '張牧師', listenedAt: '2026-10-01T10:00', notes: '' })
+      store.addListenSession('student', 'bible-01', { lecturer: ' 張牧師 ', listenedAt: '2026-10-08T10:00', notes: '' })
+      store.addListenSession('student', 'bible-02', { lecturer: '陳傳道', listenedAt: '2026-10-15T10:00', notes: '' })
+      store.addListenSession('student', 'bible-03', { lecturer: '', listenedAt: '2026-10-22T10:00', notes: '' })
+      store.addListenSession('other', 'bible-01', { lecturer: '張牧師', listenedAt: '2026-10-01T10:00', notes: '' })
+
+      expect(store.getActualTeachingCourseCounts(usersDb, '張牧師', '愛與話語')).toBe(2)
+      expect(store.getLecturerStatsForChurch(usersDb, '愛與話語')).toEqual([
+        { lecturerName: '張牧師', sessionCount: 2 },
+        { lecturerName: '陳傳道', sessionCount: 1 },
+      ])
+    })
+
+    it('falls back to the legacy record.lecturer field for unmigrated records', async () => {
+      seedLocalStorage('superstart_progress_db', {
+        student: {
+          'bible-01': { courseId: 'bible-01', completed: true, notes: '', lastUpdated: '', lecturer: '張牧師' },
+        },
+      })
+      const { useCoursesStore } = await import('@/stores/courses')
+      const store = useCoursesStore()
+
+      expect(store.getActualTeachingCourseCounts(usersDb, '張牧師', '愛與話語')).toBe(1)
+      expect(store.getLecturerStatsForChurch(usersDb, '愛與話語')).toEqual([
+        { lecturerName: '張牧師', sessionCount: 1 },
+      ])
+    })
+  })
 })

@@ -1,4 +1,4 @@
-﻿# Enforce LF line endings for all source files (prevents CRLF encoding corruption on Windows)
+# Enforce LF line endings for all source files (prevents CRLF encoding corruption on Windows)
 * text=auto eol=lf
 
 # Vue, TypeScript, JavaScript — always LF

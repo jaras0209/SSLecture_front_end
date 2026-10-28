@@ -213,6 +213,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import type { Course, ListenSession } from '@/stores/courses'
+import { toLocalDateTimeInput } from '@/utils/datetime'
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 
@@ -230,7 +231,7 @@ const { t } = useI18n()
 
 const selectedLecturer = ref('')
 const notesText = ref('')
-const listenedAt = ref(new Date().toISOString().slice(0, 16))
+const listenedAt = ref(toLocalDateTimeInput())
 const saveStatus = ref('')
 const showReviewPanel = ref(false)
 
@@ -243,7 +244,7 @@ const editSessionDraft = reactive({ lecturer: '', listenedAt: '', notes: '' })
 watch(() => props.selectedCourse, () => {
   selectedLecturer.value = ''
   notesText.value = ''
-  listenedAt.value = new Date().toISOString().slice(0, 16)
+  listenedAt.value = toLocalDateTimeInput()
   saveStatus.value = ''
   showReviewPanel.value = false
   editingSessionId.value = null
@@ -284,7 +285,7 @@ function saveNoteAndProgress() {
   saveStatus.value = '✓ ' + t('student.course.save')
   selectedLecturer.value = ''
   notesText.value = ''
-  listenedAt.value = new Date().toISOString().slice(0, 16)
+  listenedAt.value = toLocalDateTimeInput()
   showReviewPanel.value = false
   setTimeout(() => { saveStatus.value = '' }, 3000)
 }

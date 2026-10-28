@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 import { safeGet, safeSet } from '@/utils/storage'
+import { toLocalDateTimeInput } from '@/utils/datetime'
 
 // 型別定義集中至 src/types/bookings.ts—從這裡 re-export 保持向下相容
 export type {
@@ -78,7 +79,7 @@ export const useBookingsStore = defineStore('bookings', () => {
   }
 
   function getUpcomingSessions(studentUsername: string) {
-    const now = new Date().toISOString().slice(0, 16)
+    const now = toLocalDateTimeInput()
     return getSessionsForStudent(studentUsername).filter(x =>
       (x.session.status === 'pending' || x.session.status === 'confirmed') &&
       x.session.proposedAt >= now
@@ -86,7 +87,7 @@ export const useBookingsStore = defineStore('bookings', () => {
   }
 
   function getPastSessions(studentUsername: string) {
-    const now = new Date().toISOString().slice(0, 16)
+    const now = toLocalDateTimeInput()
     return getSessionsForStudent(studentUsername).filter(x =>
       x.session.status === 'completed' ||
       x.session.status === 'cancelled' ||

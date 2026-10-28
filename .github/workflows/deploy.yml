@@ -35,8 +35,15 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
+      - name: Run unit tests
+        run: npm test
+
       - name: Build
         run: npm run build
+
+      # GitHub Pages 沒有 SPA fallback：以 404.html 承接 History 模式的深層連結與重新整理
+      - name: Add SPA fallback for GitHub Pages
+        run: cp dist/index.html dist/404.html
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

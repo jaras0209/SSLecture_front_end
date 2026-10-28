@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useBookingsStore } from '@/stores/bookings'
 import type { BookingPrep } from '@/stores/bookings'
@@ -231,6 +231,40 @@ describe('useBookingsStore', () => {
       expect(store.sessionsDb[session.id].prep.materials).toBe('講義PDF')
       // scriptures should remain unchanged
       expect(store.sessionsDb[session.id].prep.scriptures).toEqual(['約翰福音 1:1'])
+    })
+  })
+
+  // ── getUpcomingSessions / getPastSessions ─────────────────────────────────
+
+  describe('getUpcomingSessions() / getPastSessions() — local time', () => {
+    const originalTz = process.env.TZ
+
+    beforeEach(() => {
+      // proposedAt comes from <input type="datetime-local"> (local time, no zone);
+      // run in UTC+8 so a UTC-based "now" would be 8 hours behind.
+      process.env.TZ = 'Asia/Taipei'
+      vi.useFakeTimers()
+      // 2026-10-28 14:00 Asia/Taipei
+      vi.setSystemTime(new Date('2026-10-28T06:00:00Z'))
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+      process.env.TZ = originalTz
+    })
+
+    it('treats a session that started earlier today (local) as past', () => {
+      const store = useBookingsStore()
+      makeSession({ proposedAt: '2026-10-28T10:00' })
+      expect(store.getUpcomingSessions('student')).toHaveLength(0)
+      expect(store.getPastSessions('student')).toHaveLength(1)
+    })
+
+    it('treats a session later today (local) as upcoming', () => {
+      const store = useBookingsStore()
+      makeSession({ proposedAt: '2026-10-28T15:00' })
+      expect(store.getUpcomingSessions('student')).toHaveLength(1)
+      expect(store.getPastSessions('student')).toHaveLength(0)
     })
   })
 })

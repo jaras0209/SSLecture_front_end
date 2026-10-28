@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 import { safeGet, safeSet } from '@/utils/storage'
+import { toLocalDateTimeInput } from '@/utils/datetime'
 import { buildMockCourses } from '@/mocks/courses'
 
 // 型別定義集中至 src/types/courses.ts—從這裡 re-export 保持向下相容
@@ -264,7 +265,7 @@ export const useCoursesStore = defineStore('courses', () => {
   ): void {
     addListenSession(username, courseId, {
       lecturer: lecturer || '',
-      listenedAt: listenedAt || new Date().toISOString().slice(0, 16),
+      listenedAt: listenedAt || toLocalDateTimeInput(),
       notes: notes
     })
   }
@@ -450,6 +451,18 @@ export const useCoursesStore = defineStore('courses', () => {
   }
 
   /**
+   * 取得一筆紀錄中每次聽課的講師名稱（已 trim、排除空白）。
+   * 講師記錄在 sessions[].lecturer；尚未遷移的舊紀錄則退回 record.lecturer。
+   * 不修改 record，可安全用於統計。
+   */
+  function getSessionLecturers(record: ProgressRecord): string[] {
+    const names = record.sessions
+      ? record.sessions.map(s => s.lecturer)
+      : [record.lecturer]
+    return names.map(n => (n ?? '').trim()).filter(n => n !== '')
+  }
+
+  /**
    * 取得教師帳號在講師資料庫中的 linked 紀錄
    */
   function getLecturerByUsername(username: string): Lecturer | undefined {
@@ -458,22 +471,18 @@ export const useCoursesStore = defineStore('courses', () => {
 
   /**
    * 取得某帳號實際被學員登記為講師的課程授課次數統計
-   * 回傳 { courseId: sessionCount } map
+   * 回傳該講師在指定教會學員紀錄中的聽課次數總和
    */
   function getActualTeachingCourseCounts(
     authUsersDb: Record<string, { role: string; church?: string }>,
     lecturerName: string,
     church: string
   ): number {
-    const churchStudents = getStudentsByChurch(authUsersDb, church)
+    const target = lecturerName.trim()
     let count = 0
-    churchStudents.forEach(studentUsername => {
-      const userRecords = progressDb.value[studentUsername]
-      if (!userRecords) return
-      Object.values(userRecords).forEach(record => {
-        if (record.lecturer && record.lecturer.trim() === lecturerName.trim()) {
-          count += (record.sessions?.length || (record.completed ? 1 : 0))
-        }
+    getStudentsByChurch(authUsersDb, church).forEach(studentUsername => {
+      Object.values(progressDb.value[studentUsername] ?? {}).forEach(record => {
+        count += getSessionLecturers(record).filter(name => name === target).length
       })
     })
     return count
@@ -615,13 +624,10 @@ export const useCoursesStore = defineStore('courses', () => {
     const lecturerCounts: Record<string, number> = {}
 
     churchStudents.forEach(studentUsername => {
-      const userRecords = progressDb.value[studentUsername]
-      if (!userRecords) return
-      Object.values(userRecords).forEach(record => {
-        if (record.lecturer && record.lecturer.trim() !== '') {
-          const name = record.lecturer.trim()
+      Object.values(progressDb.value[studentUsername] ?? {}).forEach(record => {
+        getSessionLecturers(record).forEach(name => {
           lecturerCounts[name] = (lecturerCounts[name] || 0) + 1
-        }
+        })
       })
     })
 
