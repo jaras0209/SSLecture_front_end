@@ -108,7 +108,8 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore, CHURCHES } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
-import type { UserRole, InviteCode } from '@/stores/auth'
+import { useI18nHelper } from '@/composables/useI18nHelper'
+import type { InviteCode } from '@/stores/auth'
 import { homeRouteFor } from '@/router/homeRoute'
 
 const router = useRouter()
@@ -125,10 +126,7 @@ const displayName = computed(
 )
 
 /** 角色標籤（i18n 版） */
-function getRoleLabel(role: UserRole): string {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (t as any)(`roleLabel.${role}`) as string
-}
+const { tRole: getRoleLabel } = useI18nHelper()
 
 const selectedChurch = ref('')
 const customUsername = ref('')

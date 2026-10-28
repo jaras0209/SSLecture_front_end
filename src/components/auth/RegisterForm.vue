@@ -198,6 +198,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore, CHURCHES } from '@/stores/auth'
 import type { UserRole, InviteCode } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
+import { useI18nHelper } from '@/composables/useI18nHelper'
 import { usePasswordStrength } from '@/composables/usePasswordStrength'
 import { DEFAULT_CHURCH } from '@/types/auth'
 
@@ -253,10 +254,7 @@ const effectiveRole = computed<UserRole>(() =>
 const effectiveChurch = computed(() => validatedInvite.value?.church || registerForm.church)
 
 /** 角色標籤（i18n 版） */
-function roleLabel(role: UserRole): string {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (t as any)(`roleLabel.${role}`) as string
-}
+const { tRole: roleLabel } = useI18nHelper()
 
 function formatExpiry(iso: string): string {
   const d = new Date(iso)

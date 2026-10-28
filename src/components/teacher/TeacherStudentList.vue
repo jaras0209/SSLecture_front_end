@@ -105,10 +105,8 @@
                   </button>
                   <button
                     v-else-if="
-                      !coursesStore.getStudentCaretaker(
-                        student.username,
-                        authStore.currentUser?.role as any
-                      ) && authStore.currentUser?.role === 'teacher'
+                      authStore.currentUser?.role === 'teacher' &&
+                      !coursesStore.getStudentCaretaker(student.username, 'teacher')
                     "
                     class="btn btn-primary btn-sm"
                     @click="emit('manage-student', student.username)"

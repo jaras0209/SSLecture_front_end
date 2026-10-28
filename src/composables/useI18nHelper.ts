@@ -6,7 +6,7 @@
  * throughout components makes the codebase harder to search and maintain.
  *
  * Solution: route all dynamic-key translations through this composable so
- * there is a single, documented place where the `as any` cast lives.
+ * there is a single, documented place where the type cast lives.
  *
  * Usage:
  *   const { tDynamic, tRole } = useI18nHelper()

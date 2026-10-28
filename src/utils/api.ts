@@ -30,7 +30,7 @@
  */
 
 import { safeGet, safeRemove } from '@/utils/storage'
-import { i18n } from '@/i18n'
+import { translate as t } from '@/i18n'
 
 // ─── 常數 ────────────────────────────────────────────────────────────────────
 
@@ -38,11 +38,6 @@ const API_BASE = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? ''
 
 /** 預設逾時（毫秒）：從送出請求到讀完回應內容 */
 export const DEFAULT_TIMEOUT_MS = 15_000
-
-// 在呼叫時才翻譯（i18n 已就緒），跟隨目前語系
-const t = (key: string, values?: Record<string, unknown>): string =>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (i18n.global.t as any)(key, values ?? {}) as string
 
 // ─── 型別 ────────────────────────────────────────────────────────────────────
 

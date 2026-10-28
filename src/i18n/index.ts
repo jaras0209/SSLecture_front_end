@@ -28,6 +28,14 @@ export const i18n = createI18n<[MessageSchema], SupportedLocale>({
   }
 })
 
+/**
+ * 在元件外（store、工具函式）翻譯，跟隨目前語系；須在呼叫時才執行（i18n 已就緒）。
+ * vue-i18n 的 t() 無法對動態 key 推導型別，型別轉換集中在這裡。
+ */
+export function translate(key: string, values?: Record<string, unknown>): string {
+  return (i18n.global.t as (k: string, v: Record<string, unknown>) => string)(key, values ?? {})
+}
+
 export function setLocale(lang: SupportedLocale) {
   ;(i18n.global.locale as unknown as Ref<SupportedLocale>).value = lang
   safeSet(LANG_KEY, lang)

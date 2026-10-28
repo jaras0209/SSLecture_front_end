@@ -4,11 +4,7 @@ import { safeGet, safeSet, safeRemove } from '@/utils/storage'
 import { persistToStorage } from '@/utils/persist'
 import { nowIso, normalizeLegacyDateTime } from '@/utils/datetime'
 import { randomHex } from '@/utils/id'
-import { i18n } from '@/i18n'
-// Store-level t() wrapper — 在 store 函式被呼叫時（i18n 已就緒）才執行翻譯
-const t = (key: string, values?: Record<string, unknown>): string =>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (i18n.global.t as any)(key, values ?? {}) as string
+import { translate as t } from '@/i18n'
 
 // 後端就緒後，在 exchangeOAuthCode / completeProfile 中：
 // 移除 mock 區塊，改用 src/utils/api.ts 的 apiPost / apiPut 取代 fetch 呼叫
