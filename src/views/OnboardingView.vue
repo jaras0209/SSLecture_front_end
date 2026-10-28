@@ -109,6 +109,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore, CHURCHES } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
 import type { UserRole, InviteCode } from '@/stores/auth'
+import { homeRouteFor } from '@/router/homeRoute'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -135,12 +136,6 @@ const inviteCodeInput = ref('')
 const inviteCodeStatus = ref<'idle' | 'valid' | 'invalid'>('idle')
 const validatedInvite = ref<InviteCode | null>(null)
 const isSubmitting = ref(false)
-
-function getRoleRedirectPath(role?: UserRole | string): string {
-  if (role === 'student') return '/student'
-  if (role === 'admin') return '/admin'
-  return '/teacher'
-}
 
 function onInviteCodeInput() {
   const code = inviteCodeInput.value.trim().toUpperCase()
@@ -184,7 +179,7 @@ async function handleComplete() {
   if (result.success) {
     toast(t('onboarding.validation.complete'), 'success')
     setTimeout(() => {
-      router.replace(getRoleRedirectPath(authStore.currentUser?.role))
+      router.replace(homeRouteFor(authStore.currentUser?.role))
     }, 500)
   } else {
     toast(result.message || t('onboarding.validation.failed'), 'error')
@@ -199,7 +194,7 @@ onMounted(() => {
   }
   // 若已有 church（非首次登入），直接導向 Dashboard
   if (authStore.currentUser.church) {
-    router.replace(getRoleRedirectPath(authStore.currentUser.role))
+    router.replace(homeRouteFor(authStore.currentUser.role))
   }
 })
 </script>

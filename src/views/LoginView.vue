@@ -392,6 +392,7 @@ import type { UserRole, InviteCode } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
 import { usePasswordStrength } from '@/composables/usePasswordStrength'
 import LanguageSwitcher from '@/components/shared/LanguageSwitcher.vue'
+import { DEFAULT_CHURCH } from '@/types/auth'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -463,7 +464,7 @@ const registerForm = reactive({
   username: '',
   password: '',
   role: 'student' as UserRole,
-  church: '愛與話語',
+  church: DEFAULT_CHURCH,
   childUsernames: [] as string[]
 })
 

@@ -27,7 +27,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useI18n } from 'vue-i18n'
-import type { UserRole } from '@/stores/auth'
+import { homeRouteFor } from '@/router/homeRoute'
 
 const router = useRouter()
 const route = useRoute()
@@ -37,12 +37,6 @@ const { t } = useI18n()
 const status = ref<'loading' | 'error'>('loading')
 const errorMessage = ref('')
 const countdown = ref(5)
-
-function getRoleRedirectPath(role?: UserRole | string): string {
-  if (role === 'student') return '/student'
-  if (role === 'admin') return '/admin'
-  return '/teacher'
-}
 
 function goToLogin() {
   router.push('/login?error=oauth_failed')
@@ -84,7 +78,7 @@ onMounted(async () => {
   if (result.needsOnboarding) {
     router.replace('/onboarding')
   } else {
-    router.replace(getRoleRedirectPath(authStore.currentUser?.role))
+    router.replace(homeRouteFor(authStore.currentUser?.role))
   }
 })
 </script>

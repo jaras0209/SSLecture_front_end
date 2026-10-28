@@ -404,6 +404,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import type { ShiningChecklistKey } from '@/stores/courses'
+import { DEFAULT_CHURCH } from '@/types/auth'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
@@ -462,11 +463,11 @@ const assignedParent = computed(() => {
 // ── Themes ────────────────────────────────────────────────────────────────────
 
 const characterThemes = computed(() => {
-  const church = authStore.currentUser?.church || '愛與話語'
+  const church = authStore.currentUser?.church || DEFAULT_CHURCH
   return coursesStore.getThemesByChurch('character', church)
 })
 const comingOfAgeThemes = computed(() => {
-  const church = authStore.currentUser?.church || '愛與話語'
+  const church = authStore.currentUser?.church || DEFAULT_CHURCH
   return coursesStore.getThemesByChurch('comingOfAge', church)
 })
 

@@ -260,6 +260,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import type { Course, ListenSession } from '@/stores/courses'
 import { toLocalDateTimeInput } from '@/utils/datetime'
+import { DEFAULT_CHURCH } from '@/types/auth'
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 
@@ -311,7 +312,7 @@ const currentRecord = computed(() => {
 const availableLecturers = computed(() => {
   if (!props.selectedCourse) return []
   const courseId = props.selectedCourse.id
-  const church = authStore.currentUser?.church || '愛與話語'
+  const church = authStore.currentUser?.church || DEFAULT_CHURCH
   const churchLecturers = coursesStore.getLecturersByChurch(church)
   const list = churchLecturers.filter((l) => l.courseIds.includes(courseId))
   return list.length > 0 ? list : churchLecturers

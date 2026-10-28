@@ -18,7 +18,7 @@ export { CHURCHES, DEFAULT_RESET_PASSWORD } from '@/types/auth'
 
 // 引入型別供 store 內部使用
 import type { UserRole, User, InviteCode } from '@/types/auth'
-import { DEFAULT_RESET_PASSWORD } from '@/types/auth'
+import { DEFAULT_RESET_PASSWORD, DEFAULT_CHURCH } from '@/types/auth'
 
 /** 邀請碼前綴（用於產生易讀的邀請碼） */
 const ROLE_CODE_PREFIX: Record<UserRole, string> = {
@@ -54,16 +54,16 @@ export const useAuthStore = defineStore('auth', () => {
       }
     >
   >({
-    student: { passwordHash: '123456', role: 'student', church: '愛與話語' },
-    teacher: { passwordHash: '123456', role: 'teacher', church: '愛與話語' },
+    student: { passwordHash: '123456', role: 'student', church: DEFAULT_CHURCH },
+    teacher: { passwordHash: '123456', role: 'teacher', church: DEFAULT_CHURCH },
     admin: { passwordHash: '123456', role: 'admin' },
     parent: {
       passwordHash: '123456',
       role: 'parent',
-      church: '愛與話語',
+      church: DEFAULT_CHURCH,
       childUsernames: ['student']
     },
-    pastor: { passwordHash: '123456', role: 'pastor', church: '愛與話語' }
+    pastor: { passwordHash: '123456', role: 'pastor', church: DEFAULT_CHURCH }
   })
 
   // Load registered users from localStorage if exists
@@ -77,7 +77,7 @@ export const useAuthStore = defineStore('auth', () => {
   Object.keys(usersDb.value).forEach((username) => {
     const user = usersDb.value[username]
     if (user.role !== 'admin' && !user.church) {
-      user.church = '愛與話語'
+      user.church = DEFAULT_CHURCH
     }
   })
 
@@ -173,7 +173,7 @@ export const useAuthStore = defineStore('auth', () => {
     usersDb.value[username] = {
       passwordHash,
       role,
-      church: role === 'admin' ? undefined : church || '愛與話語',
+      church: role === 'admin' ? undefined : church || DEFAULT_CHURCH,
       childUsernames: role === 'parent' ? childUsernames || [] : undefined
     }
 
@@ -182,7 +182,7 @@ export const useAuthStore = defineStore('auth', () => {
       role,
       loginMethod: 'credentials',
       avatarUrl: `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${username}`,
-      church: role === 'admin' ? undefined : church || '愛與話語',
+      church: role === 'admin' ? undefined : church || DEFAULT_CHURCH,
       childUsernames: role === 'parent' ? childUsernames || [] : undefined
     }
     return { success: true, message: t('stores.auth.registerSuccess') }

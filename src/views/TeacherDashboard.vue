@@ -322,6 +322,7 @@ const TeacherStudentDrawer = defineAsyncComponent(
 )
 import type { Lecturer } from '@/stores/courses'
 import type { BookingSession } from '@/stores/bookings'
+import { DEFAULT_CHURCH } from '@/types/auth'
 
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
@@ -411,11 +412,11 @@ const notesDialogStudent = ref<StudentProgressSummary | null>(null)
 
 // Local lecturer form state for Settings tab
 
-const adminSettingsChurch = ref('愛與話語')
+const adminSettingsChurch = ref(DEFAULT_CHURCH)
 const currentContextChurch = computed(() => {
   return authStore.currentUser?.role === 'admin'
     ? adminSettingsChurch.value
-    : authStore.currentUser?.church || '愛與話語'
+    : authStore.currentUser?.church || DEFAULT_CHURCH
 })
 
 // feedbacksSent tracks the confirmation message displayed to teacher after sending feedback

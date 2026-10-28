@@ -65,5 +65,8 @@ export const CHURCHES = [
 /** 教會名稱型別（從 CHURCHES 陣列推斷） */
 export type Church = (typeof CHURCHES)[number]
 
+/** 預設教會（新帳號、舊資料遷移與未指定教會時的後備值） */
+export const DEFAULT_CHURCH: Church = '愛與話語'
+
 /** Mock 環境下的預設重設密碼（後端就緒後由後端發送 Email 重設連結取代） */
 export const DEFAULT_RESET_PASSWORD = '123456'

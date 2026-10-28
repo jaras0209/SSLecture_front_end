@@ -2,19 +2,12 @@ import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
+import { homeRouteFor } from '@/router/homeRoute'
 
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    redirect: () => {
-      const auth = useAuthStore()
-      if (auth.isAuthenticated && auth.currentUser) {
-        if (auth.currentUser.role === 'student') return '/student'
-        if (['teacher', 'pastor', 'parent'].includes(auth.currentUser.role)) return '/teacher'
-        if (auth.currentUser.role === 'admin') return '/admin'
-      }
-      return '/login'
-    }
+    redirect: () => homeRouteFor(useAuthStore().currentUser?.role)
   },
   {
     path: '/login',
@@ -82,13 +75,7 @@ router.beforeEach((to, _from) => {
   // 1. Guest-only route check (e.g., Login page should not be accessed if logged in)
   if (to.matched.some((record) => record.meta.guestOnly)) {
     if (isAuthenticated && currentUser) {
-      if (currentUser.role === 'student') {
-        return '/student'
-      } else if (['teacher', 'pastor', 'parent'].includes(currentUser.role)) {
-        return '/teacher'
-      } else {
-        return '/admin'
-      }
+      return homeRouteFor(currentUser.role)
     }
     return
   }

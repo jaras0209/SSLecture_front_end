@@ -571,6 +571,7 @@ import { useAuthStore, CHURCHES, DEFAULT_RESET_PASSWORD } from '@/stores/auth'
 import { defineAsyncComponent } from 'vue'
 import type { UserRole, InviteCode } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
+import { DEFAULT_CHURCH } from '@/types/auth'
 
 // 大型 Dialog 元件：按需載入
 const ProfileDialog = defineAsyncComponent(() => import('@/components/shared/ProfileDialog.vue'))
@@ -589,7 +590,7 @@ const newUser = reactive({
   username: '',
   password: '',
   role: 'student' as UserRole,
-  church: '愛與話語'
+  church: DEFAULT_CHURCH
 })
 
 const alertMsg = ref('')
@@ -599,7 +600,7 @@ const alertType = ref<'success' | 'error'>('success')
 
 const inviteForm = reactive({
   role: 'teacher' as UserRole,
-  church: '愛與話語',
+  church: DEFAULT_CHURCH,
   expiryDays: 7
 })
 const lastGeneratedCode = ref('')
@@ -748,7 +749,7 @@ function createUser() {
   newUser.username = ''
   newUser.password = ''
   newUser.role = 'student'
-  newUser.church = '愛與話語'
+  newUser.church = DEFAULT_CHURCH
 }
 
 function updateUserRole(username: string, newRole: UserRole) {

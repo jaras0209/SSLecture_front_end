@@ -445,6 +445,7 @@ const { t } = useI18n()
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import type { StudentProgressSummary } from './TeacherStudentList.vue'
+import { DEFAULT_CHURCH } from '@/types/auth'
 
 // ── Props & Emits ─────────────────────────────────────────────────────────────
 
@@ -471,8 +472,8 @@ const lectureForms = ref<Record<string, { speaker: string; date: string }>>({})
 
 const currentContextChurch = computed(() => {
   return authStore.currentUser?.role === 'admin'
-    ? authStore.currentUser?.church || '愛與話語'
-    : authStore.currentUser?.church || '愛與話語'
+    ? authStore.currentUser?.church || DEFAULT_CHURCH
+    : authStore.currentUser?.church || DEFAULT_CHURCH
 })
 
 const characterThemes = computed(() =>

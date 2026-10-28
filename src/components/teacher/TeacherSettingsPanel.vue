@@ -169,6 +169,7 @@ import { CHURCHES } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import type { Lecturer } from '@/stores/courses'
 import { useToast } from '@/composables/useToast'
+import { DEFAULT_CHURCH } from '@/types/auth'
 
 const { confirm } = useToast()
 const { t } = useI18n()
@@ -186,7 +187,7 @@ const emit = defineEmits<{
 const coursesStore = useCoursesStore()
 
 // Admin church selector (only used when isAdmin is true)
-const adminSettingsChurch = ref(props.currentContextChurch || '愛與話語')
+const adminSettingsChurch = ref(props.currentContextChurch || DEFAULT_CHURCH)
 
 const newCharacterTheme = ref('')
 const newComingOfAgeTheme = ref('')

@@ -38,6 +38,7 @@ import type {
   TeachingStatsDb,
   ShiningChecklistKey
 } from '@/types/courses'
+import { DEFAULT_CHURCH } from '@/types/auth'
 
 export const useCoursesStore = defineStore('courses', () => {
   // Course catalog — dev seed data lives in src/mocks/courses.ts
@@ -86,14 +87,14 @@ export const useCoursesStore = defineStore('courses', () => {
 
   // Dynamic themes (persistent)
   const characterThemesDb = ref<Record<string, string[]>>({
-    愛與話語: ['品格力 - 自律', '品格力 - 感謝', '品格力 - 勇氣', '品格力 - 正直']
+    [DEFAULT_CHURCH]: ['品格力 - 自律', '品格力 - 感謝', '品格力 - 勇氣', '品格力 - 正直']
   })
   const _rawCharThemes = safeGet<unknown>('superstart_character_themes_db', null)
   if (_rawCharThemes !== null) {
     try {
       if (Array.isArray(_rawCharThemes)) {
         // Migrate old array format
-        characterThemesDb.value['愛與話語'] = _rawCharThemes as string[]
+        characterThemesDb.value[DEFAULT_CHURCH] = _rawCharThemes as string[]
       } else {
         characterThemesDb.value = _rawCharThemes as Record<string, string[]>
       }
@@ -103,14 +104,14 @@ export const useCoursesStore = defineStore('courses', () => {
   }
 
   const comingOfAgeThemesDb = ref<Record<string, string[]>>({
-    愛與話語: ['基督教歷史', '台灣攝理歷史', '情感教育', 'R的使命與精神']
+    [DEFAULT_CHURCH]: ['基督教歷史', '台灣攝理歷史', '情感教育', 'R的使命與精神']
   })
   const _rawAgeThemes = safeGet<unknown>('superstart_coming_of_age_themes_db', null)
   if (_rawAgeThemes !== null) {
     try {
       if (Array.isArray(_rawAgeThemes)) {
         // Migrate old array format
-        comingOfAgeThemesDb.value['愛與話語'] = _rawAgeThemes as string[]
+        comingOfAgeThemesDb.value[DEFAULT_CHURCH] = _rawAgeThemes as string[]
       } else {
         comingOfAgeThemesDb.value = _rawAgeThemes as Record<string, string[]>
       }
@@ -126,7 +127,7 @@ export const useCoursesStore = defineStore('courses', () => {
   if (lecturers.value.length > 0) {
     // Migrate existing to have church
     lecturers.value.forEach((l) => {
-      if (!l.church) l.church = '愛與話語'
+      if (!l.church) l.church = DEFAULT_CHURCH
     })
   } else {
     // Default initial mock database
@@ -147,7 +148,7 @@ export const useCoursesStore = defineStore('courses', () => {
           'bible-09',
           'bible-10'
         ],
-        church: '愛與話語'
+        church: DEFAULT_CHURCH
       },
       {
         id: 'l2',
@@ -165,7 +166,7 @@ export const useCoursesStore = defineStore('courses', () => {
           'lecture-04',
           'lecture-05'
         ],
-        church: '愛與話語'
+        church: DEFAULT_CHURCH
       },
       {
         id: 'l3',
@@ -183,7 +184,7 @@ export const useCoursesStore = defineStore('courses', () => {
           'lecture-14',
           'lecture-15'
         ],
-        church: '愛與話語'
+        church: DEFAULT_CHURCH
       }
     ]
   }
