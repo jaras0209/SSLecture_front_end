@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import { safeGet, safeSet } from '@/utils/storage'
+import { persistToStorage } from '@/utils/persist'
 import { toLocalDateTimeInput, nowIso, normalizeLegacyDateTime } from '@/utils/datetime'
 import { createId } from '@/utils/id'
 import { buildMockCourses } from '@/mocks/courses'
@@ -236,69 +237,21 @@ export const useCoursesStore = defineStore('courses', () => {
   }
 
   // Watchers to persist state
-  watch(
-    progressDb,
-    (newDb) => {
-      safeSet('superstart_progress_db', newDb)
-    },
-    { deep: true }
-  )
+  persistToStorage(progressDb, 'superstart_progress_db')
 
-  watch(
-    restrictionsDb,
-    (newDb) => {
-      safeSet('superstart_restrictions_db', newDb)
-    },
-    { deep: true }
-  )
+  persistToStorage(restrictionsDb, 'superstart_restrictions_db')
 
-  watch(
-    studentTeacherDb,
-    (newDb) => {
-      safeSet('superstart_student_teacher_db', newDb)
-    },
-    { deep: true }
-  )
+  persistToStorage(studentTeacherDb, 'superstart_student_teacher_db')
 
-  watch(
-    shiningProjectDb,
-    (newDb) => {
-      safeSet('superstart_shining_project_db', newDb)
-    },
-    { deep: true }
-  )
+  persistToStorage(shiningProjectDb, 'superstart_shining_project_db')
 
-  watch(
-    characterThemesDb,
-    (newThemes) => {
-      safeSet('superstart_character_themes_db', newThemes)
-    },
-    { deep: true }
-  )
+  persistToStorage(characterThemesDb, 'superstart_character_themes_db')
 
-  watch(
-    comingOfAgeThemesDb,
-    (newThemes) => {
-      safeSet('superstart_coming_of_age_themes_db', newThemes)
-    },
-    { deep: true }
-  )
+  persistToStorage(comingOfAgeThemesDb, 'superstart_coming_of_age_themes_db')
 
-  watch(
-    lecturers,
-    (newLecturers) => {
-      safeSet('superstart_lecturers_db', newLecturers)
-    },
-    { deep: true }
-  )
+  persistToStorage(lecturers, 'superstart_lecturers_db')
 
-  watch(
-    teachingStatsDb,
-    (newStats) => {
-      safeSet('superstart_teaching_stats_db', newStats)
-    },
-    { deep: true }
-  )
+  persistToStorage(teachingStatsDb, 'superstart_teaching_stats_db')
 
   // Blank template initializer
   function createBlankShiningProject(): ShiningProject {

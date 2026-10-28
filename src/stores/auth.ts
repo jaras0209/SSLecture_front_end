@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import { safeGet, safeSet, safeRemove } from '@/utils/storage'
+import { persistToStorage } from '@/utils/persist'
 import { nowIso, normalizeLegacyDateTime } from '@/utils/datetime'
 import { randomHex } from '@/utils/id'
 import { i18n } from '@/i18n'
@@ -109,13 +110,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   })
 
-  watch(
-    usersDb,
-    (newDb) => {
-      safeSet('superstart_users_db', newDb)
-    },
-    { deep: true }
-  )
+  persistToStorage(usersDb, 'superstart_users_db')
 
   // ── Invite Codes DB ──────────────────────────────────────────────────────────
 
@@ -123,13 +118,7 @@ export const useAuthStore = defineStore('auth', () => {
     safeGet<Record<string, InviteCode>>('superstart_invite_codes', {}, { clearOnError: true })
   )
 
-  watch(
-    inviteCodesDb,
-    (newCodes) => {
-      safeSet('superstart_invite_codes', newCodes)
-    },
-    { deep: true }
-  )
+  persistToStorage(inviteCodesDb, 'superstart_invite_codes')
 
   // Actions
   function login(username: string, passwordHash: string): { success: boolean; message: string } {

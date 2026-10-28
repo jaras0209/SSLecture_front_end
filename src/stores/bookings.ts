@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
-import { ref, watch } from 'vue'
-import { safeGet, safeSet } from '@/utils/storage'
+import { ref } from 'vue'
+import { safeGet } from '@/utils/storage'
+import { persistToStorage } from '@/utils/persist'
 import { toLocalDateTimeInput } from '@/utils/datetime'
 import { createId } from '@/utils/id'
 
@@ -40,21 +41,9 @@ export const useBookingsStore = defineStore('bookings', () => {
 
   // ── Persistence ────────────────────────────────────────────────────────────
 
-  watch(
-    sessionsDb,
-    (val) => {
-      safeSet('superstart_booking_sessions_db', val)
-    },
-    { deep: true }
-  )
+  persistToStorage(sessionsDb, 'superstart_booking_sessions_db')
 
-  watch(
-    attendeesDb,
-    (val) => {
-      safeSet('superstart_booking_attendees_db', val)
-    },
-    { deep: true }
-  )
+  persistToStorage(attendeesDb, 'superstart_booking_attendees_db')
 
   // ── Getters ────────────────────────────────────────────────────────────────
 
