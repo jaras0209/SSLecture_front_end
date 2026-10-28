@@ -8,7 +8,11 @@
           :title="$t('common.editProfileHint')"
           @click="showProfileDialog = true"
         >
-          <img :src="authStore.currentUser?.avatarUrl" alt="avatar" class="admin-avatar-sm" />
+          <img
+            :src="avatarSrc(authStore.currentUser?.avatarUrl)"
+            alt="avatar"
+            class="admin-avatar-sm"
+          />
           <span class="admin-role-badge">👑</span>
         </div>
         <div>
@@ -50,6 +54,7 @@ import AdminUserTable from '@/components/admin/AdminUserTable.vue'
 import AdminChurchOverview from '@/components/admin/AdminChurchOverview.vue'
 import AdminTeachingStats from '@/components/admin/AdminTeachingStats.vue'
 import AdminInviteCodes from '@/components/admin/AdminInviteCodes.vue'
+import { avatarSrc } from '@/utils/avatar'
 
 const { tDateTime } = useI18nHelper()
 

@@ -12,11 +12,7 @@
       :disabled="isRedirecting"
       @click="loginWithGoogle"
     >
-      <img
-        src="https://cdn-icons-png.flaticon.com/512/300/300221.png"
-        alt="Google"
-        class="social-icon"
-      />
+      <img :src="googleIcon" alt="Google" class="social-icon" />
       {{
         isRedirecting && redirectTarget === 'google'
           ? $t('auth.social.connecting')
@@ -29,11 +25,7 @@
       :disabled="isRedirecting"
       @click="loginWithLine"
     >
-      <img
-        src="https://cdn-icons-png.flaticon.com/512/124/124027.png"
-        alt="LINE"
-        class="social-icon"
-      />
+      <img :src="lineIcon" alt="LINE" class="social-icon" />
       {{
         isRedirecting && redirectTarget === 'line'
           ? $t('auth.social.connecting')
@@ -45,6 +37,8 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import googleIcon from '@/assets/icons/google.svg'
+import lineIcon from '@/assets/icons/line.svg'
 
 // OAuth redirect 狀態
 const isRedirecting = ref(false)

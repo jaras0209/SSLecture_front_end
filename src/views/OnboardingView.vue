@@ -5,7 +5,7 @@
       <div class="onboarding-header text-center">
         <img
           v-if="authStore.currentUser?.avatarUrl"
-          :src="authStore.currentUser!.avatarUrl"
+          :src="avatarSrc(authStore.currentUser!.avatarUrl)"
           :alt="$t('onboarding.avatarAlt')"
           class="user-avatar"
         />
@@ -111,6 +111,7 @@ import { useToast } from '@/composables/useToast'
 import { useI18nHelper } from '@/composables/useI18nHelper'
 import type { InviteCode } from '@/stores/auth'
 import { homeRouteFor } from '@/router/homeRoute'
+import { avatarSrc } from '@/utils/avatar'
 
 const router = useRouter()
 const authStore = useAuthStore()

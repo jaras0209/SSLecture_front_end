@@ -59,7 +59,7 @@
         <tbody>
           <tr v-for="student in filteredStudents" :key="student.username">
             <td class="student-cell">
-              <img :src="student.avatarUrl" class="avatar-sm" alt="Avatar" />
+              <img :src="avatarSrc(student.avatarUrl)" class="avatar-sm" alt="Avatar" />
               <div class="student-name-col">
                 <span class="student-name">{{ student.realName || student.username }}</span>
                 <span v-if="student.realName" class="student-id-tag">@{{ student.username }}</span>
@@ -141,6 +141,7 @@ import { useStudentList } from '@/composables/useStudentList'
 // StudentProgressSummary is now defined in @/types/student to avoid
 // circular dependencies with composables that import from this file.
 import type { StudentProgressSummary } from '@/types/student'
+import { avatarSrc } from '@/utils/avatar'
 export type { StudentProgressSummary } from '@/types/student'
 
 // ── Emits ─────────────────────────────────────────────────────────────────────

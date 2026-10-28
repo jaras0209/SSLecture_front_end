@@ -46,7 +46,11 @@
         <!-- User controls -->
         <div class="user-control-panel">
           <div class="user-meta-info">
-            <img :src="authStore.currentUser?.avatarUrl" class="avatar-nav" alt="Avatar" />
+            <img
+              :src="avatarSrc(authStore.currentUser?.avatarUrl)"
+              class="avatar-nav"
+              alt="Avatar"
+            />
             <div class="user-labels">
               <span class="username-nav">{{ authStore.currentUser?.username }}</span>
               <span :class="['badge', getBadgeClass(authStore.currentUser?.role)]">
@@ -287,6 +291,7 @@ import { useI18n } from 'vue-i18n'
 import { usePasswordStrength } from '@/composables/usePasswordStrength'
 import AppToast from '@/components/shared/AppToast.vue'
 import LanguageSwitcher from '@/components/shared/LanguageSwitcher.vue'
+import { avatarSrc } from '@/utils/avatar'
 
 const router = useRouter()
 const authStore = useAuthStore()

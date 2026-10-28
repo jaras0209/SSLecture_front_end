@@ -3,7 +3,7 @@
   <section v-if="student" class="student-details-drawer glass-panel">
     <div class="drawer-header">
       <div class="student-profile">
-        <img :src="student.avatarUrl" class="avatar-md" alt="Avatar" />
+        <img :src="avatarSrc(student.avatarUrl)" class="avatar-md" alt="Avatar" />
         <div>
           <h4>
             {{ student.realName || student.username }}
@@ -446,6 +446,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import type { StudentProgressSummary } from './TeacherStudentList.vue'
 import { DEFAULT_CHURCH } from '@/types/auth'
+import { avatarSrc } from '@/utils/avatar'
 
 // ── Props & Emits ─────────────────────────────────────────────────────────────
 

@@ -16,6 +16,7 @@ export { CHURCHES, DEFAULT_RESET_PASSWORD } from '@/types/auth'
 // 引入型別供 store 內部使用
 import type { UserRole, User, InviteCode } from '@/types/auth'
 import { DEFAULT_RESET_PASSWORD, DEFAULT_CHURCH } from '@/types/auth'
+import { defaultAvatarUrl } from '@/utils/avatar'
 
 /** 邀請碼前綴（用於產生易讀的邀請碼） */
 const ROLE_CODE_PREFIX: Record<UserRole, string> = {
@@ -134,7 +135,7 @@ export const useAuthStore = defineStore('auth', () => {
       username,
       role: user.role,
       loginMethod: 'credentials',
-      avatarUrl: user.avatarUrl || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${username}`,
+      avatarUrl: user.avatarUrl || defaultAvatarUrl(username),
       church: user.church,
       childUsernames: user.childUsernames,
       displayName: user.displayName,
@@ -166,7 +167,7 @@ export const useAuthStore = defineStore('auth', () => {
       username,
       role,
       loginMethod: 'credentials',
-      avatarUrl: `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${username}`,
+      avatarUrl: defaultAvatarUrl(username),
       church: role === 'admin' ? undefined : church || DEFAULT_CHURCH,
       childUsernames: role === 'parent' ? childUsernames || [] : undefined
     }
@@ -214,7 +215,7 @@ export const useAuthStore = defineStore('auth', () => {
       loginMethod: 'google',
       church: undefined,
       displayName: 'OAuth 測試使用者',
-      avatarUrl: 'https://cdn-icons-png.flaticon.com/512/300/300221.png'
+      avatarUrl: defaultAvatarUrl('oauth')
     }
     return { success: true, needsOnboarding: true, message: 'ok' }
   }

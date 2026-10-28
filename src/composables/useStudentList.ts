@@ -2,6 +2,7 @@ import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import type { StudentProgressSummary } from '@/types/student'
+import { defaultAvatarUrl } from '@/utils/avatar'
 
 /**
  * useStudentList — shared composable for teacher/pastor/parent views.
@@ -89,9 +90,7 @@ export function useStudentList() {
       students.push({
         username,
         realName: authStore.usersDb[username]?.realName,
-        avatarUrl:
-          authStore.usersDb[username]?.avatarUrl ||
-          `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${username}`,
+        avatarUrl: authStore.usersDb[username]?.avatarUrl || defaultAvatarUrl(username),
         completedCount: totalCompleted,
         totalProgressPercent,
         lastActive: lastActiveTime,

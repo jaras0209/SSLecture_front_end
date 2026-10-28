@@ -6,7 +6,7 @@
           <!-- Dialog Header -->
           <div class="notes-dialog-header">
             <div class="notes-dialog-profile">
-              <img :src="student.avatarUrl" class="avatar-md" alt="Avatar" />
+              <img :src="avatarSrc(student.avatarUrl)" class="avatar-md" alt="Avatar" />
               <div>
                 <h3>
                   {{ student.realName || student.username }}
@@ -155,6 +155,7 @@
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useI18nHelper } from '@/composables/useI18nHelper'
+import { avatarSrc } from '@/utils/avatar'
 
 const { t } = useI18n()
 const { tDateTime } = useI18nHelper()

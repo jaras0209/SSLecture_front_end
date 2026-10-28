@@ -34,6 +34,10 @@ export default defineConfig({
           if (id.includes('node_modules/vue-i18n') || id.includes('node_modules/@intlify')) {
             return 'i18n'
           }
+          // DiceBear 頭像風格按需載入（src/utils/avatar.ts），交給 Rollup 依動態 import 自然拆分
+          if (id.includes('node_modules/@dicebear')) {
+            return undefined
+          }
           // 其他 node_modules → vendor chunk（未來若新增 lodash、dayjs 等也會進來）
           if (id.includes('node_modules')) {
             return 'vendor'

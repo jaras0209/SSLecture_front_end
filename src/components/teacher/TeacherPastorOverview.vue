@@ -47,8 +47,9 @@
                 <td class="student-cell">
                   <img
                     :src="
-                      authStore.usersDb[stdUsername]?.avatarUrl ||
-                      `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${stdUsername}`
+                      avatarSrc(
+                        authStore.usersDb[stdUsername]?.avatarUrl || defaultAvatarUrl(stdUsername)
+                      )
                     "
                     class="avatar-sm"
                     alt="Avatar"
@@ -143,8 +144,7 @@
                 <td class="student-cell">
                   <img
                     :src="
-                      authStore.usersDb[teacher]?.avatarUrl ||
-                      `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${teacher}`
+                      avatarSrc(authStore.usersDb[teacher]?.avatarUrl || defaultAvatarUrl(teacher))
                     "
                     class="avatar-sm"
                     alt="Avatar"
@@ -243,6 +243,7 @@ import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import type { ProgressRecord } from '@/stores/courses'
+import { avatarSrc, defaultAvatarUrl } from '@/utils/avatar'
 
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()

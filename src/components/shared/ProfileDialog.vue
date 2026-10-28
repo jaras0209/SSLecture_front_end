@@ -18,7 +18,11 @@
           <!-- ── Avatar Section ── -->
           <div class="pd-avatar-section">
             <div class="pd-avatar-wrap">
-              <img :src="draftAvatarUrl" :alt="$t('profile.avatarAlt')" class="pd-avatar-img" />
+              <img
+                :src="avatarSrc(draftAvatarUrl)"
+                :alt="$t('profile.avatarAlt')"
+                class="pd-avatar-img"
+              />
               <div class="pd-role-badge" :title="roleLabel">{{ roleBadge }}</div>
             </div>
 
@@ -312,6 +316,7 @@ import { useI18n } from 'vue-i18n'
 import { useI18nHelper } from '@/composables/useI18nHelper'
 import { useAuthStore } from '@/stores/auth'
 import { usePasswordStrength } from '@/composables/usePasswordStrength'
+import { avatarSrc, defaultAvatarUrl, dicebearAvatarUrl, type AvatarStyleId } from '@/utils/avatar'
 
 const props = defineProps<{ modelValue: boolean }>()
 const emit = defineEmits<{ (e: 'update:modelValue', val: boolean): void }>()
@@ -343,8 +348,7 @@ watch(
       const u = authStore.currentUser
       draftDisplayName.value = u?.displayName || ''
       draftRealName.value = u?.realName || ''
-      draftAvatarUrl.value =
-        u?.avatarUrl || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${u?.username}`
+      draftAvatarUrl.value = u?.avatarUrl || defaultAvatarUrl(u?.username ?? '')
       customAvatarUrl.value = ''
       selectedStyle.value = ''
       showPwd.value = false
@@ -373,53 +377,29 @@ const roleBadge = computed(() => badgeMap[authStore.currentUser?.role || ''] || 
 // ── Avatar Presets ──
 const seed = computed(() => authStore.currentUser?.username || 'default')
 
-const avatarStyles = computed(() => [
-  {
-    id: 'fun-emoji',
-    label: t('profile.avatar.funEmoji'),
-    previewUrl: `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${seed.value}`
-  },
-  {
-    id: 'lorelei',
-    label: t('profile.avatar.lorelei'),
-    previewUrl: `https://api.dicebear.com/7.x/lorelei/svg?seed=${seed.value}`
-  },
-  {
-    id: 'bottts',
-    label: t('profile.avatar.bottts'),
-    previewUrl: `https://api.dicebear.com/7.x/bottts/svg?seed=${seed.value}`
-  },
-  {
-    id: 'adventurer',
-    label: t('profile.avatar.adventurer'),
-    previewUrl: `https://api.dicebear.com/7.x/adventurer/svg?seed=${seed.value}`
-  },
-  {
-    id: 'pixel-art',
-    label: t('profile.avatar.pixelArt'),
-    previewUrl: `https://api.dicebear.com/7.x/pixel-art/svg?seed=${seed.value}`
-  },
-  {
-    id: 'avataaars',
-    label: t('profile.avatar.avataaars'),
-    previewUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed.value}`
-  },
-  {
-    id: 'micah',
-    label: t('profile.avatar.micah'),
-    previewUrl: `https://api.dicebear.com/7.x/micah/svg?seed=${seed.value}`
-  },
-  {
-    id: 'notionists',
-    label: t('profile.avatar.notionists'),
-    previewUrl: `https://api.dicebear.com/7.x/notionists/svg?seed=${seed.value}`
-  }
-])
+const AVATAR_STYLE_LABELS: [AvatarStyleId, string][] = [
+  ['fun-emoji', 'profile.avatar.funEmoji'],
+  ['lorelei', 'profile.avatar.lorelei'],
+  ['bottts', 'profile.avatar.bottts'],
+  ['adventurer', 'profile.avatar.adventurer'],
+  ['pixel-art', 'profile.avatar.pixelArt'],
+  ['avataaars', 'profile.avatar.avataaars'],
+  ['micah', 'profile.avatar.micah'],
+  ['notionists', 'profile.avatar.notionists']
+]
 
-function applyPresetStyle(styleId: string) {
+const avatarStyles = computed(() =>
+  AVATAR_STYLE_LABELS.map(([id, labelKey]) => ({
+    id,
+    label: t(labelKey),
+    previewUrl: avatarSrc(dicebearAvatarUrl(id, seed.value))
+  }))
+)
+
+function applyPresetStyle(styleId: AvatarStyleId) {
   selectedStyle.value = styleId
   customAvatarUrl.value = ''
-  draftAvatarUrl.value = `https://api.dicebear.com/7.x/${styleId}/svg?seed=${seed.value}`
+  draftAvatarUrl.value = dicebearAvatarUrl(styleId, seed.value)
 }
 
 function applyCustomUrl() {

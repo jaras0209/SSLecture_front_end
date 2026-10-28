@@ -8,7 +8,7 @@
           :title="$t('common.editProfileHint')"
           @click="showProfileDialog = true"
         >
-          <img :src="authStore.currentUser?.avatarUrl" alt="Avatar" class="avatar-lg" />
+          <img :src="avatarSrc(authStore.currentUser?.avatarUrl)" alt="Avatar" class="avatar-lg" />
           <span class="avatar-edit-hint">✏️</span>
           <div class="role-badge-overlay">{{ roleBadge }}</div>
         </div>
@@ -164,6 +164,7 @@ import { useBookingsStore } from '@/stores/bookings'
 import type { BookingSession, BookingAttendee } from '@/stores/bookings'
 import { defineAsyncComponent } from 'vue'
 import type { FeedbackItem } from '@/components/student/StudentBookingList.vue'
+import { avatarSrc } from '@/utils/avatar'
 
 // --- 大型子元件：改用 defineAsyncComponent 按需載入，縮短首次渲染時間 ---
 const ProfileDialog = defineAsyncComponent(() => import('@/components/shared/ProfileDialog.vue'))

@@ -9,7 +9,11 @@
             :title="$t('common.editProfileHint')"
             @click="showProfileDialog = true"
           >
-            <img :src="authStore.currentUser?.avatarUrl" alt="avatar" class="teacher-avatar-sm" />
+            <img
+              :src="avatarSrc(authStore.currentUser?.avatarUrl)"
+              alt="avatar"
+              class="teacher-avatar-sm"
+            />
             <span class="teacher-role-badge">{{ teacherRoleBadge }}</span>
           </div>
           <div>
@@ -192,6 +196,7 @@ const TeacherStudentDrawer = defineAsyncComponent(
 import type { Lecturer } from '@/stores/courses'
 import type { BookingSession } from '@/stores/bookings'
 import { DEFAULT_CHURCH } from '@/types/auth'
+import { avatarSrc } from '@/utils/avatar'
 
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
