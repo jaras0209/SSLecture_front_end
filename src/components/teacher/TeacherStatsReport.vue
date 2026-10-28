@@ -140,7 +140,7 @@
       </button>
     </div>
     <p v-if="statsLastSubmit" class="stats-last-submit text-xs text-muted mt-2">
-      {{ $t('teacher.stats.lastUpdated') }}{{ statsLastSubmit }}
+      {{ $t('teacher.stats.lastUpdated') }}{{ tDateTime(statsLastSubmit) }}
     </p>
   </section>
 </template>
@@ -148,10 +148,12 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useI18nHelper } from '@/composables/useI18nHelper'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 
 const { t } = useI18n()
+const { tDateTime } = useI18nHelper()
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
 
@@ -200,7 +202,7 @@ function handleSaveStats() {
     oneOnOneShining: statsForm.value.oneOnOneShining || 0,
     oneToManyShining: statsForm.value.oneToManyShining || 0
   })
-  statsLastSubmit.value = new Date().toLocaleString('zh-TW', { hour12: false })
+  statsLastSubmit.value = coursesStore.getTeachingStats(username, statsYear.value).submittedAt || ''
   statsSavedMsg.value = t('teacher.stats.savedMsg')
   setTimeout(() => {
     statsSavedMsg.value = ''

@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import { safeGet, safeSet, safeRemove } from '@/utils/storage'
+import { nowIso, normalizeLegacyDateTime } from '@/utils/datetime'
+import { randomHex } from '@/utils/id'
 import { i18n } from '@/i18n'
 // Store-level t() wrapper — 在 store 函式被呼叫時（i18n 已就緒）才執行翻譯
 const t = (key: string, values?: Record<string, unknown>): string =>
@@ -79,6 +81,25 @@ export const useAuthStore = defineStore('auth', () => {
     }
   })
 
+  // Migrate lastLoginAt from the old zh-TW locale string to ISO 8601
+  let lastLoginMigrated = false
+  Object.values(usersDb.value).forEach((user) => {
+    if (!user.lastLoginAt) return
+    const iso = normalizeLegacyDateTime(user.lastLoginAt)
+    if (iso !== user.lastLoginAt) {
+      user.lastLoginAt = iso
+      lastLoginMigrated = true
+    }
+  })
+  if (lastLoginMigrated) safeSet('superstart_users_db', usersDb.value)
+  if (currentUser.value?.lastLoginAt) {
+    const iso = normalizeLegacyDateTime(currentUser.value.lastLoginAt)
+    if (iso !== currentUser.value.lastLoginAt) {
+      currentUser.value.lastLoginAt = iso
+      safeSet('superstart_user', currentUser.value)
+    }
+  }
+
   // Watchers to persist state
   watch(currentUser, (newUser) => {
     if (newUser) {
@@ -120,7 +141,7 @@ export const useAuthStore = defineStore('auth', () => {
       return { success: false, message: t('stores.auth.wrongPassword') }
     }
 
-    const now = new Date().toLocaleString('zh-TW', { hour12: false })
+    const now = nowIso()
     // Save last login time
     usersDb.value[username].lastLoginAt = now
 
@@ -338,6 +359,7 @@ export const useAuthStore = defineStore('auth', () => {
   /**
    * Generate a one-time invite code for a specific role.
    * Format: SS-{ROLE_PREFIX}-{4 random uppercase hex chars}
+   * The random part is regenerated until it doesn't collide with any existing code.
    */
   function generateInviteCode(
     role: UserRole,
@@ -346,8 +368,15 @@ export const useAuthStore = defineStore('auth', () => {
     expiryDays = 7
   ): string {
     const prefix = ROLE_CODE_PREFIX[role]
-    const rand = Math.random().toString(16).substring(2, 6).toUpperCase()
-    const code = `SS-${prefix}-${rand}`
+    let code = ''
+    for (let attempt = 0; attempt < 100; attempt++) {
+      const candidate = `SS-${prefix}-${randomHex(2).toUpperCase()}`
+      if (!inviteCodesDb.value[candidate]) {
+        code = candidate
+        break
+      }
+    }
+    if (!code) throw new Error(`Could not generate a unique ${prefix} invite code`)
     const now = new Date()
     const expires = new Date(now.getTime() + expiryDays * 86400000)
     inviteCodesDb.value[code] = {

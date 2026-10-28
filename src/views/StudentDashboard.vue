@@ -16,7 +16,12 @@
           <h2>{{ $t('student.header.hello', { name: displayName }) }}</h2>
           <p class="motivation-text">{{ motivationText }}</p>
           <p v-if="authStore.currentUser?.lastLoginAt" class="last-login-hint">
-            🕐 {{ $t('student.header.lastLogin', { time: authStore.currentUser?.lastLoginAt }) }}
+            🕐
+            {{
+              $t('student.header.lastLogin', {
+                time: tDateTime(authStore.currentUser?.lastLoginAt)
+              })
+            }}
           </p>
           <div class="flex flex-wrap gap-2 mt-2">
             <span v-if="assignedTeacher" class="assigned-teacher-label"
@@ -147,9 +152,11 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useI18nHelper } from '@/composables/useI18nHelper'
 import { useToast } from '@/composables/useToast'
 const { toast } = useToast()
 const { t } = useI18n()
+const { tDateTime } = useI18nHelper()
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import type { Course } from '@/stores/courses'
@@ -259,12 +266,9 @@ const assignedParent = computed(() => {
   return coursesStore.getStudentCaretaker(username, 'parent')
 })
 
-const completedCount = computed(() => {
-  const username = authStore.currentUser?.username || ''
-  const userRecords = coursesStore.progressDb[username]
-  if (!userRecords) return 0
-  return Object.values(userRecords).filter((r) => r.completed).length
-})
+const completedCount = computed(() =>
+  coursesStore.getCompletedCourseCount(authStore.currentUser?.username || '')
+)
 
 const overallProgressPercent = computed(() => {
   if (coursesStore.courses.length === 0) return 0

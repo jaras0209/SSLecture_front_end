@@ -101,7 +101,7 @@
             </div>
             <div v-if="authStore.currentUser?.lastLoginAt" class="pd-info-item">
               <span class="pd-info-lbl">🕐 {{ $t('profile.infoLastLogin') }}</span>
-              <span class="pd-info-val">{{ authStore.currentUser?.lastLoginAt }}</span>
+              <span class="pd-info-val">{{ tDateTime(authStore.currentUser?.lastLoginAt) }}</span>
             </div>
           </div>
 
@@ -309,6 +309,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useI18nHelper } from '@/composables/useI18nHelper'
 import { useAuthStore } from '@/stores/auth'
 import { usePasswordStrength } from '@/composables/usePasswordStrength'
 
@@ -317,6 +318,7 @@ const emit = defineEmits<{ (e: 'update:modelValue', val: boolean): void }>()
 
 const authStore = useAuthStore()
 const { t } = useI18n()
+const { tDateTime } = useI18nHelper()
 
 // ── Draft state ──
 const draftDisplayName = ref('')

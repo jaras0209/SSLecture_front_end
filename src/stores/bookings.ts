@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 import { safeGet, safeSet } from '@/utils/storage'
 import { toLocalDateTimeInput } from '@/utils/datetime'
+import { createId } from '@/utils/id'
 
 // 型別定義集中至 src/types/bookings.ts—從這裡 re-export 保持向下相容
 export type {
@@ -118,7 +119,7 @@ export const useBookingsStore = defineStore('bookings', () => {
     studentUsernames: string[]
     church: string
   }): BookingSession {
-    const sessionId = `sess_${Date.now()}`
+    const sessionId = createId('sess')
     const now = new Date().toISOString()
 
     const session: BookingSession = {

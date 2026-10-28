@@ -22,7 +22,12 @@
             <h2 v-else>{{ $t('teacher.header.teacherTitle') }}</h2>
             <p>{{ $t('teacher.header.welcome', { name: teacherDisplayName }) }}</p>
             <p v-if="authStore.currentUser?.lastLoginAt" class="last-login-hint-sm">
-              🕐 {{ $t('teacher.header.lastLogin', { time: authStore.currentUser?.lastLoginAt }) }}
+              🕐
+              {{
+                $t('teacher.header.lastLogin', {
+                  time: tDateTime(authStore.currentUser?.lastLoginAt)
+                })
+              }}
             </p>
           </div>
         </div>
@@ -282,6 +287,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useI18nHelper } from '@/composables/useI18nHelper'
 import { useToast } from '@/composables/useToast'
 import { useStudentList } from '@/composables/useStudentList'
 import { useAuthStore } from '@/stores/auth'
@@ -322,6 +328,7 @@ const coursesStore = useCoursesStore()
 const bookingsStore = useBookingsStore()
 const { toast } = useToast()
 const { t } = useI18n()
+const { tDateTime } = useI18nHelper()
 const { studentsList } = useStudentList()
 
 const showProfileDialog = ref(false)

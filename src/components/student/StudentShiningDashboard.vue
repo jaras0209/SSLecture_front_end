@@ -93,7 +93,7 @@
                 <div class="check-box-wrapper">
                   <input
                     type="checkbox"
-                    :checked="shiningProject.faithPhase2[key]"
+                    :checked="isPhase2Checked(key)"
                     @change="toggleCheck('faithPhase2', key)"
                   />
                   <span class="styled-checkbox"></span>
@@ -300,11 +300,8 @@
             <div class="print-box-content print-checklist">
               <template v-for="(label, key) in phase2Labels" :key="key">
                 <div class="print-check-line">
-                  <span
-                    class="print-check-circle"
-                    :class="{ checked: shiningProject.faithPhase2[key] }"
-                  >
-                    {{ shiningProject.faithPhase2[key] ? '✓' : '' }}
+                  <span class="print-check-circle" :class="{ checked: isPhase2Checked(key) }">
+                    {{ isPhase2Checked(key) ? '✓' : '' }}
                   </span>
                   <span v-if="key === 'courses30'" class="print-check-text">
                     {{ $t('student.shining.printPhase2Progress', { count: completedCount }) }}
@@ -429,16 +426,18 @@ const basicInfo = reactive({
 const customChallengeText = ref('')
 const basicSaveMsg = ref('')
 
+// Load the form only when the user changes — not whenever the project object does.
+// For a new student getShiningProject() returns an unsaved blank template until the
+// first write; watching the object would reset unsaved form input at that moment.
 watch(
-  shiningProject,
-  (newProj) => {
-    if (newProj) {
-      basicInfo.name = newProj.name || ''
-      basicInfo.birthday = newProj.birthday || ''
-      basicInfo.church = newProj.church || ''
-      basicInfo.schoolGrade = newProj.schoolGrade || ''
-      customChallengeText.value = newProj.customChallenge || ''
-    }
+  () => authStore.currentUser?.username,
+  () => {
+    const proj = shiningProject.value
+    basicInfo.name = proj.name || ''
+    basicInfo.birthday = proj.birthday || ''
+    basicInfo.church = proj.church || ''
+    basicInfo.schoolGrade = proj.schoolGrade || ''
+    customChallengeText.value = proj.customChallenge || ''
   },
   { immediate: true }
 )
@@ -473,12 +472,14 @@ const comingOfAgeThemes = computed(() => {
 
 // ── Course Completion Count (for Phase 2 progress bar) ───────────────────────
 
-const completedCount = computed(() => {
-  const username = authStore.currentUser?.username || ''
-  const userRecords = coursesStore.progressDb[username]
-  if (!userRecords) return 0
-  return Object.values(userRecords).filter((r) => r.completed).length
-})
+const completedCount = computed(() =>
+  coursesStore.getCompletedCourseCount(authStore.currentUser?.username || '')
+)
+
+// Phase 2 items, including courses30 which is auto-checked once all courses are done
+function isPhase2Checked(key: ShiningChecklistKey): boolean {
+  return coursesStore.isShiningChecked(authStore.currentUser?.username || '', 'faithPhase2', key)
+}
 
 // ── Actions ───────────────────────────────────────────────────────────────────
 

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useAuthStore } from '@/stores/auth'
 
@@ -260,6 +260,93 @@ describe('useAuthStore', () => {
       auth.consumeInviteCode(code, 'newstudent')
       const result = auth.revokeInviteCode(code)
       expect(result.success).toBe(false)
+    })
+  })
+
+  // ── timestamps & legacy migration ─────────────────────────────────────────
+
+  describe('lastLoginAt format', () => {
+    const originalTz = process.env.TZ
+
+    afterEach(() => {
+      process.env.TZ = originalTz
+      vi.useRealTimers()
+    })
+
+    it('stores lastLoginAt as ISO 8601', () => {
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2026-10-28T06:30:00Z'))
+      const auth = useAuthStore()
+      auth.login('teacher', '123456')
+      expect(auth.currentUser?.lastLoginAt).toBe('2026-10-28T06:30:00.000Z')
+      expect(auth.usersDb['teacher'].lastLoginAt).toBe('2026-10-28T06:30:00.000Z')
+    })
+
+    it('migrates a legacy zh-TW lastLoginAt to ISO on load and persists it', () => {
+      process.env.TZ = 'Asia/Taipei'
+      localStorage.setItem(
+        'superstart_users_db',
+        JSON.stringify({
+          alice: {
+            passwordHash: 'x',
+            role: 'student',
+            church: '愛與話語',
+            lastLoginAt: '2026/10/28 14:30:00'
+          }
+        })
+      )
+      localStorage.setItem(
+        'superstart_user',
+        JSON.stringify({
+          username: 'alice',
+          role: 'student',
+          loginMethod: 'credentials',
+          lastLoginAt: '2026/10/28 14:30:00'
+        })
+      )
+      const auth = useAuthStore()
+      expect(auth.usersDb['alice'].lastLoginAt).toBe('2026-10-28T06:30:00.000Z')
+      expect(auth.currentUser?.lastLoginAt).toBe('2026-10-28T06:30:00.000Z')
+      expect(
+        JSON.parse(localStorage.getItem('superstart_users_db') || '{}').alice.lastLoginAt
+      ).toBe('2026-10-28T06:30:00.000Z')
+      expect(JSON.parse(localStorage.getItem('superstart_user') || '{}').lastLoginAt).toBe(
+        '2026-10-28T06:30:00.000Z'
+      )
+    })
+  })
+
+  describe('generateInviteCode() uniqueness', () => {
+    afterEach(() => {
+      vi.restoreAllMocks()
+    })
+
+    it('always produces exactly 4 hex chars', () => {
+      const auth = useAuthStore()
+      for (let i = 0; i < 50; i++) {
+        expect(auth.generateInviteCode('student', '愛與話語', 'admin')).toMatch(
+          /^SS-STU-[0-9A-F]{4}$/
+        )
+      }
+    })
+
+    it('regenerates when the random part collides with an existing code', () => {
+      const auth = useAuthStore()
+      // First two draws produce 0xABCD, the third 0x1234
+      const draws = [
+        [0xab, 0xcd],
+        [0xab, 0xcd],
+        [0x12, 0x34]
+      ]
+      vi.spyOn(crypto, 'getRandomValues').mockImplementation(
+        <T extends ArrayBufferView | null>(arr: T) => {
+          ;(arr as unknown as Uint8Array).set(draws.shift() ?? [0, 0])
+          return arr
+        }
+      )
+      expect(auth.generateInviteCode('student', '愛與話語', 'admin')).toBe('SS-STU-ABCD')
+      expect(auth.generateInviteCode('student', '愛與話語', 'admin')).toBe('SS-STU-1234')
+      expect(Object.keys(auth.inviteCodesDb)).toHaveLength(2)
     })
   })
 })

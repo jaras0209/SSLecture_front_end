@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 import { safeGet, safeSet } from '@/utils/storage'
-import { toLocalDateTimeInput } from '@/utils/datetime'
+import { toLocalDateTimeInput, nowIso, normalizeLegacyDateTime } from '@/utils/datetime'
+import { createId } from '@/utils/id'
 import { buildMockCourses } from '@/mocks/courses'
 
 // 型別定義集中至 src/types/courses.ts—從這裡 re-export 保持向下相容
@@ -192,6 +193,47 @@ export const useCoursesStore = defineStore('courses', () => {
     safeGet<TeachingStatsDb>('superstart_teaching_stats_db', {}, { clearOnError: true })
   )
 
+  // ── One-time data migration on load ─────────────────────────────────────────
+  // 讀取函式（getStudentProgress / getShiningProject）不再修改資料，
+  // 舊格式資料在 store 建立時一次轉換完成，並寫回 localStorage。
+  migrateLoadedData()
+
+  function migrateLoadedData(): void {
+    const before = {
+      progress: JSON.stringify(progressDb.value),
+      shining: JSON.stringify(shiningProjectDb.value),
+      stats: JSON.stringify(teachingStatsDb.value)
+    }
+
+    for (const userRecords of Object.values(progressDb.value)) {
+      for (const record of Object.values(userRecords)) {
+        if (record.lastUpdated) record.lastUpdated = normalizeLegacyDateTime(record.lastUpdated)
+        migrateRecord(record)
+        for (const session of record.sessions) {
+          if (session.createdAt) session.createdAt = normalizeLegacyDateTime(session.createdAt)
+        }
+      }
+    }
+
+    for (const [username, project] of Object.entries(shiningProjectDb.value)) {
+      shiningProjectDb.value[username] = withShiningDefaults(project)
+    }
+
+    for (const stats of Object.values(teachingStatsDb.value)) {
+      if (stats.submittedAt) stats.submittedAt = normalizeLegacyDateTime(stats.submittedAt)
+    }
+
+    if (JSON.stringify(progressDb.value) !== before.progress) {
+      safeSet('superstart_progress_db', progressDb.value)
+    }
+    if (JSON.stringify(shiningProjectDb.value) !== before.shining) {
+      safeSet('superstart_shining_project_db', shiningProjectDb.value)
+    }
+    if (JSON.stringify(teachingStatsDb.value) !== before.stats) {
+      safeSet('superstart_teaching_stats_db', teachingStatsDb.value)
+    }
+  }
+
   // Watchers to persist state
   watch(
     progressDb,
@@ -294,23 +336,42 @@ export const useCoursesStore = defineStore('courses', () => {
     }
   }
 
+  /** Fill in any fields missing from an older stored ShiningProject. */
+  function withShiningDefaults(project: Partial<ShiningProject>): ShiningProject {
+    const blank = createBlankShiningProject()
+    return {
+      ...blank,
+      ...project,
+      faithPhase1: { ...blank.faithPhase1, ...project.faithPhase1 },
+      faithPhase2: { ...blank.faithPhase2, ...project.faithPhase2 },
+      advancedChallenges: { ...blank.advancedChallenges, ...project.advancedChallenges },
+      characterLectures: project.characterLectures ?? {},
+      comingOfAgeTopics: project.comingOfAgeTopics ?? {}
+    }
+  }
+
   // Actions
 
   /**
    * Migrate a legacy ProgressRecord (no sessions array) to the new format.
-   * Called automatically when reading or writing records.
+   * Runs once on load (migrateLoadedData); expects lastUpdated already normalized to ISO.
    */
   function migrateRecord(record: ProgressRecord): ProgressRecord {
     if (!record.sessions) {
       record.sessions = []
       // If old record had lecturer/listenedAt info, promote it as the first session
       if (record.completed || record.lecturer || record.listenedAt) {
+        const lastUpdated = record.lastUpdated ? new Date(record.lastUpdated) : null
+        const fallbackListenedAt =
+          lastUpdated && !Number.isNaN(lastUpdated.getTime())
+            ? toLocalDateTimeInput(lastUpdated)
+            : ''
         record.sessions.push({
           id: 'migrated_' + record.courseId,
           lecturer: record.lecturer || '',
-          listenedAt: record.listenedAt || record.lastUpdated || '',
+          listenedAt: record.listenedAt || fallbackListenedAt,
           notes: record.notes || '',
-          createdAt: record.lastUpdated || new Date().toLocaleString('zh-TW', { hour12: false })
+          createdAt: record.lastUpdated || nowIso()
         })
       }
     }
@@ -331,9 +392,9 @@ export const useCoursesStore = defineStore('courses', () => {
     }
 
     const existing = progressDb.value[username][courseId]
-    const now = new Date().toLocaleString('zh-TW', { hour12: false })
+    const now = nowIso()
     const newSession: ListenSession = {
-      id: 'session_' + Date.now(),
+      id: createId('session'),
       lecturer: session.lecturer,
       listenedAt: session.listenedAt,
       notes: session.notes,
@@ -389,24 +450,20 @@ export const useCoursesStore = defineStore('courses', () => {
   ): boolean {
     const record = progressDb.value[username]?.[courseId]
     if (!record) return false
-    migrateRecord(record)
     const session = record.sessions.find((s) => s.id === sessionId)
     if (!session) return false
     if (patch.listenedAt !== undefined) session.listenedAt = patch.listenedAt
     if (patch.notes !== undefined) session.notes = patch.notes
     if (patch.lecturer !== undefined) session.lecturer = patch.lecturer
-    record.lastUpdated = new Date().toLocaleString('zh-TW', { hour12: false })
+    record.lastUpdated = nowIso()
     // Trigger reactivity
     progressDb.value = { ...progressDb.value }
     return true
   }
 
   function getStudentProgress(username: string, courseId: string): ProgressRecord {
-    const userRecords = progressDb.value[username]
-    if (userRecords && userRecords[courseId]) {
-      // Always ensure sessions array exists (handles legacy data)
-      return migrateRecord(userRecords[courseId])
-    }
+    const record = progressDb.value[username]?.[courseId]
+    if (record) return record
     return {
       courseId,
       completed: false,
@@ -558,7 +615,7 @@ export const useCoursesStore = defineStore('courses', () => {
     church: string,
     linkedUsername?: string
   ): void {
-    const id = 'l_' + Date.now()
+    const id = createId('l')
     lecturers.value.push({ id, name, title, courseIds, church, linkedUsername })
   }
 
@@ -627,37 +684,56 @@ export const useCoursesStore = defineStore('courses', () => {
   }
 
   // Shining Project Actions
+
+  /**
+   * Read a student's Shining Project. Pure: never writes to the store.
+   * Returns the stored project (same object, so watchers on it stay stable) or,
+   * if the student has none yet, a fresh blank template that is NOT saved.
+   * The auto-completed `courses30` item is not stored here — use isShiningChecked().
+   */
   function getShiningProject(username: string): ShiningProject {
+    return shiningProjectDb.value[username] ?? createBlankShiningProject()
+  }
+
+  /** Write paths only: get the stored project, creating it on first write. */
+  function ensureShiningProject(username: string): ShiningProject {
     if (!shiningProjectDb.value[username]) {
       shiningProjectDb.value[username] = createBlankShiningProject()
     }
-
-    // Check missing dynamic themes if store dynamic list changed
-    const proj = shiningProjectDb.value[username]
-    if (!proj.characterLectures) {
-      proj.characterLectures = {}
-    }
-    if (!proj.comingOfAgeTopics) {
-      proj.comingOfAgeTopics = {}
-    }
-
-    // Auto check 'courses30' if the student completed all 30 courses
-    const userRecords = progressDb.value[username]
-    if (userRecords) {
-      const completedCount = Object.values(userRecords).filter((r) => r.completed).length
-      if (completedCount >= courses.value.length) {
-        shiningProjectDb.value[username].faithPhase2.courses30 = true
-      }
-    }
-
     return shiningProjectDb.value[username]
+  }
+
+  /** Number of courses in the current catalog that the student has completed. */
+  function getCompletedCourseCount(username: string): number {
+    const userRecords = progressDb.value[username]
+    if (!userRecords) return 0
+    return courses.value.filter((c) => userRecords[c.id]?.completed).length
+  }
+
+  /** Whether the student has completed every course in the current catalog. */
+  function hasCompletedAllCourses(username: string): boolean {
+    return courses.value.length > 0 && getCompletedCourseCount(username) >= courses.value.length
+  }
+
+  /**
+   * Whether a Shining checklist item is checked: the stored value, or — for
+   * `courses30` — automatically when every course has been completed.
+   */
+  function isShiningChecked(
+    username: string,
+    category: 'faithPhase1' | 'faithPhase2' | 'advancedChallenges',
+    key: ShiningChecklistKey
+  ): boolean {
+    const checklist = getShiningProject(username)[category] as Record<string, boolean>
+    if (checklist[key]) return true
+    return category === 'faithPhase2' && key === 'courses30' && hasCompletedAllCourses(username)
   }
 
   function updateShiningBasicInfo(
     username: string,
     info: { name: string; birthday: string; church: string; schoolGrade: string }
   ): void {
-    const project = getShiningProject(username)
+    const project = ensureShiningProject(username)
     project.name = info.name
     project.birthday = info.birthday
     project.church = info.church
@@ -670,7 +746,7 @@ export const useCoursesStore = defineStore('courses', () => {
     key: ShiningChecklistKey,
     value: boolean
   ): void {
-    const project = getShiningProject(username)
+    const project = ensureShiningProject(username)
 
     // Type casting to ensure typescript compatibility
     const checklist = project[category] as Record<string, boolean>
@@ -678,7 +754,7 @@ export const useCoursesStore = defineStore('courses', () => {
   }
 
   function updateShiningCustomChallenge(username: string, text: string): void {
-    const project = getShiningProject(username)
+    const project = ensureShiningProject(username)
     project.customChallenge = text
   }
 
@@ -689,7 +765,7 @@ export const useCoursesStore = defineStore('courses', () => {
     speaker: string,
     date: string
   ): void {
-    const project = getShiningProject(username)
+    const project = ensureShiningProject(username)
     if (type === 'character') {
       project.characterLectures[theme] = { speaker, date }
     } else {
@@ -803,7 +879,7 @@ export const useCoursesStore = defineStore('courses', () => {
       year,
       church,
       ...stats,
-      submittedAt: new Date().toLocaleString('zh-TW', { hour12: false })
+      submittedAt: nowIso()
     }
   }
 
@@ -867,6 +943,9 @@ export const useCoursesStore = defineStore('courses', () => {
     updateLecturer,
     deleteLecturer,
     getShiningProject,
+    getCompletedCourseCount,
+    hasCompletedAllCourses,
+    isShiningChecked,
     updateShiningBasicInfo,
     updateShiningChecklist,
     updateShiningCustomChallenge,

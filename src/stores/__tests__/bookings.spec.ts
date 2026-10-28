@@ -269,4 +269,19 @@ describe('useBookingsStore', () => {
       expect(store.getPastSessions('student')).toHaveLength(0)
     })
   })
+
+  describe('session ids', () => {
+    it('are unique for sessions created in the same millisecond', () => {
+      vi.useFakeTimers()
+      const store = useBookingsStore()
+      const a = makeSession()
+      const b = makeSession()
+      vi.useRealTimers()
+      expect(a.id).not.toBe(b.id)
+      expect(Object.keys(store.sessionsDb)).toHaveLength(2)
+      // attendees keep their per-session link
+      expect(store.getAttendeesForSession(a.id)).toHaveLength(1)
+      expect(store.getAttendeesForSession(b.id)).toHaveLength(1)
+    })
+  })
 })

@@ -14,9 +14,10 @@
  *   tRole('teacher')                        // roleLabel.{role}
  */
 import { useI18n } from 'vue-i18n'
+import { formatDateTime } from '@/utils/datetime'
 
 export function useI18nHelper() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
 
   /**
    * Translate a fully-qualified dynamic key.
@@ -42,5 +43,13 @@ export function useI18nHelper() {
     return tDynamic(`booking.status.${status}`)
   }
 
-  return { tDynamic, tRole, tStatus }
+  /**
+   * Format a stored ISO timestamp for display in the current locale.
+   * @example tDateTime('2026-10-28T06:30:00.000Z') → '2026/10/28 14:30' (zh-TW, UTC+8)
+   */
+  function tDateTime(value: string | undefined): string {
+    return formatDateTime(value, locale.value)
+  }
+
+  return { tDynamic, tRole, tStatus, tDateTime }
 }

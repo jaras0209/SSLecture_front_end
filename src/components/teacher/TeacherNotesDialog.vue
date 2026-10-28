@@ -104,7 +104,7 @@
                   >📅 {{ formatDateTime(record.listenedAt) }}</span
                 >
                 <span v-if="record.lastUpdated" class="meta-chip"
-                  >{{ $t('teacher.notes.lastUpdated') }}{{ record.lastUpdated }}</span
+                  >{{ $t('teacher.notes.lastUpdated') }}{{ tDateTime(record.lastUpdated) }}</span
                 >
               </div>
 
@@ -154,8 +154,10 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useI18nHelper } from '@/composables/useI18nHelper'
 
 const { t } = useI18n()
+const { tDateTime } = useI18nHelper()
 
 export interface StudentRecordDetail {
   courseTitle: string

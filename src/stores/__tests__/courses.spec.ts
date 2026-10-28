@@ -256,4 +256,225 @@ describe('useCoursesStore', () => {
       ])
     })
   })
+
+  // ── read functions are pure ───────────────────────────────────────────────
+
+  describe('read functions do not write', () => {
+    it('getShiningProject() returns a blank template without storing it', async () => {
+      const { useCoursesStore } = await import('@/stores/courses')
+      const store = useCoursesStore()
+      const proj = store.getShiningProject('student')
+      expect(proj.name).toBe('')
+      expect(proj.faithPhase2.courses30).toBe(false)
+      expect(store.shiningProjectDb).toEqual({})
+    })
+
+    it('getShiningProject() returns the same stored object on every call', async () => {
+      const { useCoursesStore } = await import('@/stores/courses')
+      const store = useCoursesStore()
+      store.updateShiningCustomChallenge('student', '每天讀經')
+      expect(store.getShiningProject('student')).toBe(store.getShiningProject('student'))
+      expect(store.getShiningProject('student').customChallenge).toBe('每天讀經')
+    })
+
+    it('getShiningProject() does not store courses30 even when all courses are done', async () => {
+      const { useCoursesStore } = await import('@/stores/courses')
+      const store = useCoursesStore()
+      store.updateShiningCustomChallenge('student', 'x')
+      store.courses.forEach((c) =>
+        store.addListenSession('student', c.id, { lecturer: '', listenedAt: '', notes: '' })
+      )
+      expect(store.getShiningProject('student').faithPhase2.courses30).toBe(false)
+      expect(store.isShiningChecked('student', 'faithPhase2', 'courses30')).toBe(true)
+    })
+
+    it('getStudentProgress() returns a blank record without storing it', async () => {
+      const { useCoursesStore } = await import('@/stores/courses')
+      const store = useCoursesStore()
+      expect(store.getStudentProgress('student', 'bible-01').completed).toBe(false)
+      expect(store.progressDb).toEqual({})
+    })
+  })
+
+  // ── course completion ─────────────────────────────────────────────────────
+
+  describe('course completion', () => {
+    it('counts only completed courses that exist in the catalog', async () => {
+      seedLocalStorage('superstart_progress_db', {
+        student: {
+          'bible-01': {
+            courseId: 'bible-01',
+            completed: true,
+            notes: '',
+            lastUpdated: '',
+            sessions: []
+          },
+          'bible-02': {
+            courseId: 'bible-02',
+            completed: false,
+            notes: '',
+            lastUpdated: '',
+            sessions: []
+          },
+          'removed-course': {
+            courseId: 'removed-course',
+            completed: true,
+            notes: '',
+            lastUpdated: '',
+            sessions: []
+          }
+        }
+      })
+      const { useCoursesStore } = await import('@/stores/courses')
+      const store = useCoursesStore()
+      expect(store.getCompletedCourseCount('student')).toBe(1)
+      expect(store.hasCompletedAllCourses('student')).toBe(false)
+    })
+
+    it('auto-checks courses30 only after every catalog course is completed', async () => {
+      const { useCoursesStore } = await import('@/stores/courses')
+      const store = useCoursesStore()
+      const [last, ...rest] = store.courses
+      rest.forEach((c) =>
+        store.addListenSession('student', c.id, { lecturer: '', listenedAt: '', notes: '' })
+      )
+      expect(store.isShiningChecked('student', 'faithPhase2', 'courses30')).toBe(false)
+      store.addListenSession('student', last.id, { lecturer: '', listenedAt: '', notes: '' })
+      expect(store.isShiningChecked('student', 'faithPhase2', 'courses30')).toBe(true)
+    })
+
+    it('still honours a manually stored courses30 check', async () => {
+      const { useCoursesStore } = await import('@/stores/courses')
+      const store = useCoursesStore()
+      store.updateShiningChecklist('student', 'faithPhase2', 'courses30', true)
+      expect(store.isShiningChecked('student', 'faithPhase2', 'courses30')).toBe(true)
+    })
+  })
+
+  // ── legacy data migration on load ─────────────────────────────────────────
+
+  describe('legacy data migration on load', () => {
+    const originalTz = process.env.TZ
+
+    beforeEach(() => {
+      process.env.TZ = 'Asia/Taipei'
+    })
+
+    afterEach(() => {
+      process.env.TZ = originalTz
+    })
+
+    it('adds sessions to old records and converts zh-TW dates to ISO, then persists', async () => {
+      seedLocalStorage('superstart_progress_db', {
+        student: {
+          'bible-01': {
+            courseId: 'bible-01',
+            completed: true,
+            notes: '心得',
+            lastUpdated: '2026/9/5 14:30:00',
+            lecturer: '張牧師'
+          }
+        }
+      })
+      const { useCoursesStore } = await import('@/stores/courses')
+      const store = useCoursesStore()
+      const record = store.progressDb['student']['bible-01']
+
+      expect(record.lastUpdated).toBe('2026-09-05T06:30:00.000Z')
+      expect(record.sessions).toHaveLength(1)
+      expect(record.sessions[0]).toMatchObject({
+        lecturer: '張牧師',
+        listenedAt: '2026-09-05T14:30', // datetime-local format, local time
+        notes: '心得',
+        createdAt: '2026-09-05T06:30:00.000Z'
+      })
+      const persisted = JSON.parse(localStorage.getItem('superstart_progress_db') || '{}')
+      expect(persisted.student['bible-01'].lastUpdated).toBe('2026-09-05T06:30:00.000Z')
+    })
+
+    it('converts session createdAt and teaching stats submittedAt to ISO', async () => {
+      seedLocalStorage('superstart_progress_db', {
+        student: {
+          'bible-01': {
+            courseId: 'bible-01',
+            completed: true,
+            notes: '',
+            lastUpdated: '2026/10/28 09:00:00',
+            sessions: [
+              {
+                id: 's1',
+                lecturer: '',
+                listenedAt: '',
+                notes: '',
+                createdAt: '2026/10/28 09:00:00'
+              }
+            ]
+          }
+        }
+      })
+      seedLocalStorage('superstart_teaching_stats_db', {
+        teacher_2026: {
+          teacherUsername: 'teacher',
+          year: 2026,
+          church: '愛與話語',
+          oneOnOne30: 1,
+          oneToMany30: 0,
+          oneOnOneShining: 0,
+          oneToManyShining: 0,
+          submittedAt: '2026/10/1 08:00:00'
+        }
+      })
+      const { useCoursesStore } = await import('@/stores/courses')
+      const store = useCoursesStore()
+      expect(store.progressDb['student']['bible-01'].sessions[0].createdAt).toBe(
+        '2026-10-28T01:00:00.000Z'
+      )
+      expect(store.teachingStatsDb['teacher_2026'].submittedAt).toBe('2026-10-01T00:00:00.000Z')
+    })
+
+    it('fills fields missing from old Shining Projects', async () => {
+      seedLocalStorage('superstart_shining_project_db', {
+        student: { name: '小明', faithPhase1: { worship: true } }
+      })
+      const { useCoursesStore } = await import('@/stores/courses')
+      const store = useCoursesStore()
+      const proj = store.getShiningProject('student')
+      expect(proj.name).toBe('小明')
+      expect(proj.faithPhase1.worship).toBe(true)
+      expect(proj.faithPhase1.prayer).toBe(false)
+      expect(proj.faithPhase2.courses30).toBe(false)
+      expect(proj.characterLectures).toEqual({})
+      expect(proj.comingOfAgeTopics).toEqual({})
+    })
+  })
+
+  // ── ids and timestamps ────────────────────────────────────────────────────
+
+  describe('ids and timestamps', () => {
+    it('gives listen sessions unique ids and ISO createdAt within the same millisecond', async () => {
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2026-10-28T06:00:00Z'))
+      const { useCoursesStore } = await import('@/stores/courses')
+      const store = useCoursesStore()
+      store.addListenSession('student', 'bible-01', { lecturer: '', listenedAt: '', notes: 'a' })
+      store.addListenSession('student', 'bible-01', { lecturer: '', listenedAt: '', notes: 'b' })
+      const record = store.progressDb['student']['bible-01']
+      vi.useRealTimers()
+
+      expect(record.sessions[0].id).not.toBe(record.sessions[1].id)
+      expect(record.sessions[0].createdAt).toBe('2026-10-28T06:00:00.000Z')
+      expect(record.lastUpdated).toBe('2026-10-28T06:00:00.000Z')
+    })
+
+    it('gives lecturers added in the same millisecond unique ids', async () => {
+      vi.useFakeTimers()
+      const { useCoursesStore } = await import('@/stores/courses')
+      const store = useCoursesStore()
+      store.addLecturer('甲', '牧師', [], '愛與話語')
+      store.addLecturer('乙', '牧師', [], '愛與話語')
+      vi.useRealTimers()
+      const ids = store.lecturers.map((l) => l.id)
+      expect(new Set(ids).size).toBe(ids.length)
+    })
+  })
 })

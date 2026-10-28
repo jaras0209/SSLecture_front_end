@@ -99,10 +99,16 @@
                   <div
                     :class="[
                       'ro-check-row',
-                      { active: getShining(student.username).faithPhase2[key] }
+                      {
+                        active: coursesStore.isShiningChecked(student.username, 'faithPhase2', key)
+                      }
                     ]"
                   >
-                    <span>{{ getShining(student.username).faithPhase2[key] ? '✅' : '❌' }}</span>
+                    <span>{{
+                      coursesStore.isShiningChecked(student.username, 'faithPhase2', key)
+                        ? '✅'
+                        : '❌'
+                    }}</span>
                     <span v-if="key === 'courses30'" class="text-ro">
                       {{
                         $t('teacher.studentList.completedCourses', {
@@ -316,9 +322,13 @@
                 <div class="print-check-line">
                   <span
                     class="print-check-circle"
-                    :class="{ checked: getShining(student.username).faithPhase2[key] }"
+                    :class="{
+                      checked: coursesStore.isShiningChecked(student.username, 'faithPhase2', key)
+                    }"
                   >
-                    {{ getShining(student.username).faithPhase2[key] ? '✓' : '' }}
+                    {{
+                      coursesStore.isShiningChecked(student.username, 'faithPhase2', key) ? '✓' : ''
+                    }}
                   </span>
                   <span v-if="key === 'courses30'" class="print-check-text">
                     {{

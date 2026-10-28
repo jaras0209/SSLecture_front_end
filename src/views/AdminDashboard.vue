@@ -18,7 +18,10 @@
             v-if="authStore.currentUser?.lastLoginAt"
             style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px"
           >
-            🕐 {{ $t('admin.header.lastLogin', { time: authStore.currentUser?.lastLoginAt }) }}
+            🕐
+            {{
+              $t('admin.header.lastLogin', { time: tDateTime(authStore.currentUser?.lastLoginAt) })
+            }}
           </p>
         </div>
       </div>
@@ -400,7 +403,7 @@
                   }}
                 </span>
               </td>
-              <td class="text-xs text-muted">{{ row.submittedAt || '—' }}</td>
+              <td class="text-xs text-muted">{{ tDateTime(row.submittedAt) || '—' }}</td>
             </tr>
             <tr v-if="adminTeachingStats.length === 0">
               <td colspan="9" class="text-center empty-row">
@@ -559,9 +562,11 @@
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useI18nHelper } from '@/composables/useI18nHelper'
 import { useToast } from '@/composables/useToast'
 const { confirm, toast } = useToast()
 const { t } = useI18n()
+const { tDateTime } = useI18nHelper()
 import { useAuthStore, CHURCHES, DEFAULT_RESET_PASSWORD } from '@/stores/auth'
 import { defineAsyncComponent } from 'vue'
 import type { UserRole, InviteCode } from '@/stores/auth'

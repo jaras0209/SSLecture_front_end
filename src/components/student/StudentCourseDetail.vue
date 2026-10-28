@@ -49,7 +49,9 @@
                   }}</span>
                   <div class="timeline-actions">
                     <span class="timeline-date">{{
-                      session.listenedAt ? session.listenedAt.replace('T', ' ') : session.createdAt
+                      session.listenedAt
+                        ? session.listenedAt.replace('T', ' ')
+                        : tDateTime(session.createdAt)
                     }}</span>
                     <button
                       v-if="editingSessionId !== session.id"
@@ -253,6 +255,7 @@
 <script setup lang="ts">
 import { ref, computed, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useI18nHelper } from '@/composables/useI18nHelper'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import type { Course, ListenSession } from '@/stores/courses'
@@ -269,6 +272,7 @@ const props = defineProps<{
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
 const { t } = useI18n()
+const { tDateTime } = useI18nHelper()
 
 // ── Form State ────────────────────────────────────────────────────────────────
 
