@@ -192,7 +192,7 @@
   font-weight: 600;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 880px) {
   .navbar {
     flex-direction: column;
   }
@@ -220,7 +220,7 @@
 }
 
 /* Desktop: horizontal menu (the three-column grid itself is set after the base .navbar rules) */
-@media (min-width: 641px) {
+@media (min-width: 881px) {
   .navbar {
     gap: 0;
   }
