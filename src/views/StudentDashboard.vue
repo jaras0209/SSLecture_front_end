@@ -279,52 +279,7 @@ const overallProgressPercent = computed(() => {
 // ── Session inline edit handlers moved to StudentCourseDetail ──
 </script>
 
-<style>
-/* Main Tab Switcher */
-.main-tabs {
-  display: flex;
-  background: white;
-  padding: 0.35rem;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-  gap: 0.5rem;
-}
-
-.main-tab-btn {
-  flex: 1;
-  padding: 0.85rem;
-  font-family: var(--font-family);
-  font-weight: 700;
-  font-size: 1rem;
-  border: none;
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-  border-radius: var(--radius-sm);
-  transition: all var(--transition-normal);
-}
-
-.main-tab-btn:hover {
-  background: #f8fafc;
-  color: var(--primary);
-}
-
-.main-tab-btn.active {
-  background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%);
-  color: white;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
-}
-
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 2rem;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-  gap: 1.5rem;
-}
-
+<style scoped>
 .user-greeting {
   display: flex;
   align-items: center;
@@ -365,61 +320,6 @@ const overallProgressPercent = computed(() => {
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-secondary);
-}
-
-/* Main Layout Grid */
-.dashboard-body {
-  display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
-  gap: 2rem;
-}
-
-@media (max-width: 900px) {
-  .dashboard-body {
-    grid-template-columns: 1fr;
-  }
-}
-
-.filter-btn {
-  padding: 0.4rem 1rem;
-  border: none;
-  background: transparent;
-  font-family: var(--font-family);
-  font-weight: 600;
-  font-size: 0.85rem;
-  border-radius: var(--radius-full);
-  cursor: pointer;
-  color: var(--text-secondary);
-  transition: all var(--transition-fast);
-}
-
-.filter-btn.active {
-  background: var(--primary);
-  color: white;
-}
-
-.save-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.save-status {
-  font-size: 0.8rem;
-  color: var(--secondary-hover);
-  font-weight: 600;
-}
-
-.empty-player-state .desc {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-}
-
-.check-item-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  cursor: pointer;
 }
 
 .assigned-teacher-label {
@@ -499,6 +399,177 @@ const overallProgressPercent = computed(() => {
   box-shadow: 0 6px 20px rgba(99, 102, 241, 0.15);
 }
 
+/* ══════════════════════════════════════════
+   StudentDashboard — Mobile RWD (640px)
+══════════════════════════════════════════ */
+@media (max-width: 640px) {
+  .user-greeting {
+    gap: 0.75rem;
+  }
+
+  .avatar-lg {
+    width: 52px;
+    height: 52px;
+  }
+
+  .progress-summary {
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .summary-card {
+    padding: 0.5rem 1rem;
+    flex: 1;
+    min-width: 70px;
+  }
+
+  .summary-num {
+    font-size: 1.4rem;
+  }
+}
+
+/* ══════════════════════════════════════════
+   StudentDashboard — Mobile RWD (480px)
+══════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .user-greeting {
+    width: 100%;
+  }
+
+  .progress-summary {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .summary-card {
+    padding: 0.4rem 0.6rem;
+  }
+
+  .summary-num {
+    font-size: 1.2rem;
+  }
+}
+
+/* ─── Student Booking Styles ─────────────────────────────────────────── */
+
+.booking-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #ef4444;
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 700;
+  border-radius: 10px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+</style>
+
+<style>
+/*
+ * Intentionally global: used by several components, element selectors / keyframes,
+ * or rules whose look depends on cascade order against main.css and other global
+ * styles (scoping would raise their specificity and change what wins).
+ */
+/* Main Tab Switcher */
+.main-tabs {
+  display: flex;
+  background: white;
+  padding: 0.35rem;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  gap: 0.5rem;
+}
+
+.main-tab-btn {
+  flex: 1;
+  padding: 0.85rem;
+  font-family: var(--font-family);
+  font-weight: 700;
+  font-size: 1rem;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-normal);
+}
+
+.main-tab-btn:hover {
+  background: #f8fafc;
+  color: var(--primary);
+}
+
+.main-tab-btn.active {
+  background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+/* Main Layout Grid */
+.dashboard-body {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 2rem;
+}
+
+@media (max-width: 900px) {
+  .dashboard-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+.filter-btn {
+  padding: 0.4rem 1rem;
+  border: none;
+  background: transparent;
+  font-family: var(--font-family);
+  font-weight: 600;
+  font-size: 0.85rem;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.filter-btn.active {
+  background: var(--primary);
+  color: white;
+}
+
+.save-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.save-status {
+  font-size: 0.8rem;
+  color: var(--secondary-hover);
+  font-weight: 600;
+}
+
+.check-item-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
 @keyframes float-pulse {
   0%,
   100% {
@@ -523,30 +594,6 @@ const overallProgressPercent = computed(() => {
     padding: 1rem;
     margin-bottom: 1rem;
     gap: 0.75rem;
-  }
-
-  .user-greeting {
-    gap: 0.75rem;
-  }
-
-  .avatar-lg {
-    width: 52px;
-    height: 52px;
-  }
-
-  .progress-summary {
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-
-  .summary-card {
-    padding: 0.5rem 1rem;
-    flex: 1;
-    min-width: 70px;
-  }
-
-  .summary-num {
-    font-size: 1.4rem;
   }
 
   /* Tab navigation: horizontal scroll instead of overflow */
@@ -608,23 +655,6 @@ const overallProgressPercent = computed(() => {
     padding: 0.75rem;
     flex-direction: column;
     align-items: flex-start;
-  }
-
-  .user-greeting {
-    width: 100%;
-  }
-
-  .progress-summary {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .summary-card {
-    padding: 0.4rem 0.6rem;
-  }
-
-  .summary-num {
-    font-size: 1.2rem;
   }
 
   .main-tab-btn {
@@ -870,24 +900,6 @@ const overallProgressPercent = computed(() => {
 
 .btn-ghost:hover {
   background: rgba(0, 0, 0, 0.05);
-}
-
-/* ─── Student Booking Styles ─────────────────────────────────────────── */
-
-.booking-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: #ef4444;
-  color: white;
-  font-size: 0.65rem;
-  font-weight: 700;
-  border-radius: 10px;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 4px;
-  margin-left: 4px;
-  vertical-align: middle;
 }
 
 .booking-list {

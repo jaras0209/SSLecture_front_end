@@ -235,7 +235,7 @@ async function handleDeleteLecturer(id: string) {
 }
 </script>
 
-<style>
+<style scoped>
 /* [css-migration] moved from TeacherDashboard.vue */
 .theme-list {
   list-style: none;
@@ -270,14 +270,6 @@ async function handleDeleteLecturer(id: string) {
   overflow-y: auto;
 }
 
-.lecturer-card {
-  background: white;
-  border-radius: var(--radius-sm);
-  padding: 1.25rem;
-  border: 1px solid #e2e8f0;
-  box-shadow: var(--shadow-sm);
-}
-
 /* Lecturer card link badges */
 .lec-link-tags {
   display: flex;
@@ -305,5 +297,20 @@ async function handleDeleteLecturer(id: string) {
   background: rgba(245, 158, 11, 0.1);
   color: #d97706;
   border: 1px solid rgba(245, 158, 11, 0.25);
+}
+</style>
+
+<style>
+/*
+ * Intentionally global: used by several components, element selectors / keyframes,
+ * or rules whose look depends on cascade order against main.css and other global
+ * styles (scoping would raise their specificity and change what wins).
+ */
+.lecturer-card {
+  background: white;
+  border-radius: var(--radius-sm);
+  padding: 1.25rem;
+  border: 1px solid #e2e8f0;
+  box-shadow: var(--shadow-sm);
 }
 </style>

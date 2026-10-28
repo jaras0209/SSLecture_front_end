@@ -252,17 +252,7 @@ function saveLecturer() {
 }
 </script>
 
-<style>
-/* Lecturer modal — classes used only here. Shared modal/checkbox styles
-   (.modal-overlay, .modal-card, .check-item-row) stay in TeacherDashboard.vue. */
-.lecturer-modal-card {
-  max-width: 620px;
-  width: 90%;
-  max-height: 88vh;
-  overflow-y: auto;
-  padding: 2rem;
-}
-
+<style scoped>
 .link-mode-toggle {
   display: flex;
   gap: 0.5rem;
@@ -316,5 +306,22 @@ function saveLecturer() {
   border: 1px solid rgba(99, 102, 241, 0.12);
   border-radius: 8px;
   background: rgba(248, 250, 252, 0.8);
+}
+</style>
+
+<style>
+/*
+ * Intentionally global: used by several components, element selectors / keyframes,
+ * or rules whose look depends on cascade order against main.css and other global
+ * styles (scoping would raise their specificity and change what wins).
+ */
+/* Lecturer modal — classes used only here. Shared modal/checkbox styles
+   (.modal-overlay, .modal-card, .check-item-row) stay in TeacherDashboard.vue. */
+.lecturer-modal-card {
+  max-width: 620px;
+  width: 90%;
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 2rem;
 }
 </style>

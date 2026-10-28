@@ -557,6 +557,11 @@ const advancedLabels = computed(() => ({
 </script>
 
 <style>
+/*
+ * Intentionally global: used by several components, element selectors / keyframes,
+ * or rules whose look depends on cascade order against main.css and other global
+ * styles (scoping would raise their specificity and change what wins).
+ */
 /* 螢幕上隱藏列印模板 */
 .print-page-layout.print-only {
   display: none;
@@ -569,7 +574,7 @@ const advancedLabels = computed(() => ({
 }
 </style>
 
-<style>
+<style scoped>
 /* [css-migration] moved from TeacherDashboard.vue */
 /* Drawer Tabs Selector Styles */
 .drawer-tabs {
@@ -600,16 +605,6 @@ const advancedLabels = computed(() => ({
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
 }
 
-/* Drawer Section */
-.student-details-drawer {
-  background: white;
-  padding: 2rem;
-  border-radius: var(--radius-lg);
-  align-self: start;
-  position: sticky;
-  top: 96px;
-}
-
 .drawer-header {
   display: flex;
   justify-content: space-between;
@@ -630,28 +625,9 @@ const advancedLabels = computed(() => ({
   padding-right: 0.5rem;
 }
 
-.empty-drawer {
-  padding: 4rem 2rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
 .empty-illustration {
   font-size: 4rem;
   margin-bottom: 1.5rem;
-}
-
-.empty-drawer h4 {
-  font-size: 1.15rem;
-  margin-bottom: 0.5rem;
-}
-
-.empty-drawer p {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  max-width: 280px;
 }
 
 /* SHINING AUDIT VIEW STYLES */
@@ -662,25 +638,12 @@ const advancedLabels = computed(() => ({
   padding: 1rem;
 }
 
-.basic-info-readonly-card h6 {
-  font-size: 0.9rem;
-  border-bottom: 1px solid #e2e8f0;
-  padding-bottom: 0.25rem;
-  margin-bottom: 0.5rem;
-  color: var(--text-primary);
-}
-
 .readonly-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.5rem;
   font-size: 0.85rem;
   color: var(--text-secondary);
-}
-
-.checklists-readonly-container h6 {
-  font-size: 0.9rem;
-  color: var(--text-primary);
 }
 
 .checklist-grid {
@@ -719,11 +682,6 @@ const advancedLabels = computed(() => ({
   color: var(--text-muted);
 }
 
-.lectures-edit-section h6 {
-  font-size: 0.9rem;
-  color: var(--text-primary);
-}
-
 .lecture-inputs-stack {
   display: flex;
   flex-direction: column;
@@ -750,11 +708,6 @@ const advancedLabels = computed(() => ({
   align-items: center;
 }
 
-.inputs-row input {
-  padding: 0.35rem 0.5rem;
-  flex: 1;
-}
-
 .inputs-row-readonly {
   display: flex;
   flex-wrap: wrap;
@@ -764,5 +717,77 @@ const advancedLabels = computed(() => ({
   border-radius: var(--radius-sm);
   border: 1px dashed #e2e8f0;
   color: var(--text-secondary);
+}
+</style>
+
+<style>
+/*
+ * Intentionally global: used by several components, element selectors / keyframes,
+ * or rules whose look depends on cascade order against main.css and other global
+ * styles (scoping would raise their specificity and change what wins).
+ */
+/* Drawer Section */
+.student-details-drawer {
+  background: white;
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  align-self: start;
+  position: sticky;
+  top: 96px;
+}
+
+.empty-drawer {
+  padding: 4rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-drawer h4 {
+  font-size: 1.15rem;
+  margin-bottom: 0.5rem;
+}
+
+.empty-drawer p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  max-width: 280px;
+}
+
+.basic-info-readonly-card h6 {
+  font-size: 0.9rem;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.checklists-readonly-container h6 {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.lectures-edit-section h6 {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.inputs-row input {
+  padding: 0.35rem 0.5rem;
+  flex: 1;
+}
+</style>
+
+<style scoped>
+/* Moved from the parent view, which applied it globally */
+
+.ro-check-row.active {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.ro-check-row .text-ro {
+  line-height: 1.2;
 }
 </style>

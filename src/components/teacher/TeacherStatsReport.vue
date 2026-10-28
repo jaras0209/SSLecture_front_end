@@ -210,20 +210,13 @@ function handleSaveStats() {
 }
 </script>
 
-<style>
+<style scoped>
 /* [css-migration] moved from TeacherDashboard.vue */
 @media (max-width: 480px) {
   /* Stats form */
   .stats-form-grid {
     grid-template-columns: 1fr;
   }
-}
-
-/* Pastor Overview Grid */
-/* ── Annual Teaching Stats Report Panel ── */
-.stats-report-panel {
-  padding: 2rem;
-  margin-top: 1.5rem;
 }
 
 .stats-report-header {
@@ -298,13 +291,6 @@ function handleSaveStats() {
   gap: 0.5rem;
 }
 
-.stats-number-input {
-  width: 90px !important;
-  text-align: center;
-  font-weight: 700;
-  font-size: 1.1rem;
-}
-
 .stats-unit {
   font-size: 0.82rem;
   color: var(--text-muted);
@@ -318,11 +304,6 @@ function handleSaveStats() {
   font-size: 0.82rem;
   color: var(--text-secondary);
   text-align: right;
-}
-
-.stats-subtotal strong {
-  color: var(--primary);
-  font-size: 1rem;
 }
 
 .stats-total-row {
@@ -360,5 +341,31 @@ function handleSaveStats() {
 
 .stats-last-submit {
   text-align: right;
+}
+</style>
+
+<style>
+/*
+ * Intentionally global: used by several components, element selectors / keyframes,
+ * or rules whose look depends on cascade order against main.css and other global
+ * styles (scoping would raise their specificity and change what wins).
+ */
+/* Pastor Overview Grid */
+/* ── Annual Teaching Stats Report Panel ── */
+.stats-report-panel {
+  padding: 2rem;
+  margin-top: 1.5rem;
+}
+
+.stats-number-input {
+  width: 90px !important;
+  text-align: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.stats-subtotal strong {
+  color: var(--primary);
+  font-size: 1rem;
 }
 </style>

@@ -738,14 +738,9 @@ defineExpose({
 })
 </script>
 
-<style>
+<style scoped>
 /* [css-migration] moved from TeacherDashboard.vue */
 @media (max-width: 640px) {
-  /* Booking cards */
-  .booking-card {
-    padding: 0.85rem;
-  }
-
   .booking-card-header {
     flex-direction: column;
     gap: 0.4rem;
@@ -760,10 +755,6 @@ defineExpose({
     -webkit-overflow-scrolling: touch;
     flex-wrap: nowrap;
   }
-}
-
-.bookings-panel {
-  padding: 1.5rem;
 }
 
 /* Filter tabs */
@@ -793,18 +784,6 @@ defineExpose({
   background: rgba(255, 255, 255, 0.25);
   border-radius: 10px;
   padding: 0 5px;
-}
-
-.booking-card {
-  padding: 1rem 1.25rem;
-  border-radius: 12px;
-  background: white;
-  border: 1px solid rgba(99, 102, 241, 0.1);
-  transition: box-shadow 0.2s;
-}
-
-.booking-card:hover {
-  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.1);
 }
 
 .booking-card-header {
@@ -896,23 +875,6 @@ defineExpose({
   padding: 0.4rem 0.75rem;
 }
 
-/* Booking modals */
-.booking-modal-card {
-  max-width: 640px;
-  width: 92%;
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: 2rem;
-}
-
-.complete-modal-card {
-  max-width: 580px;
-  width: 92%;
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: 2rem;
-}
-
 /* Attendee selector (checkbox list in create modal) */
 .attendee-selector {
   display: flex;
@@ -932,12 +894,6 @@ defineExpose({
   gap: 0.5rem;
   font-size: 0.83rem;
   cursor: pointer;
-}
-
-.attendee-check-item input[type='checkbox'] {
-  accent-color: var(--primary);
-  width: 15px;
-  height: 15px;
 }
 
 /* Complete modal attendee cards */
@@ -960,5 +916,81 @@ defineExpose({
   align-items: flex-start;
   flex-wrap: wrap;
   gap: 0.5rem;
+}
+</style>
+
+<style>
+/*
+ * Intentionally global: used by several components, element selectors / keyframes,
+ * or rules whose look depends on cascade order against main.css and other global
+ * styles (scoping would raise their specificity and change what wins).
+ */
+/* [css-migration] moved from TeacherDashboard.vue */
+@media (max-width: 640px) {
+  /* Booking cards */
+  .booking-card {
+    padding: 0.85rem;
+  }
+}
+
+.bookings-panel {
+  padding: 1.5rem;
+}
+
+.booking-card {
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  background: white;
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  transition: box-shadow 0.2s;
+}
+
+.booking-card:hover {
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.1);
+}
+
+/* Booking modals */
+.booking-modal-card {
+  max-width: 640px;
+  width: 92%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 2rem;
+}
+
+.complete-modal-card {
+  max-width: 580px;
+  width: 92%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 2rem;
+}
+
+.attendee-check-item input[type='checkbox'] {
+  accent-color: var(--primary);
+  width: 15px;
+  height: 15px;
+}
+</style>
+
+<style scoped>
+/* Moved from the parent view, which applied it globally */
+
+.booking-filter-btn.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.att-toggle-btn.active {
+  background: rgba(16, 185, 129, 0.15);
+  color: #059669;
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+.att-toggle-btn.danger.active {
+  background: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
+  border-color: rgba(239, 68, 68, 0.35);
 }
 </style>

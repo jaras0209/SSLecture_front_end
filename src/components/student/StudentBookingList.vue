@@ -220,21 +220,12 @@ function formatBookingTime(session: {
 }
 </script>
 
-<style>
+<style scoped>
 /* [css-migration] moved from StudentDashboard.vue */
 @media (max-width: 480px) {
-  /* Booking panel styles */
-  .student-bookings-panel {
-    padding: 0.75rem !important;
-  }
-
   .sbc-prep-row {
     font-size: 0.8rem;
   }
-}
-
-.student-bookings-panel {
-  padding: 1.5rem;
 }
 
 .booking-section {
@@ -248,18 +239,6 @@ function formatBookingTime(session: {
   margin-bottom: 0.75rem;
   padding-bottom: 0.4rem;
   border-bottom: 1px solid rgba(99, 102, 241, 0.1);
-}
-
-.student-booking-card {
-  padding: 1rem 1.25rem;
-  border-radius: 12px;
-  background: white;
-  border: 1px solid rgba(99, 102, 241, 0.1);
-  transition: box-shadow 0.2s;
-}
-
-.student-booking-card:hover {
-  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.1);
 }
 
 .student-booking-card.card-completed {
@@ -350,5 +329,36 @@ function formatBookingTime(session: {
   font-size: 0.85rem;
   padding: 2rem 0;
   font-style: italic;
+}
+</style>
+
+<style>
+/*
+ * Intentionally global: used by several components, element selectors / keyframes,
+ * or rules whose look depends on cascade order against main.css and other global
+ * styles (scoping would raise their specificity and change what wins).
+ */
+/* [css-migration] moved from StudentDashboard.vue */
+@media (max-width: 480px) {
+  /* Booking panel styles */
+  .student-bookings-panel {
+    padding: 0.75rem !important;
+  }
+}
+
+.student-bookings-panel {
+  padding: 1.5rem;
+}
+
+.student-booking-card {
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  background: white;
+  border: 1px solid rgba(99, 102, 241, 0.1);
+  transition: box-shadow 0.2s;
+}
+
+.student-booking-card:hover {
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.1);
 }
 </style>

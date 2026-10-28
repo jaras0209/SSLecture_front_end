@@ -36,7 +36,7 @@ function resolve(ok: boolean) {
 }
 </script>
 
-<style>
+<style scoped>
 /* ── Toast Container ────────────────────────────────── */
 .toast-container {
   position: fixed;
@@ -98,15 +98,6 @@ function resolve(ok: boolean) {
   justify-content: center;
 }
 
-.confirm-dialog {
-  background: white;
-  border-radius: var(--radius-lg, 1rem);
-  padding: 1.5rem 2rem;
-  max-width: 360px;
-  width: 90%;
-  text-align: center;
-}
-
 .confirm-message {
   font-size: 1rem;
   font-weight: 600;
@@ -119,6 +110,22 @@ function resolve(ok: boolean) {
   display: flex;
   gap: 0.75rem;
   justify-content: center;
+}
+</style>
+
+<style>
+/*
+ * Intentionally global: used by several components, element selectors / keyframes,
+ * or rules whose look depends on cascade order against main.css and other global
+ * styles (scoping would raise their specificity and change what wins).
+ */
+.confirm-dialog {
+  background: white;
+  border-radius: var(--radius-lg, 1rem);
+  padding: 1.5rem 2rem;
+  max-width: 360px;
+  width: 90%;
+  text-align: center;
 }
 
 .btn-danger {

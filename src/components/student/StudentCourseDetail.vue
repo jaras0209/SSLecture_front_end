@@ -366,21 +366,11 @@ function cancelEditSession() {
 }
 </script>
 
-<style>
+<style scoped>
 /* [css-migration] moved from StudentDashboard.vue */
 /* Sticky Player Section */
 .player-section {
   position: relative;
-}
-
-.sticky-panel {
-  position: sticky;
-  top: 96px;
-  max-height: calc(100vh - 130px);
-  overflow-y: auto;
-  padding: 2rem;
-  border-radius: var(--radius-lg);
-  background: white;
 }
 
 /* 針對小螢幕設計精緻滾動條，確保按鈕必定能被看見 */
@@ -408,30 +398,10 @@ function cancelEditSession() {
   padding-bottom: 0.5rem;
 }
 
-.text-area {
-  resize: vertical;
-  border-radius: var(--radius-md);
-  margin-top: 0.5rem;
-}
-
-.empty-player-state {
-  padding: 4rem 2rem;
-}
-
 .empty-emoji {
   font-size: 4rem;
   margin-bottom: 1.5rem;
   animation: float-pulse 3s infinite ease-in-out;
-}
-
-.empty-player-state h4 {
-  font-size: 1.2rem;
-  margin-bottom: 0.5rem;
-}
-
-.datetime-input {
-  font-size: 0.9rem;
-  padding: 0.5rem 1rem;
 }
 
 /* ── Section subtitle ── */
@@ -598,11 +568,57 @@ function cancelEditSession() {
   justify-content: flex-end;
   margin-top: 0.5rem;
 }
+</style>
+
+<style>
+/*
+ * Intentionally global: used by several components, element selectors / keyframes,
+ * or rules whose look depends on cascade order against main.css and other global
+ * styles (scoping would raise their specificity and change what wins).
+ */
+.sticky-panel {
+  position: sticky;
+  top: 96px;
+  max-height: calc(100vh - 130px);
+  overflow-y: auto;
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  background: white;
+}
+
+.text-area {
+  resize: vertical;
+  border-radius: var(--radius-md);
+  margin-top: 0.5rem;
+}
+
+.empty-player-state {
+  padding: 4rem 2rem;
+}
+
+.empty-player-state h4 {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.datetime-input {
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem;
+}
 
 /* Extra small button variant */
 .btn-xs {
   font-size: 0.78rem;
   padding: 0.25rem 0.7rem;
   border-radius: 6px;
+}
+</style>
+
+<style scoped>
+/* Moved from the parent view, which applied it globally */
+
+.empty-player-state .desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
 }
 </style>

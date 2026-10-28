@@ -541,6 +541,11 @@ const advancedLabels = computed(() => ({
 
 <!-- 不使用 scoped，因為 Teleport 的 print-only 掛載在 body，scoped 無法命中 -->
 <style>
+/*
+ * Intentionally global: used by several components, element selectors / keyframes,
+ * or rules whose look depends on cascade order against main.css and other global
+ * styles (scoping would raise their specificity and change what wins).
+ */
 /* 平常瀏覽時隱藏列印模板 */
 .print-page-layout.print-only {
   display: none;
@@ -554,25 +559,7 @@ const advancedLabels = computed(() => ({
 }
 </style>
 
-<style>
-/* [css-migration] moved from StudentDashboard.vue */
-/* SHINING PROJECT DASHBOARD STYLE */
-.shining-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-/* This component is async-loaded, so its CSS is injected after the dashboard's
-   @media print rule. Re-declare the print hide here to keep it winning. */
-@media print {
-  .shining-toolbar {
-    display: none !important;
-  }
-}
-
+<style scoped>
 .shining-grid {
   display: flex;
   flex-direction: column;
@@ -599,13 +586,6 @@ const advancedLabels = computed(() => ({
   display: flex;
   align-items: center;
   gap: 0.5rem;
-}
-
-/* Basic Info card */
-.shining-card-basic {
-  background: white;
-  padding: 1.5rem;
-  border-radius: var(--radius-md);
 }
 
 .form-group-inline {
@@ -654,13 +634,6 @@ const advancedLabels = computed(() => ({
   text-align: right;
 }
 
-/* Checklists styling */
-.checklist-card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: var(--radius-md);
-}
-
 .checklist-items {
   display: flex;
   flex-direction: column;
@@ -672,12 +645,6 @@ const advancedLabels = computed(() => ({
   width: 22px;
   height: 22px;
   flex-shrink: 0;
-}
-
-.check-box-wrapper input {
-  opacity: 0;
-  width: 0;
-  height: 0;
 }
 
 .styled-checkbox {
@@ -713,23 +680,10 @@ const advancedLabels = computed(() => ({
   color: var(--text-secondary);
 }
 
-.special-progress-row {
-  background-color: #eff6ff;
-  padding: 0.5rem 0.75rem;
-  border-radius: var(--radius-sm);
-  border-left: 4px solid var(--primary);
-}
-
 .check-label-text-progress {
   display: flex;
   flex-direction: column;
   line-height: 1.3;
-}
-
-.check-label-text-progress span {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--text-primary);
 }
 
 .check-label-text-progress .progress-sub {
@@ -771,12 +725,6 @@ const advancedLabels = computed(() => ({
   }
 }
 
-.table-card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: var(--radius-md);
-}
-
 .table-sub-lbl {
   font-size: 0.75rem;
   color: var(--text-muted);
@@ -790,21 +738,6 @@ const advancedLabels = computed(() => ({
   text-align: left;
 }
 
-.shining-lecture-table th {
-  background-color: #f8fafc;
-  padding: 0.6rem 0.85rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-  border-bottom: 2px solid #e2e8f0;
-  font-size: 0.85rem;
-}
-
-.shining-lecture-table td {
-  padding: 0.75rem 0.85rem;
-  border-bottom: 1px solid #f1f5f9;
-  font-size: 0.9rem;
-}
-
 .theme-title-cell {
   font-weight: 700;
   color: var(--text-primary);
@@ -814,14 +747,6 @@ const advancedLabels = computed(() => ({
   color: var(--text-muted);
   font-style: italic;
   font-size: 0.8rem;
-}
-
-/* Signature section */
-.signatures-card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: var(--radius-md);
-  margin-bottom: 1rem;
 }
 
 .signature-box-preview-container {
@@ -878,5 +803,92 @@ const advancedLabels = computed(() => ({
     min-width: unset;
     font-size: 0.8rem;
   }
+}
+</style>
+
+<style>
+/*
+ * Intentionally global: used by several components, element selectors / keyframes,
+ * or rules whose look depends on cascade order against main.css and other global
+ * styles (scoping would raise their specificity and change what wins).
+ */
+/* [css-migration] moved from StudentDashboard.vue */
+/* SHINING PROJECT DASHBOARD STYLE */
+.shining-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* This component is async-loaded, so its CSS is injected after the dashboard's
+   @media print rule. Re-declare the print hide here to keep it winning. */
+@media print {
+  .shining-toolbar {
+    display: none !important;
+  }
+}
+
+/* Basic Info card */
+.shining-card-basic {
+  background: white;
+  padding: 1.5rem;
+  border-radius: var(--radius-md);
+}
+
+/* Checklists styling */
+.checklist-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: var(--radius-md);
+}
+
+.check-box-wrapper input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.special-progress-row {
+  background-color: #eff6ff;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  border-left: 4px solid var(--primary);
+}
+
+.check-label-text-progress span {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.table-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: var(--radius-md);
+}
+
+.shining-lecture-table th {
+  background-color: #f8fafc;
+  padding: 0.6rem 0.85rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  border-bottom: 2px solid #e2e8f0;
+  font-size: 0.85rem;
+}
+
+.shining-lecture-table td {
+  padding: 0.75rem 0.85rem;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.9rem;
+}
+
+/* Signature section */
+.signatures-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 1rem;
 }
 </style>

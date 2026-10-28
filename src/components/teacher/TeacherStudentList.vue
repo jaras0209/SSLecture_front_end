@@ -267,30 +267,7 @@ function getCaretakerBadgeClass(studentUsername: string): string {
 }
 </script>
 
-<style>
-/* [css-migration] moved from TeacherDashboard.vue */
-.tab-selectors {
-  display: flex;
-  background: rgba(255, 255, 255, 0.5);
-  padding: 0.2rem;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  border-radius: var(--radius-full);
-}
-
-/* This component is async-loaded, so its CSS is injected after the dashboard's
-   @media print rule. Re-declare the print hide here to keep it winning. */
-@media print {
-  .tab-selectors {
-    display: none !important;
-  }
-}
-
-.search-input {
-  max-width: 250px;
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-full);
-}
-
+<style scoped>
 .table-progress {
   display: flex;
   align-items: center;
@@ -312,6 +289,36 @@ function getCaretakerBadgeClass(studentUsername: string): string {
 .action-buttons {
   display: flex;
   gap: 0.5rem;
+}
+</style>
+
+<style>
+/*
+ * Intentionally global: used by several components, element selectors / keyframes,
+ * or rules whose look depends on cascade order against main.css and other global
+ * styles (scoping would raise their specificity and change what wins).
+ */
+/* [css-migration] moved from TeacherDashboard.vue */
+.tab-selectors {
+  display: flex;
+  background: rgba(255, 255, 255, 0.5);
+  padding: 0.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: var(--radius-full);
+}
+
+/* This component is async-loaded, so its CSS is injected after the dashboard's
+   @media print rule. Re-declare the print hide here to keep it winning. */
+@media print {
+  .tab-selectors {
+    display: none !important;
+  }
+}
+
+.search-input {
+  max-width: 250px;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-full);
 }
 
 @media (max-width: 640px) {

@@ -330,17 +330,7 @@ function viewStudentDetails(student: StudentProgressSummary) {
 // have been moved to TeacherStudentList.vue and TeacherStudentDrawer.vue
 </script>
 
-<style>
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 2rem;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-  gap: 1.5rem;
-}
-
+<style scoped>
 .header-user-row {
   display: flex;
   align-items: center;
@@ -386,6 +376,41 @@ function viewStudentDetails(student: StudentProgressSummary) {
   display: flex;
   gap: 1.5rem;
   flex-wrap: wrap;
+}
+
+/* ── Booking Styles ─────────────────────────────────────────────────────────── */
+
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #ef4444;
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 700;
+  border-radius: 10px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+</style>
+
+<style>
+/*
+ * Intentionally global: used by several components, element selectors / keyframes,
+ * or rules whose look depends on cascade order against main.css and other global
+ * styles (scoping would raise their specificity and change what wins).
+ */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1.5rem;
 }
 
 .stat-box {
@@ -561,15 +586,6 @@ function viewStudentDetails(student: StudentProgressSummary) {
   font-size: 0.75rem;
 }
 
-.ro-check-row.active {
-  color: var(--text-primary);
-  font-weight: 600;
-}
-
-.ro-check-row .text-ro {
-  line-height: 1.2;
-}
-
 .mb-0 {
   margin-bottom: 0;
 }
@@ -590,16 +606,6 @@ function viewStudentDetails(student: StudentProgressSummary) {
     gap: 0.75rem;
     flex-direction: column;
     align-items: flex-start;
-  }
-
-  .user-greeting {
-    gap: 0.75rem;
-    width: 100%;
-  }
-
-  .avatar-lg {
-    width: 52px;
-    height: 52px;
   }
 
   .stat-box {
@@ -1018,30 +1024,6 @@ function viewStudentDetails(student: StudentProgressSummary) {
   color: #d97706;
 }
 
-/* ── Booking Styles ─────────────────────────────────────────────────────────── */
-
-.tab-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: #ef4444;
-  color: white;
-  font-size: 0.65rem;
-  font-weight: 700;
-  border-radius: 10px;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 4px;
-  margin-left: 4px;
-  vertical-align: middle;
-}
-
-.booking-filter-btn.active {
-  background: var(--primary);
-  color: white;
-  border-color: var(--primary);
-}
-
 /* Booking list */
 .booking-list {
   display: flex;
@@ -1148,18 +1130,6 @@ function viewStudentDetails(student: StudentProgressSummary) {
   cursor: pointer;
   transition: all 0.18s;
   color: var(--text-secondary);
-}
-
-.att-toggle-btn.active {
-  background: rgba(16, 185, 129, 0.15);
-  color: #059669;
-  border-color: rgba(16, 185, 129, 0.4);
-}
-
-.att-toggle-btn.danger.active {
-  background: rgba(239, 68, 68, 0.12);
-  color: #dc2626;
-  border-color: rgba(239, 68, 68, 0.35);
 }
 
 .form-input-sm {

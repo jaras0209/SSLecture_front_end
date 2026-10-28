@@ -406,15 +406,7 @@ function getRoleLabel(role?: string) {
 }
 </script>
 
-<style>
-/* Reset global style.css default margins if any */
-#app {
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  max-width: 100%;
-}
-
+<style scoped>
 .main-content {
   min-height: calc(100vh - 80px);
 }
@@ -450,6 +442,130 @@ function getRoleLabel(role?: string) {
   font-weight: 700;
   font-size: 0.85rem;
   color: var(--text-primary);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 1rem;
+}
+
+@media (max-width: 640px) {
+  .navbar-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+  }
+
+  .hamburger-btn {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    padding: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+  }
+
+  .hamburger-line {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: var(--text-primary);
+    border-radius: 2px;
+    transition: all 0.25s ease;
+    transform-origin: center;
+  }
+
+  .hamburger-line.open:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+  }
+  .hamburger-line.open:nth-child(2) {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+  .hamburger-line.open:nth-child(3) {
+    transform: rotate(-45deg) translate(5px, -5px);
+  }
+
+  .navbar-collapse {
+    display: none;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem 1rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    background: rgba(255, 255, 255, 0.98);
+  }
+
+  .navbar-collapse.is-open {
+    display: flex;
+  }
+
+  .user-control-panel {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #f1f5f9;
+    width: 100%;
+  }
+
+  .user-meta-info {
+    flex: 1;
+  }
+}
+
+/* Desktop: hide hamburger, restore horizontal layout with centered menu */
+@media (min-width: 641px) {
+  .hamburger-btn {
+    display: none;
+  }
+
+  .navbar-top-row {
+    /* Left column: logo */
+    justify-self: start;
+    flex: unset;
+  }
+
+  /* Collapse holds center (nav menu) + right (user controls) */
+  /* We split it using display: contents so grid sees children directly */
+  .navbar-collapse {
+    display: contents !important;
+  }
+
+  /* Right column: user controls */
+  .user-control-panel {
+    justify-self: end;
+    flex-wrap: nowrap;
+    width: auto;
+    padding-top: 0;
+    border-top: none;
+    gap: 1rem;
+  }
+
+  .user-meta-info {
+    flex: 0 0 auto;
+  }
+}
+</style>
+
+<style>
+/*
+ * Intentionally global: used by several components, element selectors / keyframes,
+ * or rules whose look depends on cascade order against main.css and other global
+ * styles (scoping would raise their specificity and change what wins).
+ */
+/* Reset global style.css default margins if any */
+#app {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  max-width: 100%;
 }
 
 .action-btn {
@@ -493,14 +609,6 @@ function getRoleLabel(role?: string) {
   background: white;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #e2e8f0;
-  padding-bottom: 1rem;
 }
 
 .close-btn {
@@ -659,60 +767,6 @@ function getRoleLabel(role?: string) {
     align-items: stretch;
   }
 
-  .navbar-top-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem 1rem;
-  }
-
-  .hamburger-btn {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 5px;
-    padding: 6px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    width: 36px;
-    height: 36px;
-  }
-
-  .hamburger-line {
-    display: block;
-    width: 22px;
-    height: 2px;
-    background: var(--text-primary);
-    border-radius: 2px;
-    transition: all 0.25s ease;
-    transform-origin: center;
-  }
-
-  .hamburger-line.open:nth-child(1) {
-    transform: rotate(45deg) translate(5px, 5px);
-  }
-  .hamburger-line.open:nth-child(2) {
-    opacity: 0;
-    transform: scaleX(0);
-  }
-  .hamburger-line.open:nth-child(3) {
-    transform: rotate(-45deg) translate(5px, -5px);
-  }
-
-  .navbar-collapse {
-    display: none;
-    flex-direction: column;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem 1rem;
-    border-top: 1px solid rgba(0, 0, 0, 0.06);
-    background: rgba(255, 255, 255, 0.98);
-  }
-
-  .navbar-collapse.is-open {
-    display: flex;
-  }
-
   .navbar-menu {
     flex-direction: column;
     gap: 0.25rem;
@@ -730,18 +784,6 @@ function getRoleLabel(role?: string) {
     font-size: 0.95rem;
   }
 
-  .user-control-panel {
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    padding-top: 0.5rem;
-    border-top: 1px solid #f1f5f9;
-    width: 100%;
-  }
-
-  .user-meta-info {
-    flex: 1;
-  }
-
   .action-btn {
     flex: 1;
     justify-content: center;
@@ -752,10 +794,6 @@ function getRoleLabel(role?: string) {
 
 /* Desktop: hide hamburger, restore horizontal layout with centered menu */
 @media (min-width: 641px) {
-  .hamburger-btn {
-    display: none;
-  }
-
   /* Three-column grid: logo | nav links (centered) | user controls */
   .navbar {
     display: grid;
@@ -763,18 +801,6 @@ function getRoleLabel(role?: string) {
     align-items: center;
     padding: 0.75rem 2rem;
     gap: 0;
-  }
-
-  .navbar-top-row {
-    /* Left column: logo */
-    justify-self: start;
-    flex: unset;
-  }
-
-  /* Collapse holds center (nav menu) + right (user controls) */
-  /* We split it using display: contents so grid sees children directly */
-  .navbar-collapse {
-    display: contents !important;
   }
 
   /* Center column: nav links */
@@ -795,20 +821,6 @@ function getRoleLabel(role?: string) {
     padding: 0.5rem 1rem;
     font-size: 0.95rem;
     white-space: nowrap;
-  }
-
-  /* Right column: user controls */
-  .user-control-panel {
-    justify-self: end;
-    flex-wrap: nowrap;
-    width: auto;
-    padding-top: 0;
-    border-top: none;
-    gap: 1rem;
-  }
-
-  .user-meta-info {
-    flex: 0 0 auto;
   }
 
   .action-btn {

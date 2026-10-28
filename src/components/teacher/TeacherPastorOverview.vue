@@ -330,7 +330,7 @@ function onSetCaretaker(studentUsername: string, role: 'teacher' | 'parent', val
 }
 </script>
 
-<style>
+<style scoped>
 /* [css-migration] moved from TeacherDashboard.vue */
 /* Nickname tag shown below real name */
 .student-nickname-tag {
@@ -346,26 +346,10 @@ function onSetCaretaker(studentUsername: string, role: 'teacher' | 'parent', val
   gap: 1.5rem;
 }
 
-.pastor-stats-panel {
-  padding: 2rem;
-  border-radius: var(--radius-lg);
-}
-
-.pastor-stats-panel h3 {
-  font-size: 1.4rem;
-  color: var(--primary);
-}
-
 .pastor-stats-grid {
   display: flex;
   gap: 1.5rem;
   flex-wrap: wrap;
-}
-
-.pastor-teacher-panel,
-.pastor-lecturer-panel {
-  padding: 1.75rem;
-  border-radius: var(--radius-lg);
 }
 
 .managed-students-list {
@@ -376,5 +360,28 @@ function onSetCaretaker(studentUsername: string, role: 'teacher' | 'parent', val
 
 .mr-1 {
   margin-right: 0.25rem;
+}
+</style>
+
+<style>
+/*
+ * Intentionally global: used by several components, element selectors / keyframes,
+ * or rules whose look depends on cascade order against main.css and other global
+ * styles (scoping would raise their specificity and change what wins).
+ */
+.pastor-stats-panel {
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+}
+
+.pastor-stats-panel h3 {
+  font-size: 1.4rem;
+  color: var(--primary);
+}
+
+.pastor-teacher-panel,
+.pastor-lecturer-panel {
+  padding: 1.75rem;
+  border-radius: var(--radius-lg);
 }
 </style>

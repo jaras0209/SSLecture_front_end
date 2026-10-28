@@ -121,17 +121,7 @@ const courseCards = computed(() => {
 })
 </script>
 
-<style>
-/* [css-migration] moved from StudentDashboard.vue */
-.section-title-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
+<style scoped>
 .filter-tabs {
   display: flex;
   background: rgba(255, 255, 255, 0.5);
@@ -145,13 +135,6 @@ const courseCards = computed(() => {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-}
-
-.course-card {
-  display: flex;
-  overflow: hidden;
-  cursor: pointer;
-  transition: all var(--transition-normal);
 }
 
 .course-card:hover {
@@ -218,11 +201,6 @@ const courseCards = computed(() => {
 }
 
 @media (max-width: 640px) {
-  /* Course card: vertical on mobile */
-  .course-card {
-    flex-direction: column;
-  }
-
   .card-cover {
     width: 100%;
     height: 140px;
@@ -249,5 +227,36 @@ const courseCards = computed(() => {
 .course-card.card-selected {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
+}
+</style>
+
+<style>
+/*
+ * Intentionally global: used by several components, element selectors / keyframes,
+ * or rules whose look depends on cascade order against main.css and other global
+ * styles (scoping would raise their specificity and change what wins).
+ */
+/* [css-migration] moved from StudentDashboard.vue */
+.section-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.course-card {
+  display: flex;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+@media (max-width: 640px) {
+  /* Course card: vertical on mobile */
+  .course-card {
+    flex-direction: column;
+  }
 }
 </style>

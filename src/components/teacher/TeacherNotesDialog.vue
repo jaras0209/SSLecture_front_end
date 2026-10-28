@@ -570,7 +570,7 @@ function onSendFeedback(username: string, courseId: string) {
 }
 </style>
 
-<style>
+<style scoped>
 /* [css-migration] moved from TeacherDashboard.vue */
 /* ===================== Notes Dialog ===================== */
 .notes-dialog-overlay {
@@ -611,13 +611,6 @@ function onSendFeedback(username: string, courseId: string) {
   display: flex;
   align-items: center;
   gap: 1rem;
-}
-
-.notes-dialog-profile h3 {
-  margin: 0 0 0.25rem 0;
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: #1e293b;
 }
 
 .notes-dialog-subtitle {
@@ -853,5 +846,19 @@ function onSendFeedback(username: string, courseId: string) {
   color: #16a34a;
   margin-top: 0.4rem;
   font-weight: 600;
+}
+</style>
+
+<style>
+/*
+ * Intentionally global: used by several components, element selectors / keyframes,
+ * or rules whose look depends on cascade order against main.css and other global
+ * styles (scoping would raise their specificity and change what wins).
+ */
+.notes-dialog-profile h3 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #1e293b;
 }
 </style>
