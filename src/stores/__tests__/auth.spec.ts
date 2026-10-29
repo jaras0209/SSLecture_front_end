@@ -339,12 +339,10 @@ describe('useAuthStore', () => {
         [0xab, 0xcd],
         [0x12, 0x34]
       ]
-      vi.spyOn(crypto, 'getRandomValues').mockImplementation(
-        <T extends ArrayBufferView | null>(arr: T) => {
-          ;(arr as unknown as Uint8Array).set(draws.shift() ?? [0, 0])
-          return arr
-        }
-      )
+      vi.spyOn(crypto, 'getRandomValues').mockImplementation((arr) => {
+        ;(arr as unknown as Uint8Array).set(draws.shift() ?? [0, 0])
+        return arr
+      })
       expect(auth.generateInviteCode('student', '愛與話語', 'admin')).toBe('SS-STU-ABCD')
       expect(auth.generateInviteCode('student', '愛與話語', 'admin')).toBe('SS-STU-1234')
       expect(Object.keys(auth.inviteCodesDb)).toHaveLength(2)
