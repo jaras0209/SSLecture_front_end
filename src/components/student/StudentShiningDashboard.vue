@@ -545,15 +545,19 @@ const advancedLabels = computed(() => ({
  * Intentionally global: used by several components, element selectors / keyframes,
  * or rules whose look depends on cascade order against main.css and other global
  * styles (scoping would raise their specificity and change what wins).
+ *
+ * Every selector is guarded by :where(body:has(.student-dashboard)) so these rules only apply
+ * while that page is on screen; otherwise they would keep applying to other pages
+ * after the user switches account in the same tab. :where() adds no specificity.
  */
 /* 平常瀏覽時隱藏列印模板 */
-.print-page-layout.print-only {
+:where(body:has(.student-dashboard)) .print-page-layout.print-only {
   display: none;
 }
 
 /* 列印時強制顯示 */
 @media print {
-  .print-page-layout.print-only {
+  :where(body:has(.student-dashboard)) .print-page-layout.print-only {
     display: block !important;
   }
 }
@@ -811,10 +815,14 @@ const advancedLabels = computed(() => ({
  * Intentionally global: used by several components, element selectors / keyframes,
  * or rules whose look depends on cascade order against main.css and other global
  * styles (scoping would raise their specificity and change what wins).
+ *
+ * Every selector is guarded by :where(body:has(.student-dashboard)) so these rules only apply
+ * while that page is on screen; otherwise they would keep applying to other pages
+ * after the user switches account in the same tab. :where() adds no specificity.
  */
 /* [css-migration] moved from StudentDashboard.vue */
 /* SHINING PROJECT DASHBOARD STYLE */
-.shining-toolbar {
+:where(body:has(.student-dashboard)) .shining-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -825,51 +833,51 @@ const advancedLabels = computed(() => ({
 /* This component is async-loaded, so its CSS is injected after the dashboard's
    @media print rule. Re-declare the print hide here to keep it winning. */
 @media print {
-  .shining-toolbar {
+  :where(body:has(.student-dashboard)) .shining-toolbar {
     display: none !important;
   }
 }
 
 /* Basic Info card */
-.shining-card-basic {
+:where(body:has(.student-dashboard)) .shining-card-basic {
   background: white;
   padding: 1.5rem;
   border-radius: var(--radius-md);
 }
 
 /* Checklists styling */
-.checklist-card {
+:where(body:has(.student-dashboard)) .checklist-card {
   background: white;
   padding: 1.5rem;
   border-radius: var(--radius-md);
 }
 
-.check-box-wrapper input {
+:where(body:has(.student-dashboard)) .check-box-wrapper input {
   opacity: 0;
   width: 0;
   height: 0;
 }
 
-.special-progress-row {
+:where(body:has(.student-dashboard)) .special-progress-row {
   background-color: #eff6ff;
   padding: 0.5rem 0.75rem;
   border-radius: var(--radius-sm);
   border-left: 4px solid var(--primary);
 }
 
-.check-label-text-progress span {
+:where(body:has(.student-dashboard)) .check-label-text-progress span {
   font-size: 0.95rem;
   font-weight: 700;
   color: var(--text-primary);
 }
 
-.table-card {
+:where(body:has(.student-dashboard)) .table-card {
   background: white;
   padding: 1.5rem;
   border-radius: var(--radius-md);
 }
 
-.shining-lecture-table th {
+:where(body:has(.student-dashboard)) .shining-lecture-table th {
   background-color: #f8fafc;
   padding: 0.6rem 0.85rem;
   font-weight: 700;
@@ -878,14 +886,14 @@ const advancedLabels = computed(() => ({
   font-size: 0.85rem;
 }
 
-.shining-lecture-table td {
+:where(body:has(.student-dashboard)) .shining-lecture-table td {
   padding: 0.75rem 0.85rem;
   border-bottom: 1px solid #f1f5f9;
   font-size: 0.9rem;
 }
 
 /* Signature section */
-.signatures-card {
+:where(body:has(.student-dashboard)) .signatures-card {
   background: white;
   padding: 1.5rem;
   border-radius: var(--radius-md);

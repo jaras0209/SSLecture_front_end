@@ -368,19 +368,23 @@ function onSetCaretaker(studentUsername: string, role: 'teacher' | 'parent', val
  * Intentionally global: used by several components, element selectors / keyframes,
  * or rules whose look depends on cascade order against main.css and other global
  * styles (scoping would raise their specificity and change what wins).
+ *
+ * Every selector is guarded by :where(body:has(.teacher-dashboard)) so these rules only apply
+ * while that page is on screen; otherwise they would keep applying to other pages
+ * after the user switches account in the same tab. :where() adds no specificity.
  */
-.pastor-stats-panel {
+:where(body:has(.teacher-dashboard)) .pastor-stats-panel {
   padding: 2rem;
   border-radius: var(--radius-lg);
 }
 
-.pastor-stats-panel h3 {
+:where(body:has(.teacher-dashboard)) .pastor-stats-panel h3 {
   font-size: 1.4rem;
   color: var(--primary);
 }
 
-.pastor-teacher-panel,
-.pastor-lecturer-panel {
+:where(body:has(.teacher-dashboard)) .pastor-teacher-panel,
+:where(body:has(.teacher-dashboard)) .pastor-lecturer-panel {
   padding: 1.75rem;
   border-radius: var(--radius-lg);
 }

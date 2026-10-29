@@ -235,9 +235,13 @@ const courseCards = computed(() => {
  * Intentionally global: used by several components, element selectors / keyframes,
  * or rules whose look depends on cascade order against main.css and other global
  * styles (scoping would raise their specificity and change what wins).
+ *
+ * Every selector is guarded by :where(body:has(.student-dashboard)) so these rules only apply
+ * while that page is on screen; otherwise they would keep applying to other pages
+ * after the user switches account in the same tab. :where() adds no specificity.
  */
 /* [css-migration] moved from StudentDashboard.vue */
-.section-title-row {
+:where(body:has(.student-dashboard)) .section-title-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -246,7 +250,7 @@ const courseCards = computed(() => {
   gap: 1rem;
 }
 
-.course-card {
+:where(body:has(.student-dashboard)) .course-card {
   display: flex;
   overflow: hidden;
   cursor: pointer;
@@ -255,7 +259,7 @@ const courseCards = computed(() => {
 
 @media (max-width: 640px) {
   /* Course card: vertical on mobile */
-  .course-card {
+  :where(body:has(.student-dashboard)) .course-card {
     flex-direction: column;
   }
 }

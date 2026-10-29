@@ -575,8 +575,12 @@ function cancelEditSession() {
  * Intentionally global: used by several components, element selectors / keyframes,
  * or rules whose look depends on cascade order against main.css and other global
  * styles (scoping would raise their specificity and change what wins).
+ *
+ * Every selector is guarded by :where(body:has(.student-dashboard)) so these rules only apply
+ * while that page is on screen; otherwise they would keep applying to other pages
+ * after the user switches account in the same tab. :where() adds no specificity.
  */
-.sticky-panel {
+:where(body:has(.student-dashboard)) .sticky-panel {
   position: sticky;
   top: 96px;
   max-height: calc(100vh - 130px);
@@ -586,28 +590,28 @@ function cancelEditSession() {
   background: white;
 }
 
-.text-area {
+:where(body:has(.student-dashboard)) .text-area {
   resize: vertical;
   border-radius: var(--radius-md);
   margin-top: 0.5rem;
 }
 
-.empty-player-state {
+:where(body:has(.student-dashboard)) .empty-player-state {
   padding: 4rem 2rem;
 }
 
-.empty-player-state h4 {
+:where(body:has(.student-dashboard)) .empty-player-state h4 {
   font-size: 1.2rem;
   margin-bottom: 0.5rem;
 }
 
-.datetime-input {
+:where(body:has(.student-dashboard)) .datetime-input {
   font-size: 0.9rem;
   padding: 0.5rem 1rem;
 }
 
 /* Extra small button variant */
-.btn-xs {
+:where(body:has(.student-dashboard)) .btn-xs {
   font-size: 0.78rem;
   padding: 0.25rem 0.7rem;
   border-radius: 6px;

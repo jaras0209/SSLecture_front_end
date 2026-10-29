@@ -20,6 +20,35 @@ test.describe('sign-in and routing', () => {
     })
   }
 
+  test("a page's styles don't carry over to the next account's page", async ({
+    page,
+    openWith
+  }) => {
+    const headerDisplay = () =>
+      page.locator('.dashboard-header').evaluate((el) => getComputedStyle(el).display)
+    const signIn = async (username: string) => {
+      await page.fill('#login-username', username)
+      await page.fill('#login-password', '123456')
+      await page.click('form.auth-form button[type=submit]')
+    }
+
+    await openWith('login')
+    await signIn('admin')
+    await expect(page).toHaveURL(/\/admin$/)
+    const fresh = await headerDisplay()
+    await page.getByRole('button', { name: /登出/ }).click()
+
+    // The teacher page's global styles (e.g. its flex .dashboard-header) load in this tab...
+    await signIn('teacher')
+    await expect(page).toHaveURL(/\/teacher$/)
+    await page.getByRole('button', { name: /登出/ }).click()
+
+    // ...and must not apply to the admin page afterwards
+    await signIn('admin')
+    await expect(page).toHaveURL(/\/admin$/)
+    expect(await headerDisplay()).toBe(fresh)
+  })
+
   test('rejects a wrong password', async ({ page, openWith }) => {
     await openWith('login')
     await page.fill('#login-username', 'student')

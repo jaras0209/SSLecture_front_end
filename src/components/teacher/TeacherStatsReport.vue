@@ -349,22 +349,26 @@ function handleSaveStats() {
  * Intentionally global: used by several components, element selectors / keyframes,
  * or rules whose look depends on cascade order against main.css and other global
  * styles (scoping would raise their specificity and change what wins).
+ *
+ * Every selector is guarded by :where(body:has(.teacher-dashboard)) so these rules only apply
+ * while that page is on screen; otherwise they would keep applying to other pages
+ * after the user switches account in the same tab. :where() adds no specificity.
  */
 /* Pastor Overview Grid */
 /* ── Annual Teaching Stats Report Panel ── */
-.stats-report-panel {
+:where(body:has(.teacher-dashboard)) .stats-report-panel {
   padding: 2rem;
   margin-top: 1.5rem;
 }
 
-.stats-number-input {
+:where(body:has(.teacher-dashboard)) .stats-number-input {
   width: 90px !important;
   text-align: center;
   font-weight: 700;
   font-size: 1.1rem;
 }
 
-.stats-subtotal strong {
+:where(body:has(.teacher-dashboard)) .stats-subtotal strong {
   color: var(--primary);
   font-size: 1rem;
 }

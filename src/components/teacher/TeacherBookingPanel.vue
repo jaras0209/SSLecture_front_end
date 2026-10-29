@@ -924,13 +924,17 @@ defineExpose({
  * Intentionally global: used by several components, element selectors / keyframes,
  * or rules whose look depends on cascade order against main.css and other global
  * styles (scoping would raise their specificity and change what wins).
+ *
+ * Every selector is guarded by :where(body:has(.teacher-dashboard)) so these rules only apply
+ * while that page is on screen; otherwise they would keep applying to other pages
+ * after the user switches account in the same tab. :where() adds no specificity.
  */
 /* [css-migration] moved from TeacherDashboard.vue */
-.bookings-panel {
+:where(body:has(.teacher-dashboard)) .bookings-panel {
   padding: 1.5rem;
 }
 
-.booking-card {
+:where(body:has(.teacher-dashboard)) .booking-card {
   padding: 1rem 1.25rem;
   border-radius: 12px;
   background: white;
@@ -938,12 +942,12 @@ defineExpose({
   transition: box-shadow 0.2s;
 }
 
-.booking-card:hover {
+:where(body:has(.teacher-dashboard)) .booking-card:hover {
   box-shadow: 0 4px 20px rgba(99, 102, 241, 0.1);
 }
 
 /* Booking modals */
-.booking-modal-card {
+:where(body:has(.teacher-dashboard)) .booking-modal-card {
   max-width: 640px;
   width: 92%;
   max-height: 90vh;
@@ -951,7 +955,7 @@ defineExpose({
   padding: 2rem;
 }
 
-.complete-modal-card {
+:where(body:has(.teacher-dashboard)) .complete-modal-card {
   max-width: 580px;
   width: 92%;
   max-height: 90vh;
@@ -959,7 +963,7 @@ defineExpose({
   padding: 2rem;
 }
 
-.attendee-check-item input[type='checkbox'] {
+:where(body:has(.teacher-dashboard)) .attendee-check-item input[type='checkbox'] {
   accent-color: var(--primary);
   width: 15px;
   height: 15px;

@@ -337,20 +337,24 @@ function formatBookingTime(session: {
  * Intentionally global: used by several components, element selectors / keyframes,
  * or rules whose look depends on cascade order against main.css and other global
  * styles (scoping would raise their specificity and change what wins).
+ *
+ * Every selector is guarded by :where(body:has(.student-dashboard)) so these rules only apply
+ * while that page is on screen; otherwise they would keep applying to other pages
+ * after the user switches account in the same tab. :where() adds no specificity.
  */
 /* [css-migration] moved from StudentDashboard.vue */
 @media (max-width: 480px) {
   /* Booking panel styles */
-  .student-bookings-panel {
+  :where(body:has(.student-dashboard)) .student-bookings-panel {
     padding: 0.75rem !important;
   }
 }
 
-.student-bookings-panel {
+:where(body:has(.student-dashboard)) .student-bookings-panel {
   padding: 1.5rem;
 }
 
-.student-booking-card {
+:where(body:has(.student-dashboard)) .student-booking-card {
   padding: 1rem 1.25rem;
   border-radius: 12px;
   background: white;
@@ -358,7 +362,7 @@ function formatBookingTime(session: {
   transition: box-shadow 0.2s;
 }
 
-.student-booking-card:hover {
+:where(body:has(.student-dashboard)) .student-booking-card:hover {
   box-shadow: 0 4px 16px rgba(99, 102, 241, 0.1);
 }
 </style>

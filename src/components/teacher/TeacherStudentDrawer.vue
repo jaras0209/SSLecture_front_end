@@ -561,14 +561,18 @@ const advancedLabels = computed(() => ({
  * Intentionally global: used by several components, element selectors / keyframes,
  * or rules whose look depends on cascade order against main.css and other global
  * styles (scoping would raise their specificity and change what wins).
+ *
+ * Every selector is guarded by :where(body:has(.teacher-dashboard)) so these rules only apply
+ * while that page is on screen; otherwise they would keep applying to other pages
+ * after the user switches account in the same tab. :where() adds no specificity.
  */
 /* 螢幕上隱藏列印模板 */
-.print-page-layout.print-only {
+:where(body:has(.teacher-dashboard)) .print-page-layout.print-only {
   display: none;
 }
 /* 列印時顯示（Teleport 到 body 後可正常運作） */
 @media print {
-  .print-page-layout.print-only {
+  :where(body:has(.teacher-dashboard)) .print-page-layout.print-only {
     display: block !important;
   }
 }
@@ -725,9 +729,13 @@ const advancedLabels = computed(() => ({
  * Intentionally global: used by several components, element selectors / keyframes,
  * or rules whose look depends on cascade order against main.css and other global
  * styles (scoping would raise their specificity and change what wins).
+ *
+ * Every selector is guarded by :where(body:has(.teacher-dashboard)) so these rules only apply
+ * while that page is on screen; otherwise they would keep applying to other pages
+ * after the user switches account in the same tab. :where() adds no specificity.
  */
 /* Drawer Section */
-.student-details-drawer {
+:where(body:has(.teacher-dashboard)) .student-details-drawer {
   background: white;
   padding: 2rem;
   border-radius: var(--radius-lg);
@@ -736,7 +744,7 @@ const advancedLabels = computed(() => ({
   top: 96px;
 }
 
-.empty-drawer {
+:where(body:has(.teacher-dashboard)) .empty-drawer {
   padding: 4rem 2rem;
   display: flex;
   flex-direction: column;
@@ -744,18 +752,18 @@ const advancedLabels = computed(() => ({
   justify-content: center;
 }
 
-.empty-drawer h4 {
+:where(body:has(.teacher-dashboard)) .empty-drawer h4 {
   font-size: 1.15rem;
   margin-bottom: 0.5rem;
 }
 
-.empty-drawer p {
+:where(body:has(.teacher-dashboard)) .empty-drawer p {
   font-size: 0.85rem;
   color: var(--text-secondary);
   max-width: 280px;
 }
 
-.basic-info-readonly-card h6 {
+:where(body:has(.teacher-dashboard)) .basic-info-readonly-card h6 {
   font-size: 0.9rem;
   border-bottom: 1px solid #e2e8f0;
   padding-bottom: 0.25rem;
@@ -763,17 +771,17 @@ const advancedLabels = computed(() => ({
   color: var(--text-primary);
 }
 
-.checklists-readonly-container h6 {
+:where(body:has(.teacher-dashboard)) .checklists-readonly-container h6 {
   font-size: 0.9rem;
   color: var(--text-primary);
 }
 
-.lectures-edit-section h6 {
+:where(body:has(.teacher-dashboard)) .lectures-edit-section h6 {
   font-size: 0.9rem;
   color: var(--text-primary);
 }
 
-.inputs-row input {
+:where(body:has(.teacher-dashboard)) .inputs-row input {
   padding: 0.35rem 0.5rem;
   flex: 1;
 }

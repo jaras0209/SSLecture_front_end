@@ -854,8 +854,12 @@ function onSendFeedback(username: string, courseId: string) {
  * Intentionally global: used by several components, element selectors / keyframes,
  * or rules whose look depends on cascade order against main.css and other global
  * styles (scoping would raise their specificity and change what wins).
+ *
+ * Every selector is guarded by :where(body:has(.teacher-dashboard)) so these rules only apply
+ * while that page is on screen; otherwise they would keep applying to other pages
+ * after the user switches account in the same tab. :where() adds no specificity.
  */
-.notes-dialog-profile h3 {
+:where(body:has(.teacher-dashboard)) .notes-dialog-profile h3 {
   margin: 0 0 0.25rem 0;
   font-size: 1.15rem;
   font-weight: 800;

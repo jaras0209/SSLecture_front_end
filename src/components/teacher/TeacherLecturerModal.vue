@@ -314,10 +314,14 @@ function saveLecturer() {
  * Intentionally global: used by several components, element selectors / keyframes,
  * or rules whose look depends on cascade order against main.css and other global
  * styles (scoping would raise their specificity and change what wins).
+ *
+ * Every selector is guarded by :where(body:has(.teacher-dashboard)) so these rules only apply
+ * while that page is on screen; otherwise they would keep applying to other pages
+ * after the user switches account in the same tab. :where() adds no specificity.
  */
 /* Lecturer modal — classes used only here. Shared modal/checkbox styles
    (.modal-overlay, .modal-card, .check-item-row) stay in TeacherDashboard.vue. */
-.lecturer-modal-card {
+:where(body:has(.teacher-dashboard)) .lecturer-modal-card {
   max-width: 620px;
   width: 90%;
   max-height: 88vh;

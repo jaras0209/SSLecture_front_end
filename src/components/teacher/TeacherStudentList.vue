@@ -297,9 +297,13 @@ function getCaretakerBadgeClass(studentUsername: string): string {
  * Intentionally global: used by several components, element selectors / keyframes,
  * or rules whose look depends on cascade order against main.css and other global
  * styles (scoping would raise their specificity and change what wins).
+ *
+ * Every selector is guarded by :where(body:has(.teacher-dashboard)) so these rules only apply
+ * while that page is on screen; otherwise they would keep applying to other pages
+ * after the user switches account in the same tab. :where() adds no specificity.
  */
 /* [css-migration] moved from TeacherDashboard.vue */
-.tab-selectors {
+:where(body:has(.teacher-dashboard)) .tab-selectors {
   display: flex;
   background: rgba(255, 255, 255, 0.5);
   padding: 0.2rem;
@@ -310,12 +314,12 @@ function getCaretakerBadgeClass(studentUsername: string): string {
 /* This component is async-loaded, so its CSS is injected after the dashboard's
    @media print rule. Re-declare the print hide here to keep it winning. */
 @media print {
-  .tab-selectors {
+  :where(body:has(.teacher-dashboard)) .tab-selectors {
     display: none !important;
   }
 }
 
-.search-input {
+:where(body:has(.teacher-dashboard)) .search-input {
   max-width: 250px;
   padding: 0.5rem 1rem;
   border-radius: var(--radius-full);
@@ -323,14 +327,14 @@ function getCaretakerBadgeClass(studentUsername: string): string {
 
 @media (max-width: 640px) {
   /* Tab selectors (inner tabs) also scrollable */
-  .tab-selectors {
+  :where(body:has(.teacher-dashboard)) .tab-selectors {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     flex-wrap: nowrap;
   }
 
   /* Search input */
-  .search-input {
+  :where(body:has(.teacher-dashboard)) .search-input {
     max-width: 100%;
     width: 100%;
   }

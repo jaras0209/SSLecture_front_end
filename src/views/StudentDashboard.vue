@@ -474,9 +474,13 @@ const overallProgressPercent = computed(() => {
  * Intentionally global: used by several components, element selectors / keyframes,
  * or rules whose look depends on cascade order against main.css and other global
  * styles (scoping would raise their specificity and change what wins).
+ *
+ * Every selector is guarded by :where(body:has(.student-dashboard)) so these rules only apply
+ * while that page is on screen; otherwise they would keep applying to other pages
+ * after the user switches account in the same tab. :where() adds no specificity.
  */
 /* Main Tab Switcher */
-.main-tabs {
+:where(body:has(.student-dashboard)) .main-tabs {
   display: flex;
   background: white;
   padding: 0.35rem;
@@ -485,7 +489,7 @@ const overallProgressPercent = computed(() => {
   gap: 0.5rem;
 }
 
-.main-tab-btn {
+:where(body:has(.student-dashboard)) .main-tab-btn {
   flex: 1;
   padding: 0.85rem;
   font-family: var(--font-family);
@@ -499,18 +503,18 @@ const overallProgressPercent = computed(() => {
   transition: all var(--transition-normal);
 }
 
-.main-tab-btn:hover {
+:where(body:has(.student-dashboard)) .main-tab-btn:hover {
   background: #f8fafc;
   color: var(--primary);
 }
 
-.main-tab-btn.active {
+:where(body:has(.student-dashboard)) .main-tab-btn.active {
   background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%);
   color: white;
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
 }
 
-.dashboard-header {
+:where(body:has(.student-dashboard)) .dashboard-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -521,19 +525,19 @@ const overallProgressPercent = computed(() => {
 }
 
 /* Main Layout Grid */
-.dashboard-body {
+:where(body:has(.student-dashboard)) .dashboard-body {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
   gap: 2rem;
 }
 
 @media (max-width: 900px) {
-  .dashboard-body {
+  :where(body:has(.student-dashboard)) .dashboard-body {
     grid-template-columns: minmax(0, 1fr);
   }
 }
 
-.filter-btn {
+:where(body:has(.student-dashboard)) .filter-btn {
   padding: 0.4rem 1rem;
   border: none;
   background: transparent;
@@ -546,24 +550,24 @@ const overallProgressPercent = computed(() => {
   transition: all var(--transition-fast);
 }
 
-.filter-btn.active {
+:where(body:has(.student-dashboard)) .filter-btn.active {
   background: var(--primary);
   color: white;
 }
 
-.save-row {
+:where(body:has(.student-dashboard)) .save-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.save-status {
+:where(body:has(.student-dashboard)) .save-status {
   font-size: 0.8rem;
   color: var(--secondary-hover);
   font-weight: 600;
 }
 
-.check-item-row {
+:where(body:has(.student-dashboard)) .check-item-row {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -581,7 +585,7 @@ const overallProgressPercent = computed(() => {
 }
 
 /* HIGH FIDELITY PRINT MEDIA OVERRIDES */
-.print-only {
+:where(body:has(.student-dashboard)) .print-only {
   display: none;
 }
 
@@ -590,14 +594,14 @@ const overallProgressPercent = computed(() => {
 ══════════════════════════════════════════ */
 @media (max-width: 640px) {
   /* Dashboard header compact */
-  .dashboard-header {
+  :where(body:has(.student-dashboard)) .dashboard-header {
     padding: 1rem;
     margin-bottom: 1rem;
     gap: 0.75rem;
   }
 
   /* Tab navigation: horizontal scroll instead of overflow */
-  .main-tabs {
+  :where(body:has(.student-dashboard)) .main-tabs {
     overflow-x: auto;
     overflow-y: visible;
     -webkit-overflow-scrolling: touch;
@@ -608,7 +612,7 @@ const overallProgressPercent = computed(() => {
     border-radius: var(--radius-sm);
   }
 
-  .main-tab-btn {
+  :where(body:has(.student-dashboard)) .main-tab-btn {
     flex: 0 0 auto;
     padding: 0.6rem 0.85rem;
     font-size: 0.82rem;
@@ -617,13 +621,13 @@ const overallProgressPercent = computed(() => {
   }
 
   /* Dashboard body: single column */
-  .dashboard-body {
+  :where(body:has(.student-dashboard)) .dashboard-body {
     grid-template-columns: minmax(0, 1fr);
     gap: 1rem;
     padding: 0 0.25rem;
   }
 
-  .filter-btn {
+  :where(body:has(.student-dashboard)) .filter-btn {
     flex: 0 0 auto;
     white-space: nowrap;
     font-size: 0.78rem;
@@ -631,18 +635,18 @@ const overallProgressPercent = computed(() => {
   }
 
   /* Panel header row */
-  .panel-header-row {
+  :where(body:has(.student-dashboard)) .panel-header-row {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
   }
 
-  .section-title {
+  :where(body:has(.student-dashboard)) .section-title {
     font-size: 1rem;
   }
 
   /* Glass panel padding */
-  .glass-panel {
+  :where(body:has(.student-dashboard)) .glass-panel {
     padding: 1rem !important;
   }
 }
@@ -651,13 +655,13 @@ const overallProgressPercent = computed(() => {
    StudentDashboard — Mobile RWD (480px)
 ══════════════════════════════════════════ */
 @media (max-width: 480px) {
-  .dashboard-header {
+  :where(body:has(.student-dashboard)) .dashboard-header {
     padding: 0.75rem;
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .main-tab-btn {
+  :where(body:has(.student-dashboard)) .main-tab-btn {
     padding: 0.5rem 0.65rem;
     font-size: 0.78rem;
   }
@@ -665,27 +669,27 @@ const overallProgressPercent = computed(() => {
 
 @media print {
   /* Hide all screen elements completely */
-  .no-print,
-  nav,
-  header,
-  .main-tabs,
-  .btn,
-  .shining-toolbar,
-  #app-container,
-  .main-content {
+  :where(body:has(.student-dashboard)) .no-print,
+  :where(body:has(.student-dashboard)) nav,
+  :where(body:has(.student-dashboard)) header,
+  :where(body:has(.student-dashboard)) .main-tabs,
+  :where(body:has(.student-dashboard)) .btn,
+  :where(body:has(.student-dashboard)) .shining-toolbar,
+  :where(body:has(.student-dashboard)) #app-container,
+  :where(body:has(.student-dashboard)) .main-content {
     display: none !important;
   }
 
-  body {
+  body:where(:has(.student-dashboard)) {
     background: white !important;
     color: black !important;
   }
 
-  .print-only {
+  :where(body:has(.student-dashboard)) .print-only {
     display: block !important;
   }
 
-  .print-page-layout {
+  :where(body:has(.student-dashboard)) .print-page-layout {
     width: 100%;
     max-width: 100%;
     margin: 0;
@@ -693,57 +697,57 @@ const overallProgressPercent = computed(() => {
     background-color: white;
   }
 
-  .print-container {
+  :where(body:has(.student-dashboard)) .print-container {
     border: 3px double #000;
     border-radius: 12px;
     padding: 25px;
     background: white;
   }
 
-  .print-banner {
+  :where(body:has(.student-dashboard)) .print-banner {
     text-align: center;
     border-bottom: 2px solid #000;
     padding-bottom: 10px;
     margin-bottom: 20px;
   }
 
-  .print-banner-logo {
+  :where(body:has(.student-dashboard)) .print-banner-logo {
     font-size: 2.2rem;
     font-weight: 800;
     letter-spacing: 2px;
   }
 
-  .print-banner-sub {
+  :where(body:has(.student-dashboard)) .print-banner-sub {
     font-size: 1rem;
     font-weight: 700;
     letter-spacing: 3px;
     color: #444;
   }
 
-  .print-flex-row {
+  :where(body:has(.student-dashboard)) .print-flex-row {
     display: flex;
     justify-content: space-between;
     gap: 15px;
   }
 
-  .print-w-45 {
+  :where(body:has(.student-dashboard)) .print-w-45 {
     width: 45%;
   }
-  .print-w-48 {
+  :where(body:has(.student-dashboard)) .print-w-48 {
     width: 48%;
   }
-  .print-w-50 {
+  :where(body:has(.student-dashboard)) .print-w-50 {
     width: 50%;
   }
 
-  .print-box {
+  :where(body:has(.student-dashboard)) .print-box {
     border: 1px solid #000;
     border-radius: 8px;
     padding: 15px;
     background: #fff;
   }
 
-  .print-box-title {
+  :where(body:has(.student-dashboard)) .print-box-title {
     font-size: 1rem;
     font-weight: 800;
     border-bottom: 1px solid #eee;
@@ -751,34 +755,34 @@ const overallProgressPercent = computed(() => {
     margin-bottom: 10px;
   }
 
-  .print-box-subtitle {
+  :where(body:has(.student-dashboard)) .print-box-subtitle {
     font-size: 0.75rem;
     color: #555;
     margin-bottom: 8px;
     font-style: italic;
   }
 
-  .print-info-line {
+  :where(body:has(.student-dashboard)) .print-info-line {
     font-size: 0.9rem;
     margin-bottom: 8px;
     border-bottom: 1px dashed #ddd;
     padding-bottom: 2px;
   }
 
-  .print-checklist {
+  :where(body:has(.student-dashboard)) .print-checklist {
     display: flex;
     flex-direction: column;
     gap: 6px;
   }
 
-  .print-check-line {
+  :where(body:has(.student-dashboard)) .print-check-line {
     display: flex;
     align-items: center;
     gap: 10px;
     font-size: 0.85rem;
   }
 
-  .print-check-circle {
+  :where(body:has(.student-dashboard)) .print-check-circle {
     width: 16px;
     height: 16px;
     border: 1.5px solid #000;
@@ -791,61 +795,61 @@ const overallProgressPercent = computed(() => {
     flex-shrink: 0;
   }
 
-  .print-check-circle.checked {
+  :where(body:has(.student-dashboard)) .print-check-circle.checked {
     background-color: #000;
     color: #fff;
   }
 
-  .print-table-box {
+  :where(body:has(.student-dashboard)) .print-table-box {
     border: 1px solid #000;
     border-radius: 8px;
     padding: 15px;
     background: #fff;
   }
 
-  .print-table {
+  :where(body:has(.student-dashboard)) .print-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
   }
 
-  .print-table th,
-  .print-table td {
+  :where(body:has(.student-dashboard)) .print-table th,
+  :where(body:has(.student-dashboard)) .print-table td {
     border: 1px solid #000;
     padding: 6px 10px;
     font-size: 0.85rem;
     text-align: left;
   }
 
-  .print-table th {
+  :where(body:has(.student-dashboard)) .print-table th {
     background-color: #f2f2f2;
     font-weight: 700;
   }
 
-  .print-signatures-box {
+  :where(body:has(.student-dashboard)) .print-signatures-box {
     border: 1px solid #000;
     border-radius: 8px;
     padding: 15px;
   }
 
-  .print-signatures-row {
+  :where(body:has(.student-dashboard)) .print-signatures-row {
     display: flex;
     justify-content: space-around;
   }
 
-  .print-sig-col {
+  :where(body:has(.student-dashboard)) .print-sig-col {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 8px;
   }
 
-  .print-sig-lbl {
+  :where(body:has(.student-dashboard)) .print-sig-lbl {
     font-size: 0.85rem;
     font-weight: 700;
   }
 
-  .print-sig-space {
+  :where(body:has(.student-dashboard)) .print-sig-space {
     width: 80px;
     height: 50px;
     border: 1.5px dashed #777;
@@ -854,8 +858,8 @@ const overallProgressPercent = computed(() => {
 }
 
 /* ── Review slide transition ── */
-.review-slide-enter-active,
-.review-slide-leave-active {
+:where(body:has(.student-dashboard)) .review-slide-enter-active,
+:where(body:has(.student-dashboard)) .review-slide-leave-active {
   transition:
     max-height 0.3s ease,
     opacity 0.3s ease;
@@ -863,14 +867,14 @@ const overallProgressPercent = computed(() => {
   max-height: 600px;
 }
 
-.review-slide-enter-from,
-.review-slide-leave-to {
+:where(body:has(.student-dashboard)) .review-slide-enter-from,
+:where(body:has(.student-dashboard)) .review-slide-leave-to {
   max-height: 0;
   opacity: 0;
 }
 
 /* Compact form labels and inputs inside edit panel */
-.form-label-sm {
+:where(body:has(.student-dashboard)) .form-label-sm {
   font-size: 0.78rem;
   font-weight: 600;
   margin-bottom: 0.2rem;
@@ -878,13 +882,13 @@ const overallProgressPercent = computed(() => {
   color: var(--text-secondary);
 }
 
-.form-input-sm {
+:where(body:has(.student-dashboard)) .form-input-sm {
   font-size: 0.82rem;
   padding: 0.35rem 0.6rem;
   height: auto;
 }
 
-.btn-ghost {
+:where(body:has(.student-dashboard)) .btn-ghost {
   background: transparent;
   border: 1px solid var(--border, #e5e7eb);
   color: var(--text-secondary);
@@ -893,46 +897,46 @@ const overallProgressPercent = computed(() => {
   transition: background 0.15s;
 }
 
-.btn-ghost:hover {
+:where(body:has(.student-dashboard)) .btn-ghost:hover {
   background: rgba(0, 0, 0, 0.05);
 }
 
-.booking-list {
+:where(body:has(.student-dashboard)) .booking-list {
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
 }
 
 /* Reuse booking status badge styles from TeacherDashboard (copy for scoped) */
-.booking-status-badge {
+:where(body:has(.student-dashboard)) .booking-status-badge {
   display: inline-block;
   padding: 3px 10px;
   border-radius: 20px;
   font-size: 0.76rem;
   font-weight: 700;
 }
-.status-pending {
+:where(body:has(.student-dashboard)) .status-pending {
   background: rgba(245, 158, 11, 0.12);
   color: #d97706;
   border: 1px solid rgba(245, 158, 11, 0.3);
 }
-.status-confirmed {
+:where(body:has(.student-dashboard)) .status-confirmed {
   background: rgba(99, 102, 241, 0.1);
   color: var(--primary);
   border: 1px solid rgba(99, 102, 241, 0.25);
 }
-.status-completed {
+:where(body:has(.student-dashboard)) .status-completed {
   background: rgba(16, 185, 129, 0.1);
   color: #059669;
   border: 1px solid rgba(16, 185, 129, 0.25);
 }
-.status-cancelled {
+:where(body:has(.student-dashboard)) .status-cancelled {
   background: rgba(107, 114, 128, 0.1);
   color: #6b7280;
   border: 1px solid rgba(107, 114, 128, 0.25);
 }
 
-.booking-group-badge {
+:where(body:has(.student-dashboard)) .booking-group-badge {
   font-size: 0.72rem;
   font-weight: 600;
   padding: 2px 8px;
@@ -941,7 +945,7 @@ const overallProgressPercent = computed(() => {
   color: var(--primary);
 }
 
-.att-chip {
+:where(body:has(.student-dashboard)) .att-chip {
   display: inline-flex;
   align-items: center;
   gap: 3px;
@@ -950,23 +954,23 @@ const overallProgressPercent = computed(() => {
   font-size: 0.73rem;
   font-weight: 600;
 }
-.att-invited {
+:where(body:has(.student-dashboard)) .att-invited {
   background: rgba(107, 114, 128, 0.08);
   color: #6b7280;
   border: 1px solid rgba(107, 114, 128, 0.2);
 }
-.att-attended {
+:where(body:has(.student-dashboard)) .att-attended {
   background: rgba(16, 185, 129, 0.1);
   color: #059669;
   border: 1px solid rgba(16, 185, 129, 0.25);
 }
-.att-absent {
+:where(body:has(.student-dashboard)) .att-absent {
   background: rgba(239, 68, 68, 0.08);
   color: #dc2626;
   border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
-.scripture-chip {
+:where(body:has(.student-dashboard)) .scripture-chip {
   display: inline-block;
   background: rgba(99, 102, 241, 0.08);
   color: var(--primary);
