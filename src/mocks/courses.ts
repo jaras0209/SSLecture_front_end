@@ -10,12 +10,13 @@ import type { Course } from '@/types/courses'
 
 /** Cover gradients, assigned cyclically by course index. */
 const COVER_COLORS = [
-  'linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%)', // Blue
-  'linear-gradient(135deg, #10B981 0%, #34D399 100%)', // Green
-  'linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%)', // Yellow
-  'linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%)', // Purple
-  'linear-gradient(135deg, #EC4899 0%, #F472B6 100%)', // Pink
-  'linear-gradient(135deg, #06B6D4 0%, #22D3EE 100%)' // Cyan
+  // Dark enough for the white text on top to meet WCAG AA at both ends of each gradient
+  'linear-gradient(135deg, #1D4ED8 0%, #2563EB 100%)', // Blue
+  'linear-gradient(135deg, #065F46 0%, #047857 100%)', // Green
+  'linear-gradient(135deg, #92400E 0%, #B45309 100%)', // Amber
+  'linear-gradient(135deg, #6D28D9 0%, #7C3AED 100%)', // Purple
+  'linear-gradient(135deg, #9D174D 0%, #BE185D 100%)', // Pink
+  'linear-gradient(135deg, #155E75 0%, #0E7490 100%)' // Cyan
 ]
 
 const MOCK_SPEAKERS = ['張牧師', '陳傳道', '李長老', '林輔導', '王老師']

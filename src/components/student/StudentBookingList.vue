@@ -318,7 +318,7 @@ function formatBookingTime(session: {
 
 .sbc-my-feedback {
   font-size: 0.8rem;
-  color: #059669;
+  color: #047857;
   background: rgba(16, 185, 129, 0.05);
   border-radius: 6px;
   padding: 0.4rem 0.75rem;

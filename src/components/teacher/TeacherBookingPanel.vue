@@ -897,7 +897,7 @@ defineExpose({
 /* Completed / cancelled notes */
 .booking-completed-notes {
   font-size: 0.8rem;
-  color: #059669;
+  color: #047857;
   background: rgba(16, 185, 129, 0.06);
   border-radius: 6px;
   padding: 0.4rem 0.75rem;
@@ -905,7 +905,7 @@ defineExpose({
 
 .booking-cancel-reason {
   font-size: 0.8rem;
-  color: #dc2626;
+  color: #b91c1c;
   background: rgba(239, 68, 68, 0.06);
   border-radius: 6px;
   padding: 0.4rem 0.75rem;
@@ -1017,13 +1017,13 @@ defineExpose({
 
 .att-toggle-btn.active {
   background: rgba(16, 185, 129, 0.15);
-  color: #059669;
+  color: #047857;
   border-color: rgba(16, 185, 129, 0.4);
 }
 
 .att-toggle-btn.danger.active {
   background: rgba(239, 68, 68, 0.12);
-  color: #dc2626;
+  color: #b91c1c;
   border-color: rgba(239, 68, 68, 0.35);
 }
 </style>

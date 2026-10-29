@@ -987,7 +987,7 @@ function viewStudentDetails(student: StudentProgressSummary) {
   font-family: inherit;
   font-size: 0.8rem;
   font-weight: 600;
-  color: #64748b;
+  color: #475569;
   cursor: pointer;
   transition: all 0.15s ease;
   line-height: 1.5;
@@ -995,7 +995,7 @@ function viewStudentDetails(student: StudentProgressSummary) {
 
 :where(body:has(.teacher-dashboard)) .filter-btn:hover {
   border-color: #6366f1;
-  color: #6366f1;
+  color: #4f46e5;
   background: #eef2ff;
 }
 
@@ -1008,7 +1008,7 @@ function viewStudentDetails(student: StudentProgressSummary) {
 
 :where(body:has(.teacher-dashboard)) .status-done {
   background: rgba(16, 185, 129, 0.1);
-  color: #059669;
+  color: #047857;
 }
 
 /* Booking list */
@@ -1029,7 +1029,7 @@ function viewStudentDetails(student: StudentProgressSummary) {
 
 :where(body:has(.teacher-dashboard)) .status-pending {
   background: rgba(245, 158, 11, 0.12);
-  color: #d97706;
+  color: #92400e;
   border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
@@ -1041,13 +1041,13 @@ function viewStudentDetails(student: StudentProgressSummary) {
 
 :where(body:has(.teacher-dashboard)) .status-completed {
   background: rgba(16, 185, 129, 0.1);
-  color: #059669;
+  color: #047857;
   border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
 :where(body:has(.teacher-dashboard)) .status-cancelled {
   background: rgba(107, 114, 128, 0.1);
-  color: #6b7280;
+  color: #4b5563;
   border: 1px solid rgba(107, 114, 128, 0.25);
 }
 
@@ -1072,24 +1072,24 @@ function viewStudentDetails(student: StudentProgressSummary) {
 
 :where(body:has(.teacher-dashboard)) .att-invited {
   background: rgba(107, 114, 128, 0.08);
-  color: #6b7280;
+  color: #4b5563;
   border: 1px solid rgba(107, 114, 128, 0.2);
 }
 :where(body:has(.teacher-dashboard)) .att-attended {
   background: rgba(16, 185, 129, 0.1);
-  color: #059669;
+  color: #047857;
   border: 1px solid rgba(16, 185, 129, 0.25);
 }
 :where(body:has(.teacher-dashboard)) .att-absent {
   background: rgba(239, 68, 68, 0.08);
-  color: #dc2626;
+  color: #b91c1c;
   border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 :where(body:has(.teacher-dashboard)) .scripture-chip {
   display: inline-block;
   background: rgba(99, 102, 241, 0.08);
-  color: var(--primary);
+  color: var(--primary-hover);
   border-radius: 6px;
   padding: 1px 8px;
   font-size: 0.76rem;

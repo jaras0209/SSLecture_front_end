@@ -267,7 +267,7 @@ function getLinkedLecturer(teacherUsername: string) {
   padding: 1px 6px;
   border-radius: 20px;
   background: rgba(16, 185, 129, 0.1);
-  color: #059669;
+  color: #047857;
   border: 1px solid rgba(16, 185, 129, 0.2);
 }
 

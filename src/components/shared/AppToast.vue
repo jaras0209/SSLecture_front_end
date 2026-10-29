@@ -66,16 +66,16 @@ function resolve(ok: boolean) {
 }
 
 .toast-success {
-  background: #22c55e;
+  background: #15803d;
 }
 .toast-warning {
-  background: #f59e0b;
+  background: #b45309;
 }
 .toast-error {
-  background: #ef4444;
+  background: #b91c1c;
 }
 .toast-info {
-  background: #6366f1;
+  background: #4f46e5;
 }
 
 /* TransitionGroup animation */
@@ -134,7 +134,7 @@ function resolve(ok: boolean) {
 }
 
 .btn-danger {
-  background: #ef4444;
+  background: #dc2626;
   color: white;
   border: none;
 }

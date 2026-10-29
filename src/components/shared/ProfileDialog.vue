@@ -797,7 +797,7 @@ function close() {
   color: #f59e0b;
 }
 .text-medium {
-  color: #3b82f6;
+  color: #2563eb;
 }
 .text-strong {
   color: #10b981;
@@ -820,7 +820,7 @@ function close() {
   color: var(--text-muted);
 }
 .pwd-rules-list li.rule-ok {
-  color: #059669;
+  color: #047857;
   font-weight: 600;
 }
 

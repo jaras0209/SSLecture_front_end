@@ -100,7 +100,7 @@ function handleSelect(lang: SupportedLocale) {
   padding: 4px 12px;
   border-radius: 9999px;
   white-space: nowrap;
-  color: #64748b;
+  color: #475569;
   transition: color 200ms ease;
   user-select: none;
   letter-spacing: 0.02em;

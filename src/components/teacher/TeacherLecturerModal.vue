@@ -297,7 +297,7 @@ function saveLecturer() {
 .linked-chip {
   font-size: 0.78rem;
   font-weight: 700;
-  color: #059669;
+  color: #047857;
 }
 
 .courses-checkboxes-grid {

@@ -304,7 +304,7 @@ function inviteRowClass(code: InviteCode): string {
 
 .status-active {
   background: rgba(5, 150, 105, 0.12);
-  color: #059669;
+  color: #047857;
   border: 1px solid rgba(5, 150, 105, 0.3);
 }
 

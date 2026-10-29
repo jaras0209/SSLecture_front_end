@@ -274,18 +274,18 @@ onMounted(() => {
 
 .invite-badge.valid {
   background: rgba(16, 185, 129, 0.1);
-  color: #059669;
+  color: #047857;
 }
 
 .invite-badge.invalid {
   background: rgba(239, 68, 68, 0.1);
-  color: #dc2626;
+  color: #b91c1c;
 }
 
 .invite-info {
   margin-top: 0.5rem;
   font-size: 0.85rem;
-  color: #059669;
+  color: #047857;
   background: rgba(16, 185, 129, 0.06);
   border-radius: var(--radius-sm, 8px);
   padding: 0.4rem 0.75rem;

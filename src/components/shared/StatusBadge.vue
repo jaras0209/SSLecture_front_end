@@ -49,7 +49,7 @@ const label = computed(() => t(`booking.status.${props.status}`))
 /* ── Status Colours ── */
 .sb-pending {
   background: rgba(245, 158, 11, 0.12);
-  color: #d97706;
+  color: #92400e;
   border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
@@ -61,13 +61,13 @@ const label = computed(() => t(`booking.status.${props.status}`))
 
 .sb-completed {
   background: rgba(16, 185, 129, 0.1);
-  color: #059669;
+  color: #047857;
   border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
 .sb-cancelled {
   background: rgba(107, 114, 128, 0.1);
-  color: #6b7280;
+  color: #4b5563;
   border: 1px solid rgba(107, 114, 128, 0.25);
 }
 </style>

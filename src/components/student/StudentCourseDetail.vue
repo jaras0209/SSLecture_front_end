@@ -517,7 +517,7 @@ function cancelEditSession() {
   background: rgba(99, 102, 241, 0.08);
   border: 1.5px dashed rgba(99, 102, 241, 0.4);
   border-radius: var(--radius-sm, 8px);
-  color: var(--primary, #6366f1);
+  color: var(--primary-hover, #1d4ed8);
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;

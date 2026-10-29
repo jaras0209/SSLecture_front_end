@@ -288,7 +288,7 @@ function onSendFeedback(username: string, courseId: string) {
 .notes-dialog-subtitle {
   margin: 0;
   font-size: 0.82rem;
-  color: #64748b;
+  color: #475569;
 }
 
 .notes-close-btn {
@@ -327,7 +327,7 @@ function onSendFeedback(username: string, courseId: string) {
 .filter-label {
   font-size: 0.82rem;
   font-weight: 700;
-  color: #64748b;
+  color: #475569;
   white-space: nowrap;
 }
 
@@ -345,7 +345,7 @@ function onSendFeedback(username: string, courseId: string) {
   font-family: inherit;
   font-size: 0.8rem;
   font-weight: 600;
-  color: #64748b;
+  color: #475569;
   cursor: pointer;
   transition: all 0.15s ease;
   line-height: 1.5;
@@ -353,13 +353,13 @@ function onSendFeedback(username: string, courseId: string) {
 
 .filter-btn:hover {
   border-color: #6366f1;
-  color: #6366f1;
+  color: #4f46e5;
   background: #eef2ff;
 }
 
 .filter-btn.active {
-  background: #6366f1;
-  border-color: #6366f1;
+  background: #4f46e5;
+  border-color: #4f46e5;
   color: white;
   box-shadow: 0 3px 10px rgba(99, 102, 241, 0.3);
 }
@@ -380,7 +380,7 @@ function onSendFeedback(username: string, courseId: string) {
   align-items: center;
   justify-content: center;
   padding: 3rem;
-  color: #94a3b8;
+  color: #556377;
   gap: 0.5rem;
 }
 
@@ -456,11 +456,11 @@ function onSendFeedback(username: string, courseId: string) {
 
 .status-done {
   background: rgba(16, 185, 129, 0.1);
-  color: #059669;
+  color: #047857;
 }
 .status-pending {
   background: rgba(245, 158, 11, 0.1);
-  color: #d97706;
+  color: #92400e;
 }
 
 .notes-record-meta {
@@ -477,7 +477,7 @@ function onSendFeedback(username: string, courseId: string) {
   align-items: center;
   gap: 0.2rem;
   font-size: 0.75rem;
-  color: #64748b;
+  color: #475569;
   background: #f1f5f9;
   padding: 0.15rem 0.55rem;
   border-radius: 999px;
@@ -499,7 +499,7 @@ function onSendFeedback(username: string, courseId: string) {
 .notes-text-header {
   font-size: 0.73rem;
   font-weight: 700;
-  color: #16a34a;
+  color: #166534;
   padding: 0.35rem 0.8rem;
   background: rgba(22, 163, 74, 0.07);
   border-bottom: 1px solid #bbf7d0;
@@ -522,7 +522,7 @@ function onSendFeedback(username: string, courseId: string) {
   background: #f8fafc;
   border-radius: 8px;
   font-size: 0.83rem;
-  color: #94a3b8;
+  color: #556377;
   font-style: italic;
   border: 1px dashed #e2e8f0;
 }
@@ -549,7 +549,7 @@ function onSendFeedback(username: string, courseId: string) {
 
 .feedback-sent-msg {
   font-size: 0.77rem;
-  color: #16a34a;
+  color: #166534;
   margin-top: 0.4rem;
   font-weight: 600;
 }
@@ -621,7 +621,7 @@ function onSendFeedback(username: string, courseId: string) {
 .notes-dialog-subtitle {
   margin: 0;
   font-size: 0.82rem;
-  color: #64748b;
+  color: #475569;
 }
 
 .notes-close-btn {
@@ -660,7 +660,7 @@ function onSendFeedback(username: string, courseId: string) {
 .filter-label {
   font-size: 0.82rem;
   font-weight: 700;
-  color: #64748b;
+  color: #475569;
   white-space: nowrap;
 }
 
@@ -687,7 +687,7 @@ function onSendFeedback(username: string, courseId: string) {
   align-items: center;
   justify-content: center;
   padding: 3rem;
-  color: #94a3b8;
+  color: #556377;
   gap: 0.5rem;
 }
 
@@ -776,7 +776,7 @@ function onSendFeedback(username: string, courseId: string) {
   align-items: center;
   gap: 0.2rem;
   font-size: 0.75rem;
-  color: #64748b;
+  color: #475569;
   background: #f1f5f9;
   padding: 0.15rem 0.55rem;
   border-radius: 999px;
@@ -798,7 +798,7 @@ function onSendFeedback(username: string, courseId: string) {
 .notes-text-header {
   font-size: 0.73rem;
   font-weight: 700;
-  color: #16a34a;
+  color: #166534;
   padding: 0.35rem 0.8rem;
   background: rgba(22, 163, 74, 0.07);
   border-bottom: 1px solid #bbf7d0;
@@ -821,7 +821,7 @@ function onSendFeedback(username: string, courseId: string) {
   background: #f8fafc;
   border-radius: 8px;
   font-size: 0.83rem;
-  color: #94a3b8;
+  color: #556377;
   font-style: italic;
   border: 1px dashed #e2e8f0;
 }
@@ -848,7 +848,7 @@ function onSendFeedback(username: string, courseId: string) {
 
 .feedback-sent-msg {
   font-size: 0.77rem;
-  color: #16a34a;
+  color: #166534;
   margin-top: 0.4rem;
   font-weight: 600;
 }

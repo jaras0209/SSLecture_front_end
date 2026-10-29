@@ -285,7 +285,7 @@ async function handleDeleteLecturer(id: string) {
   padding: 1px 8px;
   border-radius: 20px;
   background: rgba(16, 185, 129, 0.1);
-  color: #059669;
+  color: #047857;
   border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
@@ -296,7 +296,7 @@ async function handleDeleteLecturer(id: string) {
   padding: 1px 8px;
   border-radius: 20px;
   background: rgba(245, 158, 11, 0.1);
-  color: #d97706;
+  color: #92400e;
   border: 1px solid rgba(245, 158, 11, 0.25);
 }
 </style>

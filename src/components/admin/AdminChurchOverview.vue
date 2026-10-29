@@ -203,13 +203,13 @@ function getChurchTeacherList(church: string): string[] {
 .church-stat-val {
   font-size: 1.6rem;
   font-weight: 800;
-  color: #6366f1;
+  color: #4f46e5;
   line-height: 1;
 }
 
 .church-stat-lbl {
   font-size: 0.72rem;
-  color: #64748b;
+  color: #475569;
   font-weight: 600;
   text-align: center;
 }
@@ -230,7 +230,7 @@ function getChurchTeacherList(church: string): string[] {
   font-family: inherit;
   font-size: 0.8rem;
   font-weight: 700;
-  color: #6366f1;
+  color: #4f46e5;
   cursor: pointer;
   transition: background 0.15s;
 }
@@ -259,7 +259,7 @@ function getChurchTeacherList(church: string): string[] {
 .church-detail-label {
   font-size: 0.72rem;
   font-weight: 700;
-  color: #64748b;
+  color: #475569;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 0.4rem;
@@ -280,7 +280,7 @@ function getChurchTeacherList(church: string): string[] {
 
 .chip-teacher {
   background: rgba(16, 185, 129, 0.1);
-  color: #059669;
+  color: #047857;
   border: 1px solid #a7f3d0;
 }
 
@@ -292,7 +292,7 @@ function getChurchTeacherList(church: string): string[] {
 
 .chip-empty {
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: #556377;
   font-style: italic;
 }
 
@@ -300,7 +300,7 @@ function getChurchTeacherList(church: string): string[] {
   grid-column: 1 / -1;
   text-align: center;
   padding: 3rem;
-  color: #94a3b8;
+  color: #556377;
   font-size: 2rem;
 }
 

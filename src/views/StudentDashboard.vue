@@ -920,7 +920,7 @@ const overallProgressPercent = computed(() => {
 }
 :where(body:has(.student-dashboard)) .status-pending {
   background: rgba(245, 158, 11, 0.12);
-  color: #d97706;
+  color: #92400e;
   border: 1px solid rgba(245, 158, 11, 0.3);
 }
 :where(body:has(.student-dashboard)) .status-confirmed {
@@ -930,12 +930,12 @@ const overallProgressPercent = computed(() => {
 }
 :where(body:has(.student-dashboard)) .status-completed {
   background: rgba(16, 185, 129, 0.1);
-  color: #059669;
+  color: #047857;
   border: 1px solid rgba(16, 185, 129, 0.25);
 }
 :where(body:has(.student-dashboard)) .status-cancelled {
   background: rgba(107, 114, 128, 0.1);
-  color: #6b7280;
+  color: #4b5563;
   border: 1px solid rgba(107, 114, 128, 0.25);
 }
 
@@ -959,24 +959,24 @@ const overallProgressPercent = computed(() => {
 }
 :where(body:has(.student-dashboard)) .att-invited {
   background: rgba(107, 114, 128, 0.08);
-  color: #6b7280;
+  color: #4b5563;
   border: 1px solid rgba(107, 114, 128, 0.2);
 }
 :where(body:has(.student-dashboard)) .att-attended {
   background: rgba(16, 185, 129, 0.1);
-  color: #059669;
+  color: #047857;
   border: 1px solid rgba(16, 185, 129, 0.25);
 }
 :where(body:has(.student-dashboard)) .att-absent {
   background: rgba(239, 68, 68, 0.08);
-  color: #dc2626;
+  color: #b91c1c;
   border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 :where(body:has(.student-dashboard)) .scripture-chip {
   display: inline-block;
   background: rgba(99, 102, 241, 0.08);
-  color: var(--primary);
+  color: var(--primary-hover);
   border-radius: 6px;
   padding: 1px 8px;
   font-size: 0.75rem;

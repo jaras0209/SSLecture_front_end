@@ -444,7 +444,7 @@ function handleRegister() {
   color: #f59e0b;
 }
 .text-medium {
-  color: #3b82f6;
+  color: #2563eb;
 }
 .text-strong {
   color: #10b981;
@@ -467,7 +467,7 @@ function handleRegister() {
 }
 
 .pwd-rules-list li.rule-ok {
-  color: #059669;
+  color: #047857;
 }
 
 /* Invite Code UI */
@@ -493,13 +493,13 @@ function handleRegister() {
 
 .invite-badge.valid {
   background: rgba(5, 150, 105, 0.12);
-  color: #059669;
+  color: #047857;
   border: 1px solid rgba(5, 150, 105, 0.3);
 }
 
 .invite-badge.invalid {
   background: rgba(239, 68, 68, 0.1);
-  color: #dc2626;
+  color: #b91c1c;
   border: 1px solid rgba(239, 68, 68, 0.25);
 }
 

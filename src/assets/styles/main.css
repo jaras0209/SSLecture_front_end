@@ -37,7 +37,7 @@
 .logout-btn:hover {
   background-color: #fef2f2;
   border-color: var(--danger);
-  color: var(--danger);
+  color: var(--danger-hover);
 }
 
 .modal-card {
@@ -152,7 +152,7 @@
   color: #f59e0b;
 }
 .text-medium {
-  color: #3b82f6;
+  color: #2563eb;
 }
 .text-strong {
   color: #10b981;
@@ -172,7 +172,7 @@
   color: var(--text-muted);
 }
 .pwd-rules-list li.rule-ok {
-  color: #059669;
+  color: #047857;
   font-weight: 600;
 }
 
@@ -251,15 +251,15 @@
 
 :root {
   /* Color Palette - Bright and Student Friendly */
-  --primary: #3b82f6; /* Vibrant Sky Blue */
-  --primary-hover: #2563eb;
-  --secondary: #10b981; /* Mint Green */
-  --secondary-hover: #059669;
+  --primary: #2563eb; /* Blue 600: one shade darker than before, for WCAG AA contrast */
+  --primary-hover: #1d4ed8;
+  --secondary: #047857; /* Emerald 700: white text on it meets WCAG AA */
+  --secondary-hover: #065f46;
 
   --warning: #f59e0b; /* Mango Yellow */
   --warning-hover: #d97706;
-  --danger: #ef4444; /* Coral Red */
-  --danger-hover: #dc2626;
+  --danger: #dc2626; /* Red 600: white text on it meets WCAG AA */
+  --danger-hover: #b91c1c;
 
   --info: #8b5cf6; /* Purple for lectures/lecturers */
 
@@ -269,7 +269,7 @@
   --card-border: rgba(255, 255, 255, 0.6);
   --text-primary: #1e293b; /* Slate 800 */
   --text-secondary: #475569; /* Slate 600 */
-  --text-muted: #94a3b8; /* Slate 400 */
+  --text-muted: #556377; /* between Slate 500 and 600: meets WCAG AA on the tinted panels */
 
   /* Typography */
   --font-family:
@@ -405,23 +405,23 @@ h6 {
 }
 
 .btn-secondary {
-  background: linear-gradient(135deg, var(--secondary) 0%, #059669 100%);
+  background: linear-gradient(135deg, var(--secondary) 0%, #065f46 100%);
   color: white;
 }
 
 .btn-secondary:hover {
-  background: linear-gradient(135deg, var(--secondary-hover) 0%, #047857 100%);
+  background: linear-gradient(135deg, var(--secondary-hover) 0%, #064e3b 100%);
   transform: translateY(-2px);
   box-shadow: 0 6px 15px rgba(16, 185, 129, 0.25);
 }
 
 .btn-danger {
-  background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
+  background: linear-gradient(135deg, var(--danger) 0%, #b91c1c 100%);
   color: white;
 }
 
 .btn-danger:hover {
-  background: linear-gradient(135deg, var(--danger-hover) 0%, #b91c1c 100%);
+  background: linear-gradient(135deg, var(--danger-hover) 0%, #991b1b 100%);
   transform: translateY(-2px);
   box-shadow: 0 6px 15px rgba(239, 68, 68, 0.25);
 }
