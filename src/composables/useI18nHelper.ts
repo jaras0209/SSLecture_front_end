@@ -1,7 +1,7 @@
 /**
  * useI18nHelper — centralizes dynamic i18n key lookups.
  *
- * Problem: vue-i18n v10's `t()` cannot statically infer types for dynamic
+ * Problem: vue-i18n's `t()` cannot statically infer types for dynamic
  * keys (template literals, computed strings). Scattering `(t as any)(key)`
  * throughout components makes the codebase harder to search and maintain.
  *
