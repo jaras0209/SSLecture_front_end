@@ -13,7 +13,7 @@
           <!-- Header -->
           <div v-if="title || $slots.header" class="bm-header">
             <slot name="header">
-              <h3 class="bm-title">{{ title }}</h3>
+              <h3 aria-level="2" class="bm-title">{{ title }}</h3>
             </slot>
             <button class="bm-close" :aria-label="$t('common.close')" @click="close">✕</button>
           </div>

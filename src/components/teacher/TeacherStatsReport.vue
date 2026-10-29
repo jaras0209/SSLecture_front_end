@@ -5,10 +5,14 @@
   >
     <div class="stats-report-header">
       <div>
-        <h3>{{ $t('teacher.stats.panelTitle') }}</h3>
+        <h3 aria-level="2">{{ $t('teacher.stats.panelTitle') }}</h3>
         <p class="section-desc text-sm text-muted mt-1">{{ $t('teacher.stats.panelDesc') }}</p>
       </div>
-      <select v-model="statsYear" class="form-input select-input stats-year-select">
+      <select
+        v-model="statsYear"
+        class="form-input select-input stats-year-select"
+        :aria-label="$t('a11y.statsYear')"
+      >
         <option v-for="y in availableYears" :key="y" :value="y">
           {{ $t('teacher.stats.yearSuffix', { n: y }) }}
         </option>

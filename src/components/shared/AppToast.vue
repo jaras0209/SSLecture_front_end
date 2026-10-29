@@ -11,8 +11,13 @@
 
     <!-- Confirm Dialog -->
     <div v-if="confirmState.visible" class="confirm-overlay" @click.self="resolve(false)">
-      <div class="confirm-dialog glass-panel">
-        <p class="confirm-message">{{ confirmState.message }}</p>
+      <div
+        class="confirm-dialog glass-panel"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="confirm-message"
+      >
+        <p id="confirm-message" class="confirm-message">{{ confirmState.message }}</p>
         <div class="confirm-actions">
           <button class="btn btn-outline btn-sm" @click="resolve(false)">
             {{ $t('common.cancel') }}

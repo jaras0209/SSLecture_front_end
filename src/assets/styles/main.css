@@ -318,6 +318,12 @@ h6 {
   line-height: 1.3;
 }
 
+/* Each page's title is its <h1> (for screen readers and the document outline) but
+   keeps the size it had as an <h2> */
+.page-title {
+  font-size: 1.5em;
+}
+
 /* Visually hidden, still read by screen readers (e.g. table captions) */
 .sr-only {
   position: absolute;
@@ -701,7 +707,8 @@ h6 {
   h1 {
     font-size: 1.5rem;
   }
-  h2 {
+  h2,
+  .page-title {
     font-size: 1.25rem;
   }
   h3 {
@@ -749,7 +756,8 @@ h6 {
   h1 {
     font-size: 1.3rem;
   }
-  h2 {
+  h2,
+  .page-title {
     font-size: 1.15rem;
   }
 

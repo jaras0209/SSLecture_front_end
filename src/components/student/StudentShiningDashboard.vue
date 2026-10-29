@@ -3,7 +3,7 @@
   <div class="shining-dashboard-body no-print">
     <!-- Toolbar with export -->
     <div class="shining-toolbar mb-4">
-      <h3>{{ $t('student.shining.pageTitle') }}</h3>
+      <h3 aria-level="2">{{ $t('student.shining.pageTitle') }}</h3>
       <button class="btn btn-primary btn-sm" @click="triggerPrint">
         {{ $t('student.shining.exportBtn') }}
       </button>
@@ -14,7 +14,9 @@
       <div class="shining-row-cols">
         <!-- Basic Info Form -->
         <div class="glass-panel shining-card-basic">
-          <h4 class="shining-card-title">{{ $t('student.shining.basicInfoTitle') }}</h4>
+          <h4 aria-level="3" class="shining-card-title">
+            {{ $t('student.shining.basicInfoTitle') }}
+          </h4>
           <div class="basic-info-fields mt-4">
             <div class="form-group-inline">
               <span class="info-dot">✦</span>
@@ -28,8 +30,15 @@
             </div>
             <div class="form-group-inline">
               <span class="info-dot">✦</span>
-              <label class="info-lbl">{{ $t('student.shining.fieldBirthday') }}</label>
-              <input v-model="basicInfo.birthday" type="date" class="form-input-clean" />
+              <label for="shining-birthday" class="info-lbl">{{
+                $t('student.shining.fieldBirthday')
+              }}</label>
+              <input
+                id="shining-birthday"
+                v-model="basicInfo.birthday"
+                type="date"
+                class="form-input-clean"
+              />
             </div>
             <div class="form-group-inline">
               <span class="info-dot">✦</span>
@@ -62,7 +71,7 @@
 
         <!-- Phase 1 Checklist -->
         <div class="glass-panel checklist-card">
-          <h4 class="shining-card-title">{{ $t('student.shining.phase1Title') }}</h4>
+          <h4 aria-level="3" class="shining-card-title">{{ $t('student.shining.phase1Title') }}</h4>
           <div class="checklist-items mt-4">
             <label v-for="(label, key) in phase1Labels" :key="key" class="check-item-row">
               <div class="check-box-wrapper">
@@ -83,7 +92,7 @@
       <div class="shining-row-cols mt-4">
         <!-- Phase 2 Checklist -->
         <div class="glass-panel checklist-card">
-          <h4 class="shining-card-title">{{ $t('student.shining.phase2Title') }}</h4>
+          <h4 aria-level="3" class="shining-card-title">{{ $t('student.shining.phase2Title') }}</h4>
           <div class="checklist-items mt-4">
             <template v-for="(label, key) in phase2Labels" :key="key">
               <label
@@ -112,7 +121,9 @@
 
         <!-- Advanced Challenges Checklist -->
         <div class="glass-panel checklist-card">
-          <h4 class="shining-card-title">{{ $t('student.shining.advancedTitle') }}</h4>
+          <h4 aria-level="3" class="shining-card-title">
+            {{ $t('student.shining.advancedTitle') }}
+          </h4>
           <div class="checklist-items mt-4">
             <label v-for="(label, key) in advancedLabels" :key="key" class="check-item-row">
               <div class="check-box-wrapper">
@@ -144,7 +155,9 @@
         <!-- Character Lectures Table -->
         <div class="glass-panel table-card">
           <div class="table-card-header">
-            <h4 class="shining-card-title">{{ $t('student.shining.characterTitle') }}</h4>
+            <h4 aria-level="3" class="shining-card-title">
+              {{ $t('student.shining.characterTitle') }}
+            </h4>
             <p class="table-sub-lbl">{{ $t('student.shining.characterSubtitle') }}</p>
           </div>
           <table class="shining-lecture-table mt-4">
@@ -182,7 +195,9 @@
         <!-- Coming of Age Lectures Table -->
         <div class="glass-panel table-card mt-4">
           <div class="table-card-header">
-            <h4 class="shining-card-title">{{ $t('student.shining.comingOfAgeTitle') }}</h4>
+            <h4 aria-level="3" class="shining-card-title">
+              {{ $t('student.shining.comingOfAgeTitle') }}
+            </h4>
             <p class="table-sub-lbl">{{ $t('student.shining.comingOfAgeSubtitle') }}</p>
           </div>
           <table class="shining-lecture-table mt-4">
@@ -220,7 +235,9 @@
 
       <!-- Signature boxes preview in UI -->
       <div class="glass-panel signatures-card mt-4">
-        <h4 class="shining-card-title">{{ $t('student.shining.signaturesTitle') }}</h4>
+        <h4 aria-level="3" class="shining-card-title">
+          {{ $t('student.shining.signaturesTitle') }}
+        </h4>
         <div class="signature-box-preview-container mt-4">
           <div class="sig-box-preview">
             <span class="sig-title-p">{{ $t('student.shining.sigTeacher') }}</span>
@@ -254,7 +271,9 @@
         <div class="print-flex-row mt-4">
           <!-- Basic Info Box -->
           <div class="print-box print-w-45">
-            <h4 class="print-box-title">{{ $t('student.shining.printBasicTitle') }}</h4>
+            <h4 aria-level="3" class="print-box-title">
+              {{ $t('student.shining.printBasicTitle') }}
+            </h4>
             <div class="print-box-content">
               <p class="print-info-line">
                 <span>✦ {{ $t('student.shining.fieldName') }}</span
@@ -277,7 +296,9 @@
 
           <!-- Phase 1 Checklist Box -->
           <div class="print-box print-w-50">
-            <h4 class="print-box-title">{{ $t('student.shining.printPhase1Title') }}</h4>
+            <h4 aria-level="3" class="print-box-title">
+              {{ $t('student.shining.printPhase1Title') }}
+            </h4>
             <div class="print-box-content print-checklist">
               <div v-for="(label, key) in phase1Labels" :key="key" class="print-check-line">
                 <span
@@ -296,7 +317,9 @@
         <div class="print-flex-row mt-4">
           <!-- Phase 2 Checklist Box -->
           <div class="print-box print-w-48">
-            <h4 class="print-box-title">{{ $t('student.shining.printPhase2Title') }}</h4>
+            <h4 aria-level="3" class="print-box-title">
+              {{ $t('student.shining.printPhase2Title') }}
+            </h4>
             <div class="print-box-content print-checklist">
               <template v-for="(label, key) in phase2Labels" :key="key">
                 <div class="print-check-line">
@@ -314,7 +337,9 @@
 
           <!-- Advanced Challenges Box -->
           <div class="print-box print-w-48">
-            <h4 class="print-box-title">{{ $t('student.shining.printAdvancedTitle') }}</h4>
+            <h4 aria-level="3" class="print-box-title">
+              {{ $t('student.shining.printAdvancedTitle') }}
+            </h4>
             <div class="print-box-content print-checklist">
               <div v-for="(label, key) in advancedLabels" :key="key" class="print-check-line">
                 <span
@@ -334,7 +359,9 @@
 
         <!-- Table 1: Character -->
         <div class="print-table-box mt-4">
-          <h4 class="print-box-title">{{ $t('student.shining.printCharacterTitle') }}</h4>
+          <h4 aria-level="3" class="print-box-title">
+            {{ $t('student.shining.printCharacterTitle') }}
+          </h4>
           <p class="print-box-subtitle">{{ $t('student.shining.characterSubtitle') }}</p>
           <table class="print-table">
             <thead>
@@ -356,7 +383,9 @@
 
         <!-- Table 2: Coming of Age -->
         <div class="print-table-box mt-4">
-          <h4 class="print-box-title">{{ $t('student.shining.printComingOfAgeTitle') }}</h4>
+          <h4 aria-level="3" class="print-box-title">
+            {{ $t('student.shining.printComingOfAgeTitle') }}
+          </h4>
           <p class="print-box-subtitle">{{ $t('student.shining.comingOfAgeSubtitle') }}</p>
           <table class="print-table">
             <thead>
@@ -378,7 +407,9 @@
 
         <!-- Bottom Signatures row -->
         <div class="print-signatures-box mt-4">
-          <h4 class="print-box-title">{{ $t('student.shining.printSignaturesTitle') }}</h4>
+          <h4 aria-level="3" class="print-box-title">
+            {{ $t('student.shining.printSignaturesTitle') }}
+          </h4>
           <div class="print-signatures-row mt-2">
             <div class="print-sig-col">
               <span class="print-sig-lbl">{{ $t('student.shining.printSigTeacher') }}</span>

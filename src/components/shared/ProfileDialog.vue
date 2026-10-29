@@ -11,7 +11,7 @@
         >
           <!-- ── Header ── -->
           <div class="pd-header">
-            <h3 class="pd-title">⚙️ {{ $t('profile.title') }}</h3>
+            <h3 aria-level="2" class="pd-title">⚙️ {{ $t('profile.title') }}</h3>
             <button class="pd-close" :aria-label="$t('common.close')" @click="close">✕</button>
           </div>
 
@@ -38,7 +38,7 @@
                   :title="style.label"
                   @click="applyPresetStyle(style.id)"
                 >
-                  <img :src="style.previewUrl" :alt="style.label" />
+                  <img :src="style.previewUrl" alt="" />
                   <span>{{ style.label }}</span>
                 </button>
               </div>

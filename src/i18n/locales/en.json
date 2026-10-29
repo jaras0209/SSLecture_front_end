@@ -462,7 +462,6 @@
       "studentNotes": "📖 Student Notes",
       "feedbackSent": "Feedback sent to {username}: {msg}"
     },
-
     "settings": {
       "churchSwitchTitle": "⛪ Church Switch",
       "churchSwitchDesc": "As SS Central, you can switch here to view themes and lecturers for each church.",
@@ -793,5 +792,14 @@
       "parse": "The server returned an unexpected response.",
       "http": "Server error (HTTP {status})"
     }
+  },
+  "a11y": {
+    "roleFor": "Role for {username}",
+    "restrictStudentFor": "Restrict /student for {username}",
+    "restrictTeacherFor": "Restrict /teacher for {username}",
+    "statsYear": "Statistics year",
+    "caretakerFor": "{role} for {student}",
+    "lectureDateFor": "Date for {theme}",
+    "tableScroll": "{title} (scrolls sideways)"
   }
 }

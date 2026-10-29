@@ -2,12 +2,14 @@
   <div class="dashboard-body no-print">
     <section class="glass-panel student-bookings-panel">
       <div class="panel-header-row">
-        <h3 class="section-title">{{ $t('student.course.bookingsTitle') }}</h3>
+        <h3 aria-level="2" class="section-title">{{ $t('student.course.bookingsTitle') }}</h3>
       </div>
 
       <!-- Upcoming -->
       <div class="booking-section mt-4">
-        <h4 class="booking-section-title">{{ $t('student.course.upcomingTitle') }}</h4>
+        <h4 aria-level="3" class="booking-section-title">
+          {{ $t('student.course.upcomingTitle') }}
+        </h4>
         <div class="booking-list">
           <div
             v-for="item in studentUpcomingSessions"
@@ -86,7 +88,7 @@
 
       <!-- History -->
       <div class="booking-section mt-5">
-        <h4 class="booking-section-title">📁 {{ $t('student.course.noPast') }}</h4>
+        <h4 aria-level="3" class="booking-section-title">📁 {{ $t('student.course.noPast') }}</h4>
         <div class="booking-list">
           <div
             v-for="item in studentPastSessions"

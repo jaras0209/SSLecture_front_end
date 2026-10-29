@@ -1,13 +1,18 @@
 <template>
   <section class="admin-main glass-panel">
     <div class="main-header">
-      <h3>👥 {{ $t('admin.userList.title') }}</h3>
+      <h3 aria-level="2">👥 {{ $t('admin.userList.title') }}</h3>
       <span class="user-count-badge">{{
         $t('admin.userList.count', { n: usersList.length })
       }}</span>
     </div>
 
-    <div class="table-container mt-4">
+    <div
+      class="table-container mt-4"
+      tabindex="0"
+      role="region"
+      :aria-label="$t('a11y.tableScroll', { title: $t('admin.userList.tableCaption') })"
+    >
       <table class="admin-table">
         <caption class="sr-only">
           {{
@@ -42,6 +47,7 @@
               <select
                 v-model="user.role"
                 class="form-input table-select-input"
+                :aria-label="$t('a11y.roleFor', { username: user.username })"
                 :disabled="user.username === authStore.currentUser?.username"
                 @change="updateUserRole(user.username, user.role)"
               >
@@ -58,6 +64,7 @@
                 <input
                   type="checkbox"
                   :checked="coursesStore.isPageRestricted(user.username, '/student')"
+                  :aria-label="$t('a11y.restrictStudentFor', { username: user.username })"
                   :disabled="user.username === authStore.currentUser?.username"
                   @change="toggleRestriction(user.username, '/student')"
                 />
@@ -70,6 +77,7 @@
                 <input
                   type="checkbox"
                   :checked="coursesStore.isPageRestricted(user.username, '/teacher')"
+                  :aria-label="$t('a11y.restrictTeacherFor', { username: user.username })"
                   :disabled="user.username === authStore.currentUser?.username"
                   @change="toggleRestriction(user.username, '/teacher')"
                 />

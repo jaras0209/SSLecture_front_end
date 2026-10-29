@@ -1,6 +1,6 @@
 <template>
   <section class="admin-sidebar glass-panel">
-    <h3>➕ {{ $t('admin.createUser.title') }}</h3>
+    <h3 aria-level="2">➕ {{ $t('admin.createUser.title') }}</h3>
     <p class="section-desc mb-4">{{ $t('admin.createUser.desc') }}</p>
 
     <form class="create-form" @submit.prevent="createUser">

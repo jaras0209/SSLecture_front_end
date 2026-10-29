@@ -1,7 +1,7 @@
 <template>
   <section class="church-overview-panel glass-panel mt-4">
     <div class="main-header">
-      <h3>{{ $t('admin.churchOverview.title') }}</h3>
+      <h3 aria-level="2">{{ $t('admin.churchOverview.title') }}</h3>
       <span class="user-count-badge">{{
         $t('admin.churchOverview.count', { n: churchSummaries.length })
       }}</span>
@@ -18,7 +18,7 @@
         <div class="church-card-header">
           <div class="church-card-icon">⛪</div>
           <div class="church-card-title-block">
-            <h4 class="church-card-name">{{ summary.church }}</h4>
+            <h4 aria-level="3" class="church-card-name">{{ summary.church }}</h4>
           </div>
         </div>
 

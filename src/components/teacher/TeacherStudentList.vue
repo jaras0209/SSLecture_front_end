@@ -19,6 +19,7 @@
       </div>
       <div v-else class="tab-selectors-parent-title">
         <h3
+          aria-level="2"
           style="
             margin: 0;
             font-size: 1.1rem;
@@ -40,7 +41,12 @@
       />
     </div>
 
-    <div class="table-container mt-4">
+    <div
+      class="table-container mt-4"
+      tabindex="0"
+      role="region"
+      :aria-label="$t('a11y.tableScroll', { title: $t('teacher.studentList.tableCaption') })"
+    >
       <table class="students-table">
         <caption class="sr-only">
           {{

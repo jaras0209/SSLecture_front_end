@@ -2,8 +2,14 @@
   <Teleport to="body">
     <Transition name="modal-fade">
       <div v-if="modelValue" class="modal-overlay" @click.self="close">
-        <div class="glass-panel modal-card" style="max-width: 480px; width: 92%; padding: 1.75rem">
-          <h3>{{ $t('student.course.feedbackTitle') }}</h3>
+        <div
+          class="glass-panel modal-card"
+          style="max-width: 480px; width: 92%; padding: 1.75rem"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="feedback-modal-title"
+        >
+          <h3 id="feedback-modal-title" aria-level="2">{{ $t('student.course.feedbackTitle') }}</h3>
           <p v-if="session" class="text-muted text-sm mt-1">
             {{ session.courseTitle }} ／ {{ session.lecturerTitle }} {{ session.lecturerName }} ／
             {{ formatBookingTime(session) }}

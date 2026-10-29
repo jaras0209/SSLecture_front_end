@@ -3,7 +3,7 @@
     <div class="pastor-overview-grid">
       <!-- Church Stats Header -->
       <section class="glass-panel pastor-stats-panel">
-        <h3>
+        <h3 aria-level="2">
           {{ $t('teacher.pastor.churchOverviewTitle', { church: authStore.currentUser?.church }) }}
         </h3>
         <div class="pastor-stats-grid mt-4">
@@ -24,11 +24,16 @@
 
       <!-- Caretaker Assignments Matching Panel -->
       <section class="glass-panel pastor-match-panel">
-        <h4 class="mb-4">{{ $t('teacher.pastor.matchPanelTitle') }}</h4>
+        <h4 aria-level="3" class="mb-4">{{ $t('teacher.pastor.matchPanelTitle') }}</h4>
         <p class="section-desc mb-4 text-sm text-muted">
           {{ $t('teacher.pastor.matchPanelDesc') }}
         </p>
-        <div class="table-container">
+        <div
+          class="table-container"
+          tabindex="0"
+          role="region"
+          :aria-label="$t('a11y.tableScroll', { title: $t('teacher.pastor.matchTableCaption') })"
+        >
           <table class="students-table match-table">
             <caption class="sr-only">
               {{
@@ -71,6 +76,12 @@
                   <select
                     :value="coursesStore.getStudentCaretaker(stdUsername, 'teacher')"
                     class="form-input text-sm"
+                    :aria-label="
+                      $t('a11y.caretakerFor', {
+                        student: stdUsername,
+                        role: $t('roleLabel.teacher')
+                      })
+                    "
                     @change="
                       (e) =>
                         onSetCaretaker(
@@ -95,6 +106,12 @@
                   <select
                     :value="coursesStore.getStudentCaretaker(stdUsername, 'parent')"
                     class="form-input text-sm"
+                    :aria-label="
+                      $t('a11y.caretakerFor', {
+                        student: stdUsername,
+                        role: $t('roleLabel.parent')
+                      })
+                    "
                     @change="
                       (e) =>
                         onSetCaretaker(stdUsername, 'parent', (e.target as HTMLSelectElement).value)
@@ -124,8 +141,13 @@
 
       <!-- Teacher Management Overview Table -->
       <section class="glass-panel pastor-teacher-panel">
-        <h4 class="mb-4">{{ $t('teacher.pastor.teacherOverviewTitle') }}</h4>
-        <div class="table-container">
+        <h4 aria-level="3" class="mb-4">{{ $t('teacher.pastor.teacherOverviewTitle') }}</h4>
+        <div
+          class="table-container"
+          tabindex="0"
+          role="region"
+          :aria-label="$t('a11y.tableScroll', { title: $t('teacher.pastor.teacherTableCaption') })"
+        >
           <table class="students-table">
             <caption class="sr-only">
               {{
@@ -200,8 +222,13 @@
 
       <!-- Lecturer Stats -->
       <section class="glass-panel pastor-lecturer-panel">
-        <h4 class="mb-4">{{ $t('teacher.pastor.lecturerStatsTitle') }}</h4>
-        <div class="table-container">
+        <h4 aria-level="3" class="mb-4">{{ $t('teacher.pastor.lecturerStatsTitle') }}</h4>
+        <div
+          class="table-container"
+          tabindex="0"
+          role="region"
+          :aria-label="$t('a11y.tableScroll', { title: $t('teacher.pastor.lecturerTableCaption') })"
+        >
           <table class="students-table">
             <caption class="sr-only">
               {{

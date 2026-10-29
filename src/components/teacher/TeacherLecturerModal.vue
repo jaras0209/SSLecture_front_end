@@ -8,7 +8,7 @@
       :aria-label="lecturer ? $t('teacher.lecturer.editTitle') : $t('teacher.lecturer.addTitle')"
     >
       <div class="glass-panel modal-card lecturer-modal-card">
-        <h3>
+        <h3 aria-level="2">
           {{
             lecturer
               ? '✏️ ' + $t('teacher.lecturer.editTitle')
@@ -38,7 +38,9 @@
 
         <!-- Link Mode: pick from teachers in church -->
         <div v-if="lecturerForm.linkMode === 'link'" class="form-group mt-4">
-          <label class="form-label">{{ $t('teacher.lecturer.selectAccount') }}</label>
+          <label for="select-linked-teacher" class="form-label">{{
+            $t('teacher.lecturer.selectAccount')
+          }}</label>
           <select
             id="select-linked-teacher"
             v-model="lecturerForm.linkedUsername"
@@ -82,7 +84,9 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">{{ $t('teacher.lecturer.titleLabel') }}</label>
+          <label for="select-lecturer-title" class="form-label">{{
+            $t('teacher.lecturer.titleLabel')
+          }}</label>
           <select
             id="select-lecturer-title"
             v-model="lecturerForm.title"

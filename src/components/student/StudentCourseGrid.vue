@@ -2,7 +2,7 @@
   <!-- Course Section -->
   <section class="courses-section">
     <div class="section-title-row">
-      <h3>📖 {{ $t('profile.student.courseTitle') }}</h3>
+      <h3 aria-level="2">📖 {{ $t('profile.student.courseTitle') }}</h3>
       <div class="filter-tabs">
         <button
           v-for="tab in filterTabs"
@@ -40,7 +40,7 @@
           >
         </div>
         <div class="card-content">
-          <h4 class="course-title">{{ course.title }}</h4>
+          <h4 aria-level="3" class="course-title">{{ course.title }}</h4>
           <p class="course-desc">{{ course.description }}</p>
 
           <!-- Status info on card -->

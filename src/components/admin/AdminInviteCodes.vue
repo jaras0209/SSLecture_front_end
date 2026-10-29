@@ -1,7 +1,7 @@
 <template>
   <section class="admin-section glass-panel mt-6">
     <div class="section-header">
-      <h3>{{ $t('admin.inviteCode.title') }}</h3>
+      <h3 aria-level="2">{{ $t('admin.inviteCode.title') }}</h3>
       <p class="section-desc">{{ $t('admin.inviteCode.desc') }}</p>
     </div>
 
@@ -9,7 +9,9 @@
     <div class="invite-generate-bar glass-card">
       <div class="invite-generate-fields">
         <div class="form-group">
-          <label class="form-label">{{ $t('admin.inviteCode.fieldRole') }}</label>
+          <label for="invite-role-select" class="form-label">{{
+            $t('admin.inviteCode.fieldRole')
+          }}</label>
           <select id="invite-role-select" v-model="inviteForm.role" class="form-input select-input">
             <option value="student">{{ $t('admin.inviteCode.roleStudent') }}</option>
             <option value="teacher">{{ $t('admin.inviteCode.roleTeacher') }}</option>
@@ -19,7 +21,9 @@
           </select>
         </div>
         <div v-if="inviteForm.role !== 'admin'" class="form-group">
-          <label class="form-label">{{ $t('admin.inviteCode.fieldChurch') }}</label>
+          <label for="invite-church-select" class="form-label">{{
+            $t('admin.inviteCode.fieldChurch')
+          }}</label>
           <select
             id="invite-church-select"
             v-model="inviteForm.church"
@@ -29,7 +33,9 @@
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">{{ $t('admin.inviteCode.fieldExpiry') }}</label>
+          <label for="invite-expiry-select" class="form-label">{{
+            $t('admin.inviteCode.fieldExpiry')
+          }}</label>
           <select
             id="invite-expiry-select"
             v-model="inviteForm.expiryDays"

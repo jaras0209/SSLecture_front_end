@@ -2,13 +2,18 @@
   <Teleport to="body">
     <Transition name="notes-dialog-fade">
       <div v-if="modelValue && student" class="notes-dialog-overlay" @click.self="close">
-        <div class="notes-dialog-card">
+        <div
+          class="notes-dialog-card"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="notes-dialog-title"
+        >
           <!-- Dialog Header -->
           <div class="notes-dialog-header">
             <div class="notes-dialog-profile">
               <img :src="avatarSrc(student.avatarUrl)" class="avatar-md" alt="Avatar" />
               <div>
-                <h3>
+                <h3 id="notes-dialog-title" aria-level="2">
                   {{ student.realName || student.username }}
                   <span v-if="student.realName" class="student-id-tag-sm"
                     >@{{ student.username }}</span
@@ -81,7 +86,7 @@
               <div class="notes-record-header">
                 <div class="notes-record-title-row">
                   <span class="notes-record-index">📖</span>
-                  <h5 class="notes-record-title">{{ record.courseTitle }}</h5>
+                  <h5 aria-level="3" class="notes-record-title">{{ record.courseTitle }}</h5>
                 </div>
                 <span
                   :class="[

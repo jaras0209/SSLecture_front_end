@@ -1,9 +1,14 @@
 <template>
   <section class="admin-stats-overview glass-panel mt-4">
     <div class="main-header">
-      <h3>{{ $t('admin.statsOverview.title') }}</h3>
+      <h3 aria-level="2">{{ $t('admin.statsOverview.title') }}</h3>
       <div class="stats-header-controls">
-        <select v-model="adminStatsYear" class="form-input select-input" style="min-width: 120px">
+        <select
+          v-model="adminStatsYear"
+          class="form-input select-input"
+          :aria-label="$t('a11y.statsYear')"
+          style="min-width: 120px"
+        >
           <option v-for="y in adminAvailableYears" :key="y" :value="y">
             {{ $t('admin.statsOverview.yearSuffix', { n: y }) }}
           </option>
@@ -14,7 +19,12 @@
       </div>
     </div>
 
-    <div class="table-container mt-4">
+    <div
+      class="table-container mt-4"
+      tabindex="0"
+      role="region"
+      :aria-label="$t('a11y.tableScroll', { title: $t('admin.statsOverview.tableCaption') })"
+    >
       <table class="admin-table stats-table">
         <caption class="sr-only">
           {{

@@ -16,7 +16,7 @@
           <span class="admin-role-badge">👑</span>
         </div>
         <div>
-          <h2>{{ $t('admin.header.title') }}</h2>
+          <h1 class="page-title">{{ $t('admin.header.title') }}</h1>
           <p>{{ $t('admin.header.desc', { name: adminDisplayName }) }}</p>
           <p
             v-if="authStore.currentUser?.lastLoginAt"

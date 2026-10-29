@@ -2,7 +2,7 @@
   <!-- Course Notes Form Section -->
   <section class="player-section">
     <div v-if="selectedCourse" class="glass-panel sticky-panel">
-      <h3 class="panel-header">📝 {{ $t('profile.student.recordsTitle') }}</h3>
+      <h3 aria-level="2" class="panel-header">📝 {{ $t('profile.student.recordsTitle') }}</h3>
 
       <!-- Course banner -->
       <div
@@ -15,7 +15,10 @@
           boxShadow: 'var(--shadow-sm)'
         }"
       >
-        <h4 style="color: white; font-size: 1.2rem; margin-bottom: 0.25rem; font-weight: 700">
+        <h4
+          aria-level="3"
+          style="color: white; font-size: 1.2rem; margin-bottom: 0.25rem; font-weight: 700"
+        >
           {{ selectedCourse.title }}
         </h4>
         <p style="color: rgba(255, 255, 255, 0.85); font-size: 0.9rem; margin-bottom: 0">
@@ -27,7 +30,7 @@
       <template v-if="currentRecord?.completed">
         <!-- Session history timeline -->
         <div class="session-history mt-4">
-          <h4 class="section-sub-title">
+          <h4 aria-level="3" class="section-sub-title">
             📋 {{ $t('profile.student.recordsTitle') }}（{{
               $t('student.course.sessionCount', { n: currentRecord?.sessions.length ?? 0 })
             }}）
@@ -79,10 +82,14 @@
                 <template v-else>
                   <div class="edit-session-form mt-2">
                     <div class="form-group mb-2">
-                      <label class="form-label form-label-sm">{{
+                      <label for="edit-session-lecturer" class="form-label form-label-sm">{{
                         $t('student.course.editLecturer')
                       }}</label>
-                      <select v-model="editSessionDraft.lecturer" class="form-input form-input-sm">
+                      <select
+                        id="edit-session-lecturer"
+                        v-model="editSessionDraft.lecturer"
+                        class="form-input form-input-sm"
+                      >
                         <option value="">{{ $t('student.course.selectLecturer') }}</option>
                         <option
                           v-for="lec in availableLecturers"
@@ -94,10 +101,11 @@
                       </select>
                     </div>
                     <div class="form-group mb-2">
-                      <label class="form-label form-label-sm"
+                      <label for="edit-session-time" class="form-label form-label-sm"
                         >{{ $t('student.course.listenedTime') }}：</label
                       >
                       <input
+                        id="edit-session-time"
                         v-model="editSessionDraft.listenedAt"
                         type="datetime-local"
                         class="form-input form-input-sm datetime-input"
@@ -246,7 +254,7 @@
 
     <div v-else class="glass-panel sticky-panel empty-player-state text-center">
       <div class="empty-emoji">⛪✨</div>
-      <h4>{{ $t('student.course.noUpcoming') }}</h4>
+      <h4 aria-level="3">{{ $t('student.course.noUpcoming') }}</h4>
       <p class="desc">{{ $t('profile.student.courseTitle') }}</p>
     </div>
   </section>

@@ -2,10 +2,11 @@
   <div class="dashboard-body no-print">
     <!-- Admin Church Selector -->
     <div v-if="isAdmin" class="glass-panel p-6 mb-4" style="padding: 1.75rem">
-      <h4 class="mb-2">{{ $t('teacher.settings.churchSwitchTitle') }}</h4>
+      <h4 aria-level="3" class="mb-2">{{ $t('teacher.settings.churchSwitchTitle') }}</h4>
       <select
         v-model="adminSettingsChurch"
         class="form-input select-input"
+        :aria-label="$t('teacher.settings.churchSwitchTitle')"
         style="max-width: 300px"
       >
         <option v-for="c in CHURCHES" :key="c" :value="c">{{ c }}</option>
@@ -15,11 +16,11 @@
 
     <!-- Section 1: Themes Management -->
     <section class="glass-panel p-6" style="padding: 1.75rem">
-      <h3 class="mb-4">{{ $t('teacher.settings.themeEditorTitle') }}</h3>
+      <h3 aria-level="2" class="mb-4">{{ $t('teacher.settings.themeEditorTitle') }}</h3>
 
       <!-- Character Themes -->
       <div class="theme-manage-block mb-4 pt-4">
-        <h5>{{ $t('teacher.settings.characterThemesTitle') }}</h5>
+        <h5 aria-level="3">{{ $t('teacher.settings.characterThemesTitle') }}</h5>
         <ul class="theme-list mt-2">
           <li v-for="theme in characterThemes" :key="theme" class="theme-item">
             <span>✦ {{ theme }}</span>
@@ -56,7 +57,7 @@
 
       <!-- Coming of Age Themes -->
       <div class="theme-manage-block mb-4 pt-4 border-t">
-        <h5>{{ $t('teacher.settings.comingOfAgeThemesTitle') }}</h5>
+        <h5 aria-level="3">{{ $t('teacher.settings.comingOfAgeThemesTitle') }}</h5>
         <ul class="theme-list mt-2">
           <li v-for="theme in comingOfAgeThemes" :key="theme" class="theme-item">
             <span>✦ {{ theme }}</span>
@@ -95,7 +96,7 @@
     <!-- Section 2: Lecturers Management -->
     <section class="glass-panel p-6" style="padding: 1.75rem">
       <div class="flex justify-between align-center mb-4">
-        <h3 class="mb-0">{{ $t('teacher.settings.lecturerDbTitle') }}</h3>
+        <h3 aria-level="2" class="mb-0">{{ $t('teacher.settings.lecturerDbTitle') }}</h3>
         <button class="btn btn-primary btn-sm" @click="emit('open-add-lecturer')">
           {{ $t('teacher.settings.addLecturer') }}
         </button>
@@ -105,7 +106,7 @@
         <div v-for="lec in filteredLecturers" :key="lec.id" class="lecturer-card glass-card">
           <div class="flex justify-between align-center">
             <div>
-              <h5 style="margin: 0">
+              <h5 aria-level="3" style="margin: 0">
                 <strong>{{ lec.name }}</strong>
                 <span class="badge badge-teacher ml-2">{{ lec.title }}</span>
               </h5>

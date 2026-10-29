@@ -17,13 +17,13 @@
             <span class="teacher-role-badge">{{ teacherRoleBadge }}</span>
           </div>
           <div>
-            <h2 v-if="authStore.currentUser?.role === 'pastor'">
+            <h1 v-if="authStore.currentUser?.role === 'pastor'" class="page-title">
               {{ $t('teacher.header.pastorTitle') }}
-            </h2>
-            <h2 v-else-if="authStore.currentUser?.role === 'admin'">
+            </h1>
+            <h1 v-else-if="authStore.currentUser?.role === 'admin'" class="page-title">
               {{ $t('teacher.header.adminTitle') }}
-            </h2>
-            <h2 v-else>{{ $t('teacher.header.teacherTitle') }}</h2>
+            </h1>
+            <h1 v-else class="page-title">{{ $t('teacher.header.teacherTitle') }}</h1>
             <p>{{ $t('teacher.header.welcome', { name: teacherDisplayName }) }}</p>
             <p v-if="authStore.currentUser?.lastLoginAt" class="last-login-hint-sm">
               🕐

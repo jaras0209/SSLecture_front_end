@@ -462,7 +462,6 @@
       "studentNotes": "📖 學員心得記錄",
       "feedbackSent": "已傳送回饋給 {username}：{msg}"
     },
-
     "settings": {
       "churchSwitchTitle": "⛪ 管理教會切換",
       "churchSwitchDesc": "身為 SS 中央，您可以在此切換查看各個獨立教會的專題大綱與講師清單。",
@@ -793,5 +792,14 @@
       "parse": "伺服器回應格式錯誤",
       "http": "伺服器錯誤（HTTP {status}）"
     }
+  },
+  "a11y": {
+    "roleFor": "{username} 的角色",
+    "restrictStudentFor": "限制 {username} 瀏覽 /student",
+    "restrictTeacherFor": "限制 {username} 瀏覽 /teacher",
+    "statsYear": "統計年度",
+    "caretakerFor": "{student} 的{role}",
+    "lectureDateFor": "{theme} 上課日期",
+    "tableScroll": "{title}（可左右捲動）"
   }
 }

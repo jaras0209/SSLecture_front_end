@@ -1,9 +1,16 @@
 <template>
   <!-- Forgot Password Modal -->
   <div v-if="open" class="modal-overlay" @click.self="open = false">
-    <div class="glass-panel modal-card text-center">
+    <div
+      class="glass-panel modal-card text-center"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="forgot-modal-title"
+    >
       <div class="forgot-modal-icon">🔑</div>
-      <h3 class="modal-title">{{ $t('auth.forgotModal.title') }}</h3>
+      <h3 id="forgot-modal-title" aria-level="2" class="modal-title">
+        {{ $t('auth.forgotModal.title') }}
+      </h3>
       <p class="modal-desc">
         {{ $t('auth.forgotModal.desc1') }}
         <br />

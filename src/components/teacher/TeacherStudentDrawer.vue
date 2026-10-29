@@ -5,7 +5,7 @@
       <div class="student-profile">
         <img :src="avatarSrc(student.avatarUrl)" class="avatar-md" alt="Avatar" />
         <div>
-          <h4>
+          <h4 aria-level="2">
             {{ student.realName || student.username }}
             <span v-if="student.realName" class="student-id-tag-sm">@{{ student.username }}</span>
           </h4>
@@ -32,7 +32,9 @@
       <!-- Shining Audit Panel -->
       <div v-if="activeDrawerTab === 'shining'" class="shining-audit-panel">
         <div class="flex justify-between align-center mb-4">
-          <h5 class="section-title mb-0">{{ $t('teacher.drawer.shiningAuditBtn') }}</h5>
+          <h5 aria-level="3" class="section-title mb-0">
+            {{ $t('teacher.drawer.shiningAuditBtn') }}
+          </h5>
           <button class="btn btn-primary btn-sm" @click="triggerPrint(student.username)">
             {{ $t('teacher.drawer.printBtn') }}
           </button>
@@ -40,7 +42,7 @@
 
         <!-- Read Only Basic Info -->
         <div class="basic-info-readonly-card mb-4">
-          <h6>📋 {{ $t('teacher.studentList.studentInfo') }}</h6>
+          <h6 aria-level="4">📋 {{ $t('teacher.studentList.studentInfo') }}</h6>
           <div class="readonly-grid mt-2">
             <div>
               <span>{{ $t('profile.name') }}：</span
@@ -71,7 +73,7 @@
 
         <!-- Read Only Checklist Statuses -->
         <div class="checklists-readonly-container mb-4">
-          <h6>🌟 {{ $t('teacher.studentList.faithChallenge') }}</h6>
+          <h6 aria-level="4">🌟 {{ $t('teacher.studentList.faithChallenge') }}</h6>
           <div class="checklist-grid mt-2">
             <!-- Phase 1 -->
             <div class="checklist-ro-column">
@@ -157,7 +159,7 @@
         <div class="lectures-edit-section">
           <!-- Character Tables -->
           <div class="lecture-edit-group mb-4">
-            <h6>📖 {{ $t('teacher.studentList.characterThemes') }}</h6>
+            <h6 aria-level="4">📖 {{ $t('teacher.studentList.characterThemes') }}</h6>
             <div class="lecture-inputs-stack mt-2">
               <div v-for="theme in characterThemes" :key="theme" class="lecture-edit-row">
                 <div class="row-theme-name">✦ {{ theme }}</div>
@@ -174,6 +176,7 @@
                     v-model="lectureForms[theme].date"
                     type="date"
                     class="form-input text-xs pt-1 pb-1"
+                    :aria-label="$t('a11y.lectureDateFor', { theme })"
                   />
                   <button
                     class="btn btn-secondary btn-sm pt-1 pb-1"
@@ -205,7 +208,7 @@
 
           <!-- Coming of Age Tables -->
           <div class="lecture-edit-group mb-4">
-            <h6>🎓 {{ $t('teacher.studentList.comingOfAgeThemes') }}</h6>
+            <h6 aria-level="4">🎓 {{ $t('teacher.studentList.comingOfAgeThemes') }}</h6>
             <div class="lecture-inputs-stack mt-2">
               <div v-for="theme in comingOfAgeThemes" :key="theme" class="lecture-edit-row">
                 <div class="row-theme-name">✦ {{ theme }}</div>
@@ -222,6 +225,7 @@
                     v-model="lectureForms[theme].date"
                     type="date"
                     class="form-input text-xs pt-1 pb-1"
+                    :aria-label="$t('a11y.lectureDateFor', { theme })"
                   />
                   <button
                     class="btn btn-secondary btn-sm pt-1 pb-1"
@@ -258,7 +262,7 @@
   <!-- Empty state when no student selected -->
   <section v-else class="student-details-drawer empty-drawer glass-panel text-center no-print">
     <div class="empty-illustration">👩‍🏫🎓</div>
-    <h4>{{ $t('teacher.drawer.emptyTitle') }}</h4>
+    <h4 aria-level="2">{{ $t('teacher.drawer.emptyTitle') }}</h4>
     <p>{{ $t('teacher.drawer.emptyDesc') }}</p>
   </section>
 
@@ -276,7 +280,9 @@
         <!-- Grid Row 1: Basic Info & Phase 1 -->
         <div class="print-flex-row mt-4">
           <div class="print-box print-w-45">
-            <h4 class="print-box-title">{{ $t('teacher.drawer.print.basicInfo') }}</h4>
+            <h4 aria-level="2" class="print-box-title">
+              {{ $t('teacher.drawer.print.basicInfo') }}
+            </h4>
             <div class="print-box-content">
               <p class="print-info-line">
                 <span>{{ $t('teacher.drawer.print.name') }}</span
@@ -298,7 +304,9 @@
           </div>
 
           <div class="print-box print-w-50">
-            <h4 class="print-box-title">{{ $t('teacher.drawer.print.faithPhase1') }}</h4>
+            <h4 aria-level="2" class="print-box-title">
+              {{ $t('teacher.drawer.print.faithPhase1') }}
+            </h4>
             <div class="print-box-content print-checklist">
               <div v-for="(label, key) in phase1Labels" :key="key" class="print-check-line">
                 <span
@@ -316,7 +324,9 @@
         <!-- Grid Row 2: Phase 2 & Advanced Challenges -->
         <div class="print-flex-row mt-4">
           <div class="print-box print-w-48">
-            <h4 class="print-box-title">{{ $t('teacher.drawer.print.faithPhase2') }}</h4>
+            <h4 aria-level="2" class="print-box-title">
+              {{ $t('teacher.drawer.print.faithPhase2') }}
+            </h4>
             <div class="print-box-content print-checklist">
               <template v-for="(label, key) in phase2Labels" :key="key">
                 <div class="print-check-line">
@@ -342,7 +352,9 @@
           </div>
 
           <div class="print-box print-w-48">
-            <h4 class="print-box-title">{{ $t('teacher.drawer.print.advancedChallenges') }}</h4>
+            <h4 aria-level="2" class="print-box-title">
+              {{ $t('teacher.drawer.print.advancedChallenges') }}
+            </h4>
             <div class="print-box-content print-checklist">
               <div v-for="(label, key) in advancedLabels" :key="key" class="print-check-line">
                 <span
@@ -365,7 +377,9 @@
 
         <!-- Table 1: Character -->
         <div class="print-table-box mt-4">
-          <h4 class="print-box-title">{{ $t('teacher.drawer.print.characterThemes') }}</h4>
+          <h4 aria-level="2" class="print-box-title">
+            {{ $t('teacher.drawer.print.characterThemes') }}
+          </h4>
           <p class="print-box-subtitle">{{ $t('teacher.drawer.print.characterSubtitle') }}</p>
           <table class="print-table">
             <thead>
@@ -387,7 +401,9 @@
 
         <!-- Table 2: Coming of Age -->
         <div class="print-table-box mt-4">
-          <h4 class="print-box-title">{{ $t('teacher.drawer.print.comingOfAgeThemes') }}</h4>
+          <h4 aria-level="2" class="print-box-title">
+            {{ $t('teacher.drawer.print.comingOfAgeThemes') }}
+          </h4>
           <p class="print-box-subtitle">{{ $t('teacher.drawer.print.comingOfAgeSubtitle') }}</p>
           <table class="print-table">
             <thead>
@@ -409,7 +425,7 @@
 
         <!-- Signatures -->
         <div class="print-signatures-box mt-4">
-          <h4 class="print-box-title">{{ $t('teacher.drawer.print.signature') }}</h4>
+          <h4 aria-level="2" class="print-box-title">{{ $t('teacher.drawer.print.signature') }}</h4>
           <div class="print-signatures-row mt-2">
             <div class="print-sig-col">
               <span class="print-sig-lbl">{{ $t('teacher.drawer.print.sigTeacher') }}</span>

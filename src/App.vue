@@ -82,7 +82,7 @@
         :aria-label="$t('passwordModal.title')"
       >
         <div class="modal-header">
-          <h3>{{ $t('passwordModal.title') }}</h3>
+          <h3 aria-level="2">{{ $t('passwordModal.title') }}</h3>
           <button class="close-btn" :aria-label="$t('common.close')" @click="closePasswordModal">
             &times;
           </button>

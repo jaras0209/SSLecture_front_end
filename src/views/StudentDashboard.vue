@@ -13,7 +13,7 @@
           <div class="role-badge-overlay">{{ roleBadge }}</div>
         </div>
         <div>
-          <h2>{{ $t('student.header.hello', { name: displayName }) }}</h2>
+          <h1 class="page-title">{{ $t('student.header.hello', { name: displayName }) }}</h1>
           <p class="motivation-text">{{ motivationText }}</p>
           <p v-if="authStore.currentUser?.lastLoginAt" class="last-login-hint">
             🕐
@@ -123,12 +123,15 @@
     </div>
 
     <!-- TAB 2: SS Shining Project Dashboard -->
-    <StudentShiningDashboard
+    <!-- Wrapped: the component has two roots (its print layout is teleported), so it can't take these attributes -->
+    <div
       v-else-if="activeDashboardTab === 'shining'"
       id="tabpanel-shining"
       role="tabpanel"
       aria-labelledby="tab-shining"
-    />
+    >
+      <StudentShiningDashboard />
+    </div>
 
     <!-- TAB 3: 我的預約 -->
     <StudentBookingList

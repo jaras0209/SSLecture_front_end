@@ -2,7 +2,7 @@
   <div class="dashboard-body no-print">
     <section class="glass-panel bookings-panel">
       <div class="panel-header-row">
-        <h3 class="section-title">{{ $t('teacher.booking.title') }}</h3>
+        <h3 aria-level="2" class="section-title">{{ $t('teacher.booking.title') }}</h3>
         <button id="btn-create-booking" class="btn btn-primary" @click="openCreateBooking">
           {{ $t('teacher.booking.createBtn') }}
         </button>
@@ -162,11 +162,20 @@
         class="modal-overlay"
         @click.self="showCreateBookingModal = false"
       >
-        <div class="glass-panel modal-card booking-modal-card">
-          <h3>{{ $t('teacher.booking.createModalTitle') }}</h3>
+        <div
+          class="glass-panel modal-card booking-modal-card"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="booking-create-title"
+        >
+          <h3 id="booking-create-title" aria-level="2">
+            {{ $t('teacher.booking.createModalTitle') }}
+          </h3>
           <div class="form-grid mt-4">
             <div class="form-group">
-              <label class="form-label">{{ $t('teacher.booking.fieldCourse') }}</label>
+              <label for="booking-course-select" class="form-label">{{
+                $t('teacher.booking.fieldCourse')
+              }}</label>
               <select
                 id="booking-course-select"
                 v-model="bookingForm.courseId"
@@ -180,7 +189,9 @@
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label">{{ $t('teacher.booking.fieldLecturer') }}</label>
+              <label for="booking-lecturer-select" class="form-label">{{
+                $t('teacher.booking.fieldLecturer')
+              }}</label>
               <select
                 id="booking-lecturer-select"
                 v-model="bookingForm.lecturerId"
@@ -193,7 +204,9 @@
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label">{{ $t('teacher.booking.fieldTime') }}</label>
+              <label for="booking-time" class="form-label">{{
+                $t('teacher.booking.fieldTime')
+              }}</label>
               <input
                 id="booking-time"
                 v-model="bookingForm.proposedAt"
@@ -202,7 +215,9 @@
               />
             </div>
             <div class="form-group">
-              <label class="form-label">{{ $t('teacher.booking.fieldDuration') }}</label>
+              <label for="booking-duration" class="form-label">{{
+                $t('teacher.booking.fieldDuration')
+              }}</label>
               <select
                 id="booking-duration"
                 v-model="bookingForm.durationMinutes"
@@ -287,11 +302,21 @@
         class="modal-overlay"
         @click.self="showConfirmBookingModal = false"
       >
-        <div class="glass-panel modal-card" style="max-width: 420px; width: 90%; padding: 1.5rem">
-          <h3>{{ $t('teacher.booking.confirmModalTitle') }}</h3>
+        <div
+          class="glass-panel modal-card"
+          style="max-width: 420px; width: 90%; padding: 1.5rem"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="booking-confirm-title"
+        >
+          <h3 id="booking-confirm-title" aria-level="2">
+            {{ $t('teacher.booking.confirmModalTitle') }}
+          </h3>
           <p class="text-muted mt-2 text-sm">{{ $t('teacher.booking.confirmModalDesc') }}</p>
           <div class="form-group mt-3">
-            <label class="form-label">{{ $t('teacher.booking.confirmTimeLabel') }}</label>
+            <label for="confirm-time-input" class="form-label">{{
+              $t('teacher.booking.confirmTimeLabel')
+            }}</label>
             <input
               id="confirm-time-input"
               v-model="confirmForm.confirmedAt"
@@ -314,14 +339,23 @@
     <!-- ─── Modal: Mark Complete + Feedback ─── -->
     <Teleport to="body">
       <div v-if="showCompleteModal" class="modal-overlay" @click.self="showCompleteModal = false">
-        <div class="glass-panel modal-card complete-modal-card">
-          <h3>{{ $t('teacher.booking.completeModalTitle') }}</h3>
+        <div
+          class="glass-panel modal-card complete-modal-card"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="booking-complete-title"
+        >
+          <h3 id="booking-complete-title" aria-level="2">
+            {{ $t('teacher.booking.completeModalTitle') }}
+          </h3>
           <p v-if="completingSession" class="text-muted mt-1 text-sm">
             {{ completingSession.courseTitle }} ／ {{ completingSession.lecturerTitle }}
             {{ completingSession.lecturerName }} ／ {{ formatBookingTime(completingSession) }}
           </p>
           <div class="form-group mt-4">
-            <label class="form-label">{{ $t('teacher.booking.sessionNotesLabel') }}</label>
+            <label for="complete-session-notes" class="form-label">{{
+              $t('teacher.booking.sessionNotesLabel')
+            }}</label>
             <textarea
               id="complete-session-notes"
               v-model="completeForm.teacherNotes"
@@ -411,7 +445,9 @@
     <Teleport to="body">
       <div v-if="showCancelModal" class="modal-overlay" @click.self="showCancelModal = false">
         <div class="glass-panel modal-card" style="max-width: 440px">
-          <h3 style="margin-bottom: 0.5rem">{{ $t('teacher.booking.cancelModalTitle') }}</h3>
+          <h3 aria-level="2" style="margin-bottom: 0.5rem">
+            {{ $t('teacher.booking.cancelModalTitle') }}
+          </h3>
           <p
             v-if="cancelTargetSession"
             style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1.25rem"

@@ -4,14 +4,14 @@
       <!-- Loading 狀態 -->
       <div v-if="status === 'loading'" class="callback-loading">
         <div class="spinner-ring"></div>
-        <h2 class="callback-title">{{ $t('callback.loadingTitle') }}</h2>
+        <h1 class="callback-title page-title">{{ $t('callback.loadingTitle') }}</h1>
         <p class="callback-desc">{{ $t('callback.loadingDesc') }}</p>
       </div>
 
       <!-- 錯誤狀態 -->
       <div v-else-if="status === 'error'" class="callback-error">
         <div class="error-icon">⚠️</div>
-        <h2 class="callback-title">{{ $t('callback.errorTitle') }}</h2>
+        <h1 class="callback-title page-title">{{ $t('callback.errorTitle') }}</h1>
         <p class="callback-desc">{{ errorMessage }}</p>
         <p class="callback-countdown">{{ $t('callback.countdown', { n: countdown }) }}</p>
         <button class="btn btn-primary mt-4" @click="goToLogin">
