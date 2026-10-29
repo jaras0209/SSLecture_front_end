@@ -45,27 +45,27 @@
           <h6 aria-level="4">📋 {{ $t('teacher.studentList.studentInfo') }}</h6>
           <div class="readonly-grid mt-2">
             <div>
-              <span>{{ $t('profile.name') }}：</span
+              <span>{{ $t('teacher.drawer.fieldName') }}：</span
               ><strong>{{
-                getShining(student.username).name || $t('teacher.booking.notFilled')
+                getShining(student.username).name || $t('teacher.drawer.notFilled')
               }}</strong>
             </div>
             <div>
-              <span>{{ $t('profile.birthday') }}：</span
+              <span>{{ $t('teacher.drawer.fieldBirthday') }}：</span
               ><strong>{{
-                getShining(student.username).birthday || $t('teacher.booking.notFilled')
+                getShining(student.username).birthday || $t('teacher.drawer.notFilled')
               }}</strong>
             </div>
             <div>
-              <span>{{ $t('profile.church') }}：</span
+              <span>{{ $t('teacher.drawer.fieldChurch') }}：</span
               ><strong>{{
-                getShining(student.username).church || $t('teacher.booking.notFilled')
+                getShining(student.username).church || $t('teacher.drawer.notFilled')
               }}</strong>
             </div>
             <div>
-              <span>{{ $t('profile.grade') }}：</span
+              <span>{{ $t('teacher.drawer.fieldGrade') }}：</span
               ><strong>{{
-                getShining(student.username).schoolGrade || $t('teacher.booking.notFilled')
+                getShining(student.username).schoolGrade || $t('teacher.drawer.notFilled')
               }}</strong>
             </div>
           </div>
@@ -144,8 +144,7 @@
                   <span v-if="key === 'custom'" class="text-ro">
                     {{ $t('teacher.studentList.customChallenge')
                     }}{{
-                      getShining(student.username).customChallenge ||
-                      $t('teacher.booking.notFilled')
+                      getShining(student.username).customChallenge || $t('teacher.drawer.notFilled')
                     }}
                   </span>
                   <span v-else class="text-ro">{{ label }}</span>

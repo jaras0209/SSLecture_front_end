@@ -565,7 +565,15 @@
         "sigTeacher": "✦ Teacher",
         "sigPastor": "✦ Pastor",
         "sigParent": "✦ Parent / Guardian"
-      }
+      },
+      "fieldName": "Name",
+      "fieldBirthday": "Birthday",
+      "fieldChurch": "Church",
+      "fieldGrade": "School / Grade",
+      "notFilled": "Not filled in",
+      "completed": "Completed",
+      "notCompleted": "Not completed",
+      "notes": "Notes"
     }
   },
   "admin": {

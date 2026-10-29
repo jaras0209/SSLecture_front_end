@@ -565,7 +565,15 @@
         "sigTeacher": "✦ 教師",
         "sigPastor": "✦ 牧者",
         "sigParent": "✦ 家長/導師"
-      }
+      },
+      "fieldName": "姓名",
+      "fieldBirthday": "生日",
+      "fieldChurch": "教會",
+      "fieldGrade": "學校/年級",
+      "notFilled": "未填寫",
+      "completed": "已完成",
+      "notCompleted": "未完成",
+      "notes": "心得筆記"
     }
   },
   "admin": {
