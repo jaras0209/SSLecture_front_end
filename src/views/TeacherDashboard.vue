@@ -439,13 +439,13 @@ function viewStudentDetails(student: StudentProgressSummary) {
 /* Dashboard Columns */
 .dashboard-body {
   display: grid;
-  grid-template-columns: 1.15fr 0.85fr;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
   gap: 2rem;
 }
 
 @media (max-width: 950px) {
   .dashboard-body {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -640,7 +640,7 @@ function viewStudentDetails(student: StudentProgressSummary) {
 
   /* Dashboard body */
   .dashboard-body {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 1rem;
   }
 

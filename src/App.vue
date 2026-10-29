@@ -466,7 +466,7 @@ function getRoleLabel(role?: string) {
   padding-bottom: 1rem;
 }
 
-@media (max-width: 880px) {
+@media (max-width: 1099px) {
   .navbar-top-row {
     display: flex;
     justify-content: space-between;
@@ -536,7 +536,7 @@ function getRoleLabel(role?: string) {
 
 /* Tablets also use the hamburger menu (the full navbar doesn't fit); let the open
    menu span the navbar's width so the user controls stay on one line */
-@media (min-width: 641px) and (max-width: 880px) {
+@media (min-width: 641px) and (max-width: 1099px) {
   .navbar-collapse {
     align-self: stretch;
   }
@@ -551,7 +551,7 @@ function getRoleLabel(role?: string) {
 }
 
 /* Desktop: hide hamburger, restore horizontal layout with centered menu */
-@media (min-width: 881px) {
+@media (min-width: 1100px) {
   .hamburger-btn {
     display: none;
   }

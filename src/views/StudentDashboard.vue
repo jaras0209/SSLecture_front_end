@@ -523,13 +523,13 @@ const overallProgressPercent = computed(() => {
 /* Main Layout Grid */
 .dashboard-body {
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
   gap: 2rem;
 }
 
 @media (max-width: 900px) {
   .dashboard-body {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -618,7 +618,7 @@ const overallProgressPercent = computed(() => {
 
   /* Dashboard body: single column */
   .dashboard-body {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 1rem;
     padding: 0 0.25rem;
   }

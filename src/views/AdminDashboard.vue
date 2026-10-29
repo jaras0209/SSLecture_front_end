@@ -115,13 +115,15 @@ const adminDisplayName = computed(() => {
 
 .dashboard-body {
   display: grid;
-  grid-template-columns: 0.7fr 1.3fr;
+  /* minmax(0, …): let columns shrink below their tables' width (the tables scroll in
+     their own wrappers) instead of widening the page */
+  grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
   gap: 2rem;
 }
 
 @media (max-width: 900px) {
   .dashboard-body {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -131,7 +133,7 @@ const adminDisplayName = computed(() => {
 @media (max-width: 640px) {
   /* Dashboard body: single column */
   .dashboard-body {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 1rem;
   }
 

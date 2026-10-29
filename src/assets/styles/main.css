@@ -192,7 +192,7 @@
   font-weight: 600;
 }
 
-@media (max-width: 880px) {
+@media (max-width: 1099px) {
   .navbar {
     flex-direction: column;
   }
@@ -220,7 +220,7 @@
 }
 
 /* Desktop: horizontal menu (the three-column grid itself is set after the base .navbar rules) */
-@media (min-width: 881px) {
+@media (min-width: 1100px) {
   .navbar {
     gap: 0;
   }
@@ -530,9 +530,9 @@ h6 {
    Placed after the base .navbar rules so it overrides their flex layout; App.vue
    flattens .navbar-collapse (display: contents) so its children become grid items.
    The side columns never shrink below their content, so the menu stays centered
-   while it fits and the user controls never overflow; narrower screens keep the
-   flex layout. */
-@media (min-width: 961px) {
+   while it fits and the user controls never overflow; narrower screens use the
+   hamburger menu (App.vue). */
+@media (min-width: 1100px) {
   .navbar {
     display: grid;
     grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr);
