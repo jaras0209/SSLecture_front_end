@@ -122,9 +122,12 @@
                   {{ pwdMsg }}
                 </div>
                 <div class="form-group mb-2">
-                  <label class="form-label form-label-sm">{{ $t('profile.oldPwd') }}</label>
+                  <label for="pd-old-pwd" class="form-label form-label-sm">{{
+                    $t('profile.oldPwd')
+                  }}</label>
                   <div class="pwd-input-wrap">
                     <input
+                      id="pd-old-pwd"
                       v-model="pwd.old"
                       :type="showOldPwd ? 'text' : 'password'"
                       class="form-input form-input-sm"
@@ -164,9 +167,12 @@
                   </div>
                 </div>
                 <div class="form-group mb-2">
-                  <label class="form-label form-label-sm">{{ $t('profile.newPwd') }}</label>
+                  <label for="pd-new-pwd" class="form-label form-label-sm">{{
+                    $t('profile.newPwd')
+                  }}</label>
                   <div class="pwd-input-wrap">
                     <input
+                      id="pd-new-pwd"
                       v-model="pwd.new1"
                       :type="showNewPwd ? 'text' : 'password'"
                       class="form-input form-input-sm"
@@ -241,9 +247,12 @@
                   </div>
                 </div>
                 <div class="form-group mb-3">
-                  <label class="form-label form-label-sm">{{ $t('profile.confirmPwd') }}</label>
+                  <label for="pd-confirm-pwd" class="form-label form-label-sm">{{
+                    $t('profile.confirmPwd')
+                  }}</label>
                   <div class="pwd-input-wrap">
                     <input
+                      id="pd-confirm-pwd"
                       v-model="pwd.new2"
                       :type="showConfirmPwd ? 'text' : 'password'"
                       class="form-input form-input-sm"

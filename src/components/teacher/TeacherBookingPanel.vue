@@ -452,8 +452,15 @@
     <!-- ─── Modal: Cancel Booking ─── -->
     <Teleport to="body">
       <div v-if="showCancelModal" class="modal-overlay" @click.self="showCancelModal = false">
-        <div class="glass-panel modal-card" style="max-width: 440px">
-          <h3 aria-level="2" style="margin-bottom: 0.5rem">
+        <div
+          v-dialog="() => (showCancelModal = false)"
+          class="glass-panel modal-card"
+          style="max-width: 440px"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="booking-cancel-title"
+        >
+          <h3 id="booking-cancel-title" aria-level="2" style="margin-bottom: 0.5rem">
             {{ $t('teacher.booking.cancelModalTitle') }}
           </h3>
           <p
@@ -463,8 +470,11 @@
             {{ $t('teacher.booking.cancelConfirmMsg', { title: cancelTargetSession.courseTitle }) }}
           </p>
           <div class="form-group">
-            <label class="form-label">{{ $t('teacher.booking.cancelReasonLabel') }}</label>
+            <label for="booking-cancel-reason" class="form-label">{{
+              $t('teacher.booking.cancelReasonLabel')
+            }}</label>
             <textarea
+              id="booking-cancel-reason"
               v-model="cancelReasonText"
               class="form-input"
               rows="3"
