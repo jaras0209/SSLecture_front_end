@@ -1,13 +1,18 @@
 import { describe, it, expect } from 'vitest'
+import { globSync, readFileSync } from 'node:fs'
+import { join, sep } from 'node:path'
 import zhTW from '../locales/zh-TW.json'
 import en from '../locales/en.json'
 
-// Every source file as text (tests excluded), to find the translation keys it uses
-const sources = import.meta.glob(['/src/**/*.vue', '/src/**/*.ts', '!/src/**/__tests__/**'], {
-  query: '?raw',
-  import: 'default',
-  eager: true
-}) as Record<string, string>
+// Every source file as text (tests excluded), to find the translation keys it uses.
+// Read from disk rather than with import.meta.glob: importing them, even as ?raw, makes
+// coverage treat every file as loaded (with nothing to count) and report it as covered.
+const root = join(process.cwd(), 'src') // Vitest runs from the project root
+const sources: Record<string, string> = Object.fromEntries(
+  globSync('**/*.{vue,ts}', { cwd: root })
+    .filter((file) => !file.split(sep).includes('__tests__'))
+    .map((file) => [file, readFileSync(join(root, file), 'utf8')])
+)
 
 // Literal keys passed to $t / t / translate / tDynamic, e.g. $t('teacher.drawer.notes').
 // Keys built at runtime (template strings) can't be checked statically.
