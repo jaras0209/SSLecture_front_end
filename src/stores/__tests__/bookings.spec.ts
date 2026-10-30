@@ -309,4 +309,18 @@ describe('useBookingsStore', () => {
       expect(status(otherTeacher.id)).toBe('pending')
     })
   })
+
+  describe('getSessionsByLecturers()', () => {
+    it('lists the sessions given by any of the lecturer records, newest first', () => {
+      const store = useBookingsStore()
+      const older = makeSession({ lecturerId: 'l1', proposedAt: '2025-08-01T10:00' })
+      const newer = makeSession({ lecturerId: 'l3', proposedAt: '2025-09-01T10:00' })
+      makeSession({ lecturerId: 'l2' })
+      expect(store.getSessionsByLecturers(['l1', 'l3']).map((s) => s.id)).toEqual([
+        newer.id,
+        older.id
+      ])
+      expect(store.getSessionsByLecturers([])).toEqual([])
+    })
+  })
 })

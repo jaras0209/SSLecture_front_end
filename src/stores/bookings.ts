@@ -63,6 +63,13 @@ export const useBookingsStore = defineStore('bookings', () => {
       .sort((a, b) => b.proposedAt.localeCompare(a.proposedAt))
   }
 
+  /** Sessions given by any of the lecturer records `lecturerIds`, newest first */
+  function getSessionsByLecturers(lecturerIds: string[]): BookingSession[] {
+    return Object.values(sessionsDb.value)
+      .filter((s) => lecturerIds.includes(s.lecturerId))
+      .sort((a, b) => b.proposedAt.localeCompare(a.proposedAt))
+  }
+
   function getSessionsForStudent(studentUsername: string): Array<{
     session: BookingSession
     attendee: BookingAttendee
@@ -257,6 +264,7 @@ export const useBookingsStore = defineStore('bookings', () => {
     getAttendeesForSession,
     getSessionsByChurch,
     getSessionsByTeacher,
+    getSessionsByLecturers,
     getSessionsForStudent,
     getUpcomingSessions,
     getPastSessions,

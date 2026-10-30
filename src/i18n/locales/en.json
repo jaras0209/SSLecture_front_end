@@ -304,7 +304,8 @@
       "careAdmin": "Student Overview",
       "pastorOverview": "District Church Overview",
       "settings": "Lecturer Mgmt / Settings",
-      "bookings": "Booking Management"
+      "bookings": "Booking Management",
+      "lectures": "My Lectures"
     },
     "lecturer": {
       "addTitle": "Add Lecturer",
@@ -576,6 +577,18 @@
       "completed": "Completed",
       "notCompleted": "Not completed",
       "notes": "Notes"
+    },
+    "lecture": {
+      "title": "My Lectures",
+      "intro": "Bookings where you are the lecturer. Bookings for the same course at the same time are shown as one lecture. You see every student (regardless of gender) and can record attendance; the bookings themselves are managed by the teachers who made them.",
+      "empty": "No bookings with you as the lecturer yet",
+      "upcoming": "Upcoming",
+      "past": "Past lectures",
+      "timePending": "Time awaiting teacher confirmation",
+      "bookedBy": "Booked by: {names}",
+      "recordLater": "Attendance can be recorded once the time is confirmed",
+      "attendanceFor": "Attendance of {name}",
+      "recorded": "Recorded attendance for {name}"
     }
   },
   "admin": {
@@ -824,7 +837,7 @@
     "unset": "Not set",
     "missing": "{n} teachers or students have no gender set yet",
     "genderFor": "Gender of {name}",
-    "hiddenAttendees": "{n} more students not shown (different or unset gender)",
+    "hiddenAttendees": "{n} more students not shown (different or unset gender); a lecturer with a linked account can record their attendance in My Lectures",
     "mismatch": "{n} students have a mentor who can't see them (different or unset gender); please reassign",
     "mismatchMark": "This teacher can't see this student (different or unset gender)",
     "teacherUnsetNotice": "Your gender hasn't been set yet, so no students are shown. Please ask your district pastor to set it."

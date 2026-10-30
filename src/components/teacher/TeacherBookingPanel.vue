@@ -512,7 +512,7 @@ import { useCoursesStore } from '@/stores/courses'
 import { useBookingsStore } from '@/stores/bookings'
 import type { BookingSession, BookingAttendee, AttendanceStatus } from '@/stores/bookings'
 import { useToast } from '@/composables/useToast'
-import { canViewStudent, visibleStudents, viewerOf } from '@/utils/scope'
+import { canViewAttendee, visibleStudents, viewerOf } from '@/utils/scope'
 
 const { toast } = useToast()
 const { t } = useI18n()
@@ -544,8 +544,14 @@ const myStudentsList = computed(() => {
 /** A session's attendees split into those this teacher may see and how many are hidden */
 function attendeesOf(sessionId: string): { shown: BookingAttendee[]; hidden: number } {
   const all = bookingsStore.getAttendeesForSession(sessionId)
+  const session = bookingsStore.sessionsDb[sessionId]
   const v = viewer.value
-  const shown = v ? all.filter((a) => canViewStudent(v, a.studentUsername, authStore.usersDb)) : []
+  const shown =
+    v && session
+      ? all.filter((a) =>
+          canViewAttendee(v, session, a.studentUsername, authStore.usersDb, coursesStore.lecturers)
+        )
+      : []
   return { shown, hidden: all.length - shown.length }
 }
 

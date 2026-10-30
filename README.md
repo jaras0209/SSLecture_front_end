@@ -12,6 +12,8 @@ SSLecture 是一個基於 **Vue 3 + TypeScript + Vite** 技術棧開發的現代
 *   **精美現代視覺與無障礙體驗**：採用漸層色調、玻璃擬態（Glassmorphism）、ARIA 無障礙標籤與響應式排版。
 *   **閃耀計畫檢核與列印匯出**：學員專屬的信仰與生活挑戰追蹤系統，支援專屬列印排版與 PDF 匯出。
 *   **課程預約、配對與年度申報**：支援一對一／團體預約、出席與心得回饋追蹤、牧者關懷配對管理，以及教師年度教學人次統計申報。
+*   **男女分開管理**：以教會為單位，教師只看得到同性別的學員，牧者以上看得到整體狀況；性別由牧者設定。預約由學員的輔導教師安排，連結到教師帳號的講師在「我的授課」看得到自己授課的全部學員並記錄出席。規則集中在 `src/utils/scope.ts`，說明見 [`docs/database_schema.md`](./docs/database_schema.md) 5.10–5.12 與 [`docs/backend_api_spec.md`](./docs/backend_api_spec.md)〈可見範圍規則〉。
+*   **帳號清理**：管理員刪除帳號或變更角色時，自動解除仍指向該帳號的關懷指派、家長綁定與講師連結，並取消其尚未進行的預約（保留歷史紀錄）。
 
 ---
 
@@ -23,7 +25,7 @@ SSLecture 是一個基於 **Vue 3 + TypeScript + Vite** 技術棧開發的現代
 *   **多語系架構**：Vue I18n 11（Composition API 模式，`zh-TW` / `en` 雙語系；`en` 語系檔按需載入）
 *   **路由管理**：Vue Router 5（HTML5 History 模式，內建角色與頁面限制導航守衛、平滑捲動）
 *   **字型**：Quicksand / Outfit 由 `@fontsource` 隨專案打包，不向 Google Fonts 發出請求
-*   **測試**：Vitest 5 + Happy DOM + Vue Test Utils（32 個測試檔案、299 項測試，含 composable 與表單元件測試，以及以本機 HTTP 伺服器驗證 `api.ts` 的整合測試）；Playwright 端對端測試（35 項，含以 axe 檢查 WCAG 2.1 AA 無障礙與鍵盤操作）
+*   **測試**：Vitest 5 + Happy DOM + Vue Test Utils（33 個測試檔案、306 項測試，含 composable 與表單元件測試，以及以本機 HTTP 伺服器驗證 `api.ts` 的整合測試）；Playwright 端對端測試（36 項，含以 axe 檢查 WCAG 2.1 AA 無障礙與鍵盤操作）
 *   **程式碼品質**：TypeScript 6.0（Strict 嚴格模式，以 vue-tsc 3 檢查）、ESLint 10、Prettier 3
 *   **樣式設計**：Vanilla CSS（響應式排版，適配行動端、桌面端與 `@media print` 列印模式）
 
@@ -47,7 +49,7 @@ SSLecture/
 │   │   ├── auth/           # 登入頁元件（登入表單、註冊表單、社群登入按鈕、忘記密碼 Modal）
 │   │   ├── shared/         # 全域共用元件（AppToast、BaseModal、LanguageSwitcher、ProfileDialog、StatusBadge）
 │   │   ├── student/        # 學員專屬子元件（課程卡片、詳情、預約清單、回饋 Modal、閃耀計畫面板）
-│   │   └── teacher/        # 教師/牧者專屬子元件（學員清單、進度抽屜、筆記對話框、預約面板、牧者總覽、年度申報、講師與主題設定、講師新增/編輯 Modal）
+│   │   └── teacher/        # 教師/牧者專屬子元件（學員清單、進度抽屜、筆記對話框、預約面板、我的授課（講師）、牧者總覽、年度申報、講師與主題設定、講師新增/編輯 Modal）
 │   ├── composables/        # 可複用邏輯（Composition API）
 │   │   ├── useI18nHelper.ts        # 動態 i18n Key、角色與狀態翻譯輔助函式
 │   │   ├── usePasswordStrength.ts  # 密碼強度計算與多語系提示
@@ -79,6 +81,7 @@ SSLecture/
 │   │   ├── id.ts           # 不會碰撞的隨機 ID 產生器
 │   │   ├── avatar.ts       # 在瀏覽器內產生 DiceBear 頭像（按需載入各風格）
 │   │   ├── persist.ts      # store 狀態延遲合併寫入 localStorage，並與其他分頁同步
+│   │   ├── scope.ts        # 誰看得到誰：教會、性別分開管理、家長綁定與講師例外
 │   │   └── __tests__/      # 工具函式單元與整合測試（storage / datetime / id / avatar / persist / api）
 │   ├── views/              # 各角色的控制面板主頁面
 │   │   ├── AdminDashboard.vue      # 系統管理員後台（帳號權限、邀請碼、年度統計總覽）

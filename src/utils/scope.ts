@@ -10,6 +10,9 @@
  *
  * 教師與學員依性別分開管理：教師只看得到同教會、同性別的學員；任一方尚未設定性別時
  * 看不到（由牧者補齊）。牧者、SS 中央、家長不受性別限制。
+ *
+ * 講師例外（canViewAttendee）：連結到講師資料的教師帳號，在「自己授課的預約」裡看得到
+ * 全部學員，不分男女，以便記錄出席；學員名冊等其他畫面仍依上面的規則。
  * 所有畫面都經過這裡，規則改這一處即一致套用。
  */
 import type { Gender, UserRole } from '@/types/auth'
@@ -99,4 +102,33 @@ export function visibleStudents(
     if (!result.has(username) && canViewStudent(viewer, username, members)) result.add(username)
   }
   return [...result]
+}
+
+/** The parts of a lecturer record the rules look at */
+export interface LecturerLink {
+  id: string
+  linkedUsername?: string
+}
+
+/** The ids of the lecturer records linked to `username` (the lectures they give) */
+export function lecturerIdsOf(username: string, lecturers: LecturerLink[]): string[] {
+  return lecturers.filter((l) => l.linkedUsername === username).map((l) => l.id)
+}
+
+/**
+ * Whether `viewer` may see the attendee `username` of a booking: anyone who may see the
+ * student anyway, and the booking's lecturer (through a linked account), who sees every
+ * attendee of the lectures they give regardless of gender.
+ */
+export function canViewAttendee(
+  viewer: Viewer,
+  session: { lecturerId: string },
+  username: string,
+  members: MembersDb,
+  lecturers: LecturerLink[]
+): boolean {
+  return (
+    canViewStudent(viewer, username, members) ||
+    lecturerIdsOf(viewer.username, lecturers).includes(session.lecturerId)
+  )
 }

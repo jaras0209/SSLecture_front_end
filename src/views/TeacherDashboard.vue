@@ -103,6 +103,15 @@
         📅 {{ $t('teacher.tabs.bookings') }}
         <span v-if="bookingPendingCount > 0" class="tab-badge">{{ bookingPendingCount }}</span>
       </button>
+      <!-- Lecture Tab: a teacher linked to a lecturer record -->
+      <button
+        v-if="isLecturer"
+        id="tab-lectures"
+        :class="['main-tab-btn', { active: activeMainTab === 'lectures' }]"
+        @click="activeMainTab = 'lectures'"
+      >
+        🎤 {{ $t('teacher.tabs.lectures') }}
+      </button>
     </div>
 
     <!-- Tab 1: Care & Progress Dashboard -->
@@ -142,6 +151,11 @@
       "
     >
       <TeacherBookingPanel />
+    </div>
+
+    <!-- Tab: My Lectures -->
+    <div v-if="activeMainTab === 'lectures' && isLecturer">
+      <TeacherLectureSchedule />
     </div>
 
     <TeacherLecturerModal
@@ -197,6 +211,9 @@ const TeacherStatsReport = defineAsyncComponent(
 const TeacherBookingPanel = defineAsyncComponent(
   () => import('@/components/teacher/TeacherBookingPanel.vue')
 )
+const TeacherLectureSchedule = defineAsyncComponent(
+  () => import('@/components/teacher/TeacherLectureSchedule.vue')
+)
 const TeacherStudentList = defineAsyncComponent(
   () => import('@/components/teacher/TeacherStudentList.vue')
 )
@@ -207,6 +224,7 @@ import type { Lecturer } from '@/stores/courses'
 import type { BookingSession } from '@/stores/bookings'
 import { DEFAULT_CHURCH } from '@/types/auth'
 import { avatarSrc } from '@/utils/avatar'
+import { lecturerIdsOf } from '@/utils/scope'
 
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
@@ -232,8 +250,14 @@ const teacherRoleBadge = computed(() => teacherBadgeMap[authStore.currentUser?.r
 
 const selectedStudent = ref<StudentProgressSummary | null>(null)
 
-// Main tab inside dashboard: 'care', 'settings', 'pastor-overview', or 'bookings'
-const activeMainTab = ref<'care' | 'settings' | 'pastor-overview' | 'bookings'>('care')
+// Main tab inside dashboard: 'care', 'settings', 'pastor-overview', 'bookings' or 'lectures'
+const activeMainTab = ref<'care' | 'settings' | 'pastor-overview' | 'bookings' | 'lectures'>('care')
+
+/** A teacher account linked to a lecturer record gives lectures */
+const isLecturer = computed(() => {
+  const me = authStore.currentUser
+  return me?.role === 'teacher' && lecturerIdsOf(me.username, coursesStore.lecturers).length > 0
+})
 
 // Booking pending count for tab badge (computed directly from store to avoid component ref)
 const bookingPendingCount = computed(() => {

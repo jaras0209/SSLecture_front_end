@@ -304,7 +304,8 @@
       "careAdmin": "學員總覽",
       "pastorOverview": "分區教會總覽",
       "settings": "講師管理 / 系統設定",
-      "bookings": "預約管理"
+      "bookings": "預約管理",
+      "lectures": "我的授課"
     },
     "lecturer": {
       "addTitle": "新增講師",
@@ -576,6 +577,18 @@
       "completed": "已完成",
       "notCompleted": "未完成",
       "notes": "心得筆記"
+    },
+    "lecture": {
+      "title": "我的授課",
+      "intro": "這裡列出您擔任講師的預約，同一時段、同一課程的預約會合併成一堂課。您看得到所有學員（不分男女），可以記錄出席；預約本身由安排的教師管理。",
+      "empty": "目前沒有您擔任講師的預約",
+      "upcoming": "即將授課",
+      "past": "過去的授課",
+      "timePending": "時間待教師確認",
+      "bookedBy": "安排教師：{names}",
+      "recordLater": "時間確認後即可記錄出席",
+      "attendanceFor": "{name} 的出席",
+      "recorded": "已記錄 {name} 的出席"
     }
   },
   "admin": {
@@ -824,7 +837,7 @@
     "unset": "未設定",
     "missing": "還有 {n} 位教師或學員尚未設定性別",
     "genderFor": "{name} 的性別",
-    "hiddenAttendees": "另有 {n} 位學員未顯示（性別不同或未設定）",
+    "hiddenAttendees": "另有 {n} 位學員未顯示（性別不同或未設定）；連結帳號的講師可在「我的授課」記錄他們的出席",
     "mismatch": "有 {n} 位學員的輔導教師看不到他們（性別不同或未設定），請重新指派",
     "mismatchMark": "這位教師看不到此學員（性別不同或未設定）",
     "teacherUnsetNotice": "您的性別尚未設定，暫時看不到任何學員。請聯絡分區牧者設定。"

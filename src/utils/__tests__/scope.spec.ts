@@ -5,6 +5,8 @@ import {
   visibleStudents,
   viewerOf,
   canMentor,
+  lecturerIdsOf,
+  canViewAttendee,
   type Viewer
 } from '@/utils/scope'
 import type { Gender } from '@/types/auth'
@@ -93,5 +95,32 @@ describe('viewerOf / canMentor', () => {
     expect(canMentor('t1', 's3', members)).toBe(false) // other gender
     expect(canMentor('t2', 's1', members)).toBe(false) // teacher gender not set
     expect(canMentor('s1', 's1', members)).toBe(false) // not a teacher
+  })
+})
+
+describe('lecturerIdsOf / canViewAttendee', () => {
+  const lecturers = [
+    { id: 'L1', linkedUsername: 't1' },
+    { id: 'L2' }, // not linked to an account
+    { id: 'L3', linkedUsername: 't1' }
+  ]
+  const t1 = viewerOf('t1', members)!
+
+  it('finds the lecturer records linked to an account', () => {
+    expect(lecturerIdsOf('t1', lecturers)).toEqual(['L1', 'L3'])
+    expect(lecturerIdsOf('t2', lecturers)).toEqual([])
+  })
+
+  it('shows the lecturer every attendee of their own lectures, whatever the gender', () => {
+    for (const student of ['s1', 's3', 's4']) {
+      expect(canViewAttendee(t1, { lecturerId: 'L3' }, student, members, lecturers)).toBe(true)
+    }
+  })
+
+  it('falls back to the usual rule for bookings they do not lecture', () => {
+    const other = { lecturerId: 'L2' }
+    expect(canViewAttendee(t1, other, 's1', members, lecturers)).toBe(true)
+    expect(canViewAttendee(t1, other, 's3', members, lecturers)).toBe(false)
+    expect(canViewAttendee(t1, other, 's4', members, lecturers)).toBe(false)
   })
 })

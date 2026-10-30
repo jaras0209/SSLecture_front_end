@@ -1,7 +1,7 @@
 # SSLecture 後端 API 規格文件
 
-> **文件版本**：v1.5.0
-> **最後更新**：2026-08-12
+> **文件版本**：v1.6.0
+> **最後更新**：2026-10-30
 > **前端版本**：Vue 3 + TypeScript（目前以 localStorage 模擬，待串接）
 > **目標後端技術**：Spring Boot 3.x + Spring Security 6.x（OAuth2 Client + JWT）
 
@@ -9,12 +9,12 @@
 
 ## 目錄
 
-1. [通用規範](#1-通用規範)
+1. [通用規範](#1-通用規範)（含[可見範圍規則](#可見範圍規則誰看得到誰)）
 2. [認證 Auth](#2-認證-auth)（含 OAuth2 社群登入）
 3. [課程 Courses](#3-課程-courses)
 4. [聽課紀錄 Listen Sessions](#4-聽課紀錄-listen-sessions)
 5. [講師管理 Lecturers](#5-講師管理-lecturers)
-6. [學員關懷配對 Assignments](#6-學員關懷配對-assignments)
+6. [學員關懷配對 Assignments](#6-學員關懷配對-assignments)（含家長綁定、性別）
 7. [閃耀計畫 Shining Project](#7-閃耀計畫-shining-project)
 8. [管理員 Admin](#8-管理員-admin)
 9. [年度教學統計 Teaching Stats](#9-年度教學統計-teaching-stats)
@@ -22,6 +22,13 @@
 11. [資料模型定義](#11-資料模型定義)
 12. [錯誤碼一覽](#12-錯誤碼一覽)
 13. [前端串接遷移指南](#13-前端串接遷移指南)
+
+> **v1.6.0 異動摘要**
+> - 新增[可見範圍規則](#可見範圍規則誰看得到誰)：教師與學員依性別分開管理，牧者以上看整體，以教會為單位；講師在自己授課的預約中看得到全部學員
+> - `User` 新增 `gender`；新增 `PUT /users/:username/gender`
+> - 家長綁定改為獨立的 `/parents/:parentUsername/children`，`/assignments` 不再有 `parent`
+> - `DELETE /admin/users/:username` 與更改角色時，會清理仍指向該帳號的指派、講師連結與預約
+> - 預約新增 `GET /bookings/sessions?lecturerUsername=`（我的授課）；講師可更新出席狀態
 
 > **OAuth2 社群登入詳細設計**：請參閱 [`docs/oauth2_social_login_spec.md`](./oauth2_social_login_spec.md)，
 > 內含 Google / LINE 完整流程、Spring Boot SecurityConfig、前端 LoginCallback、onboarding 流程等。
@@ -45,6 +52,26 @@ https://api.sslecture.example.com/v1
 ```
 Authorization: Bearer <access_token>
 ```
+
+### 可見範圍規則（誰看得到誰）
+
+前端規則集中在 `src/utils/scope.ts`；目前只在瀏覽器端過濾，**後端必須在每個回傳或修改學員資料的
+API 套用同樣的規則**，否則前端的限制可以被繞過。以下各節的「只能查詢其管理的學員」都指這張表：
+
+| 檢視者 | 看得到的學員 |
+|--------|--------------|
+| `teacher` | 同教會、**同性別**的學員；教師或學員任一方尚未設定 `gender` 時看不到 |
+| `pastor` | 同教會的所有學員（不分性別） |
+| `admin` / SS 中央（無所屬教會） | 所有學員 |
+| `parent` | 綁定的孩子（見[家長綁定](#家長綁定-parent-bindings)） |
+| `student` | 只有自己 |
+
+**講師例外**：講師資料（`Lecturer`）若連結到教師帳號（`linkedUsername`），該帳號在**自己授課的預約**
+（`session.lecturerId` 屬於自己）中看得到全部學員，不分性別，並可記錄出席；學員名冊等其他 API 仍依上表。
+對應前端 `canViewAttendee()`。
+
+**同一預約中看不到的學員**：教師管理的預約若含有其看不到的學員（例如資料是在規則實施前建立的），
+回應中不列出這些學員，只回傳人數 `hiddenAttendeeCount`。
 
 ### 標準回應格式
 
@@ -229,6 +256,7 @@ Authorization: Bearer <access_token>
     "role": "student",
     "church": "愛與話語",
     "displayName": "王小明",
+    "gender": "male",
     "avatarUrl": "https://...",
     "createdAt": "2025-01-01T00:00:00Z"
   }
@@ -417,7 +445,7 @@ Authorization: Bearer <access_token>
 
 **權限**：
 - `student`：只能查詢自己
-- `teacher` / `pastor` / `parent`：只能查詢其管理的學員
+- `teacher` / `pastor` / `parent`：只能查詢看得到的學員（見[可見範圍規則](#可見範圍規則誰看得到誰)）
 - `admin`：可查詢任何人
 
 **Response**：
@@ -641,17 +669,18 @@ Authorization: Bearer <access_token>
 
 ## 6. 學員關懷配對 Assignments
 
-> 每位學員可配對三種關懷角色：
-> - `teacher`：輔導教師
-> - `pastor`：分區牧者  
-> - `parent`：關懷家長
+> 每位學員可配對兩種關懷角色：
+> - `teacher`：輔導教師（須與學員同性別）
+> - `pastor`：分區牧者
+>
+> 家長與孩子的綁定另見[家長綁定](#家長綁定-parent-bindings)；性別設定見[性別](#性別-gender)。
 
 ### `GET /assignments/:studentUsername`
 **說明**：取得某學員的關懷人員配對資料
 
 **權限**：
 - `student`：只能查詢自己
-- `teacher` / `pastor` / `parent`：只能查詢其管理的學員
+- `teacher` / `pastor` / `parent`：只能查詢看得到的學員（見[可見範圍規則](#可見範圍規則誰看得到誰)）
 - `admin`：可查詢任何人
 
 **Response**：
@@ -661,8 +690,7 @@ Authorization: Bearer <access_token>
   "data": {
     "studentUsername": "student01",
     "teacher": "teacher01",
-    "pastor": "pastor01",
-    "parent": "parent01"
+    "pastor": "pastor01"
   }
 }
 ```
@@ -681,10 +709,12 @@ Authorization: Bearer <access_token>
 ```json
 {
   "teacher": "teacher01",
-  "pastor": "pastor01",
-  "parent": "parent01"
+  "pastor": "pastor01"
 }
 ```
+
+**檢查**：`teacher` 只能是看得到這位學員的教師（同教會、同性別、雙方皆已設定性別；前端 `canMentor()`），
+否則回傳 `403 STUDENT_NOT_VISIBLE`。家長綁定不在這裡，見[家長綁定](#家長綁定-parent-bindings)。
 
 ---
 
@@ -693,7 +723,7 @@ Authorization: Bearer <access_token>
 
 **權限**：同 PUT
 
-**Path Params**：`role` = `teacher` | `pastor` | `parent`
+**Path Params**：`role` = `teacher` | `pastor`
 
 ---
 
@@ -722,6 +752,60 @@ Authorization: Bearer <access_token>
   }
 }
 ```
+
+---
+
+### 家長綁定 Parent Bindings
+
+> 一位家長可綁定多位孩子，一位孩子可有多位家長。家長只看得到綁定的孩子。
+> 對應前端 `authStore.parentsOf()` / `childrenOf()` / `bindChild()` / `unbindChild()`。
+
+#### `GET /parents/:parentUsername/children`
+**說明**：取得家長綁定的孩子（依綁定順序）
+
+**權限**：家長本人、同教會的 `pastor`、`admin`
+
+**Response**：
+```json
+{ "success": true, "data": { "parentUsername": "parent01", "children": ["student01", "student02"] } }
+```
+
+#### `GET /students/:studentUsername/parents`
+**說明**：取得綁定某學員的家長
+
+**權限**：同教會的 `pastor`、`admin`
+
+#### `PUT /parents/:parentUsername/children/:studentUsername`
+**說明**：綁定（已綁定則不變）
+
+**權限**：同教會的 `pastor`、`admin`；家長以邀請碼註冊時也會建立綁定（見 `POST /auth/register`）
+
+**檢查**：`parentUsername` 須為 `parent`、`studentUsername` 須為 `student`，且同教會，否則 `400 VALIDATION_ERROR`
+
+#### `DELETE /parents/:parentUsername/children/:studentUsername`
+**說明**：解除綁定
+
+**權限**：同 PUT
+
+---
+
+### 性別 Gender
+
+#### `PUT /users/:username/gender`
+**說明**：設定或清除教師、學員的性別。教師只看得到同性別的學員，未設定性別的教師看不到任何學員。
+
+**權限**：同教會的 `pastor`、`admin`（使用者不能自己設定）
+
+**Request Body**：
+```json
+{ "gender": "female" }
+```
+- `gender`：`male` | `female` | `null`（`null` = 清除）
+- 只接受 `role` 為 `student` 或 `teacher` 的帳號，否則 `400 VALIDATION_ERROR`
+- 講師資料本身不分性別
+
+**副作用建議**：改變性別後，原本的輔導教師可能看不到這位學員；回應中附上
+`mentorMismatch: true`，讓牧者重新指派（前端以「有 N 位學員的輔導教師看不到他們」提示）。
 
 ---
 
@@ -845,7 +929,7 @@ Authorization: Bearer <access_token>
 ---
 
 ### `PUT /admin/users/:username`
-**說明**：更新使用者資料（包含重設密碼、更改角色）
+**說明**：更新使用者資料（包含重設密碼、更改角色、性別）
 
 **權限**：`admin`
 
@@ -855,16 +939,41 @@ Authorization: Bearer <access_token>
   "displayName": "新名稱",
   "role": "teacher",
   "church": "愛與話語",
+  "gender": "male",
   "password": "新密碼（選填）"
 }
 ```
 
+**更改角色時**：先依「原本的角色」做與刪除帳號相同的清理（見下方），再更新角色；角色不變則不清理。
+預約的取消原因為「輔導教師已不再擔任此身分」。
+
 ---
 
 ### `DELETE /admin/users/:username`
-**說明**：停用使用者帳號（軟刪除，`isActive = false`）
+**說明**：停用使用者帳號（軟刪除，`isActive = false`），並在同一個交易中清理仍指向該帳號的資料
+（對應前端 `useAccountCleanup().releaseRole()`）
 
 **權限**：`admin`
+
+| 原本的角色 | 清理 |
+|------------|------|
+| `student` | 解除所有家長綁定；刪除其教師與牧者指派 |
+| `teacher` | 從所有學員的輔導教師指派中移除；連結到該帳號的講師資料解除連結（講師保留）；`pending`、`confirmed` 的預約改為 `cancelled`，`cancelReason` 為「輔導教師帳號已刪除」 |
+| `pastor` | 從所有學員的牧者指派中移除 |
+| `parent` | 解除其所有綁定 |
+
+已完成、已取消的預約、教學統計與聽課紀錄保留為歷史。
+
+**Response**：回傳清理的筆數，前端據此提示管理員
+```json
+{
+  "success": true,
+  "data": {
+    "username": "teacher01",
+    "cleanup": { "mentorAssignments": 3, "lecturerLinks": 1, "cancelledBookings": 2 }
+  }
+}
+```
 
 ---
 
@@ -1118,6 +1227,14 @@ Authorization: Bearer <access_token>
 
 ### 10.1 預約場次 Booking Sessions
 
+> **誰能看、誰能改**
+> - 預約由學員的輔導教師安排與管理（建立、確認時間、取消、完成、備註、新增學員）；
+>   能邀請的學員只限該教師看得到的學員（同教會、同性別）
+> - 學員只看得到自己被邀請的預約
+> - 講師（連結到教師帳號）看得到自己授課的預約與其中**全部**學員，可記錄出席，但不能改預約本身
+> - 男、女教師可各自為自己的學員預約同一堂課（同講師、課程、時段），資料上是兩筆場次；
+>   「我的授課」畫面把它們合併成一堂課顯示
+
 #### 取得教師的所有預約場次
 ```
 GET /bookings/sessions?teacherUsername={username}&status={status}
@@ -1126,6 +1243,7 @@ GET /bookings/sessions?teacherUsername={username}&status={status}
 | 查詢參數 | 型別 | 必填 | 說明 |
 |----------|------|------|------|
 | `teacherUsername` | string | 否 | 篩選特定教師建立的場次 |
+| `lecturerUsername` | string | 否 | 篩選此帳號擔任講師的場次（透過 `Lecturer.linkedUsername`，即「我的授課」）⭐ |
 | `church` | string | 否 | 依教會篩選 |
 | `status` | string | 否 | `pending \| confirmed \| completed \| cancelled` |
 
@@ -1160,6 +1278,17 @@ GET /bookings/sessions?teacherUsername={username}&status={status}
   ]
 }
 ```
+
+#### 取得我擔任講師的預約場次 ⭐
+```
+GET /bookings/sessions?lecturerUsername={username}&includeAttendees=true
+```
+
+**權限**：只能查詢自己（`lecturerUsername` = 登入者），`admin` 可查任何人
+
+回傳 `lecturerId` 屬於該帳號連結之講師資料、且 `status != cancelled` 的場次，依時間排序；
+`includeAttendees=true` 時每筆場次附上**全部**學員（不套用性別規則）與顯示名稱。
+對應前端 `bookingsStore.getSessionsByLecturers()` 與 `TeacherLectureSchedule.vue`。
 
 #### 取得學員的預約場次（含出席資料）
 ```
@@ -1269,6 +1398,11 @@ DELETE /bookings/sessions/:sessionId
 GET /bookings/sessions/:sessionId/attendees
 ```
 
+**權限與過濾**：
+- 安排的教師：只回傳看得到的學員，另附 `hiddenAttendeeCount`（看不到的人數，不含姓名）
+- 該場次的講師（連結帳號）、同教會 `pastor`、`admin`：回傳全部學員
+- 學員：只回傳自己的那一筆
+
 **回應範例**
 ```json
 {
@@ -1311,6 +1445,12 @@ POST /bookings/sessions/:sessionId/attendees
 PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 ```
 
+**權限**：
+- 安排的教師：可更新看得到的學員的所有欄位
+- 該場次的講師（連結帳號）：只能更新 `attendanceStatus`，且場次須已確認時間（`status` 為
+  `confirmed` 或 `completed`），否則 `409 BOOKING_NOT_CONFIRMED`；可更新任何學員（不分性別）
+- 學員：只能更新自己的 `studentFeedback`
+
 **Request Body**
 ```json
 {
@@ -1334,6 +1474,7 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | 功能 | 方法 | 路徑 |
 |------|------|------|
 | 取得場次列表 | `GET` | `/bookings/sessions` |
+| 我的授課（講師） | `GET` | `/bookings/sessions?lecturerUsername=` |
 | 建立新場次 | `POST` | `/bookings/sessions` |
 | 更新場次狀態 | `PATCH` | `/bookings/sessions/:id/status` |
 | 更新預習內容 | `PATCH` | `/bookings/sessions/:id/prep` |
@@ -1357,6 +1498,8 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | `church` | string | 所屬教會名稱 |
 | `displayName` | string? | 暱稱（公開顯示） |
 | `realName` | string? | 真實姓名（管理端顯示，不對其他學員公開） |
+| `gender` | `male` \| `female` \| null | 性別，只用於 `student`、`teacher`；null = 未設定 ⭐ |
+| `childUsernames` | string[]? | 只用於 `parent`：綁定的孩子（後端對應 `parent_children` 表） ⭐ |
 | `avatarUrl` | string? | 頭像 URL |
 | `isActive` | boolean | 是否啟用（false = 軟刪除） |
 | `lastLoginAt` | ISO8601? | 最後登入時間 |
@@ -1393,7 +1536,7 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | `title` | string | 職稱（牧師/傳道/長老/輔導等） |
 | `church` | string | 所屬教會 |
 | `courseIds` | string[] | 可授課的課程 ID 清單（用於篩選建議講師） |
-| `linkedUsername` | string? | 連結的教師帳號（FK → users.username）；空則為外來/自訂講師 |
+| `linkedUsername` | string? | 連結的教師帳號（FK → users.username）；空則為外來/自訂講師。連結後該帳號有「我的授課」 |
 
 ### StudentAssignment（關懷配對）
 | 欄位 | 型別 | 說明 |
@@ -1401,7 +1544,6 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | `studentUsername` | string | 學員帳號（FK） |
 | `teacher` | string? | 輔導教師帳號（FK） |
 | `pastor` | string? | 分區牧者帳號（FK） |
-| `parent` | string? | 關懷家長帳號（FK） |
 | `updatedAt` | ISO8601 | 最後更新時間 |
 
 ---
@@ -1418,6 +1560,8 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | 401 | `TOKEN_EXPIRED` | Access Token 已過期，請呼叫 /auth/refresh |
 | 401 | `REFRESH_TOKEN_EXPIRED` | Refresh Token 已過期，需重新登入 |
 | 403 | `FORBIDDEN` | 有登入但無權限執行此操作 |
+| 403 | `STUDENT_NOT_VISIBLE` | 依可見範圍規則看不到此學員（如指派異性學員給教師） ⭐ |
+| 409 | `BOOKING_NOT_CONFIRMED` | 場次時間尚未確認，講師還不能記錄出席 ⭐ |
 | 403 | `ACCOUNT_DISABLED` | 帳號已被停用（isActive = false） |
 | 404 | `USER_NOT_FOUND` | 找不到此使用者 |
 | 404 | `COURSE_NOT_FOUND` | 找不到此課程 |
@@ -1479,6 +1623,13 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | `bookingsStore.addAttendeeToSession()` | `POST /bookings/sessions/:id/attendees` ⭐ |
 | `bookingsStore.deleteSession()` | `DELETE /bookings/sessions/:id` ⭐ |
 | `bookingsStore.getSessionsByTeacher()` | `GET /bookings/sessions?teacherUsername=...` ⭐ |
+| `bookingsStore.getSessionsByLecturers()` | `GET /bookings/sessions?lecturerUsername=...` ⭐ |
+| `bookingsStore.cancelOpenSessionsOf()` | 由 `DELETE /admin/users/:username` 在後端處理 ⭐ |
+| `authStore.setGender()` | `PUT /users/:username/gender` ⭐ |
+| `authStore.bindChild()` / `unbindChild()` | `PUT` / `DELETE /parents/:parentUsername/children/:studentUsername` ⭐ |
+| `authStore.parentsOf()` / `childrenOf()` | `GET /students/:studentUsername/parents` / `GET /parents/:parentUsername/children` ⭐ |
+| `useAccountCleanup().releaseRole()` | `DELETE /admin/users/:username`、`PUT /admin/users/:username`（改角色）在後端處理 ⭐ |
+| `utils/scope.ts`（`canViewStudent` / `canViewAttendee` 等） | 後端每個學員相關 API 的授權過濾 ⭐ |
 | `bookingsStore.getUpcomingSessions()` | `GET /bookings/sessions?studentUsername=...&upcoming=true` ⭐ |
 | `bookingsStore.getPastSessions()` | `GET /bookings/sessions?studentUsername=...&past=true` ⭐ |
 

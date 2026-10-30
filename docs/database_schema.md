@@ -1,7 +1,7 @@
 # SSLecture 後端資料庫設計文件
 
-> **文件版本**：v1.6.0  
-> **最後更新**：2026-08-14  
+> **文件版本**：v1.7.0  
+> **最後更新**：2026-10-30  
 > **資料來源**：分析前端 `src/stores/auth.ts`、`src/stores/courses.ts`、`src/stores/bookings.ts`、localStorage 資料結構  
 > **建議資料庫**：PostgreSQL（主要）/ MySQL（可選）  
 > **ORM 建議**：Prisma（Node.js）/ SQLAlchemy（Python）
@@ -29,7 +29,8 @@
    - [booking_sessions（預約場次）](#215-booking_sessions-預約場次) ⭐ NEW
    - [booking_attendees（場次學員）](#216-booking_attendees-場次學員) ⭐ NEW
    - [invite_codes（邀請碼）](#217-invite_codes-邀請碼) ⭐
-   - [social_accounts（社群帳號綁定）](#218-social_accounts-社群帳號綁定) ⭐ NEW
+   - [social_accounts（社群帳號綁定）](#218-social_accounts-社群帳號綁定)
+   - [parent_children（家長綁定）](#219-parent_children-家長綁定) ⭐ NEW
 3. [索引設計](#3-索引設計)
 4. [資料關聯圖（文字版）](#4-資料關聯圖文字版)
 5. [設計決策與說明](#5-設計決策與說明)
@@ -74,7 +75,16 @@
   refresh_tokens       (JWT Refresh Token 黑名單)
   teaching_stats       (年度教學統計)
   invite_codes ⭐       (邀請碼，NEW) — created_by/used_by → users, church_id → churches
+  parent_children ⭐    (家長綁定，NEW) — parent_id/student_id → users（多對多）
 ```
+
+> **v1.7.0 異動摘要**
+> - `users` 新增 `gender`（教師、學員依性別分開管理，見 [5.10](#510-性別分開管理與可見範圍)）
+> - 家長綁定改由新表 `parent_children` 記錄（一位家長可綁多位孩子、一位孩子可有多位家長），
+>   `student_assignments` 移除 `parent_id`，只記錄教師與牧者
+> - `booking_sessions.teacher_id` 改為 `ON DELETE RESTRICT`，帳號一律軟刪除，預約紀錄保留為歷史
+> - 新增設計說明：講師例外（[5.11](#511-講師在自己授課的預約中看得到全部學員)）、
+>   刪除帳號或變更角色時的清理（[5.12](#512-刪除帳號或變更角色時的清理)）
 
 ---
 
@@ -93,6 +103,7 @@
 | `church_id` | `UUID` | FK → churches.id, NULL | 所屬教會（admin 為 NULL） |
 | `display_name` | `VARCHAR(100)` | NULL | 暱稱（公開顯示） |
 | `real_name` | `VARCHAR(100)` | NULL | 真實姓名（管理端顯示，不對學員公開） |
+| `gender` | `ENUM` | NULL | `male` / `female`；只用於 `student`、`teacher`，由牧者或管理員設定 ⭐ |
 | `avatar_url` | `VARCHAR(512)` | NULL | 頭像圖片 URL |
 | `login_method` | `ENUM` | NOT NULL, DEFAULT 'credentials' | `credentials` / `google` / `line` |
 | `is_active` | `BOOLEAN` | NOT NULL, DEFAULT TRUE | 帳號是否啟用（FALSE = 軟刪除） |
@@ -105,7 +116,9 @@
 - `role` 決定整個系統的存取權限邏輯
 - `admin` 角色的 `church_id` 為 NULL（跨教會管理）
 - `real_name` 僅式於管理端（教師/牧者/管理員）顯示，不對學員公開
-- `is_active = FALSE` 為軟刪除，歷史資料保留
+- `is_active = FALSE` 為軟刪除，歷史資料保留；軟刪除時須一併做 [5.12](#512-刪除帳號或變更角色時的清理) 的清理
+- `gender` 只對 `student`、`teacher` 有意義（前端 `GENDERED_ROLES`）；NULL 表示尚未設定，
+  此時教師看不到該學員、未設定性別的教師看不到任何學員（見 5.10）
 
 ---
 
@@ -213,7 +226,7 @@
 ### 2.7 `student_assignments` 學員關懷配對
 
 > **對應前端**：`courses.ts` → `StudentCaretakers` interface、`studentTeacherDb`  
-> 每位學員最多配對三種角色：teacher / pastor / parent
+> 每位學員最多配對兩種角色：teacher / pastor（家長綁定改記錄於 [`parent_children`](#219-parent_children-家長綁定)）
 
 | 欄位名 | 資料型別 | 限制 | 說明 |
 |--------|----------|------|------|
@@ -221,13 +234,14 @@
 | `student_id` | `UUID` | UNIQUE, FK → users.id, NOT NULL | 學員（唯一，一位學員只有一筆配對記錄） |
 | `teacher_id` | `UUID` | FK → users.id, NULL | 輔導教師（可為空） |
 | `pastor_id` | `UUID` | FK → users.id, NULL | 分區牧者（可為空） |
-| `parent_id` | `UUID` | FK → users.id, NULL | 關懷家長（可為空） |
 | `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 最後更新時間 |
 
 **設計說明**：
 - `student_id` 加 UNIQUE，確保一位學員只有一筆配對記錄（UPSERT 操作）
-- `teacher_id`、`pastor_id`、`parent_id` 皆可獨立為 NULL（未配對）
+- `teacher_id`、`pastor_id` 皆可獨立為 NULL（未配對）
 - 刪除配對時將對應欄位設為 NULL 即可
+- `teacher_id` 只能指向看得到這位學員的教師：同教會、同性別、雙方皆已設定性別
+  （前端 `canMentor()`；後端寫入時須檢查）
 
 ---
 
@@ -379,7 +393,9 @@ CREATE INDEX idx_listen_sessions_listened_at    ON listen_sessions(listened_at D
 -- student_assignments 表
 CREATE INDEX idx_student_assignments_teacher ON student_assignments(teacher_id);
 CREATE INDEX idx_student_assignments_pastor  ON student_assignments(pastor_id);
-CREATE INDEX idx_student_assignments_parent  ON student_assignments(parent_id);
+
+-- parent_children 表 ⭐
+CREATE INDEX idx_parent_children_student ON parent_children(student_id);
 
 -- shining_faith_checklists 表
 CREATE INDEX idx_faith_checklists_project ON shining_faith_checklists(shining_project_id);
@@ -403,6 +419,7 @@ CREATE INDEX idx_teaching_stats_teacher ON teaching_stats(teacher_id);
 
 -- booking_sessions 表 ⭐
 CREATE INDEX idx_booking_sessions_teacher  ON booking_sessions(teacher_id);
+CREATE INDEX idx_booking_sessions_lecturer ON booking_sessions(lecturer_id);  -- 「我的授課」查詢
 CREATE INDEX idx_booking_sessions_church   ON booking_sessions(church_id);
 CREATE INDEX idx_booking_sessions_status   ON booking_sessions(status);
 CREATE INDEX idx_booking_sessions_proposed ON booking_sessions(proposed_at DESC);
@@ -429,8 +446,8 @@ churches (1) ──────────────────────�
     │                                    ┌──────┴──────────┐
     │                                    │                  │
     (1)                               student          teacher/
-    │                                   (1)           pastor/
-    └──> (N) themes                     │            parent
+    │                                   (1)           pastor
+    └──> (N) themes                     │         （parent 見下方）
     │                                   │               │
     (1)                    ┌────────────┼──────────┐    │
     │                      │            │          │    │
@@ -448,6 +465,9 @@ churches (1) ──────────────────────�
 
 invite_codes ⭐ (created_by → users, used_by → users, church_id → churches)
   [code 為 PK，透過 role+church_id 鎖定可註冊的角色與教會]
+
+parent_children ⭐ (parent_id → users, student_id → users)
+  [家長 N ── M 學員；家長只看得到綁定的孩子]
 ```
 
 ---
@@ -480,9 +500,11 @@ invite_codes ⭐ (created_by → users, used_by → users, church_id → churche
 
 ### 5.4 `student_assignments` 為何用單一表而非關聯表？
 
-- 一位學員固定只能有「一位」teacher、「一位」pastor、「一位」parent
-- 用單一表 + 3 個 FK 欄位（可為 NULL）最直觀
+- 一位學員固定只能有「一位」teacher、「一位」pastor
+- 用單一表 + 2 個 FK 欄位（可為 NULL）最直觀
 - UPSERT（INSERT ON CONFLICT UPDATE）操作簡單
+- 家長則不同：一位家長可綁定多位孩子，一位孩子也可能有父母兩位家長，所以另用
+  多對多的 `parent_children`（v1.7.0 起；前端已統一以家長帳號的 `childUsernames` 為唯一來源）
 
 ### 5.5 `courses30` 自動判斷邏輯
 
@@ -529,6 +551,71 @@ WHERE revoked = FALSE
   AND expires_at > NOW()
 ```
 
+### 5.10 性別分開管理與可見範圍
+
+教師與學員依性別分開管理，牧者以上看得到整體狀況，以教會為單位。前端規則集中在
+`src/utils/scope.ts`，後端查詢須套用同樣的條件（前端過濾只是畫面，不是權限）：
+
+| 檢視者 | 看得到的學員 |
+|--------|--------------|
+| `teacher` | 同教會、**同性別**的學員；任一方 `gender IS NULL` 時看不到 |
+| `pastor` | 同教會的所有學員（不分性別） |
+| `admin` / SS 中央（`church_id IS NULL`） | 所有學員 |
+| `parent` | `parent_children` 綁定的孩子 |
+
+```sql
+-- 教師 :teacher_id 看得到的學員
+SELECT s.*
+FROM users s
+JOIN users t ON t.id = :teacher_id
+WHERE s.role = 'student' AND s.is_active
+  AND s.church_id = t.church_id
+  AND s.gender IS NOT NULL AND s.gender = t.gender;
+```
+
+- 性別由牧者（同教會）或管理員設定，講師資料（`lecturers`）本身不分性別
+- 同一場預約若有教師看不到的學員，畫面只顯示人數（「另有 N 位學員未顯示」），不顯示姓名
+
+### 5.11 講師在自己授課的預約中看得到全部學員
+
+預約由學員的輔導教師安排與管理；男、女教師可各自為自己的學員預約同一堂課（同一講師、
+課程、時段），資料上是兩筆 `booking_sessions`。
+
+- 講師透過 `lecturers.linked_user_id` 連結到教師帳號；該帳號在「我的授課」中看到
+  `lecturer_id` 屬於自己的所有預約，並看得到**全部**學員（不分男女），以便記錄出席
+- 畫面上把同一課程、同一時段的多筆預約合併成一堂課；資料仍是各自一筆
+- 這個例外只限「自己授課的預約」，學員名冊等其他畫面仍依 5.10
+- 講師可更新 `booking_attendees.attendance_status`（時間確認後，即 `status <> 'pending'`）；
+  預約本身（時間、取消、完成、備註）仍只有安排的教師能改
+- 未連結帳號的講師（外來講員）沒有登入畫面，出席由安排的教師記錄
+
+```sql
+-- 「我的授課」：:user_id 擔任講師、未取消的預約
+SELECT bs.*
+FROM booking_sessions bs
+JOIN lecturers l ON l.id = bs.lecturer_id
+WHERE l.linked_user_id = :user_id
+  AND bs.status <> 'cancelled'
+ORDER BY COALESCE(bs.confirmed_at, bs.proposed_at);
+```
+
+### 5.12 刪除帳號或變更角色時的清理
+
+帳號一律軟刪除（`is_active = FALSE`）。刪除帳號、或把帳號改成其他角色時，後端應在同一個
+交易中依「原本的角色」清掉仍指向它的資料（前端 `useAccountCleanup()`）：
+
+| 原本的角色 | 清理 |
+|------------|------|
+| `student` | 刪除其 `parent_children`；刪除其 `student_assignments` |
+| `teacher` | `student_assignments.teacher_id` 設為 NULL；`lecturers.linked_user_id` 設為 NULL（講師資料保留）；`pending` / `confirmed` 的預約改為 `cancelled` 並填入 `cancel_reason` |
+| `pastor` | `student_assignments.pastor_id` 設為 NULL |
+| `parent` | 刪除其 `parent_children` |
+
+- 已完成、已取消的預約、教學統計、聽課紀錄都保留為歷史，因此 `booking_sessions.teacher_id`
+  使用 `ON DELETE RESTRICT`（實體刪除帳號前須先處理，正常流程只會軟刪除）
+- 取消原因讓學員看得到為什麼預約取消（「輔導教師帳號已刪除」或「輔導教師已不再擔任此身分」）
+- 選回同一個角色不做任何事
+
 ---
 
 ## 6. SQL 建表語句（PostgreSQL）
@@ -555,6 +642,7 @@ CREATE TABLE churches (
 -- ═══════════════════════════════════════════════════
 CREATE TYPE user_role AS ENUM ('student', 'teacher', 'pastor', 'parent', 'admin');
 CREATE TYPE login_method AS ENUM ('credentials', 'google', 'line');
+CREATE TYPE user_gender AS ENUM ('male', 'female');
 
 CREATE TABLE users (
   id            UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -564,6 +652,7 @@ CREATE TABLE users (
   church_id     UUID         REFERENCES churches(id) ON DELETE SET NULL,
   display_name  VARCHAR(100),
   real_name     VARCHAR(100),
+  gender        user_gender,                 -- 只用於 student / teacher；NULL = 未設定
   avatar_url    VARCHAR(512),
   login_method  login_method NOT NULL DEFAULT 'credentials',
   is_active     BOOLEAN      NOT NULL DEFAULT TRUE,
@@ -644,13 +733,21 @@ CREATE TABLE student_assignments (
   student_id UUID        NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
   teacher_id UUID        REFERENCES users(id) ON DELETE SET NULL,
   pastor_id  UUID        REFERENCES users(id) ON DELETE SET NULL,
-  parent_id  UUID        REFERENCES users(id) ON DELETE SET NULL,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX idx_student_assignments_teacher ON student_assignments(teacher_id);
 CREATE INDEX idx_student_assignments_pastor  ON student_assignments(pastor_id);
-CREATE INDEX idx_student_assignments_parent  ON student_assignments(parent_id);
+
+-- parent_children（家長綁定，多對多）⭐ v1.7.0
+CREATE TABLE parent_children (
+  parent_id  UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  student_id UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  bound_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (parent_id, student_id)
+);
+
+CREATE INDEX idx_parent_children_student ON parent_children(student_id);
 
 -- ═══════════════════════════════════════════════════
 --  8. shining_projects（閃耀計畫主表）
@@ -837,7 +934,7 @@ INSERT INTO users (username, password_hash, role, church_id, display_name) VALUE
 
 ## 8. Mermaid ERD 關聯圖
 
-> 此圖展示全部 17 張資料表的欄位、主鍵（PK）、外鍵（FK）以及關聯性（一對一 / 一對多 / 多對多）。
+> 此圖展示所有資料表的欄位、主鍵（PK）、外鍵（FK）以及關聯性（一對一 / 一對多 / 多對多）。
 
 ```mermaid
 erDiagram
@@ -862,6 +959,7 @@ erDiagram
     UUID        church_id     FK "-> churches.id SET NULL"
     VARCHAR     display_name
     VARCHAR     real_name
+    user_gender gender           "ENUM male/female, NULL = 未設定"
     VARCHAR     avatar_url
     login_method login_method    "ENUM, DEFAULT credentials"
     BOOLEAN     is_active        "DEFAULT TRUE"
@@ -926,8 +1024,13 @@ erDiagram
     UUID        student_id FK,UK "-> users.id CASCADE (UNIQUE)"
     UUID        teacher_id FK    "-> users.id SET NULL"
     UUID        pastor_id  FK    "-> users.id SET NULL"
-    UUID        parent_id  FK    "-> users.id SET NULL"
     TIMESTAMPTZ updated_at
+  }
+
+  parent_children {
+    UUID        parent_id  PK,FK "-> users.id CASCADE"
+    UUID        student_id PK,FK "-> users.id CASCADE"
+    TIMESTAMPTZ bound_at
   }
 
   %% ════════════════════════════════════
@@ -1024,7 +1127,7 @@ erDiagram
 
   booking_sessions {
     VARCHAR     id                      PK  "sess_${timestamp}"
-    UUID        teacher_id              FK  "-> users.id CASCADE"
+    UUID        teacher_id              FK  "-> users.id RESTRICT"
     UUID        church_id               FK  "-> churches.id SET NULL"
     VARCHAR     course_id               FK  "-> courses.id SET NULL"
     VARCHAR     course_title               "NOT NULL （冗餘）"
@@ -1098,7 +1201,10 @@ erDiagram
   users ||--o| student_assignments : "student_id UK (CASCADE)"
   users ||--o{ student_assignments : "teacher_id (SET NULL)"
   users ||--o{ student_assignments : "pastor_id (SET NULL)"
-  users ||--o{ student_assignments : "parent_id (SET NULL)"
+
+  %% 家長綁定（M:N）
+  users ||--o{ parent_children : "parent_id (CASCADE)"
+  users ||--o{ parent_children : "student_id (CASCADE)"
 
   %% 閃耀計畫（1:1 + 1:N）
   users            ||--o| shining_projects        : "student_id UK (CASCADE)"
@@ -1116,7 +1222,7 @@ erDiagram
   users ||--o{ teaching_stats : "teacher_id (CASCADE)"
 
   %% 預約系統
-  users             ||--o{ booking_sessions  : "teacher_id (CASCADE)"
+  users             ||--o{ booking_sessions  : "teacher_id (RESTRICT)"
   churches          ||--o{ booking_sessions  : "church_id (SET NULL)"
   courses           ||--o{ booking_sessions  : "course_id (SET NULL)"
   lecturers         ||--o{ booking_sessions  : "lecturer_id (SET NULL)"
@@ -1196,11 +1302,11 @@ CREATE INDEX idx_teaching_stats_teacher ON teaching_stats(teacher_id);
 | 欄位名 | 資料型別 | 限制 | 說明 |
 |--------|----------|------|------|
 | `id` | `VARCHAR(64)` | PK, NOT NULL | 前端格式：`sess_${Date.now()}` |
-| `teacher_id` | `UUID` | FK → users.id, NOT NULL | 建立預約的教師 |
+| `teacher_id` | `UUID` | FK → users.id, NOT NULL, ON DELETE RESTRICT | 建立並管理預約的輔導教師 |
 | `church_id` | `UUID` | FK → churches.id, NULL | 場次所屬教會 |
 | `course_id` | `VARCHAR(64)` | FK → courses.id, NULL | 對應課程 |
 | `course_title` | `VARCHAR(200)` | NOT NULL | 課程名稱（冗餘儲存，保留歷史） |
-| `lecturer_id` | `VARCHAR(64)` | FK → lecturers.id, NULL | 對應講師 |
+| `lecturer_id` | `VARCHAR(64)` | FK → lecturers.id, NULL | 對應講師（連結帳號的講師可在「我的授課」看到此預約，見 5.11） |
 | `lecturer_name` | `VARCHAR(100)` | NOT NULL | 講師姓名（冗餘儲存） |
 | `lecturer_title` | `VARCHAR(50)` | NOT NULL, DEFAULT '' | 講師稱謂（如「牧師」） |
 | `proposed_at` | `TIMESTAMPTZ` | NOT NULL | 教師提議的時間 |
@@ -1227,12 +1333,15 @@ pending ──confirm──> confirmed ──complete──> completed
 - `course_title`、`lecturer_name`、`lecturer_title` 冗餘儲存，避免講師/課程被刪除後歷史資料遺失
 - `prep_scriptures` 使用 PostgreSQL 原生陣列型別；MySQL 替代方案可改用 JSON 欄位
 - 建議後端在 `status = completed` 時自動 trigger 同步至 `listen_sessions`（若需要）
+- 誰能看、誰能改：安排的教師管理整筆預約，但只看得到同性別的學員；連結帳號的講師看得到全部學員
+  並可記錄出席（見 5.10、5.11）
+- 刪除教師帳號或變更其角色時，`pending` / `confirmed` 的預約改為 `cancelled` 並附原因（見 5.12）
 
 **SQL DDL**：
 ```sql
 CREATE TABLE booking_sessions (
   id                    VARCHAR(64)  PRIMARY KEY,
-  teacher_id            UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  teacher_id            UUID         NOT NULL REFERENCES users(id) ON DELETE RESTRICT, -- 帳號軟刪除，預約保留為歷史
   church_id             UUID         REFERENCES churches(id) ON DELETE SET NULL,
   course_id             VARCHAR(64)  REFERENCES courses(id) ON DELETE SET NULL,
   course_title          VARCHAR(200) NOT NULL,
@@ -1255,6 +1364,7 @@ CREATE TABLE booking_sessions (
 );
 
 CREATE INDEX idx_booking_sessions_teacher  ON booking_sessions(teacher_id);
+CREATE INDEX idx_booking_sessions_lecturer ON booking_sessions(lecturer_id);
 CREATE INDEX idx_booking_sessions_church   ON booking_sessions(church_id);
 CREATE INDEX idx_booking_sessions_status   ON booking_sessions(status);
 CREATE INDEX idx_booking_sessions_proposed ON booking_sessions(proposed_at DESC);
@@ -1417,3 +1527,35 @@ CREATE INDEX idx_social_accounts_email           ON social_accounts(email);
 ---
 
 *本文件由前端分析自動生成，後端工程師可直接參考此 SQL 進行資料庫建置。如有結構調整需求，請同步更新 `backend_api_spec.md` 文件。*
+
+---
+
+### 2.19 `parent_children` 家長綁定
+
+> **對應前端**：`auth.ts` → 家長帳號的 `childUsernames`（`bindChild()` / `unbindChild()` / `parentsOf()` / `childrenOf()`）  
+> **新增於**：v1.7.0（2026-10-30），取代 `student_assignments.parent_id`
+
+| 欄位名 | 資料型別 | 限制 | 說明 |
+|--------|----------|------|------|
+| `parent_id` | `UUID` | PK, FK → users.id, NOT NULL | 家長帳號（`role = 'parent'`） |
+| `student_id` | `UUID` | PK, FK → users.id, NOT NULL | 綁定的孩子（`role = 'student'`） |
+| `bound_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 綁定時間 |
+
+**複合主鍵**：`(parent_id, student_id)`
+
+**設計說明**：
+- 多對多：一位家長可綁定多位孩子（如兄弟姊妹），一位孩子可有多位家長（如父母各一個帳號）
+- 綁定來源：家長以邀請碼註冊時勾選、或由牧者 / 管理員設定；應用端須檢查兩個帳號的角色與教會
+- 家長只看得到綁定的孩子（見 5.10）
+- 學員或家長帳號刪除時，對應的綁定一併刪除（軟刪除時由應用端處理，見 5.12）
+
+**資料遷移**（自 v1.6.0）：
+```sql
+INSERT INTO parent_children (parent_id, student_id)
+SELECT parent_id, student_id FROM student_assignments WHERE parent_id IS NOT NULL
+ON CONFLICT DO NOTHING;
+
+ALTER TABLE student_assignments DROP COLUMN parent_id;
+```
+
+**SQL DDL**：見 [第 6 節](#6-sql-建表語句postgresql) `parent_children`。

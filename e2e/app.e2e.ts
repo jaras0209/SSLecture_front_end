@@ -229,6 +229,88 @@ test.describe('gender separation', () => {
   })
 })
 
+test.describe('lecturer', () => {
+  test('sees every student of their lecture and records attendance', async ({ page, openWith }) => {
+    const church = '愛與話語'
+    const account = (role: string, gender: string, realName: string) => ({
+      passwordHash: '123456',
+      role,
+      church,
+      gender,
+      realName
+    })
+    const session = (id: string, teacherUsername: string) => ({
+      id,
+      courseId: 'c1',
+      courseTitle: '測試課程',
+      lecturerId: 'L1',
+      lecturerName: '王講師',
+      lecturerTitle: '牧師',
+      teacherUsername,
+      proposedAt: '2099-01-10T10:00',
+      confirmedAt: '2099-01-10T10:00',
+      durationMinutes: 90,
+      status: 'confirmed',
+      prep: { scriptures: [], readingNotes: '', materials: '' },
+      teacherSessionNotes: '',
+      church,
+      isGroupSession: false,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z'
+    })
+    const attendee = (sessionId: string, studentUsername: string) => ({
+      id: `att_${sessionId}_${studentUsername}`,
+      sessionId,
+      studentUsername,
+      attendanceStatus: 'invited',
+      studentFeedback: '',
+      teacherFeedback: '',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z'
+    })
+    await openWith('teacher', {
+      superstart_user: users.teacher,
+      superstart_users_db: {
+        teacher: account('teacher', 'male', '王講師'),
+        tf: account('teacher', 'female', '林老師'),
+        boy: account('student', 'male', '張弟兄'),
+        girl: account('student', 'female', '陳姊妹')
+      },
+      superstart_lecturers_db: [
+        {
+          id: 'L1',
+          name: '王講師',
+          title: '牧師',
+          courseIds: [],
+          church,
+          linkedUsername: 'teacher'
+        }
+      ],
+      superstart_booking_sessions_db: { s1: session('s1', 'teacher'), s2: session('s2', 'tf') },
+      superstart_booking_attendees_db: {
+        att_s1_boy: attendee('s1', 'boy'),
+        att_s2_girl: attendee('s2', 'girl')
+      }
+    })
+
+    await page.locator('#tab-lectures').click()
+    const card = page.locator('.lecture-card')
+    await expect(card).toHaveCount(1)
+    await expect(card).toContainText('張弟兄')
+    await expect(card).toContainText('陳姊妹')
+
+    await card
+      .locator('.lecture-attendee', { hasText: '陳姊妹' })
+      .getByRole('button', { name: /已出席/ })
+      .click()
+    const attendees = await stored<Record<string, { attendanceStatus: string }>>(
+      page,
+      'superstart_booking_attendees_db'
+    )
+    expect(attendees.att_s2_girl.attendanceStatus).toBe('attended')
+  })
+})
+
 test.describe('admin', () => {
   test('creates a user and generates an invite code', async ({ page, openWith }) => {
     await openWith('admin', { superstart_user: users.admin })
