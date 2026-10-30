@@ -323,29 +323,25 @@ function getTeacherManagedStudents(teacherUsername: string): string[] {
 }
 
 function onSetCaretaker(studentUsername: string, role: 'teacher' | 'parent', value: string) {
-  if (value) {
-    coursesStore.assignStudentCaretaker(studentUsername, role, value)
-    // For parent role, also update childUsernames
-    if (role === 'parent') {
-      const prevParent = coursesStore.getStudentCaretaker(studentUsername, 'parent')
-      if (prevParent && prevParent !== value) {
-        const prevUser = authStore.usersDb[prevParent]
-        if (prevUser?.childUsernames) {
-          prevUser.childUsernames = prevUser.childUsernames.filter(
-            (u: string) => u !== studentUsername
-          )
-        }
-      }
-      const newParentUser = authStore.usersDb[value]
-      if (newParentUser) {
-        if (!newParentUser.childUsernames) newParentUser.childUsernames = []
-        if (!newParentUser.childUsernames.includes(studentUsername)) {
-          newParentUser.childUsernames.push(studentUsername)
-        }
-      }
+  // Read the current parent before changing anything: their account lists the student
+  // as a child, which decides what that parent can see
+  const prevParent =
+    role === 'parent' ? coursesStore.getStudentCaretaker(studentUsername, 'parent') : ''
+
+  if (value) coursesStore.assignStudentCaretaker(studentUsername, role, value)
+  else coursesStore.removeStudentCaretaker(studentUsername, role)
+  if (role !== 'parent' || prevParent === value) return
+
+  const prevUser = prevParent ? authStore.usersDb[prevParent] : undefined
+  if (prevUser?.childUsernames) {
+    prevUser.childUsernames = prevUser.childUsernames.filter((u: string) => u !== studentUsername)
+  }
+  const newParentUser = value ? authStore.usersDb[value] : undefined
+  if (newParentUser) {
+    if (!newParentUser.childUsernames) newParentUser.childUsernames = []
+    if (!newParentUser.childUsernames.includes(studentUsername)) {
+      newParentUser.childUsernames.push(studentUsername)
     }
-  } else {
-    coursesStore.removeStudentCaretaker(studentUsername, role)
   }
 }
 </script>

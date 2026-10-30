@@ -52,4 +52,22 @@ describe('TeacherPastorOverview', () => {
     expect(useCoursesStore().getStudentCaretaker('s2', 'teacher')).toBe('t2')
     expect(useCoursesStore().getStudentsManagedByTeacher('t2')).toEqual(['s2'])
   })
+
+  it('moves a student from one parent to another, and the old parent no longer has the child', async () => {
+    const { wrapper, auth } = mountAsPastor()
+    await wrapper.vm.$nextTick()
+    const row = () =>
+      wrapper.findAll('.match-table tbody tr').find((tr) => tr.text().includes('s2'))!
+
+    await row().findAll('select')[1].setValue('parent')
+    expect(auth.usersDb.parent.childUsernames).toContain('s2')
+
+    await row().findAll('select')[1].setValue('p2')
+    expect(auth.usersDb.p2.childUsernames).toEqual(['s2'])
+    expect(auth.usersDb.parent.childUsernames).not.toContain('s2')
+
+    await row().findAll('select')[1].setValue('') // unassign
+    expect(useCoursesStore().getStudentCaretaker('s2', 'parent')).toBeFalsy()
+    expect(auth.usersDb.p2.childUsernames).not.toContain('s2')
+  })
 })
