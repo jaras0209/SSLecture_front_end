@@ -31,6 +31,9 @@
         <p v-if="genderMissingCount > 0" class="gender-missing-hint mb-4" role="status">
           ⚠️ {{ $t('gender.missing', { n: genderMissingCount }) }}
         </p>
+        <p v-if="mentorMismatchCount > 0" class="gender-missing-hint mb-4" role="status">
+          ⚠️ {{ $t('gender.mismatch', { n: mentorMismatchCount }) }}
+        </p>
         <div
           class="table-container"
           tabindex="0"
@@ -81,6 +84,20 @@
                   <select
                     :value="coursesStore.getStudentCaretaker(stdUsername, 'teacher')"
                     class="form-input text-sm"
+                    :class="{
+                      'mentor-mismatch': mentorMismatch(
+                        stdUsername,
+                        coursesStore.getStudentCaretaker(stdUsername, 'teacher')
+                      )
+                    }"
+                    :title="
+                      mentorMismatch(
+                        stdUsername,
+                        coursesStore.getStudentCaretaker(stdUsername, 'teacher')
+                      )
+                        ? $t('gender.mismatchMark')
+                        : undefined
+                    "
                     :aria-label="
                       $t('a11y.caretakerFor', {
                         student: stdUsername,
@@ -97,7 +114,8 @@
                     "
                   >
                     <option value="">{{ $t('teacher.pastor.noAssigned') }}</option>
-                    <option v-for="t in pastorChurchTeachers" :key="t" :value="t">
+                    <option v-for="t in mentorOptions(stdUsername)" :key="t" :value="t">
+                      {{ mentorMismatch(stdUsername, t) ? '⚠️ ' : '' }}
                       {{ authStore.usersDb[t]?.realName || t }}
                       {{
                         authStore.usersDb[t]?.displayName
@@ -227,8 +245,10 @@
                       v-for="s in getTeacherManagedStudents(teacher)"
                       :key="s"
                       class="badge badge-student mr-1"
-                      :title="`@${s}`"
-                      >🎒 {{ authStore.usersDb[s]?.realName || s }}</span
+                      :class="{ 'mentor-mismatch': mentorMismatch(s, teacher) }"
+                      :title="mentorMismatch(s, teacher) ? $t('gender.mismatchMark') : `@${s}`"
+                      >{{ mentorMismatch(s, teacher) ? '⚠️' : '🎒' }}
+                      {{ authStore.usersDb[s]?.realName || s }}</span
                     >
                     <span
                       v-if="getTeacherManagedStudents(teacher).length === 0"
@@ -299,7 +319,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import type { ProgressRecord } from '@/stores/courses'
 import { avatarSrc, defaultAvatarUrl } from '@/utils/avatar'
-import { membersOf } from '@/utils/scope'
+import { canMentor, membersOf } from '@/utils/scope'
 import GenderSelect from '@/components/shared/GenderSelect.vue'
 
 const authStore = useAuthStore()
@@ -347,6 +367,30 @@ const pastorLecturerStats = computed(() => {
     .sort((a, b) => b.sessionCount - a.sessionCount)
 })
 
+/**
+ * Mentor teachers offered for a student: those who may see the student (same gender,
+ * both set). The current mentor stays listed even if they no longer qualify, so the
+ * pastor sees the assignment and can change it.
+ */
+function mentorOptions(studentUsername: string): string[] {
+  const current = coursesStore.getStudentCaretaker(studentUsername, 'teacher')
+  return pastorChurchTeachers.value.filter(
+    (t) => t === current || canMentor(t, studentUsername, authStore.usersDb)
+  )
+}
+
+/** An existing mentor assignment the teacher can't act on (gender differs or isn't set) */
+function mentorMismatch(studentUsername: string, teacher: string): boolean {
+  return !!teacher && !canMentor(teacher, studentUsername, authStore.usersDb)
+}
+
+const mentorMismatchCount = computed(
+  () =>
+    pastorChurchStudents.value.filter((s) =>
+      mentorMismatch(s, coursesStore.getStudentCaretaker(s, 'teacher'))
+    ).length
+)
+
 /** Teachers and students of this church whose gender hasn't been set */
 const genderMissingCount = computed(
   () =>
@@ -383,6 +427,11 @@ function onBindParent(studentUsername: string, select: HTMLSelectElement) {
 </script>
 
 <style scoped>
+.mentor-mismatch {
+  border-color: #b45309;
+  background: #fffbeb;
+  color: #92400e;
+}
 .gender-missing-hint {
   padding: 0.5rem 0.85rem;
   border-radius: var(--radius-sm);

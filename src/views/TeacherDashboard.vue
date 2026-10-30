@@ -57,6 +57,11 @@
       </div>
     </header>
 
+    <!-- A teacher sees only students of their gender; without one set they see none -->
+    <p v-if="teacherGenderUnset" class="gender-unset-banner no-print" role="status">
+      ⚠️ {{ $t('gender.teacherUnsetNotice') }}
+    </p>
+
     <!-- Profile Dialog -->
     <ProfileDialog v-model="showProfileDialog" />
 
@@ -300,6 +305,11 @@ function openEditLecturer(lec: Lecturer) {
 
 // Generate the students progress summary list from databases
 
+const teacherGenderUnset = computed(() => {
+  const me = authStore.currentUser
+  return me?.role === 'teacher' && !authStore.usersDb[me.username]?.gender
+})
+
 const myStudentsCount = computed(() => {
   const currentUserRole = authStore.currentUser?.role
   const currentUsername = authStore.currentUser?.username
@@ -336,6 +346,16 @@ function viewStudentDetails(student: StudentProgressSummary) {
 </script>
 
 <style scoped>
+.gender-unset-banner {
+  margin-bottom: 1.25rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
 .header-user-row {
   display: flex;
   align-items: center;

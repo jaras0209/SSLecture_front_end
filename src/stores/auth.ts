@@ -53,8 +53,9 @@ export const useAuthStore = defineStore('auth', () => {
       }
     >
   >({
-    student: { passwordHash: '123456', role: 'student', church: DEFAULT_CHURCH },
-    teacher: { passwordHash: '123456', role: 'teacher', church: DEFAULT_CHURCH },
+    // Demo teacher and student share a gender so the teacher can see the student
+    student: { passwordHash: '123456', role: 'student', church: DEFAULT_CHURCH, gender: 'male' },
+    teacher: { passwordHash: '123456', role: 'teacher', church: DEFAULT_CHURCH, gender: 'male' },
     admin: { passwordHash: '123456', role: 'admin' },
     parent: {
       passwordHash: '123456',

@@ -86,7 +86,7 @@
           <div class="booking-attendees mt-2">
             <span class="info-label">{{ $t('teacher.booking.attendees') }}</span>
             <span
-              v-for="att in bookingsStore.getAttendeesForSession(session.id)"
+              v-for="att in attendeesOf(session.id).shown"
               :key="att.id"
               :class="['att-chip', `att-${att.attendanceStatus}`]"
             >
@@ -94,6 +94,9 @@
               <span :title="attendanceLabel(att.attendanceStatus)">{{
                 attendanceIcon(att.attendanceStatus)
               }}</span>
+            </span>
+            <span v-if="attendeesOf(session.id).hidden > 0" class="hidden-attendees-note">
+              {{ $t('gender.hiddenAttendees', { n: attendeesOf(session.id).hidden }) }}
             </span>
           </div>
 
@@ -374,6 +377,9 @@
           </div>
           <div class="complete-attendees mt-4">
             <label class="form-label mb-2">{{ $t('teacher.booking.attendeeFeedbackLabel') }}</label>
+            <p v-if="completingHiddenCount > 0" class="hidden-attendees-note mb-2">
+              {{ $t('gender.hiddenAttendees', { n: completingHiddenCount }) }}
+            </p>
             <div
               v-for="att in completingAttendees"
               :key="att.studentUsername"
@@ -506,7 +512,7 @@ import { useCoursesStore } from '@/stores/courses'
 import { useBookingsStore } from '@/stores/bookings'
 import type { BookingSession, BookingAttendee, AttendanceStatus } from '@/stores/bookings'
 import { useToast } from '@/composables/useToast'
-import { visibleStudents } from '@/utils/scope'
+import { canViewStudent, visibleStudents, viewerOf } from '@/utils/scope'
 
 const { toast } = useToast()
 const { t } = useI18n()
@@ -520,14 +526,28 @@ const bookingsStore = useBookingsStore()
 
 const myChurch = computed(() => authStore.currentUser?.church || '')
 
-const myStudentsList = computed(() => {
+/** The signed-in teacher, read from the account so their gender is current */
+const viewer = computed(() => {
   const me = authStore.currentUser
-  if (!me) return [] as Array<{ username: string; displayName?: string; realName?: string }>
-  return visibleStudents(me, authStore.usersDb).map((username) => ({
+  return me ? (viewerOf(me.username, authStore.usersDb) ?? me) : null
+})
+
+const myStudentsList = computed(() => {
+  if (!viewer.value)
+    return [] as Array<{ username: string; displayName?: string; realName?: string }>
+  return visibleStudents(viewer.value, authStore.usersDb).map((username) => ({
     username,
     ...authStore.usersDb[username]
   }))
 })
+
+/** A session's attendees split into those this teacher may see and how many are hidden */
+function attendeesOf(sessionId: string): { shown: BookingAttendee[]; hidden: number } {
+  const all = bookingsStore.getAttendeesForSession(sessionId)
+  const v = viewer.value
+  const shown = v ? all.filter((a) => canViewStudent(v, a.studentUsername, authStore.usersDb)) : []
+  return { shown, hidden: all.length - shown.length }
+}
 
 const myBookingSessions = computed(() => {
   const me = authStore.currentUser
@@ -665,6 +685,7 @@ function submitConfirmBooking() {
 const showCompleteModal = ref(false)
 const completingSession = ref<BookingSession | null>(null)
 const completingAttendees = ref<BookingAttendee[]>([])
+const completingHiddenCount = ref(0)
 const completeForm = ref<{
   teacherNotes: string
   attendeeData: Record<
@@ -675,7 +696,10 @@ const completeForm = ref<{
 
 function openCompleteBooking(session: BookingSession) {
   completingSession.value = session
-  completingAttendees.value = bookingsStore.getAttendeesForSession(session.id)
+  // Only the students this teacher may see; the others' attendance is left as it is
+  const { shown, hidden } = attendeesOf(session.id)
+  completingAttendees.value = shown
+  completingHiddenCount.value = hidden
   completeForm.value = {
     teacherNotes: session.teacherSessionNotes || '',
     attendeeData: Object.fromEntries(
@@ -796,6 +820,11 @@ defineExpose({
 </script>
 
 <style scoped>
+.hidden-attendees-note {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
 /* [css-migration] moved from TeacherDashboard.vue */
 @media (max-width: 640px) {
   .booking-card-header {

@@ -20,11 +20,40 @@ describe('useStudentList()', () => {
   it("lists the students of the teacher's own church only", () => {
     const { studentsList } = withSetup(() => useStudentList())
     const auth = useAuthStore()
-    auth.usersDb.s2 = { passwordHash: 'x', role: 'student', church: '主大明', realName: '李同學' }
-    auth.usersDb.s3 = { passwordHash: 'x', role: 'student', church: auth.usersDb.teacher.church }
+    auth.usersDb.s2 = {
+      passwordHash: 'x',
+      role: 'student',
+      church: '主大明',
+      realName: '李同學',
+      gender: 'male'
+    }
+    auth.usersDb.s3 = {
+      passwordHash: 'x',
+      role: 'student',
+      church: auth.usersDb.teacher.church,
+      gender: 'male'
+    }
     signIn('teacher')
 
     expect(studentsList.value.map((s) => s.username).sort()).toEqual(['s3', 'student'])
+  })
+
+  it("shows a teacher only students of their gender, following the pastor's changes", () => {
+    const { studentsList } = withSetup(() => useStudentList())
+    const auth = useAuthStore()
+    const church = auth.usersDb.teacher.church
+    auth.usersDb.girl = { passwordHash: 'x', role: 'student', church, gender: 'female' }
+    auth.usersDb.unset = { passwordHash: 'x', role: 'student', church }
+    signIn('teacher') // male, like the demo student
+    const names = () => studentsList.value.map((s) => s.username)
+    expect(names()).toEqual(['student'])
+
+    auth.setGender('unset', 'male')
+    expect(names()).toEqual(['student', 'unset'])
+    auth.setGender('teacher', 'female') // applies without signing in again
+    expect(names()).toEqual(['girl'])
+    auth.setGender('teacher', undefined)
+    expect(names()).toEqual([])
   })
 
   it('lists only their bound children for a parent', () => {

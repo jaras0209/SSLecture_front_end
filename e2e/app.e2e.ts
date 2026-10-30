@@ -200,6 +200,35 @@ test.describe('teacher', () => {
   })
 })
 
+test.describe('gender separation', () => {
+  test('a teacher sees only students of their gender, and none until their own is set', async ({
+    page,
+    openWith
+  }) => {
+    const church = '愛與話語'
+    const accounts = (teacherGender?: string) => ({
+      teacher: { passwordHash: '123456', role: 'teacher', church, gender: teacherGender },
+      student: { passwordHash: '123456', role: 'student', church, gender: 'male' },
+      girl: { passwordHash: '123456', role: 'student', church, gender: 'female' }
+    })
+    const rows = page.locator('.students-table tbody tr')
+
+    await openWith('teacher', {
+      superstart_user: users.teacher,
+      superstart_users_db: accounts('male')
+    })
+    await page.getByRole('button', { name: /全體學員名冊/ }).click()
+    await expect(rows.filter({ hasText: 'student' })).toHaveCount(1)
+    await expect(rows.filter({ hasText: 'girl' })).toHaveCount(0)
+    await expect(page.locator('.gender-unset-banner')).toHaveCount(0)
+
+    await openWith('teacher', { superstart_user: users.teacher, superstart_users_db: accounts() })
+    await expect(page.locator('.gender-unset-banner')).toBeVisible()
+    await page.getByRole('button', { name: /全體學員名冊/ }).click()
+    await expect(rows.filter({ hasText: 'student' })).toHaveCount(0)
+  })
+})
+
 test.describe('admin', () => {
   test('creates a user and generates an invite code', async ({ page, openWith }) => {
     await openWith('admin', { superstart_user: users.admin })

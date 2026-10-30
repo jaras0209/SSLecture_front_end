@@ -8,15 +8,18 @@
  * - canViewStudent / visibleStudents：某位檢視者（教師、牧者、家長）在學員清單、
  *   預約邀請等畫面上看得到哪些學員
  *
- * 之後若要加上其他條件（例如教師與學員依性別分開管理），只需修改這裡，
- * 所有畫面會一致套用。
+ * 教師與學員依性別分開管理：教師只看得到同教會、同性別的學員；任一方尚未設定性別時
+ * 看不到（由牧者補齊）。牧者、SS 中央、家長不受性別限制。
+ * 所有畫面都經過這裡，規則改這一處即一致套用。
  */
-import type { UserRole } from '@/types/auth'
+import type { Gender, UserRole } from '@/types/auth'
 
 /** The parts of an account the rules look at */
 export interface Member {
   role: UserRole | string
   church?: string
+  gender?: Gender
+  childUsernames?: string[]
 }
 
 export type MembersDb = Record<string, Member>
@@ -27,6 +30,20 @@ export interface Viewer {
   role: UserRole
   church?: string
   childUsernames?: string[]
+  gender?: Gender
+}
+
+/** The viewer for an account, read from the account itself (so changes apply at once) */
+export function viewerOf(username: string, members: MembersDb): Viewer | undefined {
+  const account = members[username]
+  if (!account) return undefined
+  return {
+    username,
+    role: account.role as UserRole,
+    church: account.church,
+    childUsernames: account.childUsernames ?? [],
+    gender: account.gender
+  }
 }
 
 /** Accounts with `role` in `church` (exact match), in account order */
@@ -43,16 +60,27 @@ export function membersOf(
 /**
  * Whether `viewer` may see the student `username` in staff views.
  * - Parents see only their bound children.
- * - Everyone else sees the students of their own church; a viewer without a church
+ * - Teachers see the students of their own church who have the same gender as they do;
+ *   if either gender isn't set yet, the student is hidden.
+ * - Pastors and others see the students of their own church; a viewer without a church
  *   (SS central) sees every student, including legacy progress records that have no
  *   account. Accounts that aren't students are never listed.
  */
 export function canViewStudent(viewer: Viewer, username: string, members: MembersDb): boolean {
   if (viewer.role === 'parent') return (viewer.childUsernames ?? []).includes(username)
   const account = members[username]
+  if (viewer.role === 'teacher' && !(viewer.gender && account?.gender === viewer.gender)) {
+    return false
+  }
   if (!account) return !viewer.church // legacy record without an account
   if (account.role !== 'student') return false
   return !viewer.church || account.church === viewer.church
+}
+
+/** Whether `teacher` may be the mentor of `student` (i.e. can see them) */
+export function canMentor(teacher: string, student: string, members: MembersDb): boolean {
+  const viewer = viewerOf(teacher, members)
+  return viewer?.role === 'teacher' && canViewStudent(viewer, student, members)
 }
 
 /**

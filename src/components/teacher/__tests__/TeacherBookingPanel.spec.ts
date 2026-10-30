@@ -15,7 +15,14 @@ function mountAsTeacher() {
   const auth = useAuthStore()
   const church = auth.usersDb.teacher.church!
   auth.currentUser = { username: 'teacher', role: 'teacher', loginMethod: 'credentials', church }
-  auth.usersDb.s2 = { passwordHash: 'x', role: 'student', church, realName: '李同學' }
+  // The demo teacher and student are both male; s2 too, so the teacher sees all three
+  auth.usersDb.s2 = {
+    passwordHash: 'x',
+    role: 'student',
+    church,
+    realName: '李同學',
+    gender: 'male'
+  }
   const courses = useCoursesStore()
   const course = courses.courses[0]
   courses.addLecturer('測試講師', '牧師', [course.id], church)
@@ -88,6 +95,55 @@ describe('TeacherBookingPanel', () => {
       (i) => (i.element as HTMLInputElement).value
     )
     expect(offered).toEqual(['student', 's2'])
+  })
+
+  it('invites only students of the same gender, and none while genders are missing', async () => {
+    const ctx = mountAsTeacher()
+    const auth = useAuthStore()
+    auth.usersDb.girl = { passwordHash: 'x', role: 'student', church: ctx.church, gender: 'female' }
+    auth.usersDb.unset = { passwordHash: 'x', role: 'student', church: ctx.church }
+    await ctx.wrapper.find('#btn-create-booking').trigger('click')
+    const offered = () =>
+      $$('.attendee-check-item input').map((i) => (i.element as HTMLInputElement).value)
+    expect(offered()).toEqual(['student', 's2'])
+
+    auth.setGender('teacher', undefined)
+    await ctx.wrapper.vm.$nextTick()
+    expect(offered()).toEqual([])
+  })
+
+  it('leaves the names of students it may not see out of a mixed booking', async () => {
+    const ctx = mountAsTeacher()
+    const auth = useAuthStore()
+    auth.usersDb.girl = {
+      passwordHash: 'x',
+      role: 'student',
+      church: ctx.church,
+      gender: 'female',
+      realName: '小美'
+    }
+    const session = existingBooking(ctx, ['student', 'girl', 's2'])
+    const bookings = useBookingsStore()
+    await ctx.wrapper.vm.$nextTick()
+
+    const card = ctx.wrapper.find('.booking-card')
+    expect(card.findAll('.att-chip')).toHaveLength(2)
+    expect(card.text()).not.toContain('小美')
+    expect(card.find('.hidden-attendees-note').text()).toBe(t('gender.hiddenAttendees', { n: 1 }))
+
+    // completing it records only the visible students; the hidden one is left as is
+    bookings.updateSessionStatus(session.id, 'confirmed', { confirmedAt: session.proposedAt })
+    await ctx.wrapper.vm.$nextTick()
+    await ctx.wrapper.find('.booking-card-actions .btn-primary').trigger('click')
+    expect($$('.complete-attendee-card')).toHaveLength(2)
+    expect(document.body.textContent).not.toContain('小美')
+    await $('#btn-submit-complete').trigger('click')
+    const status = Object.fromEntries(
+      bookings
+        .getAttendeesForSession(session.id)
+        .map((a) => [a.studentUsername, a.attendanceStatus])
+    )
+    expect(status).toEqual({ student: 'attended', girl: 'invited', s2: 'attended' })
   })
 
   it('only offers lecturers who teach the chosen course', async () => {

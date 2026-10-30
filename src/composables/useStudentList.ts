@@ -3,7 +3,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import type { StudentProgressSummary } from '@/types/student'
 import { defaultAvatarUrl } from '@/utils/avatar'
-import { visibleStudents } from '@/utils/scope'
+import { visibleStudents, viewerOf } from '@/utils/scope'
 
 /**
  * useStudentList — shared composable for teacher/pastor/parent views.
@@ -25,14 +25,15 @@ export function useStudentList() {
 
     // 1. Which students this user may see (rules in utils/scope.ts); usernames that only
     //    have progress records (legacy, no account) are candidates too
+    // Read from the account (not the session copy), so a pastor's change to children or
+    // gender applies without signing in again
+    const viewer = (me && viewerOf(me.username, authStore.usersDb)) ?? {
+      username: me?.username ?? '',
+      role: me?.role ?? 'student',
+      church: me?.church
+    }
     const usernames = visibleStudents(
-      {
-        username: me?.username ?? '',
-        role: me?.role ?? 'student',
-        church: me?.church,
-        // From the account, so a pastor's change applies without signing in again
-        childUsernames: me ? authStore.childrenOf(me.username) : []
-      },
+      viewer,
       authStore.usersDb,
       Object.keys(coursesStore.progressDb)
     )

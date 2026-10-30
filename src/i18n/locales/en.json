@@ -818,6 +818,10 @@
     "female": "Female",
     "unset": "Not set",
     "missing": "{n} teachers or students have no gender set yet",
-    "genderFor": "Gender of {name}"
+    "genderFor": "Gender of {name}",
+    "hiddenAttendees": "{n} more students not shown (different or unset gender)",
+    "mismatch": "{n} students have a mentor who can't see them (different or unset gender); please reassign",
+    "mismatchMark": "This teacher can't see this student (different or unset gender)",
+    "teacherUnsetNotice": "Your gender hasn't been set yet, so no students are shown. Please ask your district pastor to set it."
   }
 }

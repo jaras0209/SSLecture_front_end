@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import TeacherPastorOverview from '@/components/teacher/TeacherPastorOverview.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
-import { mountWith } from '@/__tests__/helpers'
+import { mountWith, t } from '@/__tests__/helpers'
 
 const OTHER = '主大明'
 
@@ -12,8 +12,9 @@ function mountAsPastor() {
   const church = auth.usersDb.pastor.church!
   auth.currentUser = { username: 'pastor', role: 'pastor', loginMethod: 'credentials', church }
   // One more of each role in this church, and one of each in another church
-  auth.usersDb.s2 = { passwordHash: 'x', role: 'student', church }
-  auth.usersDb.t2 = { passwordHash: 'x', role: 'teacher', church }
+  // The demo student and teacher are male; s2 and t2 too, so any teacher can mentor
+  auth.usersDb.s2 = { passwordHash: 'x', role: 'student', church, gender: 'male' }
+  auth.usersDb.t2 = { passwordHash: 'x', role: 'teacher', church, gender: 'male' }
   auth.usersDb.p2 = { passwordHash: 'x', role: 'parent', church }
   auth.usersDb.sx = { passwordHash: 'x', role: 'student', church: OTHER }
   auth.usersDb.tx = { passwordHash: 'x', role: 'teacher', church: OTHER }
@@ -84,6 +85,7 @@ describe('TeacherPastorOverview', () => {
 
   it('sets the gender of students and teachers and counts who is still missing one', async () => {
     const { wrapper, auth } = mountAsPastor()
+    for (const u of ['student', 's2', 'teacher', 't2']) auth.setGender(u, undefined)
     await wrapper.vm.$nextTick()
     const hint = () => wrapper.find('.gender-missing-hint')
     expect(hint().text()).toContain('4') // student, s2, teacher, t2 (not the other church)
@@ -106,5 +108,45 @@ describe('TeacherPastorOverview', () => {
     await wrapper.vm.$nextTick()
     expect(hint().exists()).toBe(false)
     expect(auth.usersDb.sx.gender).toBeUndefined() // other church untouched
+  })
+
+  it('offers as mentors only teachers of the same gender', async () => {
+    const { wrapper, auth } = mountAsPastor()
+    auth.setGender('s2', 'female')
+    auth.setGender('t2', 'female')
+    await wrapper.vm.$nextTick()
+    const mentorOptions = (student: string) =>
+      wrapper
+        .findAll('.match-table tbody tr')
+        .find((tr) => tr.text().includes(student))!
+        .find('select:not(.gender-select)')
+        .findAll('option')
+        .map((o) => o.attributes('value'))
+    expect(mentorOptions('s2')).toEqual(['', 't2'])
+    expect(mentorOptions('student')).toEqual(['', 'teacher'])
+
+    auth.setGender('s2', undefined)
+    await wrapper.vm.$nextTick()
+    expect(mentorOptions('s2')).toEqual(['']) // nobody until the gender is set
+  })
+
+  it('flags mentor assignments the teacher can no longer act on', async () => {
+    const { wrapper, auth } = mountAsPastor()
+    useCoursesStore().assignStudentCaretaker('s2', 'teacher', 'teacher')
+    await wrapper.vm.$nextTick()
+    expect(wrapper.find('.match-table .mentor-mismatch').exists()).toBe(false)
+
+    auth.setGender('s2', 'female') // now a different gender from their mentor
+    await wrapper.vm.$nextTick()
+    const row = wrapper.findAll('.match-table tbody tr').find((tr) => tr.text().includes('s2'))!
+    const mentor = row.find('select:not(.gender-select)')
+    expect(mentor.classes()).toContain('mentor-mismatch')
+    expect((mentor.element as HTMLSelectElement).value).toBe('teacher') // still shown
+    expect(wrapper.text()).toContain(t('gender.mismatch', { n: 1 }))
+    const teacherTable = wrapper.findAll('.students-table')[1]
+    expect(teacherTable.find('.badge.mentor-mismatch').text()).toContain('s2')
+
+    await mentor.setValue('') // the pastor unassigns
+    expect(wrapper.find('.mentor-mismatch').exists()).toBe(false)
   })
 })
