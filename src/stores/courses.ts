@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { membersOf } from '@/utils/scope'
 import { safeGet, safeSet } from '@/utils/storage'
 import { persistToStorage } from '@/utils/persist'
 import { toLocalDateTimeInput, nowIso, normalizeLegacyDateTime } from '@/utils/datetime'
@@ -687,40 +688,28 @@ export const useCoursesStore = defineStore('courses', () => {
     authUsersDb: Record<string, { role: string; church?: string }>,
     church: string
   ): string[] {
-    return Object.keys(authUsersDb).filter((username) => {
-      const user = authUsersDb[username]
-      return user.role === 'student' && user.church === church
-    })
+    return membersOf(authUsersDb, 'student', church)
   }
 
   function getTeachersByChurch(
     authUsersDb: Record<string, { role: string; church?: string }>,
     church: string
   ): string[] {
-    return Object.keys(authUsersDb).filter((username) => {
-      const u = authUsersDb[username]
-      return u.role === 'teacher' && u.church === church
-    })
+    return membersOf(authUsersDb, 'teacher', church)
   }
 
   function getPastorsByChurch(
     authUsersDb: Record<string, { role: string; church?: string }>,
     church: string
   ): string[] {
-    return Object.keys(authUsersDb).filter((username) => {
-      const u = authUsersDb[username]
-      return u.role === 'pastor' && u.church === church
-    })
+    return membersOf(authUsersDb, 'pastor', church)
   }
 
   function getParentsByChurch(
     authUsersDb: Record<string, { role: string; church?: string }>,
     church: string
   ): string[] {
-    return Object.keys(authUsersDb).filter((username) => {
-      const u = authUsersDb[username]
-      return u.role === 'parent' && u.church === church
-    })
+    return membersOf(authUsersDb, 'parent', church)
   }
 
   function getStudentsManagedByTeacher(teacherUsername: string): string[] {

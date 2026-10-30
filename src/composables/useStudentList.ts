@@ -3,6 +3,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import type { StudentProgressSummary } from '@/types/student'
 import { defaultAvatarUrl } from '@/utils/avatar'
+import { visibleStudents } from '@/utils/scope'
 
 /**
  * useStudentList — shared composable for teacher/pastor/parent views.
@@ -20,39 +21,23 @@ export function useStudentList() {
 
   const studentsList = computed<StudentProgressSummary[]>(() => {
     const students: StudentProgressSummary[] = []
-    const currentUserRole = authStore.currentUser?.role
-    const currentChurch = authStore.currentUser?.church
-    const childUsernames = authStore.currentUser?.childUsernames || []
+    const me = authStore.currentUser
 
-    // 1. Determine which usernames to include based on role
-    const usernamesSet = new Set<string>()
-
-    if (currentUserRole === 'parent') {
-      // Parent: only their bound children
-      childUsernames.forEach((u) => usernamesSet.add(u))
-    } else {
-      // Teacher / Pastor: gather student accounts from SAME church
-      Object.keys(authStore.usersDb).forEach((username) => {
-        const user = authStore.usersDb[username]
-        if (user.role === 'student') {
-          const sameChurch = !currentChurch || user.church === currentChurch
-          if (sameChurch) usernamesSet.add(username)
-        }
-      })
-      // Also include students who have progress records but may not be in usersDb
-      // (only if their church matches or if we don't know their church)
-      Object.keys(coursesStore.progressDb).forEach((username) => {
-        if (usernamesSet.has(username)) return
-        const userInDb = authStore.usersDb[username]
-        if (!userInDb) {
-          // Legacy record without usersDb entry
-          if (!currentChurch) usernamesSet.add(username)
-        }
-      })
-    }
+    // 1. Which students this user may see (rules in utils/scope.ts); usernames that only
+    //    have progress records (legacy, no account) are candidates too
+    const usernames = visibleStudents(
+      {
+        username: me?.username ?? '',
+        role: me?.role ?? 'student',
+        church: me?.church,
+        childUsernames: me?.childUsernames
+      },
+      authStore.usersDb,
+      Object.keys(coursesStore.progressDb)
+    )
 
     // 2. For each username, calculate completion metrics
-    usernamesSet.forEach((username) => {
+    usernames.forEach((username) => {
       const records: StudentProgressSummary['records'] = []
       let totalCompleted = 0
       let lastActiveTime = ''

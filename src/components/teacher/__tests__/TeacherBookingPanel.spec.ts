@@ -80,6 +80,16 @@ describe('TeacherBookingPanel', () => {
     expect(ctx.wrapper.findAll('.booking-card')).toHaveLength(1)
   })
 
+  it("invites only students of the teacher's own church", async () => {
+    const ctx = mountAsTeacher()
+    useAuthStore().usersDb.sx = { passwordHash: 'x', role: 'student', church: '主大明' }
+    await ctx.wrapper.find('#btn-create-booking').trigger('click')
+    const offered = $$('.attendee-check-item input').map(
+      (i) => (i.element as HTMLInputElement).value
+    )
+    expect(offered).toEqual(['student', 's2'])
+  })
+
   it('only offers lecturers who teach the chosen course', async () => {
     const ctx = mountAsTeacher()
     useCoursesStore().addLecturer(

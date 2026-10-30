@@ -271,6 +271,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import type { ProgressRecord } from '@/stores/courses'
 import { avatarSrc, defaultAvatarUrl } from '@/utils/avatar'
+import { membersOf } from '@/utils/scope'
 
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
@@ -278,21 +279,13 @@ const coursesStore = useCoursesStore()
 const pastorChurch = computed(() => authStore.currentUser?.church || '')
 
 const pastorChurchStudents = computed(() =>
-  Object.entries(authStore.usersDb)
-    .filter(([, u]) => u.role === 'student' && u.church === pastorChurch.value)
-    .map(([username]) => username)
+  membersOf(authStore.usersDb, 'student', pastorChurch.value)
 )
-
 const pastorChurchTeachers = computed(() =>
-  Object.entries(authStore.usersDb)
-    .filter(([, u]) => u.role === 'teacher' && u.church === pastorChurch.value)
-    .map(([username]) => username)
+  membersOf(authStore.usersDb, 'teacher', pastorChurch.value)
 )
-
 const pastorChurchParents = computed(() =>
-  Object.entries(authStore.usersDb)
-    .filter(([, u]) => u.role === 'parent' && u.church === pastorChurch.value)
-    .map(([username]) => username)
+  membersOf(authStore.usersDb, 'parent', pastorChurch.value)
 )
 
 const totalNotesSubmitted = computed(() => {

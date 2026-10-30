@@ -201,6 +201,7 @@ import { useToast } from '@/composables/useToast'
 import { useI18nHelper } from '@/composables/useI18nHelper'
 import { usePasswordStrength } from '@/composables/usePasswordStrength'
 import { DEFAULT_CHURCH } from '@/types/auth'
+import { membersOf } from '@/utils/scope'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -262,13 +263,9 @@ function formatExpiry(iso: string): string {
 }
 
 // Compute available students for parent binding (uses effectiveChurch)
-const registerAvailableStudents = computed(() => {
-  return Object.keys(authStore.usersDb).filter(
-    (username) =>
-      authStore.usersDb[username].role === 'student' &&
-      authStore.usersDb[username].church === effectiveChurch.value
-  )
-})
+const registerAvailableStudents = computed(() =>
+  membersOf(authStore.usersDb, 'student', effectiveChurch.value)
+)
 
 // ── Password strength ──
 const {

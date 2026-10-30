@@ -506,6 +506,7 @@ import { useCoursesStore } from '@/stores/courses'
 import { useBookingsStore } from '@/stores/bookings'
 import type { BookingSession, BookingAttendee, AttendanceStatus } from '@/stores/bookings'
 import { useToast } from '@/composables/useToast'
+import { visibleStudents } from '@/utils/scope'
 
 const { toast } = useToast()
 const { t } = useI18n()
@@ -522,9 +523,10 @@ const myChurch = computed(() => authStore.currentUser?.church || '')
 const myStudentsList = computed(() => {
   const me = authStore.currentUser
   if (!me) return [] as Array<{ username: string; displayName?: string; realName?: string }>
-  return Object.entries(authStore.usersDb)
-    .filter(([, u]) => u.role === 'student' && u.church === me.church)
-    .map(([username, u]) => ({ username, ...u }))
+  return visibleStudents(me, authStore.usersDb).map((username) => ({
+    username,
+    ...authStore.usersDb[username]
+  }))
 })
 
 const myBookingSessions = computed(() => {

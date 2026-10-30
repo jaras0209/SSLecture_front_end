@@ -144,6 +144,7 @@ import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import type { Lecturer } from '@/stores/courses'
+import { membersOf } from '@/utils/scope'
 
 const props = defineProps<{
   /** v-model：是否顯示 */
@@ -196,10 +197,9 @@ function close() {
 
 // Teachers available in current church for the link-account dropdown
 const teachersInChurch = computed(() => {
-  const church = props.church
-  return Object.entries(authStore.usersDb)
-    .filter(([, u]) => u.role === 'teacher' && u.church === church)
-    .map(([username, u]) => ({
+  return membersOf(authStore.usersDb, 'teacher', props.church).map((username) => {
+    const u = authStore.usersDb[username]
+    return {
       username,
       displayLabel: u.realName
         ? `${u.realName}（${username}）`
@@ -207,7 +207,8 @@ const teachersInChurch = computed(() => {
           ? `${u.displayName}（${username}）`
           : `@${username}`,
       name: u.realName || u.displayName || username
-    }))
+    }
+  })
 })
 
 // Switch between linking a teacher account and a custom lecturer name.

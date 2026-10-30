@@ -477,4 +477,35 @@ describe('useCoursesStore', () => {
       expect(new Set(ids).size).toBe(ids.length)
     })
   })
+
+  describe('church membership queries', () => {
+    const usersDb = {
+      a: { role: 'student', church: '愛與話語' },
+      b: { role: 'teacher', church: '愛與話語' },
+      c: { role: 'student', church: '主大明' },
+      d: { role: 'pastor', church: '愛與話語' },
+      e: { role: 'parent', church: '愛與話語' },
+      f: { role: 'admin' },
+      g: { role: 'student', church: '愛與話語' }
+    }
+
+    it('lists members of a church by role, in account order', async () => {
+      const { useCoursesStore } = await import('@/stores/courses')
+      const store = useCoursesStore()
+      expect(store.getStudentsByChurch(usersDb, '愛與話語')).toEqual(['a', 'g'])
+      expect(store.getTeachersByChurch(usersDb, '愛與話語')).toEqual(['b'])
+      expect(store.getPastorsByChurch(usersDb, '愛與話語')).toEqual(['d'])
+      expect(store.getParentsByChurch(usersDb, '愛與話語')).toEqual(['e'])
+      expect(store.getStudentsByChurch(usersDb, '主大明')).toEqual(['c'])
+      expect(store.getStudentsByChurch(usersDb, '不存在')).toEqual([])
+    })
+
+    it('summarises teachers and students per church', async () => {
+      const { useCoursesStore } = await import('@/stores/courses')
+      expect(useCoursesStore().getChurchSummaries(usersDb)).toEqual([
+        { church: '愛與話語', teacherCount: 1, studentCount: 2 },
+        { church: '主大明', teacherCount: 0, studentCount: 1 }
+      ])
+    })
+  })
 })
