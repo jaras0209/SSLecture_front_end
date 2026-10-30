@@ -4,6 +4,7 @@
     <transition name="dialog-fade">
       <div v-if="modelValue" class="pd-overlay" @click.self="close">
         <div
+          v-dialog="close"
           class="pd-card glass-panel"
           role="dialog"
           aria-modal="true"
@@ -311,6 +312,7 @@
 </template>
 
 <script setup lang="ts">
+import { vDialog } from '@/directives/dialog'
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useI18nHelper } from '@/composables/useI18nHelper'

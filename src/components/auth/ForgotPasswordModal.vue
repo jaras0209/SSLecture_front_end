@@ -2,6 +2,7 @@
   <!-- Forgot Password Modal -->
   <div v-if="open" class="modal-overlay" @click.self="open = false">
     <div
+      v-dialog="() => (open = false)"
       class="glass-panel modal-card text-center"
       role="dialog"
       aria-modal="true"
@@ -38,6 +39,7 @@
 </template>
 
 <script setup lang="ts">
+import { vDialog } from '@/directives/dialog'
 /** v-model：是否顯示 */
 const open = defineModel<boolean>({ required: true })
 </script>

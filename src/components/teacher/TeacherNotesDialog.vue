@@ -3,6 +3,7 @@
     <Transition name="notes-dialog-fade">
       <div v-if="modelValue && student" class="notes-dialog-overlay" @click.self="close">
         <div
+          v-dialog="close"
           class="notes-dialog-card"
           role="dialog"
           aria-modal="true"
@@ -157,6 +158,7 @@
 </template>
 
 <script setup lang="ts">
+import { vDialog } from '@/directives/dialog'
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useI18nHelper } from '@/composables/useI18nHelper'

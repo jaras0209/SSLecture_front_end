@@ -7,7 +7,12 @@
           <div
             class="teacher-avatar-wrap"
             :title="$t('common.editProfileHint')"
+            role="button"
+            tabindex="0"
+            :aria-label="$t('common.editProfileHint')"
             @click="showProfileDialog = true"
+            @keydown.enter.prevent="showProfileDialog = true"
+            @keydown.space.prevent="showProfileDialog = true"
           >
             <img
               :src="avatarSrc(authStore.currentUser?.avatarUrl)"

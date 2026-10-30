@@ -76,6 +76,7 @@
     <!-- Password Change Modal -->
     <div v-if="showPasswordModal" class="modal-overlay" @click.self="closePasswordModal">
       <div
+        v-dialog="closePasswordModal"
         class="glass-panel modal-card"
         role="dialog"
         aria-modal="true"
@@ -283,6 +284,7 @@
 </template>
 
 <script setup lang="ts">
+import { vDialog } from '@/directives/dialog'
 import { ref, reactive, toRef, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'

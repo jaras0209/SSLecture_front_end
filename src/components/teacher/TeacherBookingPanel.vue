@@ -106,7 +106,12 @@
             <div
               class="prep-header"
               style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem"
+              role="button"
+              tabindex="0"
+              :aria-expanded="expandedPreps.has(session.id)"
               @click="togglePrepExpand(session.id)"
+              @keydown.enter.prevent="togglePrepExpand(session.id)"
+              @keydown.space.prevent="togglePrepExpand(session.id)"
             >
               <span class="prep-toggle-label">{{ $t('teacher.booking.prepTitle') }}</span>
               <span>{{ expandedPreps.has(session.id) ? '▲' : '▼' }}</span>
@@ -163,6 +168,7 @@
         @click.self="showCreateBookingModal = false"
       >
         <div
+          v-dialog="() => (showCreateBookingModal = false)"
           class="glass-panel modal-card booking-modal-card"
           role="dialog"
           aria-modal="true"
@@ -303,6 +309,7 @@
         @click.self="showConfirmBookingModal = false"
       >
         <div
+          v-dialog="() => (showConfirmBookingModal = false)"
           class="glass-panel modal-card"
           style="max-width: 420px; width: 90%; padding: 1.5rem"
           role="dialog"
@@ -340,6 +347,7 @@
     <Teleport to="body">
       <div v-if="showCompleteModal" class="modal-overlay" @click.self="showCompleteModal = false">
         <div
+          v-dialog="() => (showCompleteModal = false)"
           class="glass-panel modal-card complete-modal-card"
           role="dialog"
           aria-modal="true"
@@ -479,6 +487,7 @@
 </template>
 
 <script setup lang="ts">
+import { vDialog } from '@/directives/dialog'
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useI18nHelper } from '@/composables/useI18nHelper'

@@ -12,6 +12,7 @@
     <!-- Confirm Dialog -->
     <div v-if="confirmState.visible" class="confirm-overlay" @click.self="resolve(false)">
       <div
+        v-dialog="() => resolve(false)"
         class="confirm-dialog glass-panel"
         role="alertdialog"
         aria-modal="true"
@@ -32,6 +33,7 @@
 </template>
 
 <script setup lang="ts">
+import { vDialog } from '@/directives/dialog'
 import { useToastProvider, resolveConfirm } from '@/composables/useToast'
 
 const { toasts, confirmState } = useToastProvider()

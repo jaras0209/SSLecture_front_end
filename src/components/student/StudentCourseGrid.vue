@@ -27,7 +27,12 @@
         :key="course.id"
         class="course-card glass-panel"
         :class="{ 'card-selected': selectedCourseId === course.id }"
+        role="button"
+        tabindex="0"
+        :aria-pressed="selectedCourseId === course.id"
         @click="emit('select-course', course)"
+        @keydown.enter.prevent="emit('select-course', course)"
+        @keydown.space.prevent="emit('select-course', course)"
       >
         <div class="card-cover" :style="{ background: course.coverColor }">
           <span class="category-badge">{{

@@ -6,7 +6,12 @@
         <div
           class="avatar-clickable"
           :title="$t('common.editProfileHint')"
+          role="button"
+          tabindex="0"
+          :aria-label="$t('common.editProfileHint')"
           @click="showProfileDialog = true"
+          @keydown.enter.prevent="showProfileDialog = true"
+          @keydown.space.prevent="showProfileDialog = true"
         >
           <img :src="avatarSrc(authStore.currentUser?.avatarUrl)" alt="Avatar" class="avatar-lg" />
           <span class="avatar-edit-hint">✏️</span>
@@ -59,7 +64,12 @@
         <div
           class="summary-card clickable-card"
           :title="$t('common.editProfileHint')"
+          role="button"
+          tabindex="0"
+          :aria-label="$t('common.editProfileHint')"
           @click="showProfileDialog = true"
+          @keydown.enter.prevent="showProfileDialog = true"
+          @keydown.space.prevent="showProfileDialog = true"
         >
           <span class="summary-num" style="font-size: 1.4rem">⚙️</span>
           <span class="summary-label">{{ $t('student.header.profileCard') }}</span>

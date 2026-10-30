@@ -3,6 +3,7 @@
     <transition name="base-modal-fade">
       <div
         v-if="modelValue"
+        v-dialog="close"
         class="bm-overlay"
         role="dialog"
         aria-modal="true"
@@ -34,6 +35,7 @@
 </template>
 
 <script setup lang="ts">
+import { vDialog } from '@/directives/dialog'
 withDefaults(
   defineProps<{
     /** v-model 控制是否顯示 */

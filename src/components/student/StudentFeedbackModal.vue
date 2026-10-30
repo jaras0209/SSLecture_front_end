@@ -3,6 +3,7 @@
     <Transition name="modal-fade">
       <div v-if="modelValue" class="modal-overlay" @click.self="close">
         <div
+          v-dialog="close"
           class="glass-panel modal-card"
           style="max-width: 480px; width: 92%; padding: 1.75rem"
           role="dialog"
@@ -37,6 +38,7 @@
 </template>
 
 <script setup lang="ts">
+import { vDialog } from '@/directives/dialog'
 import { ref, watch } from 'vue'
 import type { BookingSession } from '@/stores/bookings'
 
