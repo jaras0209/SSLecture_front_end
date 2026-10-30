@@ -688,6 +688,11 @@
       "roleParent": "👨‍👩‍👦 家長",
       "roleAdmin": "👑 中央",
       "tableCaption": "邀請碼清單表格"
+    },
+    "cleanup": {
+      "cancelReasonDeleted": "輔導教師帳號已刪除",
+      "cancelReasonRoleChanged": "輔導教師已不再擔任此身分",
+      "summary": "已一併處理：解除 {mentors} 筆關懷指派、{lecturers} 位講師的帳號連結、取消 {bookings} 場尚未進行的預約"
     }
   },
   "roleLabel": {

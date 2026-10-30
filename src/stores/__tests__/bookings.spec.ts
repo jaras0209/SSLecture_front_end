@@ -284,4 +284,29 @@ describe('useBookingsStore', () => {
       expect(store.getAttendeesForSession(b.id)).toHaveLength(1)
     })
   })
+
+  describe('cancelOpenSessionsOf()', () => {
+    it("cancels a teacher's pending and confirmed bookings and keeps the history", () => {
+      const store = useBookingsStore()
+      const pending = makeSession()
+      const confirmed = makeSession()
+      const done = makeSession()
+      const cancelled = makeSession()
+      const otherTeacher = makeSession({ teacherUsername: 't2' })
+      store.updateSessionStatus(confirmed.id, 'confirmed', { confirmedAt: confirmed.proposedAt })
+      store.completeSession(done.id, '')
+      store.updateSessionStatus(cancelled.id, 'cancelled', { cancelReason: '原因' })
+
+      expect(store.cancelOpenSessionsOf('teacher', '帳號已刪除')).toBe(2)
+      const status = (id: string) => store.sessionsDb[id].status
+      expect(store.sessionsDb[pending.id]).toMatchObject({
+        status: 'cancelled',
+        cancelReason: '帳號已刪除'
+      })
+      expect(status(confirmed.id)).toBe('cancelled')
+      expect(status(done.id)).toBe('completed')
+      expect(store.sessionsDb[cancelled.id].cancelReason).toBe('原因')
+      expect(status(otherTeacher.id)).toBe('pending')
+    })
+  })
 })

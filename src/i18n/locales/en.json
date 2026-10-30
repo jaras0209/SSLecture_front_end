@@ -688,6 +688,11 @@
       "roleParent": "👨‍👩‍👦 Parent",
       "roleAdmin": "👑 SS Central",
       "tableCaption": "Invite Code List Table"
+    },
+    "cleanup": {
+      "cancelReasonDeleted": "The mentor teacher's account was removed",
+      "cancelReasonRoleChanged": "The mentor teacher no longer has this role",
+      "summary": "Also cleaned up: {mentors} care assignments removed, {lecturers} lecturers unlinked, {bookings} upcoming bookings cancelled"
     }
   },
   "roleLabel": {

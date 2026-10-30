@@ -116,6 +116,7 @@
 </template>
 
 <script setup lang="ts">
+import { useAccountCleanup, type ReleaseSummary } from '@/composables/useAccountCleanup'
 import GenderSelect from '@/components/shared/GenderSelect.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -127,6 +128,7 @@ import { useCoursesStore } from '@/stores/courses'
 const { confirm, toast } = useToast()
 const { t } = useI18n()
 const authStore = useAuthStore()
+const { releaseRole } = useAccountCleanup()
 const coursesStore = useCoursesStore()
 
 // Transform db object into array
@@ -141,9 +143,23 @@ const usersList = computed(() => {
 
 function updateUserRole(username: string, newRole: UserRole) {
   const account = authStore.usersDb[username]
-  if (!account) return
-  if (account.role === 'student' && newRole !== 'student') authStore.unbindChildEverywhere(username)
+  if (!account || account.role === newRole) return
+  reportCleanup(releaseRole(username, account.role, 'roleChanged'))
   account.role = newRole
+}
+
+/** Tell the admin what else was cleaned up, if anything */
+function reportCleanup(s: ReleaseSummary) {
+  if (s.mentorAssignments + s.lecturerLinks + s.cancelledBookings === 0) return
+  toast(
+    t('admin.cleanup.summary', {
+      mentors: s.mentorAssignments,
+      lecturers: s.lecturerLinks,
+      bookings: s.cancelledBookings
+    }),
+    'info',
+    6000
+  )
 }
 
 function toggleRestriction(username: string, page: string) {
@@ -153,13 +169,15 @@ function toggleRestriction(username: string, page: string) {
 async function deleteUser(username: string) {
   const ok = await confirm(t('admin.userList.deleteConfirm', { username }))
   if (ok) {
-    authStore.unbindChildEverywhere(username)
+    const role = authStore.usersDb[username]?.role
+    const summary = role ? releaseRole(username, role, 'deleted') : undefined
     delete authStore.usersDb[username]
     // Clean up restrictions as well
     if (coursesStore.restrictionsDb[username]) {
       delete coursesStore.restrictionsDb[username]
     }
     toast(t('admin.userList.deletedToast', { username }), 'info')
+    if (summary) reportCleanup(summary)
   }
 }
 

@@ -531,4 +531,35 @@ describe('useCoursesStore', () => {
       expect(store.isStudentCaredBy('student', 'teacher', 'teacher')).toBe(true)
     })
   })
+
+  describe('releasing an account', () => {
+    it('removes a teacher or pastor from every assignment, leaving the others', async () => {
+      const { useCoursesStore } = await import('@/stores/courses')
+      const store = useCoursesStore()
+      store.assignStudentCaretaker('a', 'teacher', 't1')
+      store.assignStudentCaretaker('b', 'teacher', 't1')
+      store.assignStudentCaretaker('b', 'pastor', 'p1')
+      store.assignStudentCaretaker('c', 'teacher', 't2')
+
+      expect(store.releaseCaretaker('t1', 'teacher')).toBe(2)
+      expect(store.studentTeacherDb).toEqual({ b: { pastor: 'p1' }, c: { teacher: 't2' } })
+      expect(store.releaseCaretaker('p1', 'pastor')).toBe(1)
+      expect(store.studentTeacherDb).toEqual({ c: { teacher: 't2' } })
+
+      store.releaseStudent('c')
+      expect(store.studentTeacherDb).toEqual({})
+    })
+
+    it('unlinks lecturers from a teacher account but keeps them by name', async () => {
+      const { useCoursesStore } = await import('@/stores/courses')
+      const store = useCoursesStore()
+      store.addLecturer('王老師', '講師', [], '愛與話語', 't1')
+      store.addLecturer('李老師', '講師', [], '愛與話語', 't2')
+      expect(store.unlinkLecturerAccount('t1')).toBe(1)
+      const byName = (n: string) => store.lecturers.find((l) => l.name === n)
+      expect(byName('王老師')).toBeDefined()
+      expect(byName('王老師')?.linkedUsername).toBeUndefined()
+      expect(byName('李老師')?.linkedUsername).toBe('t2')
+    })
+  })
 })

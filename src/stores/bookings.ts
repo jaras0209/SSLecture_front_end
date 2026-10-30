@@ -173,6 +173,19 @@ export const useBookingsStore = defineStore('bookings', () => {
     session.updatedAt = new Date().toISOString()
   }
 
+  /**
+   * Cancel a teacher's bookings that haven't happened yet (pending or confirmed), e.g. when
+   * the teacher account is removed; completed and cancelled ones stay as history.
+   * Returns how many were cancelled.
+   */
+  function cancelOpenSessionsOf(teacherUsername: string, reason: string): number {
+    const open = getSessionsByTeacher(teacherUsername).filter(
+      (s) => s.status === 'pending' || s.status === 'confirmed'
+    )
+    open.forEach((s) => updateSessionStatus(s.id, 'cancelled', { cancelReason: reason }))
+    return open.length
+  }
+
   function updatePrep(sessionId: string, prep: Partial<BookingPrep>): void {
     const session = sessionsDb.value[sessionId]
     if (!session) return
@@ -249,6 +262,7 @@ export const useBookingsStore = defineStore('bookings', () => {
     getPastSessions,
     createSession,
     updateSessionStatus,
+    cancelOpenSessionsOf,
     updateSessionProp,
     updatePrep,
     completeSession,

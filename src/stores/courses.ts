@@ -483,6 +483,32 @@ export const useCoursesStore = defineStore('courses', () => {
     return ''
   }
 
+  /** Remove `username` wherever they are a student's mentor teacher or pastor; returns how many */
+  function releaseCaretaker(username: string, role: AssignedCaretakerRole): number {
+    let count = 0
+    for (const student of Object.keys(studentTeacherDb.value)) {
+      if (studentTeacherDb.value[student]?.[role] === username) {
+        removeStudentCaretaker(student, role)
+        count++
+      }
+    }
+    return count
+  }
+
+  /** Drop a student's mentor/pastor assignments (e.g. when the student account goes away) */
+  function releaseStudent(studentUsername: string): void {
+    if (!studentTeacherDb.value[studentUsername]) return
+    delete studentTeacherDb.value[studentUsername]
+    studentTeacherDb.value = { ...studentTeacherDb.value }
+  }
+
+  /** Unlink lecturers from a teacher account (they stay as lecturers by name); returns how many */
+  function unlinkLecturerAccount(username: string): number {
+    const linked = lecturers.value.filter((l) => l.linkedUsername === username)
+    linked.forEach((l) => (l.linkedUsername = undefined))
+    return linked.length
+  }
+
   /** Whether `username` cares for the student as `role` (parents: a binding on their account) */
   function isStudentCaredBy(
     studentUsername: string,
@@ -850,6 +876,9 @@ export const useCoursesStore = defineStore('courses', () => {
     removeStudentCaretaker,
     getStudentCaretaker,
     isStudentCaredBy,
+    releaseCaretaker,
+    releaseStudent,
+    unlinkLecturerAccount,
     getThemesByChurch,
     addTheme,
     deleteTheme,
