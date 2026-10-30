@@ -35,4 +35,15 @@ describe('AdminUserTable', () => {
     expect(auth.usersDb.s2.role).toBe('teacher')
     expect(auth.parentsOf('s2')).toEqual([])
   })
+
+  it('offers a gender setting for teachers and students only', async () => {
+    const { wrapper, auth } = mountAsAdmin()
+    await wrapper.vm.$nextTick()
+    expect(row(wrapper, 'teacher').find('.gender-select').exists()).toBe(true)
+    expect(row(wrapper, 'parent').find('.gender-select').exists()).toBe(false)
+    expect(row(wrapper, 'pastor').find('.gender-select').exists()).toBe(false)
+
+    await row(wrapper, 's2').find('.gender-select').setValue('male')
+    expect(auth.usersDb.s2.gender).toBe('male')
+  })
 })

@@ -37,7 +37,7 @@ describe('TeacherPastorOverview', () => {
     expect(rows.some((r) => r.includes('sx'))).toBe(false)
 
     const firstRow = wrapper.findAll('.match-table tbody tr')[0]
-    const [teacherSelect, parentSelect] = firstRow.findAll('select')
+    const [teacherSelect, parentSelect] = firstRow.findAll('select:not(.gender-select)')
     const options = (s: typeof teacherSelect) =>
       s.findAll('option').map((o) => o.attributes('value'))
     expect(options(teacherSelect)).toEqual(['', 'teacher', 't2'])
@@ -52,7 +52,7 @@ describe('TeacherPastorOverview', () => {
     const { wrapper } = mountAsPastor()
     await wrapper.vm.$nextTick()
     const row = wrapper.findAll('.match-table tbody tr').find((tr) => tr.text().includes('s2'))!
-    await row.findAll('select')[0].setValue('t2')
+    await row.findAll('select:not(.gender-select)')[0].setValue('t2')
     expect(useCoursesStore().getStudentCaretaker('s2', 'teacher')).toBe('t2')
     expect(useCoursesStore().getStudentsManagedByTeacher('t2')).toEqual(['s2'])
   })
@@ -80,5 +80,31 @@ describe('TeacherPastorOverview', () => {
     expect(chips()).toEqual(['p2'])
     expect(auth.usersDb.parent.childUsernames).not.toContain('s2')
     expect(auth.usersDb.parent.childUsernames).toContain('student') // other children untouched
+  })
+
+  it('sets the gender of students and teachers and counts who is still missing one', async () => {
+    const { wrapper, auth } = mountAsPastor()
+    await wrapper.vm.$nextTick()
+    const hint = () => wrapper.find('.gender-missing-hint')
+    expect(hint().text()).toContain('4') // student, s2, teacher, t2 (not the other church)
+
+    const studentRow = wrapper
+      .findAll('.match-table tbody tr')
+      .find((tr) => tr.text().includes('s2'))!
+    await studentRow.find('.gender-select').setValue('female')
+    expect(auth.usersDb.s2.gender).toBe('female')
+    expect(hint().text()).toContain('3')
+
+    const teacherTable = wrapper.findAll('.students-table')[1]
+    const teacherSelects = teacherTable.findAll('.gender-select')
+    expect(teacherSelects).toHaveLength(2)
+    await teacherSelects[0].setValue('male')
+    expect(auth.usersDb.teacher.gender).toBe('male')
+
+    auth.setGender('student', 'male')
+    auth.setGender('t2', 'female')
+    await wrapper.vm.$nextTick()
+    expect(hint().exists()).toBe(false)
+    expect(auth.usersDb.sx.gender).toBeUndefined() // other church untouched
   })
 })

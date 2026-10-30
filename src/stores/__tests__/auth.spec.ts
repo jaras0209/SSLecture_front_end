@@ -421,4 +421,33 @@ describe('useAuthStore', () => {
       expect(auth.parentsOf('student')).toEqual(['parent'])
     })
   })
+
+  describe('gender', () => {
+    it('is set and cleared on teachers and students only', () => {
+      const auth = useAuthStore()
+      auth.setGender('student', 'female')
+      auth.setGender('teacher', 'male')
+      expect(auth.usersDb.student.gender).toBe('female')
+      expect(auth.usersDb.teacher.gender).toBe('male')
+
+      auth.setGender('student', undefined)
+      expect('gender' in auth.usersDb.student).toBe(false)
+
+      for (const other of ['parent', 'pastor', 'admin', 'nobody']) {
+        auth.setGender(other, 'male')
+        expect(auth.usersDb[other]?.gender).toBeUndefined()
+        expect(auth.hasGender(other)).toBe(false)
+      }
+    })
+
+    it('is saved with the accounts', async () => {
+      vi.useFakeTimers()
+      const auth = useAuthStore()
+      auth.setGender('teacher', 'female')
+      await nextTick()
+      vi.runAllTimers()
+      expect(JSON.parse(localStorage.getItem('superstart_users_db')!).teacher.gender).toBe('female')
+      vi.useRealTimers()
+    })
+  })
 })

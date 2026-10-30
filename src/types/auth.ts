@@ -8,6 +8,15 @@
 /** 系統角色列表 */
 export type UserRole = 'student' | 'teacher' | 'admin' | 'parent' | 'pastor'
 
+/**
+ * 性別：用來分開管理教師與學員（由牧者或 SS 中央設定，未設定時為 undefined）。
+ * 只有教師與學員帳號需要。
+ */
+export type Gender = 'male' | 'female'
+
+/** 需要設定性別的角色 */
+export const GENDERED_ROLES: readonly UserRole[] = ['student', 'teacher']
+
 /** 登入方式 */
 export type LoginMethod = 'credentials' | 'google' | 'line'
 
@@ -24,6 +33,7 @@ export interface User {
   email?: string // Email（社群登入時從第三方取得）
   needsOnboarding?: boolean // 首次社群登入，尚未完成 onboarding 流程
   lastLoginAt?: string // 上次登入時間
+  gender?: Gender // 性別（教師與學員；由牧者設定）
 }
 
 /** 邀請碼 */

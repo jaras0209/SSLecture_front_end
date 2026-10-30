@@ -28,6 +28,9 @@
         <p class="section-desc mb-4 text-sm text-muted">
           {{ $t('teacher.pastor.matchPanelDesc') }}
         </p>
+        <p v-if="genderMissingCount > 0" class="gender-missing-hint mb-4" role="status">
+          ⚠️ {{ $t('gender.missing', { n: genderMissingCount }) }}
+        </p>
         <div
           class="table-container"
           tabindex="0"
@@ -43,6 +46,7 @@
             <thead>
               <tr>
                 <th>{{ $t('teacher.pastor.colStudent') }}</th>
+                <th>{{ $t('gender.label') }}</th>
                 <th>{{ $t('teacher.pastor.colTeacher') }}</th>
                 <th>{{ $t('teacher.pastor.colParent') }}</th>
               </tr>
@@ -72,6 +76,7 @@
                     >
                   </div>
                 </td>
+                <td><GenderSelect :username="stdUsername" /></td>
                 <td>
                   <select
                     :value="coursesStore.getStudentCaretaker(stdUsername, 'teacher')"
@@ -151,7 +156,7 @@
                 </td>
               </tr>
               <tr v-if="pastorChurchStudents.length === 0">
-                <td colspan="3" class="text-center empty-row">
+                <td colspan="4" class="text-center empty-row">
                   {{ $t('teacher.pastor.noStudents') }}
                 </td>
               </tr>
@@ -178,6 +183,7 @@
             <thead>
               <tr>
                 <th>{{ $t('teacher.pastor.colTeacherName') }}</th>
+                <th>{{ $t('gender.label') }}</th>
                 <th>{{ $t('teacher.pastor.colStudentCount') }}</th>
                 <th>{{ $t('teacher.pastor.colStudents') }}</th>
               </tr>
@@ -207,6 +213,7 @@
                     >
                   </div>
                 </td>
+                <td><GenderSelect :username="teacher" /></td>
                 <td>
                   <span class="badge badge-teacher">{{
                     $t('teacher.pastor.countSuffix', {
@@ -232,7 +239,7 @@
                 </td>
               </tr>
               <tr v-if="pastorChurchTeachers.length === 0">
-                <td colspan="3" class="text-center empty-row">
+                <td colspan="4" class="text-center empty-row">
                   {{ $t('teacher.pastor.noTeachers') }}
                 </td>
               </tr>
@@ -293,6 +300,7 @@ import { useCoursesStore } from '@/stores/courses'
 import type { ProgressRecord } from '@/stores/courses'
 import { avatarSrc, defaultAvatarUrl } from '@/utils/avatar'
 import { membersOf } from '@/utils/scope'
+import GenderSelect from '@/components/shared/GenderSelect.vue'
 
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
@@ -339,6 +347,14 @@ const pastorLecturerStats = computed(() => {
     .sort((a, b) => b.sessionCount - a.sessionCount)
 })
 
+/** Teachers and students of this church whose gender hasn't been set */
+const genderMissingCount = computed(
+  () =>
+    [...pastorChurchStudents.value, ...pastorChurchTeachers.value].filter(
+      (u) => !authStore.usersDb[u]?.gender
+    ).length
+)
+
 function getTeacherManagedStudents(teacherUsername: string): string[] {
   return coursesStore.getStudentsManagedByTeacher(teacherUsername)
 }
@@ -367,6 +383,14 @@ function onBindParent(studentUsername: string, select: HTMLSelectElement) {
 </script>
 
 <style scoped>
+.gender-missing-hint {
+  padding: 0.5rem 0.85rem;
+  border-radius: var(--radius-sm);
+  background: #fffbeb;
+  color: #92400e;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
 .parent-bindings {
   display: flex;
   flex-wrap: wrap;

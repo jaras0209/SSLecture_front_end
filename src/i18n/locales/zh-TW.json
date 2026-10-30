@@ -811,5 +811,13 @@
     "caretakerFor": "{student} 的{role}",
     "lectureDateFor": "{theme} 上課日期",
     "tableScroll": "{title}（可左右捲動）"
+  },
+  "gender": {
+    "label": "性別",
+    "male": "男",
+    "female": "女",
+    "unset": "未設定",
+    "missing": "還有 {n} 位教師或學員尚未設定性別",
+    "genderFor": "{name} 的性別"
   }
 }

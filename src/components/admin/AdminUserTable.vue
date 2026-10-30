@@ -22,7 +22,7 @@
         <thead>
           <tr>
             <th>{{ $t('admin.userList.colName') }}</th>
-            <th>{{ $t('admin.userList.colRole') }}</th>
+            <th>{{ $t('admin.userList.colRole') }} / {{ $t('gender.label') }}</th>
             <th>{{ $t('admin.userList.colRestrictStudent') }}</th>
             <th>{{ $t('admin.userList.colRestrictTeacher') }}</th>
             <th>{{ $t('admin.userList.colResetPwd') }}</th>
@@ -57,6 +57,11 @@
                 <option value="pastor">⛪ {{ $t('admin.roles.pastor') }}</option>
                 <option value="admin">👑 {{ $t('admin.roles.admin') }}</option>
               </select>
+              <GenderSelect
+                v-if="authStore.hasGender(user.username)"
+                :username="user.username"
+                class="table-select-input mt-1"
+              />
             </td>
             <td class="text-center">
               <!-- Checkbox to restrict student dashboard -->
@@ -111,6 +116,7 @@
 </template>
 
 <script setup lang="ts">
+import GenderSelect from '@/components/shared/GenderSelect.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useToast } from '@/composables/useToast'

@@ -811,5 +811,13 @@
     "caretakerFor": "{role} for {student}",
     "lectureDateFor": "Date for {theme}",
     "tableScroll": "{title} (scrolls sideways)"
+  },
+  "gender": {
+    "label": "Gender",
+    "male": "Male",
+    "female": "Female",
+    "unset": "Not set",
+    "missing": "{n} teachers or students have no gender set yet",
+    "genderFor": "Gender of {name}"
   }
 }

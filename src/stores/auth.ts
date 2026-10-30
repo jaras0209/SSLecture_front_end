@@ -14,8 +14,8 @@ export type { UserRole, LoginMethod, User, InviteCode, Church } from '@/types/au
 export { CHURCHES, DEFAULT_RESET_PASSWORD } from '@/types/auth'
 
 // 引入型別供 store 內部使用
-import type { UserRole, User, InviteCode } from '@/types/auth'
-import { DEFAULT_RESET_PASSWORD, DEFAULT_CHURCH } from '@/types/auth'
+import type { UserRole, User, InviteCode, Gender } from '@/types/auth'
+import { DEFAULT_RESET_PASSWORD, DEFAULT_CHURCH, GENDERED_ROLES } from '@/types/auth'
 import { defaultAvatarUrl } from '@/utils/avatar'
 
 /** 邀請碼前綴（用於產生易讀的邀請碼） */
@@ -49,6 +49,7 @@ export const useAuthStore = defineStore('auth', () => {
         realName?: string
         lastLoginAt?: string
         avatarUrl?: string
+        gender?: Gender
       }
     >
   >({
@@ -445,6 +446,23 @@ export const useAuthStore = defineStore('auth', () => {
     return { success: true, message: t('stores.auth.inviteRevoked', { code }) }
   }
 
+  // ── Gender ─────────────────────────────────────────────────────────────────
+  // Set by pastors (their church) and SS central; only teachers and students have one.
+
+  /** Whether this account's role uses a gender */
+  function hasGender(username: string): boolean {
+    const role = usersDb.value[username]?.role
+    return !!role && GENDERED_ROLES.includes(role)
+  }
+
+  /** Set or clear (undefined) the gender of a teacher or student */
+  function setGender(username: string, gender: Gender | undefined): void {
+    if (!hasGender(username)) return
+    const account = usersDb.value[username]
+    if (gender) account.gender = gender
+    else delete account.gender
+  }
+
   // ── Parent ↔ child bindings ────────────────────────────────────────────────
   // The only record of which parent is bound to which student is the parent account's
   // childUsernames; it decides what a parent can see. Read and change it only here.
@@ -492,6 +510,8 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   return {
+    hasGender,
+    setGender,
     parentsOf,
     childrenOf,
     bindChild,
