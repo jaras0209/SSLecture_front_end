@@ -41,7 +41,11 @@ describe('TeacherPastorOverview', () => {
     const options = (s: typeof teacherSelect) =>
       s.findAll('option').map((o) => o.attributes('value'))
     expect(options(teacherSelect)).toEqual(['', 'teacher', 't2'])
-    expect(options(parentSelect)).toEqual(['', 'parent', 'p2'])
+    // "student" is already bound to "parent" (on the parent account), so only p2 is left to add
+    expect(firstRow.findAll('.parent-chip').map((c) => c.text())).toEqual([
+      expect.stringContaining('parent')
+    ])
+    expect(options(parentSelect)).toEqual(['', 'p2'])
   })
 
   it('assigns a mentor teacher to a student', async () => {
@@ -53,21 +57,28 @@ describe('TeacherPastorOverview', () => {
     expect(useCoursesStore().getStudentsManagedByTeacher('t2')).toEqual(['s2'])
   })
 
-  it('moves a student from one parent to another, and the old parent no longer has the child', async () => {
+  it('binds several parents to a student and unbinds them, on the parent accounts', async () => {
     const { wrapper, auth } = mountAsPastor()
     await wrapper.vm.$nextTick()
     const row = () =>
       wrapper.findAll('.match-table tbody tr').find((tr) => tr.text().includes('s2'))!
+    const chips = () =>
+      row()
+        .findAll('.parent-chip')
+        .map((c) => c.text().replace('×', '').trim())
+    const addParent = (pa: string) => row().find('.parent-bindings select').setValue(pa)
 
-    await row().findAll('select')[1].setValue('parent')
-    expect(auth.usersDb.parent.childUsernames).toContain('s2')
-
-    await row().findAll('select')[1].setValue('p2')
+    expect(chips()).toEqual([])
+    await addParent('parent')
+    await addParent('p2')
+    expect(chips()).toEqual(['parent', 'p2'])
+    expect(auth.parentsOf('s2')).toEqual(['parent', 'p2'])
     expect(auth.usersDb.p2.childUsernames).toEqual(['s2'])
-    expect(auth.usersDb.parent.childUsernames).not.toContain('s2')
+    expect(row().find('.parent-bindings select').exists()).toBe(false) // nobody left to add
 
-    await row().findAll('select')[1].setValue('') // unassign
-    expect(useCoursesStore().getStudentCaretaker('s2', 'parent')).toBeFalsy()
-    expect(auth.usersDb.p2.childUsernames).not.toContain('s2')
+    await row().findAll('.parent-chip-remove')[0].trigger('click')
+    expect(chips()).toEqual(['p2'])
+    expect(auth.usersDb.parent.childUsernames).not.toContain('s2')
+    expect(auth.usersDb.parent.childUsernames).toContain('student') // other children untouched
   })
 })

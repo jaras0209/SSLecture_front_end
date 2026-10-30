@@ -508,4 +508,27 @@ describe('useCoursesStore', () => {
       ])
     })
   })
+
+  describe('studentTeacherDb — parent bindings move to the parent accounts', () => {
+    it('moves a saved parent onto the parent account and drops it from storage', async () => {
+      seedLocalStorage('superstart_users_db', {
+        mom: { passwordHash: 'x', role: 'parent', church: '愛與話語' }
+      })
+      seedLocalStorage('superstart_student_teacher_db', {
+        student: { teacher: 'teacher', parent: 'mom' },
+        s2: { parent: 'mom' }
+      })
+      const { useCoursesStore } = await import('@/stores/courses')
+      const { useAuthStore } = await import('@/stores/auth')
+      const store = useCoursesStore()
+
+      expect(useAuthStore().childrenOf('mom')).toEqual(['student', 's2'])
+      expect(store.studentTeacherDb).toEqual({ student: { teacher: 'teacher' } })
+      expect(JSON.parse(localStorage.getItem('superstart_student_teacher_db')!)).toEqual({
+        student: { teacher: 'teacher' }
+      })
+      expect(store.isStudentCaredBy('s2', 'parent', 'mom')).toBe(true)
+      expect(store.isStudentCaredBy('student', 'teacher', 'teacher')).toBe(true)
+    })
+  })
 })

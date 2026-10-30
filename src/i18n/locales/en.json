@@ -529,7 +529,9 @@
       "sessionCountSuffix": "{n}",
       "matchTableCaption": "Student–Teacher Match Management Table",
       "teacherTableCaption": "Teacher Management Overview Table",
-      "lecturerTableCaption": "Lecturer Session Statistics Table"
+      "lecturerTableCaption": "Lecturer Session Statistics Table",
+      "bindParent": "+ Bind a parent",
+      "unbindParent": "Unbind {parent} from {student}"
     },
     "drawer": {
       "emptyTitle": "Student Progress & Records",

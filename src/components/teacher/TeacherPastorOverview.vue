@@ -103,30 +103,51 @@
                   </select>
                 </td>
                 <td>
-                  <select
-                    :value="coursesStore.getStudentCaretaker(stdUsername, 'parent')"
-                    class="form-input text-sm"
-                    :aria-label="
-                      $t('a11y.caretakerFor', {
-                        student: stdUsername,
-                        role: $t('roleLabel.parent')
-                      })
-                    "
-                    @change="
-                      (e) =>
-                        onSetCaretaker(stdUsername, 'parent', (e.target as HTMLSelectElement).value)
-                    "
-                  >
-                    <option value="">{{ $t('teacher.pastor.noAssigned') }}</option>
-                    <option v-for="pa in pastorChurchParents" :key="pa" :value="pa">
-                      {{ authStore.usersDb[pa]?.realName || pa }}
-                      {{
-                        authStore.usersDb[pa]?.displayName
-                          ? `「${authStore.usersDb[pa]?.displayName}」`
-                          : ''
-                      }}
-                    </option>
-                  </select>
+                  <!-- A student can have several parents (bound on the parent accounts) -->
+                  <div class="parent-bindings">
+                    <span
+                      v-for="pa in authStore.parentsOf(stdUsername)"
+                      :key="pa"
+                      class="parent-chip"
+                    >
+                      {{ parentLabel(pa) }}
+                      <button
+                        type="button"
+                        class="parent-chip-remove"
+                        :aria-label="
+                          $t('teacher.pastor.unbindParent', {
+                            parent: parentLabel(pa),
+                            student: stdUsername
+                          })
+                        "
+                        @click="authStore.unbindChild(pa, stdUsername)"
+                      >
+                        ×
+                      </button>
+                    </span>
+                    <select
+                      v-if="unboundParents(stdUsername).length > 0"
+                      value=""
+                      class="form-input text-sm"
+                      :aria-label="
+                        $t('a11y.caretakerFor', {
+                          student: stdUsername,
+                          role: $t('roleLabel.parent')
+                        })
+                      "
+                      @change="(e) => onBindParent(stdUsername, e.target as HTMLSelectElement)"
+                    >
+                      <option value="">{{ $t('teacher.pastor.bindParent') }}</option>
+                      <option v-for="pa in unboundParents(stdUsername)" :key="pa" :value="pa">
+                        {{ parentLabel(pa) }}
+                      </option>
+                    </select>
+                    <span
+                      v-else-if="authStore.parentsOf(stdUsername).length === 0"
+                      class="text-muted text-sm"
+                      >{{ $t('teacher.pastor.noAssigned') }}</span
+                    >
+                  </div>
                 </td>
               </tr>
               <tr v-if="pastorChurchStudents.length === 0">
@@ -322,31 +343,60 @@ function getTeacherManagedStudents(teacherUsername: string): string[] {
   return coursesStore.getStudentsManagedByTeacher(teacherUsername)
 }
 
-function onSetCaretaker(studentUsername: string, role: 'teacher' | 'parent', value: string) {
-  // Read the current parent before changing anything: their account lists the student
-  // as a child, which decides what that parent can see
-  const prevParent =
-    role === 'parent' ? coursesStore.getStudentCaretaker(studentUsername, 'parent') : ''
-
+function onSetCaretaker(studentUsername: string, role: 'teacher', value: string) {
   if (value) coursesStore.assignStudentCaretaker(studentUsername, role, value)
   else coursesStore.removeStudentCaretaker(studentUsername, role)
-  if (role !== 'parent' || prevParent === value) return
+}
 
-  const prevUser = prevParent ? authStore.usersDb[prevParent] : undefined
-  if (prevUser?.childUsernames) {
-    prevUser.childUsernames = prevUser.childUsernames.filter((u: string) => u !== studentUsername)
-  }
-  const newParentUser = value ? authStore.usersDb[value] : undefined
-  if (newParentUser) {
-    if (!newParentUser.childUsernames) newParentUser.childUsernames = []
-    if (!newParentUser.childUsernames.includes(studentUsername)) {
-      newParentUser.childUsernames.push(studentUsername)
-    }
-  }
+/** e.g. "王媽媽「Mom」" */
+function parentLabel(username: string): string {
+  const u = authStore.usersDb[username]
+  return `${u?.realName || username}${u?.displayName ? `「${u.displayName}」` : ''}`
+}
+
+/** Parents of this church not yet bound to the student */
+function unboundParents(studentUsername: string): string[] {
+  const bound = authStore.parentsOf(studentUsername)
+  return pastorChurchParents.value.filter((pa) => !bound.includes(pa))
+}
+
+function onBindParent(studentUsername: string, select: HTMLSelectElement) {
+  if (select.value) authStore.bindChild(select.value, studentUsername)
+  select.value = ''
 }
 </script>
 
 <style scoped>
+.parent-bindings {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+.parent-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.25rem 0.15rem 0.6rem;
+  border-radius: var(--radius-full);
+  background: #eff6ff;
+  color: var(--primary-hover);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.parent-chip-remove {
+  border: none;
+  background: none;
+  color: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 0.3rem;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+}
+.parent-chip-remove:hover {
+  background: rgba(37, 99, 235, 0.12);
+}
 /* [css-migration] moved from TeacherDashboard.vue */
 /* Nickname tag shown below real name */
 .student-nickname-tag {

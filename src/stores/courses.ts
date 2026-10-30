@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { membersOf } from '@/utils/scope'
+import { useAuthStore } from '@/stores/auth'
 import { safeGet, safeSet } from '@/utils/storage'
 import { persistToStorage } from '@/utils/persist'
 import { toLocalDateTimeInput, nowIso, normalizeLegacyDateTime } from '@/utils/datetime'
@@ -32,6 +33,8 @@ import type {
   UserProgressDb,
   PageRestrictionsDb,
   StudentCaretakers,
+  CaretakerRole,
+  AssignedCaretakerRole,
   StudentTeacherDb,
   ShiningProject,
   ShiningProjectDb,
@@ -80,6 +83,20 @@ export const useCoursesStore = defineStore('courses', () => {
       console.error('Failed to migrate studentTeacherDb:', e)
       studentTeacherDb.value = {}
     }
+  }
+
+  // Parent bindings live only on the parent accounts (childUsernames). Older data also
+  // kept a parent here: move it to the account and drop it, saving right away so a stale
+  // entry can't re-bind a parent that has since been unbound.
+  if (Object.values(studentTeacherDb.value).some((c) => c.parent)) {
+    const authStore = useAuthStore()
+    for (const [student, caretakers] of Object.entries(studentTeacherDb.value)) {
+      if (!caretakers.parent) continue
+      authStore.bindChild(caretakers.parent, student)
+      delete caretakers.parent
+      if (Object.keys(caretakers).length === 0) delete studentTeacherDb.value[student]
+    }
+    safeSet('superstart_student_teacher_db', studentTeacherDb.value)
   }
 
   // Shining Project database (persistent)
@@ -432,7 +449,7 @@ export const useCoursesStore = defineStore('courses', () => {
   // Student-Teacher care actions
   function assignStudentCaretaker(
     studentUsername: string,
-    role: 'teacher' | 'pastor' | 'parent',
+    role: AssignedCaretakerRole,
     username: string
   ): void {
     if (
@@ -445,10 +462,7 @@ export const useCoursesStore = defineStore('courses', () => {
     studentTeacherDb.value = { ...studentTeacherDb.value }
   }
 
-  function removeStudentCaretaker(
-    studentUsername: string,
-    role: 'teacher' | 'pastor' | 'parent'
-  ): void {
+  function removeStudentCaretaker(studentUsername: string, role: AssignedCaretakerRole): void {
     if (
       studentTeacherDb.value[studentUsername] &&
       typeof studentTeacherDb.value[studentUsername] === 'object'
@@ -461,15 +475,22 @@ export const useCoursesStore = defineStore('courses', () => {
     }
   }
 
-  function getStudentCaretaker(
-    studentUsername: string,
-    role: 'teacher' | 'pastor' | 'parent'
-  ): string {
+  function getStudentCaretaker(studentUsername: string, role: AssignedCaretakerRole): string {
     const caretakers = studentTeacherDb.value[studentUsername]
     if (caretakers && typeof caretakers === 'object') {
       return caretakers[role] || ''
     }
     return ''
+  }
+
+  /** Whether `username` cares for the student as `role` (parents: a binding on their account) */
+  function isStudentCaredBy(
+    studentUsername: string,
+    role: CaretakerRole,
+    username: string
+  ): boolean {
+    if (role === 'parent') return useAuthStore().parentsOf(studentUsername).includes(username)
+    return getStudentCaretaker(studentUsername, role) === username
   }
 
   // Dynamic themes actions
@@ -828,6 +849,7 @@ export const useCoursesStore = defineStore('courses', () => {
     assignStudentCaretaker,
     removeStudentCaretaker,
     getStudentCaretaker,
+    isStudentCaredBy,
     getThemesByChurch,
     addTheme,
     deleteTheme,

@@ -271,7 +271,7 @@ watch(
 function manageStudent(studentUsername: string) {
   if (authStore.currentUser) {
     const role = authStore.currentUser.role
-    if (role === 'teacher' || role === 'pastor' || role === 'parent') {
+    if (role === 'teacher' || role === 'pastor') {
       coursesStore.assignStudentCaretaker(studentUsername, role, authStore.currentUser.username)
     }
   }
@@ -280,7 +280,7 @@ function manageStudent(studentUsername: string) {
 function unmanageStudent(studentUsername: string) {
   if (authStore.currentUser) {
     const role = authStore.currentUser.role
-    if (role === 'teacher' || role === 'pastor' || role === 'parent') {
+    if (role === 'teacher' || role === 'pastor') {
       coursesStore.removeStudentCaretaker(studentUsername, role)
     }
   }
@@ -306,8 +306,8 @@ const myStudentsCount = computed(() => {
   if (!currentUserRole || !currentUsername) return 0
   if (currentUserRole === 'admin') return studentsList.value.length
   if (!isCaretakerRole(currentUserRole)) return 0
-  return studentsList.value.filter(
-    (s) => coursesStore.getStudentCaretaker(s.username, currentUserRole) === currentUsername
+  return studentsList.value.filter((s) =>
+    coursesStore.isStudentCaredBy(s.username, currentUserRole, currentUsername)
   ).length
 })
 

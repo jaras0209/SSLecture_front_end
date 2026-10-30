@@ -390,4 +390,35 @@ describe('useAuthStore', () => {
       expect(auth.currentUser?.username).toBe('admin')
     })
   })
+
+  // ── parent ↔ child bindings ─────────────────────────────────────────────────
+
+  describe('parent bindings', () => {
+    it('binds and unbinds children on the parent account', () => {
+      const auth = useAuthStore()
+      auth.usersDb.mom = { passwordHash: 'x', role: 'parent', church: '愛與話語' }
+      auth.usersDb.s2 = { passwordHash: 'x', role: 'student', church: '愛與話語' }
+
+      auth.bindChild('mom', 's2')
+      auth.bindChild('mom', 's2') // no duplicates
+      auth.bindChild('parent', 's2')
+      expect(auth.childrenOf('mom')).toEqual(['s2'])
+      expect(auth.parentsOf('s2')).toEqual(['parent', 'mom'])
+
+      auth.unbindChild('mom', 's2')
+      expect(auth.parentsOf('s2')).toEqual(['parent'])
+
+      auth.unbindChildEverywhere('s2')
+      expect(auth.parentsOf('s2')).toEqual([])
+      expect(auth.childrenOf('parent')).toEqual(['student'])
+    })
+
+    it('ignores accounts that are not parents', () => {
+      const auth = useAuthStore()
+      auth.bindChild('teacher', 'student')
+      expect(auth.usersDb.teacher.childUsernames).toBeUndefined()
+      expect(auth.childrenOf('teacher')).toEqual([])
+      expect(auth.parentsOf('student')).toEqual(['parent'])
+    })
+  })
 })

@@ -30,7 +30,8 @@ export function useStudentList() {
         username: me?.username ?? '',
         role: me?.role ?? 'student',
         church: me?.church,
-        childUsernames: me?.childUsernames
+        // From the account, so a pastor's change applies without signing in again
+        childUsernames: me ? authStore.childrenOf(me.username) : []
       },
       authStore.usersDb,
       Object.keys(coursesStore.progressDb)

@@ -44,15 +44,22 @@ export type UserProgressDb = Record<string, Record<string, ProgressRecord>>
 /** 頁面存取限制資料庫型別 */
 export type PageRestrictionsDb = Record<string, string[]>
 
-/** 學員的關懷配對（教師 / 牧者 / 家長） */
+/**
+ * 學員的關懷配對（教師 / 牧者）。
+ * 家長與學員的綁定只記錄在家長帳號的 childUsernames（見 auth store 的 parentsOf）；
+ * parent 欄位僅存在於舊版資料，載入時會搬到家長帳號。
+ */
 export interface StudentCaretakers {
   teacher?: string
   pastor?: string
+  /** @deprecated migrated to the parent account's childUsernames on load */
   parent?: string
 }
 
-/** 可被指派為學員關懷者的角色 */
-export type CaretakerRole = keyof StudentCaretakers
+/** 可被指派為學員關懷者的角色（家長的綁定見 auth store） */
+export type CaretakerRole = 'teacher' | 'pastor' | 'parent'
+/** 記錄在 studentTeacherDb 的關懷者角色 */
+export type AssignedCaretakerRole = 'teacher' | 'pastor'
 
 /** 判斷角色是否為關懷者角色（teacher / pastor / parent） */
 export function isCaretakerRole(role: string | undefined): role is CaretakerRole {

@@ -36,6 +36,18 @@ describe('useStudentList()', () => {
     expect(studentsList.value.map((s) => s.username)).toEqual(['student'])
   })
 
+  it("follows a pastor's change to a parent's children without signing in again", () => {
+    const { studentsList } = withSetup(() => useStudentList())
+    const auth = useAuthStore()
+    auth.usersDb.s3 = { passwordHash: 'x', role: 'student', church: auth.usersDb.parent.church }
+    signIn('parent') // the session copy lists only "student"
+
+    auth.bindChild('parent', 's3')
+    expect(studentsList.value.map((s) => s.username)).toEqual(['student', 's3'])
+    auth.unbindChild('parent', 'student')
+    expect(studentsList.value.map((s) => s.username)).toEqual(['s3'])
+  })
+
   it('summarises progress across all courses', () => {
     const { studentsList } = withSetup(() => useStudentList())
     const courses = useCoursesStore()

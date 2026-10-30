@@ -529,7 +529,9 @@
       "sessionCountSuffix": "{n} 次",
       "matchTableCaption": "學員教師配對管理表",
       "teacherTableCaption": "教師管理概況表",
-      "lecturerTableCaption": "講師授課統計表"
+      "lecturerTableCaption": "講師授課統計表",
+      "bindParent": "＋ 綁定家長",
+      "unbindParent": "解除 {parent} 與 {student} 的綁定"
     },
     "drawer": {
       "emptyTitle": "學員進度與紀錄詳細資訊",

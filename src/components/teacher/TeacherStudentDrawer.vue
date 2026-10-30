@@ -441,7 +441,7 @@
             <div class="print-sig-col">
               <span class="print-sig-lbl">{{ $t('teacher.drawer.print.sigParent') }}</span>
               <div class="print-sig-space">
-                {{ coursesStore.getStudentCaretaker(student.username, 'parent') }}
+                {{ authStore.parentsOf(student.username).join('、') }}
               </div>
             </div>
           </div>

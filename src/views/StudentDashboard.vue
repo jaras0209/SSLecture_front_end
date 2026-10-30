@@ -277,7 +277,7 @@ const assignedPastor = computed(() => {
 
 const assignedParent = computed(() => {
   const username = authStore.currentUser?.username || ''
-  return coursesStore.getStudentCaretaker(username, 'parent')
+  return authStore.parentsOf(username).join('、')
 })
 
 const completedCount = computed(() =>

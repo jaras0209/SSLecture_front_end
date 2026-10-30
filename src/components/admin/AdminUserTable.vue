@@ -134,9 +134,10 @@ const usersList = computed(() => {
 })
 
 function updateUserRole(username: string, newRole: UserRole) {
-  if (authStore.usersDb[username]) {
-    authStore.usersDb[username].role = newRole
-  }
+  const account = authStore.usersDb[username]
+  if (!account) return
+  if (account.role === 'student' && newRole !== 'student') authStore.unbindChildEverywhere(username)
+  account.role = newRole
 }
 
 function toggleRestriction(username: string, page: string) {
@@ -146,6 +147,7 @@ function toggleRestriction(username: string, page: string) {
 async function deleteUser(username: string) {
   const ok = await confirm(t('admin.userList.deleteConfirm', { username }))
   if (ok) {
+    authStore.unbindChildEverywhere(username)
     delete authStore.usersDb[username]
     // Clean up restrictions as well
     if (coursesStore.restrictionsDb[username]) {

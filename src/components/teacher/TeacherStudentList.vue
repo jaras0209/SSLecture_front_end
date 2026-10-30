@@ -195,7 +195,7 @@ const myStudentsCount = computed(() => {
       currentUserRole === 'pastor' ||
       currentUserRole === 'parent'
     ) {
-      return coursesStore.getStudentCaretaker(s.username, currentUserRole) === currentUsername
+      return coursesStore.isStudentCaredBy(s.username, currentUserRole, currentUsername ?? '')
     }
     return false
   }).length
@@ -228,9 +228,7 @@ function isStudentManaged(studentUsername: string): boolean {
   if (!authStore.currentUser) return false
   const role = authStore.currentUser.role
   if (role === 'teacher' || role === 'pastor' || role === 'parent') {
-    return (
-      coursesStore.getStudentCaretaker(studentUsername, role) === authStore.currentUser.username
-    )
+    return coursesStore.isStudentCaredBy(studentUsername, role, authStore.currentUser.username)
   }
   return false
 }
@@ -252,11 +250,11 @@ function getCaretakerStatusText(studentUsername: string): string {
         ? t('teacher.studentList.pastoredBy', { name: p })
         : t('teacher.studentList.noPastor')
   } else if (role === 'parent') {
-    const pa = coursesStore.getStudentCaretaker(studentUsername, 'parent')
-    return pa === authStore.currentUser?.username
+    const parents = authStore.parentsOf(studentUsername)
+    return parents.includes(authStore.currentUser?.username ?? '')
       ? t('teacher.studentList.youParent')
-      : pa
-        ? t('teacher.studentList.caredBy', { name: pa })
+      : parents.length
+        ? t('teacher.studentList.caredBy', { name: parents.join('、') })
         : t('teacher.studentList.noCarer')
   }
   const tc = coursesStore.getStudentCaretaker(studentUsername, 'teacher')
@@ -266,10 +264,13 @@ function getCaretakerStatusText(studentUsername: string): string {
 function getCaretakerBadgeClass(studentUsername: string): string {
   const role = authStore.currentUser?.role
   if (!isCaretakerRole(role)) return 'badge-student'
-  const val = coursesStore.getStudentCaretaker(studentUsername, role)
-  if (val === authStore.currentUser?.username) return 'badge-teacher'
-  if (val) return 'badge-admin'
-  return 'badge-student'
+  if (coursesStore.isStudentCaredBy(studentUsername, role, authStore.currentUser?.username ?? ''))
+    return 'badge-teacher'
+  const others =
+    role === 'parent'
+      ? authStore.parentsOf(studentUsername).length > 0
+      : coursesStore.getStudentCaretaker(studentUsername, role) !== ''
+  return others ? 'badge-admin' : 'badge-student'
 }
 </script>
 

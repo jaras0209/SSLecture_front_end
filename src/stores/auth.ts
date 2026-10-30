@@ -445,6 +445,43 @@ export const useAuthStore = defineStore('auth', () => {
     return { success: true, message: t('stores.auth.inviteRevoked', { code }) }
   }
 
+  // ── Parent ↔ child bindings ────────────────────────────────────────────────
+  // The only record of which parent is bound to which student is the parent account's
+  // childUsernames; it decides what a parent can see. Read and change it only here.
+
+  /** Parent accounts bound to `student`, in account order */
+  function parentsOf(student: string): string[] {
+    return Object.keys(usersDb.value).filter((u) => {
+      const account = usersDb.value[u]
+      return account.role === 'parent' && (account.childUsernames ?? []).includes(student)
+    })
+  }
+
+  /** The students bound to `parent` (empty for accounts that aren't parents) */
+  function childrenOf(parent: string): string[] {
+    const account = usersDb.value[parent]
+    return account?.role === 'parent' ? [...(account.childUsernames ?? [])] : []
+  }
+
+  function bindChild(parent: string, student: string): void {
+    const account = usersDb.value[parent]
+    if (account?.role !== 'parent') return
+    const children = account.childUsernames ?? []
+    if (!children.includes(student)) account.childUsernames = [...children, student]
+  }
+
+  function unbindChild(parent: string, student: string): void {
+    const account = usersDb.value[parent]
+    if (account?.childUsernames?.includes(student)) {
+      account.childUsernames = account.childUsernames.filter((u) => u !== student)
+    }
+  }
+
+  /** Remove `student` from every parent, e.g. when the student account is deleted */
+  function unbindChildEverywhere(student: string): void {
+    parentsOf(student).forEach((parent) => unbindChild(parent, student))
+  }
+
   /**
    * Get all invite codes (for Admin dashboard display).
    */
@@ -455,6 +492,11 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   return {
+    parentsOf,
+    childrenOf,
+    bindChild,
+    unbindChild,
+    unbindChildEverywhere,
     currentUser,
     sessionChangedElsewhere,
     isAuthenticated,
