@@ -25,7 +25,7 @@ SSLecture 是一個基於 **Vue 3 + TypeScript + Vite** 技術棧開發的現代
 *   **多語系架構**：Vue I18n 11（Composition API 模式，`zh-TW` / `en` 雙語系；`en` 語系檔按需載入）
 *   **路由管理**：Vue Router 5（HTML5 History 模式，內建角色與頁面限制導航守衛、平滑捲動）
 *   **字型**：Quicksand / Outfit 由 `@fontsource` 隨專案打包，不向 Google Fonts 發出請求
-*   **測試**：Vitest 5 + Happy DOM + Vue Test Utils（34 個測試檔案、311 項測試，含 composable 與表單元件測試，以及以本機 HTTP 伺服器驗證 `api.ts` 的整合測試）；Playwright 端對端測試（37 項，含以 axe 檢查 WCAG 2.1 AA 無障礙與鍵盤操作）
+*   **測試**：Vitest 5 + Happy DOM + Vue Test Utils（34 個測試檔案、317 項測試，含 composable 與表單元件測試，以及以本機 HTTP 伺服器驗證 `api.ts` 的整合測試）；Playwright 端對端測試（38 項，含以 axe 檢查 WCAG 2.1 AA 無障礙與鍵盤操作）
 *   **程式碼品質**：TypeScript 6.0（Strict 嚴格模式，以 vue-tsc 3 檢查）、ESLint 10、Prettier 3
 *   **樣式設計**：Vanilla CSS（響應式排版，適配行動端、桌面端與 `@media print` 列印模式）
 
@@ -148,6 +148,8 @@ SSLecture/
   首次登入 → OnboardingView.vue（選教會 + 可輸入邀請碼）
   已有帳號 → 直接導向 Dashboard
 ```
+
+完成 onboarding 後，使用者會像一般帳號一樣出現在名冊與管理員帳號列表（標示「以 Google／LINE 登入」），牧者可以設定性別、指派教師與綁定家長。這類帳號沒有密碼，不能用帳號密碼登入。
 
 詳細流程請參閱 [`docs/oauth2_social_login_spec.md`](./docs/oauth2_social_login_spec.md)。
 

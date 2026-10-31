@@ -37,6 +37,9 @@
                 <strong>{{ user.realName || user.username }}</strong>
                 <span v-if="user.realName" class="admin-id-tag">@{{ user.username }}</span>
                 <span v-if="user.church" class="admin-church-tag">{{ user.church }}</span>
+                <span v-if="user.socialLogin" class="admin-id-tag social-login-tag">{{
+                  $t('admin.userList.signsInWith', { method: user.socialLogin })
+                }}</span>
               </div>
               <span v-if="user.username === authStore.currentUser?.username" class="me-tag">{{
                 $t('admin.userList.me')
@@ -132,12 +135,16 @@ const { releaseRole } = useAccountCleanup()
 const coursesStore = useCoursesStore()
 
 // Transform db object into array
+/** Shown next to accounts that sign in with Google / LINE instead of a password */
+const SOCIAL_LOGIN_NAMES: Record<string, string | undefined> = { google: 'Google', line: 'LINE' }
+
 const usersList = computed(() => {
   return Object.keys(authStore.usersDb).map((username) => ({
     username,
     role: authStore.usersDb[username].role,
     realName: authStore.usersDb[username].realName,
-    church: authStore.usersDb[username].church
+    church: authStore.usersDb[username].church,
+    socialLogin: SOCIAL_LOGIN_NAMES[authStore.usersDb[username].loginMethod ?? 'credentials']
   }))
 })
 

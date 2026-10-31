@@ -145,6 +145,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 
 **錯誤**：
 - `401 INVALID_CREDENTIALS`：帳號或密碼錯誤
+- `401 USE_SOCIAL_LOGIN`：此帳號沒有密碼，只能用 Google / LINE 登入 ⭐
 - `403 ACCOUNT_DISABLED`：帳號被停用
 
 ---
@@ -340,6 +341,10 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 - `400 CHURCH_REQUIRED`：教會為必填
 - `400 INVALID_INVITE_CODE`：邀請碼無效
 - `409 USERNAME_TAKEN`：username 已存在
+
+**說明**：完成後這位使用者就和一般帳號一樣出現在名冊與 `GET /admin/users`（`loginMethod` 為 `google` / `line`、
+沒有密碼），牧者可設定性別、指派教師、綁定家長，使用者也能編輯個人資料。前端 mock 以
+`authStore.completeProfile()` 寫入 `usersDb` 模擬此行為。
 
 ---
 
@@ -1500,6 +1505,7 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | `church` | string | 所屬教會名稱 |
 | `displayName` | string? | 暱稱（公開顯示） |
 | `realName` | string? | 真實姓名（管理端顯示，不對其他學員公開） |
+| `loginMethod` | `credentials` \| `google` \| `line` | 首次登入方式；社群帳號沒有密碼 |
 | `gender` | `male` \| `female` \| null | 性別，只用於 `student`、`teacher`；null = 未設定 ⭐ |
 | `childUsernames` | string[]? | 只用於 `parent`：綁定的孩子（後端對應 `parent_children` 表） ⭐ |
 | `avatarUrl` | string? | 頭像 URL |
@@ -1559,6 +1565,7 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | 400 | `INVALID_STATUS_TRANSITION` | 場次狀態流轉不合法（如已完成場次不可再確認） |
 | 401 | `UNAUTHORIZED` | 未提供 Token 或 Token 無效 |
 | 401 | `INVALID_CREDENTIALS` | 帳號或密碼錯誤 |
+| 401 | `USE_SOCIAL_LOGIN` | 帳號沒有密碼，請用 Google / LINE 登入 ⭐ |
 | 401 | `TOKEN_EXPIRED` | Access Token 已過期，請呼叫 /auth/refresh |
 | 401 | `REFRESH_TOKEN_EXPIRED` | Refresh Token 已過期，需重新登入 |
 | 403 | `FORBIDDEN` | 有登入但無權限執行此操作 |

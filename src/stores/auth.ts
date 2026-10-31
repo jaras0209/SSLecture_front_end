@@ -14,7 +14,7 @@ export type { UserRole, LoginMethod, User, InviteCode, Church } from '@/types/au
 export { CHURCHES, DEFAULT_RESET_PASSWORD } from '@/types/auth'
 
 // 引入型別供 store 內部使用
-import type { UserRole, User, InviteCode, Gender } from '@/types/auth'
+import type { UserRole, User, InviteCode, Gender, LoginMethod } from '@/types/auth'
 import { DEFAULT_RESET_PASSWORD, DEFAULT_CHURCH, GENDERED_ROLES } from '@/types/auth'
 import { defaultAvatarUrl } from '@/utils/avatar'
 
@@ -50,6 +50,9 @@ export const useAuthStore = defineStore('auth', () => {
         lastLoginAt?: string
         avatarUrl?: string
         gender?: Gender
+        /** How the account signs in; missing means a password ('credentials') */
+        loginMethod?: LoginMethod
+        email?: string
       }
     >
   >({
@@ -132,6 +135,36 @@ export const useAuthStore = defineStore('auth', () => {
     })
   })
 
+  /**
+   * Give a Google / LINE user an account record once onboarding has set their church, so
+   * pastors and admins can see them, set their gender, assign mentors and bind parents,
+   * and they can edit their profile. Such accounts have no password.
+   */
+  function saveSocialAccount(user: User): void {
+    if (user.loginMethod === 'credentials' || !user.church) return
+    const existing = usersDb.value[user.username]
+    usersDb.value[user.username] = {
+      ...existing,
+      passwordHash: existing?.passwordHash ?? '',
+      role: user.role,
+      church: user.church,
+      displayName: existing?.displayName ?? user.displayName,
+      avatarUrl: existing?.avatarUrl ?? user.avatarUrl,
+      email: existing?.email ?? user.email,
+      loginMethod: user.loginMethod,
+      lastLoginAt: user.lastLoginAt ?? existing?.lastLoginAt
+    }
+  }
+
+  // Social users who finished onboarding before records were kept for them
+  if (
+    currentUser.value &&
+    currentUser.value.loginMethod !== 'credentials' &&
+    !usersDb.value[currentUser.value.username]
+  ) {
+    saveSocialAccount(currentUser.value)
+  }
+
   persistToStorage(usersDb, 'superstart_users_db')
 
   // ── Invite Codes DB ──────────────────────────────────────────────────────────
@@ -147,6 +180,10 @@ export const useAuthStore = defineStore('auth', () => {
     const user = usersDb.value[username]
     if (!user) {
       return { success: false, message: t('stores.auth.accountNotFound') }
+    }
+    if (!user.passwordHash) {
+      // A Google / LINE account has no password to sign in with
+      return { success: false, message: t('stores.auth.useSocialLogin') }
     }
     if (user.passwordHash !== passwordHash) {
       return { success: false, message: t('stores.auth.wrongPassword') }
@@ -276,6 +313,10 @@ export const useAuthStore = defineStore('auth', () => {
     // === 開發期 mock（後端就緒後移除）===
     console.warn('[AUTH] completeProfile: Using dev mock — 後端就緒後請替換為真實 API 呼叫')
     if (!currentUser.value) return { success: false, message: t('stores.auth.notLoggedIn') }
+    const wanted = payload.username?.trim()
+    if (wanted && wanted !== currentUser.value.username && usersDb.value[wanted]) {
+      return { success: false, message: t('stores.auth.usernameTaken') }
+    }
     if (payload.inviteCode) {
       const invite = validateInviteCode(payload.inviteCode)
       if (invite) {
@@ -283,7 +324,7 @@ export const useAuthStore = defineStore('auth', () => {
           ...currentUser.value,
           role: invite.role,
           church: payload.churchId,
-          username: payload.username || currentUser.value.username
+          username: wanted || currentUser.value.username
         }
         consumeInviteCode(payload.inviteCode, currentUser.value.username)
       } else {
@@ -293,9 +334,10 @@ export const useAuthStore = defineStore('auth', () => {
       currentUser.value = {
         ...currentUser.value,
         church: payload.churchId,
-        username: payload.username || currentUser.value.username
+        username: wanted || currentUser.value.username
       }
     }
+    saveSocialAccount(currentUser.value)
     return { success: true, message: t('stores.auth.profileComplete') }
   }
 

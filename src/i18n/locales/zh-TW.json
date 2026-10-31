@@ -634,7 +634,8 @@
       "deleteConfirm": "確定要刪除使用者 {username} 嗎？此動作無法復原！",
       "deletedToast": "使用者 {username} 已刪除",
       "resetPwdConfirm": "確定將「{username}」的密碼重設為預設密碼（{pwd}）？",
-      "resetPwdSuccess": "✅ {username} 密碼已重設為「{pwd}」"
+      "resetPwdSuccess": "✅ {username} 密碼已重設為「{pwd}」",
+      "signsInWith": "以 {method} 登入"
     },
     "roles": {
       "student": "SS學員（SS）",
@@ -742,7 +743,8 @@
       "profileUpdated": "個人資料已更新！",
       "inviteNotFound": "找不到此邀請碼。",
       "inviteAlreadyUsed": "此邀請碼已被使用，無法作廢。",
-      "inviteRevoked": "邀請碼 {code} 已作廢。"
+      "inviteRevoked": "邀請碼 {code} 已作廢。",
+      "useSocialLogin": "此帳號使用 Google 或 LINE 登入，請改用社群登入。"
     },
     "bookings": {
       "sessionFull": "此時段已額滿或不開放預約",

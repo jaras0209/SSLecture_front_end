@@ -86,6 +86,7 @@
 > - 新增設計說明：講師例外（[5.11](#511-講師在自己授課的預約中看得到全部學員)）、
 >   刪除帳號或變更角色時的清理（[5.12](#512-刪除帳號或變更角色時的清理)）、牧者的教會預約總覽（[5.13](#513-牧者的教會預約總覽)）；
 >   講師可連結教師或牧者帳號
+> - `users.password_hash` 改為可為 NULL：社群登入建立的帳號沒有密碼（見 2.1）
 
 ---
 
@@ -99,7 +100,7 @@
 |--------|----------|------|------|
 | `id` | `UUID` | PK, NOT NULL | 系統唯一識別碼 |
 | `username` | `VARCHAR(50)` | UNIQUE, NOT NULL | 登入帳號（英數字、底線） |
-| `password_hash` | `VARCHAR(255)` | NOT NULL | bcrypt 雜湊密碼 |
+| `password_hash` | `VARCHAR(255)` | NULL | bcrypt 雜湊密碼；NULL = 只用 Google / LINE 登入，不能以密碼登入 ⭐ |
 | `role` | `ENUM` | NOT NULL | `student` / `teacher` / `pastor` / `parent` / `admin` |
 | `church_id` | `UUID` | FK → churches.id, NULL | 所屬教會（admin 為 NULL） |
 | `display_name` | `VARCHAR(100)` | NULL | 暱稱（公開顯示） |
@@ -118,6 +119,8 @@
 - `admin` 角色的 `church_id` 為 NULL（跨教會管理）
 - `real_name` 僅式於管理端（教師/牧者/管理員）顯示，不對學員公開
 - `is_active = FALSE` 為軟刪除，歷史資料保留；軟刪除時須一併做 [5.12](#512-刪除帳號或變更角色時的清理) 的清理
+- 社群登入（Google / LINE）的使用者同樣是 `users` 的一筆資料，`password_hash` 為 NULL；
+  完成 onboarding（填入教會）後，牧者與管理員才能在名冊看到並設定性別、指派教師、綁定家長
 - `gender` 只對 `student`、`teacher` 有意義（前端 `GENDERED_ROLES`）；NULL 表示尚未設定，
   此時教師看不到該學員、未設定性別的教師看不到任何學員（見 5.10）
 
@@ -662,7 +665,7 @@ CREATE TYPE user_gender AS ENUM ('male', 'female');
 CREATE TABLE users (
   id            UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
   username      VARCHAR(50)  NOT NULL UNIQUE,
-  password_hash VARCHAR(255) NOT NULL,
+  password_hash VARCHAR(255),                 -- NULL = 只用社群登入
   role          user_role    NOT NULL,
   church_id     UUID         REFERENCES churches(id) ON DELETE SET NULL,
   display_name  VARCHAR(100),
@@ -969,7 +972,7 @@ erDiagram
   users {
     UUID        id            PK
     VARCHAR     username      UK "UNIQUE NOT NULL"
-    VARCHAR     password_hash    "NOT NULL"
+    VARCHAR     password_hash    "NULL = 只用社群登入"
     user_role   role             "ENUM"
     UUID        church_id     FK "-> churches.id SET NULL"
     VARCHAR     display_name

@@ -634,7 +634,8 @@
       "deleteConfirm": "Are you sure you want to delete user {username}? This cannot be undone!",
       "deletedToast": "User {username} has been deleted",
       "resetPwdConfirm": "Reset {username}'s password to the default ({pwd})?",
-      "resetPwdSuccess": "✅ {username}'s password has been reset to \"{pwd}\""
+      "resetPwdSuccess": "✅ {username}'s password has been reset to \"{pwd}\"",
+      "signsInWith": "Signs in with {method}"
     },
     "roles": {
       "student": "SS Student (SS)",
@@ -742,7 +743,8 @@
       "profileUpdated": "Profile updated successfully!",
       "inviteNotFound": "Invite code not found.",
       "inviteAlreadyUsed": "This invite code has already been used and cannot be revoked.",
-      "inviteRevoked": "Invite code {code} has been revoked."
+      "inviteRevoked": "Invite code {code} has been revoked.",
+      "useSocialLogin": "This account signs in with Google or LINE. Please use social sign-in."
     },
     "bookings": {
       "sessionFull": "This session is full or not open for booking",

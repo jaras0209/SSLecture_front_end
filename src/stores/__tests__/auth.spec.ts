@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { setActivePinia, createPinia } from 'pinia'
 import { useAuthStore } from '@/stores/auth'
+import { translate as t } from '@/i18n'
 
 describe('useAuthStore', () => {
   beforeEach(() => {
@@ -448,6 +449,79 @@ describe('useAuthStore', () => {
       vi.runAllTimers()
       expect(JSON.parse(localStorage.getItem('superstart_users_db')!).teacher.gender).toBe('female')
       vi.useRealTimers()
+    })
+  })
+
+  describe('social sign-in accounts', () => {
+    const google = (username = 'oauth_1') => ({
+      username,
+      role: 'student' as const,
+      loginMethod: 'google' as const,
+      displayName: 'Google 使用者',
+      email: 'g@example.com'
+    })
+
+    it('keeps a record once onboarding sets the church, without a password', async () => {
+      const auth = useAuthStore()
+      auth.currentUser = google()
+      expect(auth.usersDb.oauth_1).toBeUndefined()
+
+      const result = await auth.completeProfile({ churchId: '愛與話語', username: 'amy' })
+      expect(result.success).toBe(true)
+      expect(auth.currentUser?.username).toBe('amy')
+      expect(auth.usersDb.amy).toMatchObject({
+        passwordHash: '',
+        role: 'student',
+        church: '愛與話語',
+        loginMethod: 'google',
+        displayName: 'Google 使用者',
+        email: 'g@example.com'
+      })
+      expect(auth.usersDb.oauth_1).toBeUndefined()
+
+      // ...so staff can manage them and they can edit their profile
+      auth.setGender('amy', 'female')
+      expect(auth.usersDb.amy.gender).toBe('female')
+      expect(auth.updateProfile('amy', { realName: '王小美' }).success).toBe(true)
+    })
+
+    it('records the role an invite code gives', async () => {
+      const auth = useAuthStore()
+      const code = auth.generateInviteCode('teacher', '愛與話語', 'admin')
+      auth.currentUser = google()
+      await auth.completeProfile({ churchId: '愛與話語', inviteCode: code })
+      expect(auth.usersDb.oauth_1).toMatchObject({ role: 'teacher', church: '愛與話語' })
+    })
+
+    it('refuses a username that is already taken', async () => {
+      const auth = useAuthStore()
+      auth.currentUser = google()
+      const result = await auth.completeProfile({ churchId: '愛與話語', username: 'teacher' })
+      expect(result).toEqual({ success: false, message: t('stores.auth.usernameTaken') })
+      expect(auth.currentUser?.username).toBe('oauth_1')
+      expect(auth.usersDb.teacher.role).toBe('teacher')
+    })
+
+    it('cannot be signed in to with a password', async () => {
+      const auth = useAuthStore()
+      auth.currentUser = google()
+      await auth.completeProfile({ churchId: '愛與話語' })
+      auth.logout()
+      expect(auth.login('oauth_1', '')).toEqual({
+        success: false,
+        message: t('stores.auth.useSocialLogin')
+      })
+      expect(auth.currentUser).toBeNull()
+    })
+
+    it('adds a record for a social user who onboarded before records were kept', () => {
+      localStorage.setItem('superstart_user', JSON.stringify({ ...google(), church: '愛與話語' }))
+      expect(useAuthStore().usersDb.oauth_1).toMatchObject({ church: '愛與話語', role: 'student' })
+
+      setActivePinia(createPinia())
+      localStorage.clear()
+      localStorage.setItem('superstart_user', JSON.stringify(google('oauth_2'))) // still onboarding
+      expect(useAuthStore().usersDb.oauth_2).toBeUndefined()
     })
   })
 })

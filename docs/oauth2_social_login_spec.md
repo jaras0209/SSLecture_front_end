@@ -417,6 +417,7 @@ public UserResult findOrCreateOAuthUser(
     newUser.setRole(UserRole.STUDENT);   // 預設學員
     newUser.setIsActive(true);
     newUser.setChurchId(null);           // onboarding 時補填
+    newUser.setPasswordHash(null);       // 只用社群登入（users.password_hash 可為 NULL）
     userRepo.save(newUser);
 
     socialAccountRepo.save(new SocialAccount(provider, providerUserId, newUser));
@@ -853,6 +854,7 @@ Refresh Token：
 | 新增 `social_accounts` 表 | 儲存 OAuth 帳號綁定（provider + provider_user_id）|
 | `users` 表新增欄位 | `email VARCHAR(255) UNIQUE`、`email_verified BOOLEAN` |
 | `login_method` ENUM 不變 | 原有 `credentials / google / line`，代表**首次**登入方式 |
+| `users.password_hash` 改為可為 NULL | 社群登入建立的帳號沒有密碼；以密碼登入時回傳 `401 USE_SOCIAL_LOGIN` |
 
 ---
 

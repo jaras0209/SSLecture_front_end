@@ -323,6 +323,37 @@ test.describe('lecturer', () => {
   })
 })
 
+test.describe('social sign-in', () => {
+  test('a user who finishes onboarding gets an account staff can see', async ({
+    page,
+    openWith
+  }) => {
+    await openWith('onboarding', {
+      superstart_user: {
+        username: 'oauth_1',
+        role: 'student',
+        loginMethod: 'google',
+        displayName: 'Google 使用者'
+      }
+    })
+    await page.selectOption('#ob-church', '愛與話語')
+    await page.fill('#ob-username', 'amy')
+    await page.click('form.auth-form button[type=submit]')
+    await expect(page).toHaveURL(/\/student$/)
+
+    const usersDb = await stored<Record<string, Record<string, unknown>>>(
+      page,
+      'superstart_users_db'
+    )
+    expect(usersDb.amy).toMatchObject({
+      role: 'student',
+      church: '愛與話語',
+      loginMethod: 'google',
+      passwordHash: ''
+    })
+  })
+})
+
 test.describe('admin', () => {
   test('creates a user and generates an invite code', async ({ page, openWith }) => {
     await openWith('admin', { superstart_user: users.admin })

@@ -117,4 +117,20 @@ describe('AdminUserTable', () => {
     await row(wrapper, 'pastor').find('select:not(.gender-select)').setValue('student')
     expect(linked()).toBeUndefined()
   })
+
+  it('marks accounts that sign in with Google or LINE', async () => {
+    const { wrapper } = mountAsAdmin()
+    const auth = useAuthStore()
+    auth.usersDb.amy = {
+      passwordHash: '',
+      role: 'student',
+      church: '愛與話語',
+      loginMethod: 'line'
+    }
+    await wrapper.vm.$nextTick()
+    expect(row(wrapper, 'amy').text()).toContain(
+      t('admin.userList.signsInWith', { method: 'LINE' })
+    )
+    expect(row(wrapper, 'student').find('.social-login-tag').exists()).toBe(false)
+  })
 })
