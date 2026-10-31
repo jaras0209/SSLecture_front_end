@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import TeacherChurchBookings from '@/components/teacher/TeacherChurchBookings.vue'
+import ChurchBookings from '@/components/shared/ChurchBookings.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useBookingsStore } from '@/stores/bookings'
 import { mountWith, t } from '@/__tests__/helpers'
@@ -7,8 +7,11 @@ import { mountWith, t } from '@/__tests__/helpers'
 const CHURCH = '愛與話語'
 
 /** A pastor's view of the church: bookings by a male and a female teacher, and one elsewhere */
-function mountForChurch() {
-  const result = mountWith(TeacherChurchBookings, { props: { church: CHURCH } })
+/** `allChurches` mounts the admin view (no church given) */
+function mountForChurch(view: 'pastor' | 'allChurches' = 'pastor') {
+  const result = mountWith(ChurchBookings, {
+    props: view === 'pastor' ? { church: CHURCH } : {}
+  })
   const auth = useAuthStore()
   const account = (role: 'teacher' | 'student', gender: 'male' | 'female', realName: string) => ({
     passwordHash: 'x',
@@ -37,15 +40,15 @@ function mountForChurch() {
     })
   const older = book('teacher', ['student'], '2099-01-10T10:00')
   const newer = book('tf', ['girl'], '2099-02-10T10:00')
-  book('teacher', ['student'], '2099-03-10T10:00', '別的教會')
+  const elsewhere = book('teacher', ['student'], '2099-03-10T10:00', '主大明')
   // Confirmed for a later time than the other booking, so it is listed first
   bookings.updateSessionStatus(older.id, 'confirmed', { confirmedAt: '2099-03-01T10:00' })
   bookings.updateSessionStatus(older.id, 'cancelled', { cancelReason: '講師請假' })
   bookings.updateAttendee(newer.id, 'girl', { attendanceStatus: 'attended' })
-  return { ...result, older, newer }
+  return { ...result, older, newer, elsewhere }
 }
 
-describe('TeacherChurchBookings', () => {
+describe('ChurchBookings', () => {
   it("lists the church's bookings of every teacher and student, latest (confirmed) time first", async () => {
     const { wrapper, older, newer } = mountForChurch()
     await wrapper.vm.$nextTick()
@@ -81,5 +84,29 @@ describe('TeacherChurchBookings', () => {
       .find((b) => b.text().startsWith(t('booking.status.completed')))!
     await completed.trigger('click')
     expect(wrapper.find('.empty-row').text()).toBe(t('teacher.churchBookings.empty'))
+  })
+
+  it('shows an admin every church, says which church each booking is in, and narrows to one', async () => {
+    const { wrapper, older, newer, elsewhere } = mountForChurch('allChurches')
+    await wrapper.vm.$nextTick()
+    const ids = () =>
+      wrapper.findAll('tbody tr[data-session]').map((r) => r.attributes('data-session'))
+    expect(ids()).toEqual([elsewhere.id, older.id, newer.id])
+    expect(wrapper.find('h3').text()).toBe(t('teacher.churchBookings.title'))
+    expect(wrapper.find('thead').text()).toContain(t('teacher.churchBookings.colChurch'))
+    expect(wrapper.find('tbody tr').text()).toContain('主大明')
+
+    await wrapper.find('#church-bookings-church').setValue(CHURCH)
+    expect(ids()).toEqual([older.id, newer.id])
+    expect(wrapper.find('thead').text()).not.toContain(t('teacher.churchBookings.colChurch'))
+    const all = wrapper.findAll('.status-filter-btn')[0]
+    expect(all.text()).toContain('2')
+  })
+
+  it('keeps a pastor to their church, without a church picker', () => {
+    const { wrapper } = mountForChurch()
+    expect(wrapper.find('#church-bookings-church').exists()).toBe(false)
+    expect(wrapper.find('h4').exists()).toBe(true)
+    expect(wrapper.find('thead').text()).not.toContain(t('teacher.churchBookings.colChurch'))
   })
 })

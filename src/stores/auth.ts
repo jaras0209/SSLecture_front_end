@@ -294,6 +294,8 @@ export const useAuthStore = defineStore('auth', () => {
     churchId: string
     username?: string
     inviteCode?: string
+    /** A parent's children to bind (students of the chosen church) */
+    childUsernames?: string[]
   }): Promise<{ success: boolean; message: string }> {
     // TODO: 後端就緒後，移除 mock，取消註解以下 fetch 呼叫
     // try {
@@ -338,6 +340,14 @@ export const useAuthStore = defineStore('auth', () => {
       }
     }
     saveSocialAccount(currentUser.value)
+    if (currentUser.value.role === 'parent') {
+      const me = currentUser.value.username
+      const church = currentUser.value.church
+      ;(payload.childUsernames ?? [])
+        .filter((u) => usersDb.value[u]?.role === 'student' && usersDb.value[u].church === church)
+        .forEach((u) => bindChild(me, u))
+      currentUser.value = { ...currentUser.value, childUsernames: childrenOf(me) }
+    }
     return { success: true, message: t('stores.auth.profileComplete') }
   }
 

@@ -372,9 +372,69 @@ test.describe('social sign-in', () => {
       passwordHash: ''
     })
   })
+
+  test('a parent with an invite code binds their child while onboarding', async ({
+    page,
+    openWith
+  }) => {
+    await openWith('onboarding', {
+      superstart_user: { username: 'oauth_2', role: 'student', loginMethod: 'line' },
+      superstart_invite_codes: {
+        'SS-PAR-CD34': {
+          code: 'SS-PAR-CD34',
+          role: 'parent',
+          church: '愛與話語',
+          createdBy: 'admin',
+          createdAt: '2026-01-01T00:00:00.000Z',
+          expiresAt: '2099-01-01T00:00:00.000Z',
+          revoked: false
+        }
+      }
+    })
+    await page.fill('#ob-invite-code', 'SS-PAR-CD34')
+    await page.locator('.student-binding-option', { hasText: 'student' }).locator('input').check()
+    await page.click('form.auth-form button[type=submit]')
+    await expect(page).toHaveURL(/\/teacher$/)
+
+    const usersDb = await stored<Record<string, { role: string; childUsernames?: string[] }>>(
+      page,
+      'superstart_users_db'
+    )
+    expect(usersDb.oauth_2).toMatchObject({ role: 'parent', childUsernames: ['student'] })
+  })
 })
 
 test.describe('admin', () => {
+  test('sees the bookings of every church and can narrow to one', async ({ page, openWith }) => {
+    const session = (id: string, church: string) => ({
+      id,
+      courseId: 'c1',
+      courseTitle: '測試課程',
+      lecturerId: 'L1',
+      lecturerName: '王講師',
+      lecturerTitle: '牧師',
+      teacherUsername: 'teacher',
+      proposedAt: '2099-01-10T10:00',
+      durationMinutes: 90,
+      status: 'pending',
+      prep: { scriptures: [], readingNotes: '', materials: '' },
+      teacherSessionNotes: '',
+      church,
+      isGroupSession: false,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z'
+    })
+    await openWith('admin', {
+      superstart_user: users.admin,
+      superstart_booking_sessions_db: { a: session('a', '愛與話語'), b: session('b', '主大明') }
+    })
+    const rows = page.locator('.church-bookings-table tbody tr[data-session]')
+    await expect(rows).toHaveCount(2)
+    await page.selectOption('#church-bookings-church', '主大明')
+    await expect(rows).toHaveCount(1)
+    await expect(rows).toHaveAttribute('data-session', 'b')
+  })
+
   test('creates a user and generates an invite code', async ({ page, openWith }) => {
     await openWith('admin', { superstart_user: users.admin })
 

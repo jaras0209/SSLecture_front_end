@@ -601,7 +601,11 @@
       "colTeacher": "安排教師",
       "colStudents": "學員（出席）",
       "colStatus": "狀態",
-      "empty": "目前沒有符合的預約"
+      "empty": "目前沒有符合的預約",
+      "descAll": "所有教會的預約（不分教師、不分男女），可選擇單一教會。預約由安排的輔導教師管理，這裡僅供查看。",
+      "churchLabel": "教會",
+      "allChurches": "全部教會",
+      "colChurch": "教會"
     }
   },
   "admin": {

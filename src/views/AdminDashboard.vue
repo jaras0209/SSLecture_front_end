@@ -45,6 +45,7 @@
     </div>
 
     <AdminChurchOverview />
+    <ChurchBookings />
     <AdminTeachingStats />
     <AdminInviteCodes />
   </div>
@@ -59,6 +60,7 @@ import AdminUserTable from '@/components/admin/AdminUserTable.vue'
 import AdminChurchOverview from '@/components/admin/AdminChurchOverview.vue'
 import AdminTeachingStats from '@/components/admin/AdminTeachingStats.vue'
 import AdminInviteCodes from '@/components/admin/AdminInviteCodes.vue'
+import ChurchBookings from '@/components/shared/ChurchBookings.vue'
 import { avatarSrc } from '@/utils/avatar'
 
 const { tDateTime } = useI18nHelper()

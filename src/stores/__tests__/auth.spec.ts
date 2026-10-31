@@ -498,6 +498,32 @@ describe('useAuthStore', () => {
       expect(auth.updateProfile('amy', { realName: '王小美' }).success).toBe(true)
     })
 
+    it("binds a parent's chosen children, only students of their church", async () => {
+      const auth = useAuthStore()
+      auth.usersDb.s2 = { passwordHash: 'x', role: 'student', church: '愛與話語' }
+      auth.usersDb.far = { passwordHash: 'x', role: 'student', church: '主大明' }
+      const code = auth.generateInviteCode('parent', '愛與話語', 'admin')
+      auth.currentUser = google()
+      await auth.completeProfile({
+        churchId: '愛與話語',
+        username: 'dad',
+        inviteCode: code,
+        childUsernames: ['student', 's2', 'far', 'teacher', 'ghost']
+      })
+      expect(auth.childrenOf('dad')).toEqual(['student', 's2'])
+      expect(auth.currentUser?.childUsernames).toEqual(['student', 's2'])
+      expect(auth.parentsOf('student')).toContain('dad')
+    })
+
+    it('binds no children for anyone but a parent', async () => {
+      const auth = useAuthStore()
+      auth.currentUser = google()
+      await auth.completeProfile({ churchId: '愛與話語', childUsernames: ['student'] })
+      expect(auth.parentsOf('student')).not.toContain('oauth_1')
+      expect(auth.usersDb.oauth_1.childUsernames).toBeUndefined()
+      expect(auth.currentUser?.childUsernames).toBeUndefined()
+    })
+
     it('records the role an invite code gives', async () => {
       const auth = useAuthStore()
       const code = auth.generateInviteCode('teacher', '愛與話語', 'admin')

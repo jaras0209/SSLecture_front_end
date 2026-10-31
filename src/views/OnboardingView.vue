@@ -90,6 +90,14 @@
           </div>
         </div>
 
+        <!-- 家長邀請碼：選擇要綁定的孩子 -->
+        <ChildPicker
+          v-if="validatedInvite?.role === 'parent' && selectedChurch"
+          ref="childPicker"
+          v-model="childUsernames"
+          :church="selectedChurch"
+        />
+
         <button
           type="submit"
           class="btn btn-primary w-full"
@@ -103,7 +111,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore, CHURCHES } from '@/stores/auth'
@@ -112,6 +120,7 @@ import { useI18nHelper } from '@/composables/useI18nHelper'
 import type { InviteCode } from '@/stores/auth'
 import { homeRouteFor } from '@/router/homeRoute'
 import { avatarSrc } from '@/utils/avatar'
+import ChildPicker from '@/components/auth/ChildPicker.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -135,6 +144,10 @@ const inviteCodeInput = ref('')
 const inviteCodeStatus = ref<'idle' | 'valid' | 'invalid'>('idle')
 const validatedInvite = ref<InviteCode | null>(null)
 const isSubmitting = ref(false)
+const childUsernames = ref<string[]>([])
+const childPicker = ref<InstanceType<typeof ChildPicker> | null>(null)
+// Children are listed per church; a different church starts the choice over
+watch(selectedChurch, () => (childUsernames.value = []))
 
 function onInviteCodeInput() {
   const code = inviteCodeInput.value.trim().toUpperCase()
@@ -167,11 +180,25 @@ async function handleComplete() {
     return
   }
 
+  const asParent = validatedInvite.value?.role === 'parent'
+  if (asParent) {
+    // Same rule as registering with a password: a parent account needs a child to follow
+    if (!childPicker.value?.students.length) {
+      toast(t('auth.register.noStudentsAlert', { church: selectedChurch.value }), 'error')
+      return
+    }
+    if (childUsernames.value.length === 0) {
+      toast(t('auth.validation.parentBindStudent'), 'error')
+      return
+    }
+  }
+
   isSubmitting.value = true
   const result = await authStore.completeProfile({
     churchId: selectedChurch.value,
     username: customUsername.value || undefined,
-    inviteCode: inviteCodeInput.value || undefined
+    inviteCode: inviteCodeInput.value || undefined,
+    childUsernames: asParent ? childUsernames.value : undefined
   })
   isSubmitting.value = false
 

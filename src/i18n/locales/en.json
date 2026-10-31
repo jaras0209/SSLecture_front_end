@@ -601,7 +601,11 @@
       "colTeacher": "Booked by",
       "colStudents": "Students (attendance)",
       "colStatus": "Status",
-      "empty": "No matching bookings"
+      "empty": "No matching bookings",
+      "descAll": "Bookings in every church (all teachers, both genders); pick one church to narrow it down. Bookings are managed by the mentors who made them; this list is read-only.",
+      "churchLabel": "Church",
+      "allChurches": "All churches",
+      "colChurch": "Church"
     }
   },
   "admin": {

@@ -166,24 +166,11 @@
     </div>
 
     <!-- Parent: Student Binding (only when invite is parent role) -->
-    <div v-if="effectiveRole === 'parent'" class="form-group">
-      <label class="form-label">👶 {{ $t('auth.register.bindChildren') }}</label>
-      <div v-if="registerAvailableStudents.length === 0" class="alert-box error">
-        ⚠️ {{ $t('auth.register.noStudentsAlert', { church: effectiveChurch }) }}
-      </div>
-      <div v-else class="student-binding-list">
-        <label v-for="std in registerAvailableStudents" :key="std" class="student-binding-option">
-          <input v-model="registerForm.childUsernames" type="checkbox" :value="std" />
-          <span>🎒 {{ std }}</span>
-        </label>
-      </div>
-      <p
-        v-if="registerForm.childUsernames.length === 0 && registerAvailableStudents.length > 0"
-        class="field-hint"
-      >
-        {{ $t('auth.register.atLeastOneStudent') }}
-      </p>
-    </div>
+    <ChildPicker
+      v-if="effectiveRole === 'parent'"
+      v-model="registerForm.childUsernames"
+      :church="effectiveChurch"
+    />
 
     <button type="submit" class="btn btn-secondary w-full">
       {{ $t('auth.register.submit') }}
@@ -198,6 +185,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore, CHURCHES } from '@/stores/auth'
 import type { UserRole, InviteCode } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
+import ChildPicker from '@/components/auth/ChildPicker.vue'
 import { useI18nHelper } from '@/composables/useI18nHelper'
 import { usePasswordStrength } from '@/composables/usePasswordStrength'
 import { DEFAULT_CHURCH } from '@/types/auth'
@@ -342,44 +330,6 @@ function handleRegister() {
   background-position: right 1rem center;
   background-size: 1.2em;
   padding-right: 2.5rem;
-}
-
-/* Student binding list for parent */
-.student-binding-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-  max-height: 180px;
-  overflow-y: auto;
-  border: 1px solid #e2e8f0;
-  border-radius: var(--radius-sm);
-  padding: 0.75rem;
-  background: #f8fafc;
-}
-
-.student-binding-option {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  padding: 0.35rem 0.5rem;
-  border-radius: var(--radius-sm);
-  transition: background var(--transition-fast);
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.student-binding-option:hover {
-  background: rgba(59, 130, 246, 0.06);
-}
-
-.student-binding-option input[type='checkbox'] {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--primary);
-  cursor: pointer;
 }
 
 .field-hint {
