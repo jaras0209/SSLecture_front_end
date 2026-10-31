@@ -14,7 +14,7 @@
  *   tRole('teacher')                        // roleLabel.{role}
  */
 import { useI18n } from 'vue-i18n'
-import { formatDateTime } from '@/utils/datetime'
+import { formatDate, formatDateTime } from '@/utils/datetime'
 
 export function useI18nHelper() {
   const { t, locale } = useI18n()
@@ -51,5 +51,20 @@ export function useI18nHelper() {
     return formatDateTime(value, locale.value)
   }
 
-  return { tDynamic, tRole, tStatus, tDateTime }
+  /** A date (no time) in the current locale, e.g. an invite code's expiry */
+  function tDate(value: string | undefined): string {
+    return formatDate(value, locale.value)
+  }
+
+  /**
+   * A booking's time in the current language: the confirmed time, else the proposed one,
+   * marked as proposed while the booking is still pending.
+   */
+  function tBookingTime(session: { proposedAt: string; confirmedAt?: string; status: string }) {
+    const time = tDateTime(session.confirmedAt || session.proposedAt) || '—'
+    const proposed = !session.confirmedAt && session.status === 'pending'
+    return proposed ? time + t('student.attendance.proposed') : time
+  }
+
+  return { tDynamic, tRole, tStatus, tDateTime, tDate, tBookingTime }
 }

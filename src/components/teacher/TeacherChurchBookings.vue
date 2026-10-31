@@ -40,10 +40,10 @@
         </thead>
         <tbody>
           <tr v-for="row in shown" :key="row.session.id" :data-session="row.session.id">
-            <td class="nowrap">{{ formatTime(row.session) }}</td>
+            <td class="nowrap">{{ tBookingTime(row.session) }}</td>
             <td>{{ row.session.courseTitle }}</td>
             <td>{{ row.session.lecturerTitle }} {{ row.session.lecturerName }}</td>
-            <td>{{ displayName(row.session.teacherUsername) }}</td>
+            <td>{{ authStore.displayNameOf(row.session.teacherUsername) }}</td>
             <td>
               <span
                 v-for="a in row.attendees"
@@ -51,7 +51,7 @@
                 class="attendee-chip"
                 :title="$t(`student.attendance.${a.attendanceStatus}`)"
               >
-                {{ displayName(a.studentUsername) }}
+                {{ authStore.displayNameOf(a.studentUsername) }}
                 <span aria-hidden="true">{{ attendanceIcon(a.attendanceStatus) }}</span>
                 <span class="sr-only">{{ $t(`student.attendance.${a.attendanceStatus}`) }}</span>
               </span>
@@ -83,6 +83,7 @@
  */
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useI18nHelper } from '@/composables/useI18nHelper'
 import { useAuthStore } from '@/stores/auth'
 import { useBookingsStore } from '@/stores/bookings'
 import type { AttendanceStatus, BookingSession, BookingStatus } from '@/stores/bookings'
@@ -90,6 +91,7 @@ import type { AttendanceStatus, BookingSession, BookingStatus } from '@/stores/b
 const props = defineProps<{ church: string }>()
 
 const { t } = useI18n()
+const { tBookingTime } = useI18nHelper()
 const authStore = useAuthStore()
 const bookingsStore = useBookingsStore()
 
@@ -124,20 +126,8 @@ const shown = computed(() =>
   filter.value === 'all' ? rows.value : rows.value.filter((r) => r.session.status === filter.value)
 )
 
-function displayName(username: string): string {
-  const u = authStore.usersDb[username]
-  return u?.realName || u?.displayName || username
-}
-
 function attendanceIcon(status: AttendanceStatus): string {
   return status === 'attended' ? '✅' : status === 'absent' ? '❌' : '📩'
-}
-
-function formatTime(s: BookingSession): string {
-  const d = new Date(sessionTime(s))
-  if (Number.isNaN(d.getTime())) return '—'
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 </script>
 

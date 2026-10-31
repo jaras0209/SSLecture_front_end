@@ -13,7 +13,7 @@
           <h3 id="feedback-modal-title" aria-level="2">{{ $t('student.course.feedbackTitle') }}</h3>
           <p v-if="session" class="text-muted text-sm mt-1">
             {{ session.courseTitle }} ／ {{ session.lecturerTitle }} {{ session.lecturerName }} ／
-            {{ formatBookingTime(session) }}
+            {{ tBookingTime(session) }}
           </p>
           <div class="form-group mt-4">
             <label class="form-label">📝 {{ $t('student.course.feedbackLabel') }}</label>
@@ -41,6 +41,9 @@
 import { vDialog } from '@/directives/dialog'
 import { ref, watch } from 'vue'
 import type { BookingSession } from '@/stores/bookings'
+import { useI18nHelper } from '@/composables/useI18nHelper'
+
+const { tBookingTime } = useI18nHelper()
 
 const props = defineProps<{
   modelValue: boolean
@@ -71,21 +74,6 @@ function close() {
 function submit() {
   emit('submit', localFeedback.value)
   close()
-}
-
-function formatBookingTime(session: {
-  proposedAt: string
-  confirmedAt?: string
-  status: string
-}): string {
-  const dt = session.confirmedAt || session.proposedAt
-  if (!dt) return '—'
-  const d = new Date(dt)
-  const pad = (n: number) => String(n).padStart(2, '0')
-  const dateStr = `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())}`
-  const timeStr = `${pad(d.getHours())}:${pad(d.getMinutes())}`
-  const isPending = !session.confirmedAt && session.status === 'pending'
-  return `${dateStr} ${timeStr}${isPending ? '（提議）' : ''}`
 }
 </script>
 

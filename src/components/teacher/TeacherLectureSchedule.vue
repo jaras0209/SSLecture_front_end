@@ -18,7 +18,7 @@
       >
         <header class="lecture-header">
           <strong class="lecture-course">{{ lecture.courseTitle }}</strong>
-          <span class="lecture-time">{{ formatTime(lecture.time) }}</span>
+          <span class="lecture-time">{{ tDateTime(lecture.time) }}</span>
           <span v-if="!lecture.timeConfirmed" class="lecture-pending">
             {{ $t('teacher.lecture.timePending') }}
           </span>
@@ -29,7 +29,7 @@
         <p class="text-muted text-xs mt-1">
           {{
             $t('teacher.lecture.bookedBy', {
-              names: lecture.teacherUsernames.map(displayName).join('、')
+              names: lecture.teacherUsernames.map(authStore.displayNameOf).join('、')
             })
           }}
         </p>
@@ -37,7 +37,7 @@
         <ul class="lecture-attendees mt-2">
           <li v-for="row in lecture.attendees" :key="row.id" class="lecture-attendee">
             <span class="attendee-name">
-              {{ displayName(row.studentUsername) }}
+              {{ authStore.displayNameOf(row.studentUsername) }}
               <span class="text-muted text-xs">@{{ row.studentUsername }}</span>
             </span>
             <span
@@ -52,7 +52,9 @@
               class="att-status-toggle"
               role="group"
               :aria-label="
-                $t('teacher.lecture.attendanceFor', { name: displayName(row.studentUsername) })
+                $t('teacher.lecture.attendanceFor', {
+                  name: authStore.displayNameOf(row.studentUsername)
+                })
               "
             >
               <button
@@ -87,6 +89,7 @@
  */
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useI18nHelper } from '@/composables/useI18nHelper'
 import { useAuthStore } from '@/stores/auth'
 import { useBookingsStore } from '@/stores/bookings'
 import type { AttendanceStatus } from '@/stores/bookings'
@@ -94,6 +97,7 @@ import { useToast } from '@/composables/useToast'
 import { useMyLectures, type LectureAttendee } from '@/composables/useMyLectures'
 
 const { t } = useI18n()
+const { tDateTime } = useI18nHelper()
 const { toast } = useToast()
 const authStore = useAuthStore()
 const bookingsStore = useBookingsStore()
@@ -109,23 +113,14 @@ const dueKeys = computed(() => new Set(awaitingAttendance.value.map((l) => l.key
 
 function record(row: LectureAttendee, status: AttendanceStatus) {
   bookingsStore.updateAttendee(row.sessionId, row.studentUsername, { attendanceStatus: status })
-  toast(t('teacher.lecture.recorded', { name: displayName(row.studentUsername) }), 'success')
-}
-
-function displayName(username: string): string {
-  const u = authStore.usersDb[username]
-  return u?.realName || u?.displayName || username
+  toast(
+    t('teacher.lecture.recorded', { name: authStore.displayNameOf(row.studentUsername) }),
+    'success'
+  )
 }
 
 function attendanceLabel(status: AttendanceStatus): string {
   return t(`student.attendance.${status}`)
-}
-
-function formatTime(dt: string): string {
-  const d = new Date(dt)
-  if (Number.isNaN(d.getTime())) return '—'
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 </script>
 

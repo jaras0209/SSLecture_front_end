@@ -40,7 +40,7 @@
               </div>
               <div class="sbc-info-item">
                 <span class="sbc-label">{{ $t('student.course.time') }}</span>
-                <span class="sbc-value">{{ formatBookingTime(item.session) }}</span>
+                <span class="sbc-value">{{ tBookingTime(item.session) }}</span>
               </div>
               <div v-if="item.session.durationMinutes" class="sbc-info-item">
                 <span class="sbc-label">{{ $t('student.course.duration') }}</span>
@@ -141,7 +141,7 @@
               </div>
               <div class="sbc-info-item">
                 <span class="sbc-label">{{ $t('student.course.time') }}</span>
-                <span class="sbc-value">{{ formatBookingTime(item.session) }}</span>
+                <span class="sbc-value">{{ tBookingTime(item.session) }}</span>
               </div>
             </div>
 
@@ -170,6 +170,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useI18nHelper } from '@/composables/useI18nHelper'
 import { useAuthStore } from '@/stores/auth'
 import { useBookingsStore } from '@/stores/bookings'
 import type { BookingSession, BookingAttendee } from '@/stores/bookings'
@@ -186,6 +187,7 @@ const emit = defineEmits<{
 const authStore = useAuthStore()
 const bookingsStore = useBookingsStore()
 const { t } = useI18n()
+const { tBookingTime } = useI18nHelper()
 
 // ── Session Lists ─────────────────────────────────────────────────────────────
 
@@ -205,20 +207,6 @@ const studentPastSessions = computed(() => {
 
 function bookingStatusLabel(status: string): string {
   return t(`booking.status.${status}`) || status
-}
-
-function formatBookingTime(session: {
-  proposedAt: string
-  confirmedAt?: string
-  status: string
-}): string {
-  const dt = session.confirmedAt || session.proposedAt
-  if (!dt) return '—'
-  const d = new Date(dt)
-  const dateStr = `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`
-  const timeStr = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-  const isPending = !session.confirmedAt && session.status === 'pending'
-  return `${dateStr} ${timeStr}${isPending ? t('student.attendance.proposed') : ''}`
 }
 </script>
 

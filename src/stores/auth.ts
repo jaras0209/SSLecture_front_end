@@ -506,6 +506,12 @@ export const useAuthStore = defineStore('auth', () => {
     else delete account.gender
   }
 
+  /** The name to show for an account: real name, else nickname, else the username */
+  function displayNameOf(username: string): string {
+    const u = usersDb.value[username]
+    return u?.realName || u?.displayName || username
+  }
+
   // ── Parent ↔ child bindings ────────────────────────────────────────────────
   // The only record of which parent is bound to which student is the parent account's
   // childUsernames; it decides what a parent can see. Read and change it only here.
@@ -555,6 +561,7 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     hasGender,
     setGender,
+    displayNameOf,
     parentsOf,
     childrenOf,
     bindChild,

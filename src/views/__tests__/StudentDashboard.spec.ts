@@ -79,6 +79,26 @@ describe('StudentDashboard', () => {
     expect(wrapper.find('.no-teacher-hint').exists()).toBe(false)
   })
 
+  it('names the caretakers as the student knows them, not by username', async () => {
+    const { wrapper } = await mountStudent(() => {
+      const auth = useAuthStore()
+      auth.usersDb.teacher.realName = '王老師'
+      auth.usersDb.pastor.displayName = '李牧師'
+      auth.usersDb.mom = {
+        passwordHash: 'x',
+        role: 'parent',
+        church: CHURCH,
+        realName: '陳媽媽',
+        childUsernames: ['student']
+      }
+      const courses = useCoursesStore()
+      courses.assignStudentCaretaker('student', 'teacher', 'teacher')
+      courses.assignStudentCaretaker('student', 'pastor', 'pastor')
+    })
+    const names = wrapper.findAll('.assigned-teacher-label strong').map((n) => n.text())
+    expect(names).toEqual(['王老師', '李牧師', 'parent、陳媽媽'])
+  })
+
   it('says when nobody is caring for them yet', async () => {
     const { wrapper } = await mountStudent(() => {
       useAuthStore().unbindChild('parent', 'student')

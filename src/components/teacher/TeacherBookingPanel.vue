@@ -73,7 +73,7 @@
             </div>
             <div class="booking-info-item">
               <span class="info-label">{{ $t('teacher.booking.time') }}</span>
-              <span class="info-value">{{ formatBookingTime(session) }}</span>
+              <span class="info-value">{{ tBookingTime(session) }}</span>
             </div>
             <div v-if="session.durationMinutes" class="booking-info-item">
               <span class="info-label">{{ $t('teacher.booking.duration') }}</span>
@@ -90,7 +90,7 @@
               :key="att.id"
               :class="['att-chip', `att-${att.attendanceStatus}`]"
             >
-              {{ getStudentDisplayName(att.studentUsername) }}
+              {{ authStore.displayNameOf(att.studentUsername) }}
               <span :title="attendanceLabel(att.attendanceStatus)">{{
                 attendanceIcon(att.attendanceStatus)
               }}</span>
@@ -361,7 +361,7 @@
           </h3>
           <p v-if="completingSession" class="text-muted mt-1 text-sm">
             {{ completingSession.courseTitle }} ／ {{ completingSession.lecturerTitle }}
-            {{ completingSession.lecturerName }} ／ {{ formatBookingTime(completingSession) }}
+            {{ completingSession.lecturerName }} ／ {{ tBookingTime(completingSession) }}
           </p>
           <div class="form-group mt-4">
             <label for="complete-session-notes" class="form-label">{{
@@ -387,7 +387,7 @@
             >
               <div class="complete-att-header">
                 <div>
-                  <strong>{{ getStudentDisplayName(att.studentUsername) }}</strong>
+                  <strong>{{ authStore.displayNameOf(att.studentUsername) }}</strong>
                   <span class="text-muted text-xs ml-2">@{{ att.studentUsername }}</span>
                 </div>
                 <div class="att-status-toggle">
@@ -426,7 +426,7 @@
                   rows="2"
                   :placeholder="
                     $t('teacher.booking.teacherFeedbackPlaceholder', {
-                      name: getStudentDisplayName(att.studentUsername)
+                      name: authStore.displayNameOf(att.studentUsername)
                     })
                   "
                 ></textarea>
@@ -436,7 +436,7 @@
                   rows="2"
                   :placeholder="
                     $t('teacher.booking.studentFeedbackPlaceholder', {
-                      name: getStudentDisplayName(att.studentUsername)
+                      name: authStore.displayNameOf(att.studentUsername)
                     })
                   "
                 ></textarea>
@@ -516,7 +516,7 @@ import { canViewAttendee, visibleStudents, viewerOf } from '@/utils/scope'
 
 const { toast } = useToast()
 const { t } = useI18n()
-const { tStatus } = useI18nHelper()
+const { tStatus, tBookingTime } = useI18nHelper()
 
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
@@ -795,26 +795,6 @@ function attendanceLabel(status: string): string {
 
 function attendanceIcon(status: string): string {
   return status === 'attended' ? '✅' : status === 'absent' ? '❌' : '📩'
-}
-
-function formatBookingTime(session: {
-  confirmedAt?: string
-  proposedAt: string
-  status: string
-}): string {
-  const dt = session.confirmedAt || session.proposedAt
-  if (!dt) return '—'
-  const d = new Date(dt)
-  const pad = (n: number) => String(n).padStart(2, '0')
-  const dateStr = `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())}`
-  const timeStr = `${pad(d.getHours())}:${pad(d.getMinutes())}`
-  const isPending = !session.confirmedAt && session.status === 'pending'
-  return `${dateStr} ${timeStr}${isPending ? t('student.attendance.proposed') : ''}`
-}
-
-function getStudentDisplayName(username: string): string {
-  const u = authStore.usersDb[username]
-  return u?.realName || u?.displayName || username
 }
 
 /** Expose pending count so parent can show badge */

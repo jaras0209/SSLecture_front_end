@@ -28,4 +28,27 @@ describe('useI18nHelper()', () => {
     await setLocale('en')
     expect(tDateTime('2026-10-28T06:30:00.000Z')).not.toBe(zh)
   })
+
+  it('shows a booking time in the current language, marking a time that is only proposed', async () => {
+    const { tBookingTime } = withSetup(() => useI18nHelper())
+    const pending = { proposedAt: '2099-02-01T14:00', status: 'pending' }
+    const confirmed = { ...pending, confirmedAt: '2099-02-03T09:30', status: 'confirmed' }
+    expect(tBookingTime(pending)).toBe('2099/02/01 14:00（提議）')
+    expect(tBookingTime(confirmed)).toBe('2099/02/03 09:30')
+    // a cancelled booking that never got a time is not "proposed" any more
+    expect(tBookingTime({ ...pending, status: 'cancelled' })).toBe('2099/02/01 14:00')
+
+    await setLocale('en')
+    expect(tBookingTime(pending)).toBe('02/01/2099, 14:00 (Proposed)')
+    expect(tBookingTime(confirmed)).toBe('02/03/2099, 09:30')
+  })
+
+  it('formats a date without the time for the current locale', async () => {
+    const { tDate } = withSetup(() => useI18nHelper())
+    expect(tDate(undefined)).toBe('')
+    expect(tDate('2026-11-07T10:00')).toBe('2026/11/07')
+    expect(tDate('not a date')).toBe('not a date')
+    await setLocale('en')
+    expect(tDate('2026-11-07T10:00')).toBe('11/07/2026')
+  })
 })

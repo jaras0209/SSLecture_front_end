@@ -93,7 +93,7 @@
             </td>
             <td>{{ inviteRoleLabel(code.role) }}</td>
             <td>{{ code.church || '—' }}</td>
-            <td>{{ formatInviteDate(code.expiresAt) }}</td>
+            <td>{{ tDate(code.expiresAt) }}</td>
             <td>
               <span :class="['invite-status-badge', inviteStatusClass(code)]">{{
                 inviteStatusLabel(code)
@@ -119,6 +119,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useI18nHelper } from '@/composables/useI18nHelper'
 import { useToast } from '@/composables/useToast'
 import { useAuthStore, CHURCHES } from '@/stores/auth'
 import type { UserRole, InviteCode } from '@/stores/auth'
@@ -126,6 +127,7 @@ import { DEFAULT_CHURCH } from '@/types/auth'
 
 const { confirm, toast } = useToast()
 const { t } = useI18n()
+const { tDate } = useI18nHelper()
 const authStore = useAuthStore()
 
 const inviteForm = reactive({
@@ -178,11 +180,6 @@ function inviteRoleLabel(role: UserRole): string {
     admin: 'admin.inviteCode.roleAdmin'
   }
   return keyMap[role] ? t(keyMap[role]) : role
-}
-
-function formatInviteDate(iso: string): string {
-  const d = new Date(iso)
-  return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`
 }
 
 function inviteStatusLabel(code: InviteCode): string {

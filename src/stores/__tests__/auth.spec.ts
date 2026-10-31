@@ -423,6 +423,19 @@ describe('useAuthStore', () => {
     })
   })
 
+  describe('displayNameOf()', () => {
+    it('prefers the real name, then the nickname, then the username', () => {
+      const auth = useAuthStore()
+      auth.usersDb.teacher.realName = '王老師'
+      auth.usersDb.teacher.displayName = '阿王'
+      auth.usersDb.pastor.displayName = '李牧'
+      expect(auth.displayNameOf('teacher')).toBe('王老師')
+      expect(auth.displayNameOf('pastor')).toBe('李牧')
+      expect(auth.displayNameOf('parent')).toBe('parent')
+      expect(auth.displayNameOf('ghost')).toBe('ghost')
+    })
+  })
+
   describe('gender', () => {
     it('is set and cleared on teachers and students only', () => {
       const auth = useAuthStore()

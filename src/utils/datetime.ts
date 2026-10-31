@@ -41,6 +41,18 @@ export function normalizeLegacyDateTime(value: string): string {
   return Number.isNaN(date.getTime()) ? value : date.toISOString()
 }
 
+/** 依語系顯示日期（年/月/日）。無法解析的值原樣顯示。 */
+export function formatDate(value: string | undefined, locale: string): string {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return new Intl.DateTimeFormat(locale, {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(date)
+}
+
 /**
  * 依語系顯示日期時間（年/月/日 時:分，24 小時制）。
  * 無法解析的值（例如尚未遷移的舊資料）原樣顯示。

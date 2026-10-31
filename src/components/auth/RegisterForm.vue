@@ -31,7 +31,7 @@
           >⛪ {{ validatedInvite.church }}</span
         >
         <span class="invite-expiry">{{
-          $t('auth.register.inviteExpiry', { date: formatExpiry(validatedInvite.expiresAt) })
+          $t('auth.register.inviteExpiry', { date: tDate(validatedInvite.expiresAt) })
         }}</span>
       </div>
       <p v-if="inviteCodeStatus === 'invalid'" class="field-hint error-hint">
@@ -255,12 +255,7 @@ const effectiveRole = computed<UserRole>(() =>
 const effectiveChurch = computed(() => validatedInvite.value?.church || registerForm.church)
 
 /** 角色標籤（i18n 版） */
-const { tRole: roleLabel } = useI18nHelper()
-
-function formatExpiry(iso: string): string {
-  const d = new Date(iso)
-  return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`
-}
+const { tRole: roleLabel, tDate } = useI18nHelper()
 
 // Compute available students for parent binding (uses effectiveChurch)
 const registerAvailableStudents = computed(() =>

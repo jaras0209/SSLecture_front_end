@@ -265,19 +265,22 @@ const motivationText = computed(() => {
 
 // Edit session state is now managed by StudentCourseDetail
 
+// Caretakers by name (real name, else nickname, else username), as the student knows them
+const nameOf = (username: string) => (username ? authStore.displayNameOf(username) : '')
+
 const assignedTeacher = computed(() => {
   const username = authStore.currentUser?.username || ''
-  return coursesStore.getStudentCaretaker(username, 'teacher')
+  return nameOf(coursesStore.getStudentCaretaker(username, 'teacher'))
 })
 
 const assignedPastor = computed(() => {
   const username = authStore.currentUser?.username || ''
-  return coursesStore.getStudentCaretaker(username, 'pastor')
+  return nameOf(coursesStore.getStudentCaretaker(username, 'pastor'))
 })
 
 const assignedParent = computed(() => {
   const username = authStore.currentUser?.username || ''
-  return authStore.parentsOf(username).join('、')
+  return authStore.parentsOf(username).map(nameOf).join('、')
 })
 
 const completedCount = computed(() =>
