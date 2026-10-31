@@ -3,6 +3,10 @@ import { useI18nHelper } from '@/composables/useI18nHelper'
 import { setLocale } from '@/i18n'
 import { withSetup } from '@/__tests__/helpers'
 
+// Intl may put a narrow or non-breaking space between date and time, depending on the
+// Node / ICU version; compare with plain spaces
+const plainSpaces = (text: string) => text.replace(/\s+/g, ' ')
+
 describe('useI18nHelper()', () => {
   afterEach(async () => {
     await setLocale('zh-TW')
@@ -30,7 +34,9 @@ describe('useI18nHelper()', () => {
   })
 
   it('shows a booking time in the current language, marking a time that is only proposed', async () => {
-    const { tBookingTime } = withSetup(() => useI18nHelper())
+    const helper = withSetup(() => useI18nHelper())
+    const tBookingTime = (s: Parameters<typeof helper.tBookingTime>[0]) =>
+      plainSpaces(helper.tBookingTime(s))
     const pending = { proposedAt: '2099-02-01T14:00', status: 'pending' }
     const confirmed = { ...pending, confirmedAt: '2099-02-03T09:30', status: 'confirmed' }
     expect(tBookingTime(pending)).toBe('2099/02/01 14:00（提議）')

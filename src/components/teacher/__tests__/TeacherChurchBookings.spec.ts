@@ -52,7 +52,8 @@ describe('TeacherChurchBookings', () => {
 
     const rows = wrapper.findAll('tbody tr[data-session]')
     expect(rows.map((r) => r.attributes('data-session'))).toEqual([older.id, newer.id])
-    expect(rows[0].text()).toContain('2099/03/01 10:00')
+    // Intl may use a narrow or non-breaking space between date and time
+    expect(rows[0].text().replace(/\s+/g, ' ')).toContain('2099/03/01 10:00')
     expect(rows[0].text()).toContain(t('booking.status.cancelled'))
     expect(rows[0].text()).toContain('講師請假')
     expect(rows[1].text()).toContain('林老師')
