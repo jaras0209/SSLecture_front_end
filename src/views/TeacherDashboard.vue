@@ -111,6 +111,12 @@
         @click="activeMainTab = 'lectures'"
       >
         🎤 {{ $t('teacher.tabs.lectures') }}
+        <template v-if="awaitingAttendance.length > 0">
+          <span class="tab-badge" aria-hidden="true">{{ awaitingAttendance.length }}</span>
+          <span class="sr-only">{{
+            $t('teacher.lecture.tabBadge', { n: awaitingAttendance.length })
+          }}</span>
+        </template>
       </button>
     </div>
 
@@ -225,6 +231,7 @@ import type { BookingSession } from '@/stores/bookings'
 import { DEFAULT_CHURCH } from '@/types/auth'
 import { avatarSrc } from '@/utils/avatar'
 import { canLecture, lecturerIdsOf } from '@/utils/scope'
+import { useMyLectures } from '@/composables/useMyLectures'
 
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
@@ -252,6 +259,9 @@ const selectedStudent = ref<StudentProgressSummary | null>(null)
 
 // Main tab inside dashboard: 'care', 'settings', 'pastor-overview', 'bookings' or 'lectures'
 const activeMainTab = ref<'care' | 'settings' | 'pastor-overview' | 'bookings' | 'lectures'>('care')
+
+/** Lectures that are over with attendance left to record, for the tab badge */
+const { awaitingAttendance } = useMyLectures()
 
 /** A teacher or pastor account linked to a lecturer record gives lectures */
 const isLecturer = computed(() => {
@@ -968,6 +978,9 @@ function viewStudentDetails(student: StudentProgressSummary) {
 }
 
 :where(body:has(.teacher-dashboard)) .main-tab-btn {
+  /* Contains the screen-reader text of its badge, which would otherwise widen the page
+     when the tab row scrolls sideways on phones */
+  position: relative;
   flex: 1;
   padding: 0.85rem;
   font-family: var(--font-family);

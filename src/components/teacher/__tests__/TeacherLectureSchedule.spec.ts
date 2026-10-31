@@ -101,4 +101,22 @@ describe('TeacherLectureSchedule', () => {
     const ctx = mountAsLecturer()
     expect(ctx.wrapper.text()).toContain(t('teacher.lecture.empty'))
   })
+
+  it('points out finished lectures whose attendance is not recorded yet', async () => {
+    const ctx = mountAsLecturer()
+    const due = ctx.book('teacher', ['student'], '2020-05-01T10:00')
+    ctx.bookings.updateSessionStatus(due.id, 'confirmed', { confirmedAt: due.proposedAt })
+    await ctx.wrapper.vm.$nextTick()
+
+    expect(ctx.wrapper.find('.due-banner').text()).toContain(
+      t('teacher.lecture.dueBanner', { n: 1 })
+    )
+    const card = ctx.wrapper.find('.lecture-card')
+    expect(card.classes()).toContain('lecture-due')
+    expect(card.text()).toContain(t('teacher.lecture.dueTag', { n: 1 }))
+
+    await card.findAll('button')[0].trigger('click') // attended
+    expect(ctx.wrapper.find('.due-banner').exists()).toBe(false)
+    expect(ctx.wrapper.find('.lecture-card').classes()).not.toContain('lecture-due')
+  })
 })

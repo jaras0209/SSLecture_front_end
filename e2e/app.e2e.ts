@@ -306,6 +306,26 @@ test.describe('lecturer', () => {
     expect(attendees.att_s2_girl.attendanceStatus).toBe('attended')
   })
 
+  test('the tab shows how many finished lectures need attendance', async ({ page, openWith }) => {
+    const data = seed('teacher')
+    const past = { ...session('s1', 'teacher'), proposedAt: '2020-05-01T10:00' }
+    past.confirmedAt = past.proposedAt
+    data.superstart_booking_sessions_db = { ...data.superstart_booking_sessions_db, s1: past }
+    await openWith('teacher', { superstart_user: users.teacher, ...data })
+
+    const tab = page.locator('#tab-lectures')
+    await expect(tab.locator('.tab-badge')).toHaveText('1')
+    await tab.click()
+    // On a phone the tab row scrolls sideways; the badge must not widen the page
+    await page.setViewportSize({ width: 375, height: 800 })
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBe(375)
+    await page
+      .locator('.lecture-card.lecture-due .lecture-attendee', { hasText: '張弟兄' })
+      .getByRole('button', { name: /缺席/ })
+      .click()
+    await expect(tab.locator('.tab-badge')).toHaveCount(0)
+  })
+
   test('a pastor can lecture too, and sees all the church bookings in the overview', async ({
     page,
     openWith

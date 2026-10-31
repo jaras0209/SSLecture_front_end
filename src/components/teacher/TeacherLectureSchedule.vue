@@ -4,13 +4,16 @@
     <p class="text-muted text-sm mt-1">{{ $t('teacher.lecture.intro') }}</p>
 
     <p v-if="lectures.length === 0" class="empty-note mt-4">{{ $t('teacher.lecture.empty') }}</p>
+    <p v-if="awaitingAttendance.length" class="due-banner mt-4" role="status">
+      📝 {{ $t('teacher.lecture.dueBanner', { n: awaitingAttendance.length }) }}
+    </p>
 
     <template v-for="part in parts" :key="part.key">
       <h3 v-if="part.lectures.length" class="part-title mt-4">{{ part.title }}</h3>
       <article
         v-for="lecture in part.lectures"
         :key="lecture.key"
-        class="lecture-card mt-2"
+        :class="['lecture-card mt-2', { 'lecture-due': dueKeys.has(lecture.key) }]"
         :data-lecture="lecture.key"
       >
         <header class="lecture-header">
@@ -19,9 +22,16 @@
           <span v-if="!lecture.timeConfirmed" class="lecture-pending">
             {{ $t('teacher.lecture.timePending') }}
           </span>
+          <span v-if="dueKeys.has(lecture.key)" class="lecture-due-tag">
+            {{ $t('teacher.lecture.dueTag', { n: lecture.unrecorded }) }}
+          </span>
         </header>
         <p class="text-muted text-xs mt-1">
-          {{ $t('teacher.lecture.bookedBy', { names: lecture.teacherNames.join('、') }) }}
+          {{
+            $t('teacher.lecture.bookedBy', {
+              names: lecture.teacherUsernames.map(displayName).join('、')
+            })
+          }}
         </p>
 
         <ul class="lecture-attendees mt-2">
@@ -71,84 +81,33 @@
 
 <script setup lang="ts">
 /**
- * 我的授課：連結到講師資料的教師帳號，在這裡看到自己擔任講師的所有預約。
- * 不同教師（例如男、女教師各自為學員安排）在同一時段預約同一課程時，合併成一堂課顯示；
- * 講師看得到全部學員（不分男女），並可記錄出席。預約本身仍由安排的教師管理。
+ * 我的授課：連結到講師資料的教師或牧者帳號，在這裡看到自己擔任講師的所有預約
+ * （合併規則見 useMyLectures）。講師看得到全部學員（不分男女），並可記錄出席；
+ * 預約本身仍由安排的教師管理。時間已過、尚未記錄出席的課會標示出來。
  */
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
-import { useCoursesStore } from '@/stores/courses'
 import { useBookingsStore } from '@/stores/bookings'
-import type { AttendanceStatus, BookingAttendee, BookingSession } from '@/stores/bookings'
+import type { AttendanceStatus } from '@/stores/bookings'
 import { useToast } from '@/composables/useToast'
-import { lecturerIdsOf } from '@/utils/scope'
-import { toLocalDateTimeInput } from '@/utils/datetime'
-
-interface AttendeeRow extends BookingAttendee {
-  /** Attendance can be recorded once the time is confirmed */
-  canRecord: boolean
-}
-
-interface Lecture {
-  key: string
-  courseTitle: string
-  time: string
-  timeConfirmed: boolean
-  teacherNames: string[]
-  attendees: AttendeeRow[]
-}
+import { useMyLectures, type LectureAttendee } from '@/composables/useMyLectures'
 
 const { t } = useI18n()
 const { toast } = useToast()
 const authStore = useAuthStore()
-const coursesStore = useCoursesStore()
 const bookingsStore = useBookingsStore()
+const { lectures, upcoming, past, awaitingAttendance } = useMyLectures()
 
-const sessionTime = (s: BookingSession) => s.confirmedAt || s.proposedAt
+const parts = computed(() => [
+  { key: 'upcoming', title: t('teacher.lecture.upcoming'), lectures: upcoming.value },
+  { key: 'past', title: t('teacher.lecture.past'), lectures: past.value }
+])
 
-/** Non-cancelled bookings where I am the lecturer, merged per course and time */
-const lectures = computed<Lecture[]>(() => {
-  const me = authStore.currentUser
-  if (!me) return []
-  const ids = lecturerIdsOf(me.username, coursesStore.lecturers)
-  const byKey = new Map<string, { sessions: BookingSession[] }>()
-  for (const s of bookingsStore.getSessionsByLecturers(ids)) {
-    if (s.status === 'cancelled') continue
-    const key = `${s.courseId}@${sessionTime(s)}`
-    const group = byKey.get(key) ?? { sessions: [] }
-    group.sessions.push(s)
-    byKey.set(key, group)
-  }
-  return [...byKey.entries()].map(([key, { sessions }]) => ({
-    key,
-    courseTitle: sessions[0].courseTitle,
-    time: sessionTime(sessions[0]),
-    timeConfirmed: sessions.every((s) => s.status !== 'pending'),
-    teacherNames: [...new Set(sessions.map((s) => displayName(s.teacherUsername)))],
-    attendees: sessions.flatMap((s) =>
-      bookingsStore
-        .getAttendeesForSession(s.id)
-        .map((a) => ({ ...a, canRecord: s.status !== 'pending' }))
-    )
-  }))
-})
+/** Lectures that are over with attendance left to record */
+const dueKeys = computed(() => new Set(awaitingAttendance.value.map((l) => l.key)))
 
-const parts = computed(() => {
-  const now = toLocalDateTimeInput()
-  const upcoming = lectures.value
-    .filter((l) => l.time >= now)
-    .sort((a, b) => a.time.localeCompare(b.time))
-  const past = lectures.value
-    .filter((l) => l.time < now)
-    .sort((a, b) => b.time.localeCompare(a.time))
-  return [
-    { key: 'upcoming', title: t('teacher.lecture.upcoming'), lectures: upcoming },
-    { key: 'past', title: t('teacher.lecture.past'), lectures: past }
-  ]
-})
-
-function record(row: AttendeeRow, status: AttendanceStatus) {
+function record(row: LectureAttendee, status: AttendanceStatus) {
   bookingsStore.updateAttendee(row.sessionId, row.studentUsername, { attendanceStatus: status })
   toast(t('teacher.lecture.recorded', { name: displayName(row.studentUsername) }), 'success')
 }
@@ -201,6 +160,28 @@ function formatTime(dt: string): string {
   flex-wrap: wrap;
   align-items: baseline;
   gap: 0.5rem 0.75rem;
+}
+
+.due-banner {
+  padding: 0.6rem 0.9rem;
+  border-radius: var(--radius-md);
+  background: rgba(245, 158, 11, 0.12);
+  color: #92400e;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.lecture-card.lecture-due {
+  border-color: rgba(245, 158, 11, 0.55);
+}
+
+.lecture-due-tag {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #92400e;
+  background: rgba(245, 158, 11, 0.15);
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
 }
 
 .lecture-pending {

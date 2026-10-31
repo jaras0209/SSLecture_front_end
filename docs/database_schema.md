@@ -593,6 +593,7 @@ WHERE s.role = 'student' AND s.is_active
 - 講師可更新 `booking_attendees.attendance_status`（時間確認後，即 `status <> 'pending'`）；
   預約本身（時間、取消、完成、備註）仍只有安排的教師能改
 - 未連結帳號的講師（外來講員）沒有登入畫面，出席由安排的教師記錄
+- 時間已過、仍有學員 `attendance_status = 'invited'` 的課會在「我的授課」分頁顯示提醒數字
 
 ```sql
 -- 「我的授課」：:user_id 擔任講師、未取消的預約

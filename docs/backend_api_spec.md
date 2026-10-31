@@ -1295,7 +1295,10 @@ GET /bookings/sessions?lecturerUsername={username}&includeAttendees=true
 
 回傳 `lecturerId` 屬於該帳號連結之講師資料、且 `status != cancelled` 的場次，依時間排序；
 `includeAttendees=true` 時每筆場次附上**全部**學員（不套用性別規則）與顯示名稱。
-對應前端 `bookingsStore.getSessionsByLecturers()` 與 `TeacherLectureSchedule.vue`。
+對應前端 `bookingsStore.getSessionsByLecturers()`、`useMyLectures()` 與 `TeacherLectureSchedule.vue`。
+
+**待記錄提醒**：時間已過、時間已確認、且仍有學員停在 `invited` 的課（同課程同時段合併計算）算作「待記錄」，
+前端在「我的授課」分頁顯示數字並標示這些課。後端可在回應附上 `awaitingAttendanceCount`，或由前端自行計算。
 
 #### 取得學員的預約場次（含出席資料）
 ```

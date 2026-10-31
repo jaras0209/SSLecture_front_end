@@ -588,7 +588,10 @@
       "bookedBy": "Booked by: {names}",
       "recordLater": "Attendance can be recorded once the time is confirmed",
       "attendanceFor": "Attendance of {name}",
-      "recorded": "Recorded attendance for {name}"
+      "recorded": "Recorded attendance for {name}",
+      "dueBanner": "{n} finished lecture(s) still need attendance recorded",
+      "dueTag": "{n} to record",
+      "tabBadge": "{n} lecture(s) need attendance recorded"
     },
     "churchBookings": {
       "title": "📅 Church Bookings",

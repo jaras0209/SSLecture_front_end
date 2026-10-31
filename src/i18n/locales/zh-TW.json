@@ -588,7 +588,10 @@
       "bookedBy": "安排教師：{names}",
       "recordLater": "時間確認後即可記錄出席",
       "attendanceFor": "{name} 的出席",
-      "recorded": "已記錄 {name} 的出席"
+      "recorded": "已記錄 {name} 的出席",
+      "dueBanner": "有 {n} 堂已結束的課還沒記錄完出席",
+      "dueTag": "待記錄 {n} 位",
+      "tabBadge": "{n} 堂課待記錄出席"
     },
     "churchBookings": {
       "title": "📅 教會預約總覽",
