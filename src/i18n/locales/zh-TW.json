@@ -834,6 +834,31 @@
       "network": "無法連線到伺服器，請檢查網路連線",
       "parse": "伺服器回應格式錯誤",
       "http": "伺服器錯誤（HTTP {status}）"
+    },
+    "codes": {
+      "INVALID_DATE_FORMAT": "日期時間格式不正確",
+      "INVALID_STATUS_TRANSITION": "這個預約目前的狀態不能這樣變更",
+      "UNAUTHORIZED": "登入已過期，請重新登入",
+      "INVALID_CREDENTIALS": "帳號或密碼錯誤",
+      "USE_SOCIAL_LOGIN": "此帳號使用 Google 或 LINE 登入，請改用社群登入。",
+      "TOKEN_EXPIRED": "登入已過期，請重新登入",
+      "REFRESH_TOKEN_EXPIRED": "登入已過期，請重新登入",
+      "FORBIDDEN": "您沒有權限執行此操作",
+      "STUDENT_NOT_VISIBLE": "您無法管理這位學員（不同教會或性別不同）",
+      "BOOKING_NOT_CONFIRMED": "預約時間尚未確認，暫時不能記錄出席",
+      "ACCOUNT_DISABLED": "此帳號已停用，請聯絡管理員",
+      "USER_NOT_FOUND": "找不到此使用者",
+      "COURSE_NOT_FOUND": "找不到此課程",
+      "SESSION_NOT_FOUND": "找不到此聽課紀錄",
+      "BOOKING_SESSION_NOT_FOUND": "找不到此預約",
+      "BOOKING_ATTENDEE_NOT_FOUND": "這位學員不在此預約中",
+      "LECTURER_NOT_FOUND": "找不到此講師",
+      "STATS_NOT_FOUND": "找不到這一年的教學統計",
+      "USERNAME_TAKEN": "帳號已被使用，請更換名稱。",
+      "ATTENDEE_ALREADY_EXISTS": "這位學員已經在此預約中",
+      "CHURCH_REQUIRED": "請選擇所屬教會",
+      "INVALID_INVITE_CODE": "邀請碼無效",
+      "INTERNAL_ERROR": "伺服器發生錯誤，請稍後再試"
     }
   },
   "a11y": {

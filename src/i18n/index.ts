@@ -47,6 +47,11 @@ export function translate(key: string, values?: Record<string, unknown>): string
   return (i18n.global.t as (k: string, v: Record<string, unknown>) => string)(key, values ?? {})
 }
 
+/** Whether a message exists for `key` (checked in zh-TW, which every locale mirrors) */
+export function hasMessage(key: string): boolean {
+  return i18n.global.te(key, 'zh-TW')
+}
+
 function applyLocale(lang: SupportedLocale) {
   ;(i18n.global.locale as unknown as Ref<SupportedLocale>).value = lang
   if (typeof document !== 'undefined') {

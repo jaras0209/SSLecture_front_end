@@ -22,6 +22,8 @@
  * 錯誤碼（ApiError.code）：
  *   後端回傳的 error.code，或前端產生的 UNAUTHORIZED / TIMEOUT / NETWORK_ERROR /
  *   PARSE_ERROR / HTTP_<status>。呼叫端自行取消時拋出原本的 AbortError（非 ApiError）。
+ *   docs/backend_api_spec.md 第 12 節列出的錯誤碼，訊息由前端依目前語系翻譯
+ *   （i18n 的 api.codes.*）；其他錯誤碼（含 VALIDATION_ERROR，需指出哪個欄位）沿用後端訊息。
  *
  * TODO（後端就緒後）：
  *   1. 設定 .env 的 VITE_API_BASE_URL
@@ -30,7 +32,7 @@
  */
 
 import { safeGet, safeRemove } from '@/utils/storage'
-import { translate as t } from '@/i18n'
+import { translate as t, hasMessage } from '@/i18n'
 
 // ─── 常數 ────────────────────────────────────────────────────────────────────
 
@@ -204,6 +206,12 @@ async function send(
   }
 }
 
+/** The message for a documented error code in the current language, if there is one */
+function codeMessage(code: string): string | undefined {
+  const key = `api.codes.${code}`
+  return hasMessage(key) ? t(key) : undefined
+}
+
 /** 解析後端統一回應格式；空 body（如 204）成功時回傳 undefined。 */
 function parseResponse<T>(res: Response, text: string): T {
   const httpError = () =>
@@ -231,10 +239,11 @@ function parseResponse<T>(res: Response, text: string): T {
     const fallback = res.ok
       ? new ApiError(res.status, 'UNKNOWN', t('api.errors.parse'))
       : httpError()
+    const code = data.error?.code ?? fallback.code
     throw new ApiError(
       res.status,
-      data.error?.code ?? fallback.code,
-      data.error?.message ?? fallback.message
+      code,
+      codeMessage(code) ?? data.error?.message ?? fallback.message
     )
   }
 

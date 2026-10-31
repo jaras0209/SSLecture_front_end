@@ -1561,6 +1561,11 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 
 ## 12. 錯誤碼一覽
 
+> 前端依 `error.code` 顯示使用者目前語系的訊息（`src/i18n/locales/*.json` 的 `api.codes.*`），
+> 所以後端的 `error.message` 主要給開發者看；`VALIDATION_ERROR` 例外，前端直接顯示後端訊息，
+> 請在訊息中指出哪個欄位有問題。新增錯誤碼時請一併補上中英文訊息，
+> `src/i18n/__tests__/apiCodes.spec.ts` 會檢查這張表的每個錯誤碼都有翻譯。
+
 | HTTP 狀態碼 | 錯誤碼 | 中文說明 |
 |-------------|--------|---------|
 | 400 | `VALIDATION_ERROR` | 請求參數格式錯誤或驗證失敗 |

@@ -834,6 +834,31 @@
       "network": "Unable to reach the server. Please check your connection.",
       "parse": "The server returned an unexpected response.",
       "http": "Server error (HTTP {status})"
+    },
+    "codes": {
+      "INVALID_DATE_FORMAT": "The date or time is not in a valid format",
+      "INVALID_STATUS_TRANSITION": "This booking can't be changed that way in its current state",
+      "UNAUTHORIZED": "Your session has expired. Please sign in again",
+      "INVALID_CREDENTIALS": "Incorrect username or password",
+      "USE_SOCIAL_LOGIN": "This account signs in with Google or LINE. Please use social sign-in.",
+      "TOKEN_EXPIRED": "Your session has expired. Please sign in again",
+      "REFRESH_TOKEN_EXPIRED": "Your session has expired. Please sign in again",
+      "FORBIDDEN": "You don't have permission to do this",
+      "STUDENT_NOT_VISIBLE": "You can't manage this student (different church or gender)",
+      "BOOKING_NOT_CONFIRMED": "The booking time isn't confirmed yet, so attendance can't be recorded",
+      "ACCOUNT_DISABLED": "This account has been disabled. Please contact an administrator",
+      "USER_NOT_FOUND": "User not found",
+      "COURSE_NOT_FOUND": "Course not found",
+      "SESSION_NOT_FOUND": "Listening record not found",
+      "BOOKING_SESSION_NOT_FOUND": "Booking not found",
+      "BOOKING_ATTENDEE_NOT_FOUND": "This student is not in the booking",
+      "LECTURER_NOT_FOUND": "Lecturer not found",
+      "STATS_NOT_FOUND": "No teaching statistics for that year",
+      "USERNAME_TAKEN": "That username is taken. Please choose another.",
+      "ATTENDEE_ALREADY_EXISTS": "This student is already in the booking",
+      "CHURCH_REQUIRED": "Please choose your church",
+      "INVALID_INVITE_CODE": "Invalid invite code",
+      "INTERNAL_ERROR": "Something went wrong on the server. Please try again later"
     }
   },
   "a11y": {

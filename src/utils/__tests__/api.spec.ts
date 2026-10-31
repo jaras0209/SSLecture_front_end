@@ -106,15 +106,43 @@ describe('api request helpers', () => {
 
   // ── error bodies ───────────────────────────────────────────────────────────
 
-  it("uses the backend's error code and message", async () => {
+  it("uses the backend's message for an error code the frontend doesn't know", async () => {
     respond(
-      409,
-      JSON.stringify({ success: false, error: { code: 'USERNAME_TAKEN', message: '帳號已被使用' } })
+      422,
+      JSON.stringify({ success: false, error: { code: 'NEW_RULE', message: '新規則不允許' } })
     )
     await expect(apiPost('/x', {})).rejects.toMatchObject({
-      status: 409,
-      code: 'USERNAME_TAKEN',
-      message: '帳號已被使用'
+      status: 422,
+      code: 'NEW_RULE',
+      message: '新規則不允許'
+    })
+  })
+
+  it('keeps the backend message for VALIDATION_ERROR, which names the field', async () => {
+    respond(
+      400,
+      JSON.stringify({
+        success: false,
+        error: { code: 'VALIDATION_ERROR', message: 'lecturer 必填' }
+      })
+    )
+    await expect(apiPost('/x', {})).rejects.toMatchObject({ message: 'lecturer 必填' })
+  })
+
+  it('shows documented error codes in the current language, whatever the backend wrote', async () => {
+    const body = JSON.stringify({
+      success: false,
+      error: { code: 'STUDENT_NOT_VISIBLE', message: 'student not visible' }
+    })
+    respond(403, body)
+    await expect(apiPost('/x', {})).rejects.toMatchObject({
+      code: 'STUDENT_NOT_VISIBLE',
+      message: '您無法管理這位學員（不同教會或性別不同）'
+    })
+    await setLocale('en')
+    respond(403, body)
+    await expect(apiPost('/x', {})).rejects.toMatchObject({
+      message: "You can't manage this student (different church or gender)"
     })
   })
 
