@@ -39,6 +39,24 @@ export function mountWith<C extends Component>(
   return { wrapper, pinia, router }
 }
 
+/**
+ * Like mountWith, but runs `prepare` (e.g. signing someone in, seeding stores) after the
+ * fresh Pinia is active and before mounting — for pages that read state while setting up
+ */
+export function mountPrepared<C extends Component>(
+  component: C,
+  prepare: () => void,
+  options: ComponentMountingOptions<C> = {} as ComponentMountingOptions<C>
+) {
+  const { pinia, router, plugins } = setup()
+  prepare()
+  const wrapper = mount(component, {
+    ...options,
+    global: { ...options.global, plugins: [...plugins, ...(options.global?.plugins ?? [])] }
+  } as ComponentMountingOptions<C>)
+  return { wrapper, pinia, router }
+}
+
 /** Run a composable inside a component's setup() so inject()/useI18n() work */
 export function withSetup<T>(composable: () => T): T {
   let result!: T
