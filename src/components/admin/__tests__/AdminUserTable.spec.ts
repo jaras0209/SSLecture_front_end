@@ -104,4 +104,17 @@ describe('AdminUserTable', () => {
     await row(wrapper, 'pastor').find('select').setValue('teacher')
     expect(courses.getStudentCaretaker('student', 'pastor')).toBe('')
   })
+
+  it('keeps a lecturer link between teacher and pastor, and drops it for other roles', async () => {
+    const { wrapper } = mountAsAdmin()
+    const courses = useCoursesStore()
+    courses.addLecturer('王牧師', '牧師', [], '愛與話語', 'pastor')
+    const linked = () => courses.lecturers.find((l) => l.name === '王牧師')?.linkedUsername
+    await wrapper.vm.$nextTick()
+
+    await row(wrapper, 'pastor').find('select:not(.gender-select)').setValue('teacher')
+    expect(linked()).toBe('pastor')
+    await row(wrapper, 'pastor').find('select:not(.gender-select)').setValue('student')
+    expect(linked()).toBeUndefined()
+  })
 })

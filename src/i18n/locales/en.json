@@ -314,7 +314,7 @@
       "customMode": "Custom Name Lecturer",
       "selectAccount": "Select Linked Account",
       "selectPlaceholder": "Please select an account",
-      "noTeachersHint": "Note: No lecturer accounts set up in this church yet",
+      "noTeachersHint": "Hint: this church has no teacher or pastor accounts yet",
       "linkedChip": "Linked {'@'}{username}",
       "autoFillHint": "Name will be auto-filled",
       "displayName": "Lecturer Display Name",
@@ -589,6 +589,16 @@
       "recordLater": "Attendance can be recorded once the time is confirmed",
       "attendanceFor": "Attendance of {name}",
       "recorded": "Recorded attendance for {name}"
+    },
+    "churchBookings": {
+      "title": "📅 Church Bookings",
+      "desc": "Every booking in the church (all teachers, both genders). Bookings are managed by the mentors who made them; this list is read-only.",
+      "filterLabel": "Filter by status",
+      "caption": "Church bookings",
+      "colTeacher": "Booked by",
+      "colStudents": "Students (attendance)",
+      "colStatus": "Status",
+      "empty": "No matching bookings"
     }
   },
   "admin": {

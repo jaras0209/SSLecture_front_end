@@ -103,7 +103,7 @@
         📅 {{ $t('teacher.tabs.bookings') }}
         <span v-if="bookingPendingCount > 0" class="tab-badge">{{ bookingPendingCount }}</span>
       </button>
-      <!-- Lecture Tab: a teacher linked to a lecturer record -->
+      <!-- Lecture Tab: a teacher or pastor linked to a lecturer record -->
       <button
         v-if="isLecturer"
         id="tab-lectures"
@@ -224,7 +224,7 @@ import type { Lecturer } from '@/stores/courses'
 import type { BookingSession } from '@/stores/bookings'
 import { DEFAULT_CHURCH } from '@/types/auth'
 import { avatarSrc } from '@/utils/avatar'
-import { lecturerIdsOf } from '@/utils/scope'
+import { canLecture, lecturerIdsOf } from '@/utils/scope'
 
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
@@ -253,10 +253,12 @@ const selectedStudent = ref<StudentProgressSummary | null>(null)
 // Main tab inside dashboard: 'care', 'settings', 'pastor-overview', 'bookings' or 'lectures'
 const activeMainTab = ref<'care' | 'settings' | 'pastor-overview' | 'bookings' | 'lectures'>('care')
 
-/** A teacher account linked to a lecturer record gives lectures */
+/** A teacher or pastor account linked to a lecturer record gives lectures */
 const isLecturer = computed(() => {
   const me = authStore.currentUser
-  return me?.role === 'teacher' && lecturerIdsOf(me.username, coursesStore.lecturers).length > 0
+  return (
+    !!me && canLecture(me.role) && lecturerIdsOf(me.username, coursesStore.lecturers).length > 0
+  )
 })
 
 // Booking pending count for tab badge (computed directly from store to avoid component ref)

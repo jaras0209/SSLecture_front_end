@@ -11,7 +11,7 @@
  * 教師與學員依性別分開管理：教師只看得到同教會、同性別的學員；任一方尚未設定性別時
  * 看不到（由牧者補齊）。牧者、SS 中央、家長不受性別限制。
  *
- * 講師例外（canViewAttendee）：連結到講師資料的教師帳號，在「自己授課的預約」裡看得到
+ * 講師例外（canViewAttendee）：連結到講師資料的教師或牧者帳號，在「自己授課的預約」裡看得到
  * 全部學員，不分男女，以便記錄出席；學員名冊等其他畫面仍依上面的規則。
  * 所有畫面都經過這裡，規則改這一處即一致套用。
  */
@@ -102,6 +102,13 @@ export function visibleStudents(
     if (!result.has(username) && canViewStudent(viewer, username, members)) result.add(username)
   }
   return [...result]
+}
+
+/** Roles whose accounts may be linked to a lecturer record (and get My Lectures) */
+export const LECTURER_ROLES: readonly UserRole[] = ['teacher', 'pastor']
+
+export function canLecture(role: UserRole | string | undefined): boolean {
+  return LECTURER_ROLES.includes(role as UserRole)
 }
 
 /** The parts of a lecturer record the rules look at */

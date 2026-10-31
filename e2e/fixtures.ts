@@ -14,6 +14,7 @@ const signedIn = (username: string, role: string, church?: string) => ({
 export const users = {
   student: signedIn('student', 'student', '愛與話語'),
   teacher: signedIn('teacher', 'teacher', '愛與話語'),
+  pastor: signedIn('pastor', 'pastor', '愛與話語'),
   admin: signedIn('admin', 'admin')
 }
 

@@ -309,6 +309,9 @@
           </table>
         </div>
       </section>
+
+      <!-- Church Bookings (read-only) -->
+      <TeacherChurchBookings :church="pastorChurch" />
     </div>
   </div>
 </template>
@@ -321,6 +324,7 @@ import type { ProgressRecord } from '@/stores/courses'
 import { avatarSrc, defaultAvatarUrl } from '@/utils/avatar'
 import { canMentor, membersOf } from '@/utils/scope'
 import GenderSelect from '@/components/shared/GenderSelect.vue'
+import TeacherChurchBookings from '@/components/teacher/TeacherChurchBookings.vue'
 
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()

@@ -144,7 +144,7 @@ const usersList = computed(() => {
 function updateUserRole(username: string, newRole: UserRole) {
   const account = authStore.usersDb[username]
   if (!account || account.role === newRole) return
-  reportCleanup(releaseRole(username, account.role, 'roleChanged'))
+  reportCleanup(releaseRole(username, account.role, 'roleChanged', newRole))
   account.role = newRole
 }
 

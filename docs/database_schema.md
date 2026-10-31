@@ -84,7 +84,8 @@
 >   `student_assignments` 移除 `parent_id`，只記錄教師與牧者
 > - `booking_sessions.teacher_id` 改為 `ON DELETE RESTRICT`，帳號一律軟刪除，預約紀錄保留為歷史
 > - 新增設計說明：講師例外（[5.11](#511-講師在自己授課的預約中看得到全部學員)）、
->   刪除帳號或變更角色時的清理（[5.12](#512-刪除帳號或變更角色時的清理)）
+>   刪除帳號或變更角色時的清理（[5.12](#512-刪除帳號或變更角色時的清理)）、牧者的教會預約總覽（[5.13](#513-牧者的教會預約總覽)）；
+>   講師可連結教師或牧者帳號
 
 ---
 
@@ -171,14 +172,15 @@
 | `name` | `VARCHAR(100)` | NOT NULL | 講師顯示名稱 |
 | `title` | `VARCHAR(30)` | NOT NULL | 職稱（牧師、傳道、長老、輔導、老師） |
 | `church_id` | `UUID` | FK → churches.id, NULL | 所屬教會（NULL 表示跨教會） |
-| `linked_user_id` | `UUID` | FK → users.id, NULL | 連結的教師帳號（NULL = 外來/自訂講師） |
+| `linked_user_id` | `UUID` | FK → users.id, NULL | 連結的教師或牧者帳號（NULL = 外來/自訂講師） |
 | `is_active` | `BOOLEAN` | NOT NULL, DEFAULT TRUE | 是否啟用 |
 | `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
 | `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 最後更新時間 |
 
 **設計說明**：
 - `linked_user_id` 是選填欄位：
-  - 有值 → 講師為系統內教師帳號，可自動同步姓名與統計
+  - 有值 → 講師為系統內的教師或牧者帳號（`role IN ('teacher','pastor')`，應用端檢查），可自動同步姓名與統計，
+    該帳號有「我的授課」（見 5.11）
   - NULL → 自訂講師或外來講員，僅儲存名稱字串
 - 同一位教師帳號在同一教會應僅連結一筆講師記錄（建議應用端進行檢查）
 
@@ -581,7 +583,7 @@ WHERE s.role = 'student' AND s.is_active
 預約由學員的輔導教師安排與管理；男、女教師可各自為自己的學員預約同一堂課（同一講師、
 課程、時段），資料上是兩筆 `booking_sessions`。
 
-- 講師透過 `lecturers.linked_user_id` 連結到教師帳號；該帳號在「我的授課」中看到
+- 講師透過 `lecturers.linked_user_id` 連結到教師或牧者帳號；該帳號在「我的授課」中看到
   `lecturer_id` 屬於自己的所有預約，並看得到**全部**學員（不分男女），以便記錄出席
 - 畫面上把同一課程、同一時段的多筆預約合併成一堂課；資料仍是各自一筆
 - 這個例外只限「自己授課的預約」，學員名冊等其他畫面仍依 5.10
@@ -607,14 +609,27 @@ ORDER BY COALESCE(bs.confirmed_at, bs.proposed_at);
 | 原本的角色 | 清理 |
 |------------|------|
 | `student` | 刪除其 `parent_children`；刪除其 `student_assignments` |
-| `teacher` | `student_assignments.teacher_id` 設為 NULL；`lecturers.linked_user_id` 設為 NULL（講師資料保留）；`pending` / `confirmed` 的預約改為 `cancelled` 並填入 `cancel_reason` |
+| `teacher` | `student_assignments.teacher_id` 設為 NULL；`pending` / `confirmed` 的預約改為 `cancelled` 並填入 `cancel_reason` |
 | `pastor` | `student_assignments.pastor_id` 設為 NULL |
+| `teacher`、`pastor` | `lecturers.linked_user_id` 設為 NULL（講師資料保留）；但教師與牧者互換角色時保留連結，因為兩者都能授課 |
 | `parent` | 刪除其 `parent_children` |
 
 - 已完成、已取消的預約、教學統計、聽課紀錄都保留為歷史，因此 `booking_sessions.teacher_id`
   使用 `ON DELETE RESTRICT`（實體刪除帳號前須先處理，正常流程只會軟刪除）
 - 取消原因讓學員看得到為什麼預約取消（「輔導教師帳號已刪除」或「輔導教師已不再擔任此身分」）
 - 選回同一個角色不做任何事
+
+### 5.13 牧者的教會預約總覽
+
+牧者在「分區教會總覽」看到同教會的**所有**預約（不分教師、不分男女），可依狀態篩選，
+含學員出席情況與取消原因；這裡是唯讀的，預約仍由安排的教師管理。
+
+```sql
+SELECT bs.*
+FROM booking_sessions bs
+WHERE bs.church_id = :pastor_church_id
+ORDER BY COALESCE(bs.confirmed_at, bs.proposed_at) DESC;
+```
 
 ---
 

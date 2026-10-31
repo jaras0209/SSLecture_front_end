@@ -314,7 +314,7 @@
       "customMode": "自訂名稱講師",
       "selectAccount": "選擇關聯帳號",
       "selectPlaceholder": "請選擇帳號",
-      "noTeachersHint": "提示：目前所在教會尚未設定講師帳號",
+      "noTeachersHint": "提示：目前所在教會尚未有教師或牧者帳號",
       "linkedChip": "已連結 {'@'}{username}",
       "autoFillHint": "名字將自動帶入",
       "displayName": "講師顯示名稱",
@@ -589,6 +589,16 @@
       "recordLater": "時間確認後即可記錄出席",
       "attendanceFor": "{name} 的出席",
       "recorded": "已記錄 {name} 的出席"
+    },
+    "churchBookings": {
+      "title": "📅 教會預約總覽",
+      "desc": "同教會所有預約（不分教師、不分男女）。預約由安排的輔導教師管理，這裡僅供查看。",
+      "filterLabel": "依狀態篩選",
+      "caption": "教會預約清單",
+      "colTeacher": "安排教師",
+      "colStudents": "學員（出席）",
+      "colStatus": "狀態",
+      "empty": "目前沒有符合的預約"
     }
   },
   "admin": {

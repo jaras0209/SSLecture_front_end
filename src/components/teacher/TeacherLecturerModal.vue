@@ -37,7 +37,7 @@
           </button>
         </div>
 
-        <!-- Link Mode: pick from teachers in church -->
+        <!-- Link Mode: pick from the church's teachers and pastors -->
         <div v-if="lecturerForm.linkMode === 'link'" class="form-group mt-4">
           <label for="select-linked-teacher" class="form-label">{{
             $t('teacher.lecturer.selectAccount')
@@ -50,7 +50,7 @@
           >
             <option value="">{{ $t('teacher.lecturer.selectPlaceholder') }}</option>
             <option v-for="tc in teachersInChurch" :key="tc.username" :value="tc.username">
-              {{ tc.displayLabel }}
+              {{ tc.displayLabel }} · {{ $t(`roleLabel.${tc.role}`) }}
             </option>
           </select>
           <p v-if="teachersInChurch.length === 0" class="text-xs text-muted mt-1">
@@ -144,7 +144,7 @@ import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import type { Lecturer } from '@/stores/courses'
-import { membersOf } from '@/utils/scope'
+import { LECTURER_ROLES, membersOf } from '@/utils/scope'
 
 const props = defineProps<{
   /** v-model：是否顯示 */
@@ -195,12 +195,15 @@ function close() {
   emit('update:modelValue', false)
 }
 
-// Teachers available in current church for the link-account dropdown
+// Accounts in the current church that can be linked (teachers, then pastors)
 const teachersInChurch = computed(() => {
-  return membersOf(authStore.usersDb, 'teacher', props.church).map((username) => {
+  return LECTURER_ROLES.flatMap((role) =>
+    membersOf(authStore.usersDb, role, props.church).map((username) => ({ username, role }))
+  ).map(({ username, role }) => {
     const u = authStore.usersDb[username]
     return {
       username,
+      role,
       displayLabel: u.realName
         ? `${u.realName}（${username}）`
         : u.displayName

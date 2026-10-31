@@ -61,6 +61,24 @@ describe('TeacherLecturerModal', () => {
     wrapper.unmount()
   })
 
+  it('offers the church’s teachers and then its pastors, with their roles', async () => {
+    const { wrapper } = open()
+    const auth = useAuthStore()
+    auth.usersDb.p2 = { passwordHash: 'x', role: 'pastor', church: CHURCH, realName: '王牧師' }
+    auth.usersDb.s9 = { passwordHash: 'x', role: 'student', church: CHURCH }
+    await $('#btn-link-mode').trigger('click')
+    const options = body()
+      .findAll('#select-linked-teacher option')
+      .map((o) => o.attributes('value'))
+      .filter(Boolean)
+    expect(options.at(-1)).toBe('p2')
+    expect(options).toContain('teacher')
+    expect(options).not.toContain('s9')
+    expect(options.indexOf('teacher')).toBeLessThan(options.indexOf('p2'))
+    expect($('#select-linked-teacher option[value="p2"]').text()).toContain(t('roleLabel.pastor'))
+    wrapper.unmount()
+  })
+
   it('prefills an existing lecturer when opened and saves the changes', async () => {
     const { wrapper } = mountWith(TeacherLecturerModal, {
       props: { modelValue: false, lecturer: null, church: CHURCH },

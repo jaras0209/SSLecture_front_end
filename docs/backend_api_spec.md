@@ -66,7 +66,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 | `parent` | 綁定的孩子（見[家長綁定](#家長綁定-parent-bindings)） |
 | `student` | 只有自己 |
 
-**講師例外**：講師資料（`Lecturer`）若連結到教師帳號（`linkedUsername`），該帳號在**自己授課的預約**
+**講師例外**：講師資料（`Lecturer`）若連結到教師或牧者帳號（`linkedUsername`），該帳號在**自己授課的預約**
 （`session.lecturerId` 屬於自己）中看得到全部學員，不分性別，並可記錄出席；學員名冊等其他 API 仍依上表。
 對應前端 `canViewAttendee()`。
 
@@ -958,8 +958,9 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 | 原本的角色 | 清理 |
 |------------|------|
 | `student` | 解除所有家長綁定；刪除其教師與牧者指派 |
-| `teacher` | 從所有學員的輔導教師指派中移除；連結到該帳號的講師資料解除連結（講師保留）；`pending`、`confirmed` 的預約改為 `cancelled`，`cancelReason` 為「輔導教師帳號已刪除」 |
+| `teacher` | 從所有學員的輔導教師指派中移除；`pending`、`confirmed` 的預約改為 `cancelled`，`cancelReason` 為「輔導教師帳號已刪除」 |
 | `pastor` | 從所有學員的牧者指派中移除 |
+| `teacher`、`pastor` | 連結到該帳號的講師資料解除連結（講師保留）；教師與牧者互換角色時保留連結 |
 | `parent` | 解除其所有綁定 |
 
 已完成、已取消的預約、教學統計與聽課紀錄保留為歷史。
@@ -1231,7 +1232,8 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 > - 預約由學員的輔導教師安排與管理（建立、確認時間、取消、完成、備註、新增學員）；
 >   能邀請的學員只限該教師看得到的學員（同教會、同性別）
 > - 學員只看得到自己被邀請的預約
-> - 講師（連結到教師帳號）看得到自己授課的預約與其中**全部**學員，可記錄出席，但不能改預約本身
+> - 講師（連結到教師或牧者帳號）看得到自己授課的預約與其中**全部**學員，可記錄出席，但不能改預約本身
+> - 同教會的牧者看得到教會的所有預約與學員出席（唯讀，`church` 查詢），`admin` 看得到全部
 > - 男、女教師可各自為自己的學員預約同一堂課（同講師、課程、時段），資料上是兩筆場次；
 >   「我的授課」畫面把它們合併成一堂課顯示
 
@@ -1244,7 +1246,7 @@ GET /bookings/sessions?teacherUsername={username}&status={status}
 |----------|------|------|------|
 | `teacherUsername` | string | 否 | 篩選特定教師建立的場次 |
 | `lecturerUsername` | string | 否 | 篩選此帳號擔任講師的場次（透過 `Lecturer.linkedUsername`，即「我的授課」）⭐ |
-| `church` | string | 否 | 依教會篩選 |
+| `church` | string | 否 | 依教會篩選；`pastor` 只能查自己的教會（「教會預約總覽」，唯讀） |
 | `status` | string | 否 | `pending \| confirmed \| completed \| cancelled` |
 
 **回應範例**
@@ -1536,7 +1538,7 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | `title` | string | 職稱（牧師/傳道/長老/輔導等） |
 | `church` | string | 所屬教會 |
 | `courseIds` | string[] | 可授課的課程 ID 清單（用於篩選建議講師） |
-| `linkedUsername` | string? | 連結的教師帳號（FK → users.username）；空則為外來/自訂講師。連結後該帳號有「我的授課」 |
+| `linkedUsername` | string? | 連結的教師或牧者帳號（FK → users.username）；空則為外來/自訂講師。連結後該帳號有「我的授課」 |
 
 ### StudentAssignment（關懷配對）
 | 欄位 | 型別 | 說明 |

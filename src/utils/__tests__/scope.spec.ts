@@ -7,6 +7,7 @@ import {
   canMentor,
   lecturerIdsOf,
   canViewAttendee,
+  canLecture,
   type Viewer
 } from '@/utils/scope'
 import type { Gender } from '@/types/auth'
@@ -122,5 +123,15 @@ describe('lecturerIdsOf / canViewAttendee', () => {
     expect(canViewAttendee(t1, other, 's1', members, lecturers)).toBe(true)
     expect(canViewAttendee(t1, other, 's3', members, lecturers)).toBe(false)
     expect(canViewAttendee(t1, other, 's4', members, lecturers)).toBe(false)
+  })
+})
+
+describe('canLecture', () => {
+  it('lets teachers and pastors be linked to a lecturer record', () => {
+    expect(canLecture('teacher')).toBe(true)
+    expect(canLecture('pastor')).toBe(true)
+    for (const role of ['student', 'parent', 'admin', undefined]) {
+      expect(canLecture(role)).toBe(false)
+    }
   })
 })
