@@ -26,7 +26,7 @@
         <p class="stats-group-desc text-xs text-muted mb-3">{{ $t('teacher.stats.sermonDesc') }}</p>
         <div class="stats-fields">
           <div class="stats-field-item">
-            <label class="form-label">
+            <label class="form-label" for="stat-one-on-one-30">
               {{ $t('teacher.stats.oneOnOne') }}
               <span class="stats-badge">{{ $t('teacher.stats.oneOnOneBadge') }}</span>
             </label>
@@ -43,7 +43,7 @@
             </div>
           </div>
           <div class="stats-field-item">
-            <label class="form-label">
+            <label class="form-label" for="stat-one-to-many-30">
               {{ $t('teacher.stats.oneToMany') }}
               <span class="stats-badge stats-badge-multi">{{
                 $t('teacher.stats.oneToManyBadge')
@@ -64,7 +64,9 @@
         </div>
         <div class="stats-subtotal">
           {{ $t('teacher.stats.subtotal')
-          }}<strong>{{ (statsForm.oneOnOne30 || 0) + (statsForm.oneToMany30 || 0) }}</strong>
+          }}<strong>{{
+            headcount(statsForm.oneOnOne30) + headcount(statsForm.oneToMany30)
+          }}</strong>
           {{ $t('teacher.stats.unit') }}
         </div>
       </div>
@@ -77,7 +79,7 @@
         </p>
         <div class="stats-fields">
           <div class="stats-field-item">
-            <label class="form-label">
+            <label class="form-label" for="stat-one-on-one-shining">
               {{ $t('teacher.stats.oneOnOne') }}
               <span class="stats-badge">{{ $t('teacher.stats.oneOnOneBadge') }}</span>
             </label>
@@ -94,7 +96,7 @@
             </div>
           </div>
           <div class="stats-field-item">
-            <label class="form-label">
+            <label class="form-label" for="stat-one-to-many-shining">
               {{ $t('teacher.stats.oneToMany') }}
               <span class="stats-badge stats-badge-multi">{{
                 $t('teacher.stats.oneToManyBadge')
@@ -116,7 +118,7 @@
         <div class="stats-subtotal">
           {{ $t('teacher.stats.subtotal')
           }}<strong>{{
-            (statsForm.oneOnOneShining || 0) + (statsForm.oneToManyShining || 0)
+            headcount(statsForm.oneOnOneShining) + headcount(statsForm.oneToManyShining)
           }}</strong>
           {{ $t('teacher.stats.unit') }}
         </div>
@@ -128,10 +130,10 @@
       <span>{{ $t('teacher.stats.grandTotal', { year: statsYear }) }}</span>
       <span class="stats-total-num">
         {{
-          (statsForm.oneOnOne30 || 0) +
-          (statsForm.oneToMany30 || 0) +
-          (statsForm.oneOnOneShining || 0) +
-          (statsForm.oneToManyShining || 0)
+          headcount(statsForm.oneOnOne30) +
+          headcount(statsForm.oneToMany30) +
+          headcount(statsForm.oneOnOneShining) +
+          headcount(statsForm.oneToManyShining)
         }}
         {{ $t('teacher.stats.unit') }}
       </span>
@@ -196,16 +198,24 @@ watch(statsYear, (y) => {
 // Load on mount
 loadStatsForYear(currentYear)
 
+/** A head count as typed: blank, negative or fractional input becomes a whole number ≥ 0 */
+function headcount(value: unknown): number {
+  const n = Math.floor(Number(value))
+  return Number.isFinite(n) && n > 0 ? n : 0
+}
+
 function handleSaveStats() {
   const username = authStore.currentUser?.username
   const church = authStore.currentUser?.church || ''
   if (!username) return
-  coursesStore.saveTeachingStats(username, statsYear.value, church, {
-    oneOnOne30: statsForm.value.oneOnOne30 || 0,
-    oneToMany30: statsForm.value.oneToMany30 || 0,
-    oneOnOneShining: statsForm.value.oneOnOneShining || 0,
-    oneToManyShining: statsForm.value.oneToManyShining || 0
-  })
+  const f = statsForm.value
+  statsForm.value = {
+    oneOnOne30: headcount(f.oneOnOne30),
+    oneToMany30: headcount(f.oneToMany30),
+    oneOnOneShining: headcount(f.oneOnOneShining),
+    oneToManyShining: headcount(f.oneToManyShining)
+  }
+  coursesStore.saveTeachingStats(username, statsYear.value, church, statsForm.value)
   statsLastSubmit.value = coursesStore.getTeachingStats(username, statsYear.value).submittedAt || ''
   statsSavedMsg.value = t('teacher.stats.savedMsg')
   setTimeout(() => {

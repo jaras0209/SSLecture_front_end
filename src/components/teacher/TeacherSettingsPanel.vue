@@ -4,7 +4,7 @@
     <div v-if="isAdmin" class="glass-panel p-6 mb-4" style="padding: 1.75rem">
       <h4 aria-level="3" class="mb-2">{{ $t('teacher.settings.churchSwitchTitle') }}</h4>
       <select
-        v-model="adminSettingsChurch"
+        v-model="church"
         class="form-input select-input"
         :aria-label="$t('teacher.settings.churchSwitchTitle')"
         style="max-width: 300px"
@@ -48,6 +48,8 @@
             type="text"
             class="form-input text-xs"
             :placeholder="$t('teacher.settings.characterPlaceholder')"
+            :aria-label="$t('teacher.settings.characterThemesTitle')"
+            @keydown.enter.prevent="handleAddTheme('character')"
           />
           <button class="btn btn-primary btn-sm" @click="handleAddTheme('character')">
             {{ $t('teacher.settings.addTheme') }}
@@ -85,6 +87,8 @@
             type="text"
             class="form-input text-xs"
             :placeholder="$t('teacher.settings.comingOfAgePlaceholder')"
+            :aria-label="$t('teacher.settings.comingOfAgeThemesTitle')"
+            @keydown.enter.prevent="handleAddTheme('comingOfAge')"
           />
           <button class="btn btn-primary btn-sm" @click="handleAddTheme('comingOfAge')">
             {{ $t('teacher.settings.addTheme') }}
@@ -170,15 +174,17 @@ import { CHURCHES } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import type { Lecturer } from '@/stores/courses'
 import { useToast } from '@/composables/useToast'
-import { DEFAULT_CHURCH } from '@/types/auth'
 
 const { confirm } = useToast()
 const { t } = useI18n()
 
-const props = defineProps<{
-  isAdmin: boolean
-  currentContextChurch: string
-}>()
+defineProps<{ isAdmin: boolean }>()
+
+/**
+ * The church whose themes and lecturers are shown. An admin can switch it here; the
+ * dashboard owns it, so the add/edit lecturer dialog saves to the same church.
+ */
+const church = defineModel<string>('church', { required: true })
 
 const emit = defineEmits<{
   'open-add-lecturer': []
@@ -187,44 +193,36 @@ const emit = defineEmits<{
 
 const coursesStore = useCoursesStore()
 
-// Admin church selector (only used when isAdmin is true)
-const adminSettingsChurch = ref(props.currentContextChurch || DEFAULT_CHURCH)
-
 const newCharacterTheme = ref('')
 const newComingOfAgeTheme = ref('')
 
-const characterThemes = computed(() =>
-  coursesStore.getThemesByChurch('character', adminSettingsChurch.value)
-)
+const characterThemes = computed(() => coursesStore.getThemesByChurch('character', church.value))
 const comingOfAgeThemes = computed(() =>
-  coursesStore.getThemesByChurch('comingOfAge', adminSettingsChurch.value)
+  coursesStore.getThemesByChurch('comingOfAge', church.value)
 )
 
-const filteredLecturers = computed(() =>
-  coursesStore.getLecturersByChurch(adminSettingsChurch.value)
-)
+const filteredLecturers = computed(() => coursesStore.getLecturersByChurch(church.value))
 
 function handleAddTheme(type: 'character' | 'comingOfAge') {
   const value =
     type === 'character' ? newCharacterTheme.value.trim() : newComingOfAgeTheme.value.trim()
   if (!value) return
-  coursesStore.addTheme(type, value, adminSettingsChurch.value)
+  coursesStore.addTheme(type, value, church.value)
   if (type === 'character') newCharacterTheme.value = ''
   else newComingOfAgeTheme.value = ''
 }
 
 function handleRenameTheme(type: 'character' | 'comingOfAge', theme: string) {
-  // Note: rename via prompt is now a no-op; use inline edit in future iteration
   const newName = window.prompt(t('teacher.settings.renamePhraseTitle', { theme }), theme)
   if (newName && newName.trim() && newName.trim() !== theme) {
-    coursesStore.updateTheme(type, theme, newName.trim(), adminSettingsChurch.value)
+    coursesStore.updateTheme(type, theme, newName.trim(), church.value)
   }
 }
 
 async function handleDeleteTheme(type: 'character' | 'comingOfAge', theme: string) {
   const ok = await confirm(t('teacher.settings.deleteThemeConfirm', { theme }))
   if (ok) {
-    coursesStore.deleteTheme(type, theme, adminSettingsChurch.value)
+    coursesStore.deleteTheme(type, theme, church.value)
   }
 }
 

@@ -554,7 +554,8 @@ export const useCoursesStore = defineStore('courses', () => {
     const db = type === 'character' ? characterThemesDb : comingOfAgeThemesDb
     if (db.value[church]) {
       const index = db.value[church].indexOf(oldName)
-      if (index > -1) {
+      // Renaming onto another existing theme would list it twice
+      if (index > -1 && !db.value[church].includes(newName)) {
         db.value[church][index] = newName
       }
     }

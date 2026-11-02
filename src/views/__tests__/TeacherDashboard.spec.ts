@@ -1,5 +1,6 @@
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import TeacherDashboard from '@/views/TeacherDashboard.vue'
+import { DOMWrapper } from '@vue/test-utils'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import { useBookingsStore } from '@/stores/bookings'
@@ -154,5 +155,25 @@ describe('TeacherDashboard', () => {
     expect(courses.getStudentCaretaker('student', 'teacher')).toBe('teacher')
     list.vm.$emit('unmanage-student', 'student')
     expect(courses.getStudentCaretaker('student', 'teacher')).toBe('')
+  })
+
+  it('saves a lecturer an admin adds to the church they switched to in settings', async () => {
+    const { wrapper } = await mountAs('admin')
+    await wrapper.findAll('.main-tab-btn')[1].trigger('click') // settings
+    await rendered(wrapper, '.lecturers-grid')
+    await wrapper.find('.dashboard-body select').setValue('主大明')
+
+    const add = wrapper
+      .findAll('button')
+      .find((b) => b.text().includes(t('teacher.settings.addLecturer')))!
+    await add.trigger('click')
+    const body = new DOMWrapper(document.body)
+    await vi.waitFor(() => expect(body.find('#input-lecturer-name').exists()).toBe(true))
+    await body.find('#input-lecturer-name').setValue('外地講師')
+    await body.find('#btn-save-lecturer').trigger('click')
+
+    const saved = useCoursesStore().lecturers.find((l) => l.name === '外地講師')
+    expect(saved?.church).toBe('主大明')
+    await vi.waitFor(() => expect(wrapper.find('.lecturers-grid').text()).toContain('外地講師'))
   })
 })

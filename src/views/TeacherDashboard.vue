@@ -143,7 +143,8 @@
     <div v-if="activeMainTab === 'settings' && authStore.currentUser?.role !== 'parent'">
       <TeacherSettingsPanel
         :is-admin="authStore.currentUser?.role === 'admin'"
-        :current-context-church="currentContextChurch"
+        :church="currentContextChurch"
+        @update:church="(c: string) => (adminSettingsChurch = c)"
         @open-add-lecturer="openAddLecturer"
         @open-edit-lecturer="openEditLecturer"
       />
@@ -288,9 +289,9 @@ const editingLecturer = ref<Lecturer | null>(null)
 const showNotesDialog = ref(false)
 const notesDialogStudent = ref<StudentProgressSummary | null>(null)
 
-// Local lecturer form state for Settings tab
-
-const adminSettingsChurch = ref(DEFAULT_CHURCH)
+// The church an admin manages in the Settings tab (its themes and lecturers); the lecturer
+// dialog saves to the same church
+const adminSettingsChurch = ref<string>(DEFAULT_CHURCH)
 const currentContextChurch = computed(() => {
   return authStore.currentUser?.role === 'admin'
     ? adminSettingsChurch.value
