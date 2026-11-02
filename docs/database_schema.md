@@ -86,6 +86,10 @@
 > - 新增設計說明：講師例外（[5.11](#511-講師在自己授課的預約中看得到全部學員)）、
 >   刪除帳號或變更角色時的清理（[5.12](#512-刪除帳號或變更角色時的清理)）、牧者的教會預約總覽（[5.13](#513-牧者的教會預約總覽)）；
 >   講師可連結教師或牧者帳號
+> - 修正：第 6 節補齊全部 19 張表的建表語句（原本 5 張散在 2.14–2.18）；預約表的 `lecturer_id`、
+>   `linked_listen_session_id` 改為 `UUID`、`course_id` 改為 `VARCHAR(20)`，與被參照的欄位同型別（原本建表會失敗）
+> - 出席紀錄、教學統計、聽課紀錄的學員／教師外鍵改為 `ON DELETE RESTRICT`，與「保留為歷史」一致；
+>   移除 `booking_attendees.student_username` 冗餘欄位；種子資料補上性別與家長綁定
 > - `users` 新增 `email`（選填、不可重複）、`email_verified`、`must_change_password`；`username` 加格式檢查
 > - `users.password_hash` 改為可為 NULL：社群登入建立的帳號沒有密碼（見 2.1）
 
@@ -214,7 +218,7 @@
 | 欄位名 | 資料型別 | 限制 | 說明 |
 |--------|----------|------|------|
 | `id` | `UUID` | PK, NOT NULL | 唯一識別碼 |
-| `student_id` | `UUID` | FK → users.id, NOT NULL | 學員 |
+| `student_id` | `UUID` | FK → users.id, NOT NULL, ON DELETE RESTRICT | 學員；帳號軟刪除，聽課紀錄保留 |
 | `course_id` | `VARCHAR(20)` | FK → courses.id, NOT NULL | 課程 |
 | `lecturer_name` | `VARCHAR(80)` | NOT NULL | 授課講師名稱（自由文字，來自 lecturers.name + title） |
 | `listened_at` | `TIMESTAMPTZ` | NOT NULL | 學員填報的聽課時間 |
@@ -534,11 +538,11 @@ WHERE student_id = $1
 - `lecturer_id` 供系統查詢關聯用，設為 `ON DELETE SET NULL`
 - `course_title` 同理：課程被冊除後預約紀錄仍需可讀
 
-### 5.7 `booking_attendees` 的 `student_username` 為何冠餘儲存？
+### 5.7 `booking_attendees` 為何不冗餘儲存學員帳號？
 
-- 前端將 `username` 作為準 Session 和 Attendee 的 ID 組成核心，儲存後方便前端直接顯示而不需 JOIN
-- 學員帳號一旦編輯，需同步更新此冗餘欄位
-- 建議後端建立 trigger `after_update_users` 同步更新 `booking_attendees.student_username`
+- 舊版設計另存 `student_username` 並以 trigger 在帳號改名時同步；v1.7.0 起帳號是**永不變**的識別碼
+  （見 2.1），不再需要冗餘欄位與 trigger
+- API 回應需要帳號或姓名時，由 `student_id` JOIN `users` 取得；`(session_id, student_id)` 已有唯一索引，查詢成本低
 
 ### 5.8 `invite_codes` 的外鍵行為設計說明 ⭐
 
@@ -622,8 +626,9 @@ ORDER BY COALESCE(bs.confirmed_at, bs.proposed_at);
 | `teacher`、`pastor` | `lecturers.linked_user_id` 設為 NULL（講師資料保留）；但教師與牧者互換角色時保留連結，因為兩者都能授課 |
 | `parent` | 刪除其 `parent_children` |
 
-- 已完成、已取消的預約、教學統計、聽課紀錄都保留為歷史，因此 `booking_sessions.teacher_id`
-  使用 `ON DELETE RESTRICT`（實體刪除帳號前須先處理，正常流程只會軟刪除）
+- 已完成、已取消的預約、出席紀錄、教學統計、聽課紀錄都保留為歷史，因此 `booking_sessions.teacher_id`、
+  `booking_attendees.student_id`、`teaching_stats.teacher_id`、`listen_sessions.student_id` 都使用
+  `ON DELETE RESTRICT`（實體刪除帳號前須先處理，正常流程只會軟刪除）
 - 取消原因讓學員看得到為什麼預約取消（「輔導教師帳號已刪除」或「輔導教師已不再擔任此身分」）
 - 選回同一個角色不做任何事
 
@@ -741,7 +746,7 @@ CREATE TABLE lecturer_courses (
 -- ═══════════════════════════════════════════════════
 CREATE TABLE listen_sessions (
   id            UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  student_id    UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  student_id    UUID        NOT NULL REFERENCES users(id) ON DELETE RESTRICT, -- 聽課紀錄保留為歷史
   course_id     VARCHAR(20) NOT NULL REFERENCES courses(id),
   lecturer_name VARCHAR(80) NOT NULL,
   listened_at   TIMESTAMPTZ NOT NULL,
@@ -875,6 +880,128 @@ CREATE TABLE refresh_tokens (
 
 CREATE INDEX idx_refresh_tokens_user       ON refresh_tokens(user_id);
 CREATE INDEX idx_refresh_tokens_expires_at ON refresh_tokens(expires_at);
+
+-- ═══════════════════════════════════════════════════
+--  14. teaching_stats（年度教學統計，見 2.14）
+-- ═══════════════════════════════════════════════════
+CREATE TABLE teaching_stats (
+  id                    UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+  teacher_id            UUID         NOT NULL REFERENCES users(id) ON DELETE RESTRICT, -- 統計保留為歷史
+  year                  SMALLINT     NOT NULL CHECK (year >= 2020),
+  one_on_one_30         INTEGER      NOT NULL DEFAULT 0 CHECK (one_on_one_30 >= 0),
+  one_to_many_30        INTEGER      NOT NULL DEFAULT 0 CHECK (one_to_many_30 >= 0),
+  one_on_one_shining    INTEGER      NOT NULL DEFAULT 0 CHECK (one_on_one_shining >= 0),
+  one_to_many_shining   INTEGER      NOT NULL DEFAULT 0 CHECK (one_to_many_shining >= 0),
+  submitted_at          TIMESTAMPTZ,
+  created_at            TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+  updated_at            TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+
+  CONSTRAINT uq_teaching_stats_teacher_year UNIQUE (teacher_id, year)
+);
+
+CREATE INDEX idx_teaching_stats_year ON teaching_stats(year);
+CREATE INDEX idx_teaching_stats_teacher ON teaching_stats(teacher_id);
+
+-- ═══════════════════════════════════════════════════
+--  15. booking_sessions（預約場次，見 2.15）
+-- ═══════════════════════════════════════════════════
+CREATE TABLE booking_sessions (
+  id                    VARCHAR(64)  PRIMARY KEY,
+  teacher_id            UUID         NOT NULL REFERENCES users(id) ON DELETE RESTRICT, -- 帳號軟刪除，預約保留為歷史
+  church_id             UUID         REFERENCES churches(id) ON DELETE SET NULL,
+  course_id             VARCHAR(20)  REFERENCES courses(id) ON DELETE SET NULL,
+  course_title          VARCHAR(200) NOT NULL,
+  lecturer_id           UUID         REFERENCES lecturers(id) ON DELETE SET NULL,
+  lecturer_name         VARCHAR(100) NOT NULL,
+  lecturer_title        VARCHAR(50)  NOT NULL DEFAULT '',
+  proposed_at           TIMESTAMPTZ  NOT NULL,
+  confirmed_at          TIMESTAMPTZ,
+  duration_minutes      SMALLINT     CHECK (duration_minutes >= 1),
+  status                VARCHAR(20)  NOT NULL DEFAULT 'pending'
+                          CHECK (status IN ('pending','confirmed','completed','cancelled')),
+  cancel_reason         TEXT,
+  teacher_session_notes TEXT,
+  is_group_session      BOOLEAN      NOT NULL DEFAULT FALSE,
+  prep_scriptures       TEXT[]       NOT NULL DEFAULT '{}',
+  prep_reading_notes    TEXT,
+  prep_materials        TEXT,
+  created_at            TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+  updated_at            TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_booking_sessions_teacher  ON booking_sessions(teacher_id);
+CREATE INDEX idx_booking_sessions_lecturer ON booking_sessions(lecturer_id);
+CREATE INDEX idx_booking_sessions_church   ON booking_sessions(church_id);
+CREATE INDEX idx_booking_sessions_status   ON booking_sessions(status);
+CREATE INDEX idx_booking_sessions_proposed ON booking_sessions(proposed_at DESC);
+
+-- ═══════════════════════════════════════════════════
+--  16. booking_attendees（場次學員，見 2.16）
+-- ═══════════════════════════════════════════════════
+CREATE TABLE booking_attendees (
+  id                       VARCHAR(128) PRIMARY KEY,
+  session_id               VARCHAR(64)  NOT NULL REFERENCES booking_sessions(id) ON DELETE CASCADE,
+  student_id               UUID         NOT NULL REFERENCES users(id) ON DELETE RESTRICT, -- 出席紀錄保留為歷史
+  attendance_status        VARCHAR(20)  NOT NULL DEFAULT 'invited'
+                             CHECK (attendance_status IN ('invited','attended','absent')),
+  student_feedback         TEXT,
+  teacher_feedback         TEXT,
+  feedback_at              TIMESTAMPTZ,
+  linked_listen_session_id UUID         REFERENCES listen_sessions(id) ON DELETE SET NULL,
+  created_at               TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+  updated_at               TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+
+  CONSTRAINT uq_booking_attendees_session_student UNIQUE (session_id, student_id)
+);
+
+CREATE INDEX idx_booking_attendees_session ON booking_attendees(session_id);
+CREATE INDEX idx_booking_attendees_student ON booking_attendees(student_id);
+CREATE INDEX idx_booking_attendees_status  ON booking_attendees(attendance_status);
+
+-- ═══════════════════════════════════════════════════
+--  17. invite_codes（邀請碼，見 2.17）
+-- ═══════════════════════════════════════════════════
+CREATE TABLE invite_codes (
+  code       VARCHAR(20)  PRIMARY KEY,
+  role       user_role    NOT NULL,
+  church_id  UUID         REFERENCES churches(id) ON DELETE SET NULL,
+  created_by UUID         REFERENCES users(id)    ON DELETE SET NULL,
+  created_at TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+  expires_at TIMESTAMPTZ  NOT NULL,
+  used_by    UUID         REFERENCES users(id)    ON DELETE SET NULL,
+  used_at    TIMESTAMPTZ,
+  revoked    BOOLEAN      NOT NULL DEFAULT FALSE
+);
+
+CREATE INDEX idx_invite_codes_created_by ON invite_codes(created_by);
+CREATE INDEX idx_invite_codes_used_by    ON invite_codes(used_by);
+CREATE INDEX idx_invite_codes_expires_at ON invite_codes(expires_at);
+CREATE INDEX idx_invite_codes_church     ON invite_codes(church_id);
+
+-- ═══════════════════════════════════════════════════
+--  18. social_accounts（社群帳號綁定，見 2.18）
+-- ═══════════════════════════════════════════════════
+CREATE TABLE social_accounts (
+  id                UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id           UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  provider          VARCHAR(20)  NOT NULL,
+  provider_user_id  VARCHAR(255) NOT NULL,
+  email             VARCHAR(255),
+  display_name      VARCHAR(255),
+  avatar_url        TEXT,
+  access_token      TEXT,
+  refresh_token     TEXT,
+  token_expires_at  TIMESTAMPTZ,
+  created_at        TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+  updated_at        TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+
+  CONSTRAINT uq_social_provider_uid UNIQUE (provider, provider_user_id),
+  CONSTRAINT uq_user_provider       UNIQUE (user_id, provider)
+);
+
+CREATE INDEX idx_social_accounts_user_id         ON social_accounts(user_id);
+CREATE INDEX idx_social_accounts_provider_uid    ON social_accounts(provider, provider_user_id);
+CREATE INDEX idx_social_accounts_email           ON social_accounts(email);
 ```
 
 ---
@@ -947,12 +1074,16 @@ FROM churches WHERE name = '愛與話語';
 -- 以下 password_hash 為 '123456' 的 bcrypt 雜湊（範例，實際請重新生成）
 -- $2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewYpR8HRuHQOBDGS
 
-INSERT INTO users (username, password_hash, role, church_id, display_name) VALUES
-  ('student', '$2b$12$...', 'student', (SELECT id FROM churches WHERE name='愛與話語'), 'SS學員'),
-  ('teacher', '$2b$12$...', 'teacher', (SELECT id FROM churches WHERE name='愛與話語'), '輔導教師'),
-  ('pastor',  '$2b$12$...', 'pastor',  (SELECT id FROM churches WHERE name='愛與話語'), '分區牧者'),
-  ('parent',  '$2b$12$...', 'parent',  (SELECT id FROM churches WHERE name='愛與話語'), '關懷家長'),
-  ('admin',   '$2b$12$...', 'admin',   NULL,                                            'SS中央管理員');
+-- 示範教師與學員同為男性，教師才看得到學員（見 5.10）；家長綁定示範學員（見 2.19）
+INSERT INTO users (username, password_hash, role, church_id, display_name, gender) VALUES
+  ('student', '$2b$12$...', 'student', (SELECT id FROM churches WHERE name='愛與話語'), 'SS學員',       'male'),
+  ('teacher', '$2b$12$...', 'teacher', (SELECT id FROM churches WHERE name='愛與話語'), '輔導教師',     'male'),
+  ('pastor',  '$2b$12$...', 'pastor',  (SELECT id FROM churches WHERE name='愛與話語'), '分區牧者',     NULL),
+  ('parent',  '$2b$12$...', 'parent',  (SELECT id FROM churches WHERE name='愛與話語'), '關懷家長',     NULL),
+  ('admin',   '$2b$12$...', 'admin',   NULL,                                            'SS中央管理員', NULL);
+
+INSERT INTO parent_children (parent_id, student_id)
+SELECT p.id, s.id FROM users p, users s WHERE p.username = 'parent' AND s.username = 'student';
 ```
 
 ---
@@ -1038,7 +1169,7 @@ erDiagram
 
   listen_sessions {
     UUID        id            PK
-    UUID        student_id    FK "-> users.id CASCADE"
+    UUID        student_id    FK "-> users.id RESTRICT"
     VARCHAR     course_id     FK "-> courses.id"
     VARCHAR     lecturer_name    "自由文字（不用FK）"
     TIMESTAMPTZ listened_at      "NOT NULL"
@@ -1184,12 +1315,11 @@ erDiagram
     VARCHAR     id                       PK  "att_${sessionId}_${username}"
     VARCHAR     session_id               FK  "-> booking_sessions.id CASCADE"
     UUID        student_id               FK  "-> users.id CASCADE"
-    VARCHAR     student_username            "冗餘儲存"
     VARCHAR     attendance_status           "invited/attended/absent"
     TEXT        student_feedback
     TEXT        teacher_feedback
     TIMESTAMPTZ feedback_at
-    VARCHAR     linked_listen_session_id FK  "-> listen_sessions.id SET NULL"
+    UUID        linked_listen_session_id FK  "-> listen_sessions.id SET NULL"
     TIMESTAMPTZ created_at
     TIMESTAMPTZ updated_at
   }
@@ -1226,7 +1356,7 @@ erDiagram
   courses   ||--o{ lecturer_courses : "course_id (CASCADE)"
 
   %% 聽課紀錄
-  users   ||--o{ listen_sessions : "student_id (CASCADE)"
+  users   ||--o{ listen_sessions : "student_id (RESTRICT)"
   courses ||--o{ listen_sessions : "course_id"
 
   %% 關怀配對（1:1）
@@ -1251,7 +1381,7 @@ erDiagram
   users ||--o{ refresh_tokens    : "user_id (CASCADE)"
 
   %% 教學統計
-  users ||--o{ teaching_stats : "teacher_id (CASCADE)"
+  users ||--o{ teaching_stats : "teacher_id (RESTRICT)"
 
   %% 預約系統
   users             ||--o{ booking_sessions  : "teacher_id (RESTRICT)"
@@ -1259,7 +1389,7 @@ erDiagram
   courses           ||--o{ booking_sessions  : "course_id (SET NULL)"
   lecturers         ||--o{ booking_sessions  : "lecturer_id (SET NULL)"
   booking_sessions  ||--o{ booking_attendees : "session_id (CASCADE)"
-  users             ||--o{ booking_attendees : "student_id (CASCADE)"
+  users             ||--o{ booking_attendees : "student_id (RESTRICT)"
   listen_sessions   ||--o| booking_attendees : "linked_listen_session_id (SET NULL)"
 
   %% 邀請碼
@@ -1288,7 +1418,7 @@ erDiagram
 | 欄位名 | 資料型別 | 限制 | 說明 |
 |--------|----------|------|------|
 | `id` | `UUID` | PK, NOT NULL | 系統唯一識別碼 |
-| `teacher_id` | `UUID` | FK → users.id, NOT NULL | 教師帳號（role = teacher） |
+| `teacher_id` | `UUID` | FK → users.id, NOT NULL, ON DELETE RESTRICT | 教師帳號（role = teacher）；帳號軟刪除，統計保留為歷史 |
 | `year` | `SMALLINT` | NOT NULL, CHECK >= 2020 | 統計年度（如 2025） |
 | `one_on_one_30` | `INTEGER` | NOT NULL, DEFAULT 0, CHECK >= 0 | 1對1 講「三十個論」人次 |
 | `one_to_many_30` | `INTEGER` | NOT NULL, DEFAULT 0, CHECK >= 0 | 1對多 講「三十個論」人次 |
@@ -1303,26 +1433,7 @@ erDiagram
 - 人次對應前端計算規則：一次對多人講義以「人次」計（如一次對3人 = 3人次）
 - 可由後端提供查詢橫醵：`GROUP BY year` 提供跨教會年度比較
 
-**SQL DDL**：
-```sql
-CREATE TABLE teaching_stats (
-  id                    UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
-  teacher_id            UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  year                  SMALLINT     NOT NULL CHECK (year >= 2020),
-  one_on_one_30         INTEGER      NOT NULL DEFAULT 0 CHECK (one_on_one_30 >= 0),
-  one_to_many_30        INTEGER      NOT NULL DEFAULT 0 CHECK (one_to_many_30 >= 0),
-  one_on_one_shining    INTEGER      NOT NULL DEFAULT 0 CHECK (one_on_one_shining >= 0),
-  one_to_many_shining   INTEGER      NOT NULL DEFAULT 0 CHECK (one_to_many_shining >= 0),
-  submitted_at          TIMESTAMPTZ,
-  created_at            TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-  updated_at            TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-
-  CONSTRAINT uq_teaching_stats_teacher_year UNIQUE (teacher_id, year)
-);
-
-CREATE INDEX idx_teaching_stats_year ON teaching_stats(year);
-CREATE INDEX idx_teaching_stats_teacher ON teaching_stats(teacher_id);
-```
+**SQL DDL**：見[第 6 節](#6-sql-建表語句postgresql)（依相依順序與其他表一起建立）。
 
 ---
 
@@ -1336,9 +1447,9 @@ CREATE INDEX idx_teaching_stats_teacher ON teaching_stats(teacher_id);
 | `id` | `VARCHAR(64)` | PK, NOT NULL | 前端格式：`sess_${Date.now()}` |
 | `teacher_id` | `UUID` | FK → users.id, NOT NULL, ON DELETE RESTRICT | 建立並管理預約的輔導教師 |
 | `church_id` | `UUID` | FK → churches.id, NULL | 場次所屬教會 |
-| `course_id` | `VARCHAR(64)` | FK → courses.id, NULL | 對應課程 |
+| `course_id` | `VARCHAR(20)` | FK → courses.id, NULL | 對應課程（與 courses.id 同型別） |
 | `course_title` | `VARCHAR(200)` | NOT NULL | 課程名稱（冗餘儲存，保留歷史） |
-| `lecturer_id` | `VARCHAR(64)` | FK → lecturers.id, NULL | 對應講師（連結帳號的講師可在「我的授課」看到此預約，見 5.11） |
+| `lecturer_id` | `UUID` | FK → lecturers.id, NULL | 對應講師（連結帳號的講師可在「我的授課」看到此預約，見 5.11） |
 | `lecturer_name` | `VARCHAR(100)` | NOT NULL | 講師姓名（冗餘儲存） |
 | `lecturer_title` | `VARCHAR(50)` | NOT NULL, DEFAULT '' | 講師稱謂（如「牧師」） |
 | `proposed_at` | `TIMESTAMPTZ` | NOT NULL | 教師提議的時間 |
@@ -1369,38 +1480,7 @@ pending ──confirm──> confirmed ──complete──> completed
   並可記錄出席（見 5.10、5.11）
 - 刪除教師帳號或變更其角色時，`pending` / `confirmed` 的預約改為 `cancelled` 並附原因（見 5.12）
 
-**SQL DDL**：
-```sql
-CREATE TABLE booking_sessions (
-  id                    VARCHAR(64)  PRIMARY KEY,
-  teacher_id            UUID         NOT NULL REFERENCES users(id) ON DELETE RESTRICT, -- 帳號軟刪除，預約保留為歷史
-  church_id             UUID         REFERENCES churches(id) ON DELETE SET NULL,
-  course_id             VARCHAR(64)  REFERENCES courses(id) ON DELETE SET NULL,
-  course_title          VARCHAR(200) NOT NULL,
-  lecturer_id           VARCHAR(64)  REFERENCES lecturers(id) ON DELETE SET NULL,
-  lecturer_name         VARCHAR(100) NOT NULL,
-  lecturer_title        VARCHAR(50)  NOT NULL DEFAULT '',
-  proposed_at           TIMESTAMPTZ  NOT NULL,
-  confirmed_at          TIMESTAMPTZ,
-  duration_minutes      SMALLINT     CHECK (duration_minutes >= 1),
-  status                VARCHAR(20)  NOT NULL DEFAULT 'pending'
-                          CHECK (status IN ('pending','confirmed','completed','cancelled')),
-  cancel_reason         TEXT,
-  teacher_session_notes TEXT,
-  is_group_session      BOOLEAN      NOT NULL DEFAULT FALSE,
-  prep_scriptures       TEXT[]       NOT NULL DEFAULT '{}',
-  prep_reading_notes    TEXT,
-  prep_materials        TEXT,
-  created_at            TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-  updated_at            TIMESTAMPTZ  NOT NULL DEFAULT NOW()
-);
-
-CREATE INDEX idx_booking_sessions_teacher  ON booking_sessions(teacher_id);
-CREATE INDEX idx_booking_sessions_lecturer ON booking_sessions(lecturer_id);
-CREATE INDEX idx_booking_sessions_church   ON booking_sessions(church_id);
-CREATE INDEX idx_booking_sessions_status   ON booking_sessions(status);
-CREATE INDEX idx_booking_sessions_proposed ON booking_sessions(proposed_at DESC);
-```
+**SQL DDL**：見[第 6 節](#6-sql-建表語句postgresql)（依相依順序與其他表一起建立）。
 
 ---
 
@@ -1413,13 +1493,12 @@ CREATE INDEX idx_booking_sessions_proposed ON booking_sessions(proposed_at DESC)
 |--------|----------|------|------|
 | `id` | `VARCHAR(128)` | PK, NOT NULL | 前端格式：`att_${sessionId}_${studentUsername}` |
 | `session_id` | `VARCHAR(64)` | FK → booking_sessions.id, NOT NULL | 所屬預約場次 |
-| `student_id` | `UUID` | FK → users.id, NOT NULL | 受邀學員 |
-| `student_username` | `VARCHAR(50)` | NOT NULL | 學員帳號（冗餘儲存，方便查詢） |
+| `student_id` | `UUID` | FK → users.id, NOT NULL, ON DELETE RESTRICT | 受邀學員；帳號軟刪除，出席紀錄保留 |
 | `attendance_status` | `VARCHAR(20)` | NOT NULL, DEFAULT 'invited' | `invited / attended / absent` |
 | `student_feedback` | `TEXT` | NULL | 學員課後心得（由學員自行填寫） |
 | `teacher_feedback` | `TEXT` | NULL | 教師對該學員的個別回饋 |
 | `feedback_at` | `TIMESTAMPTZ` | NULL | 回饋最後更新時間 |
-| `linked_listen_session_id` | `VARCHAR(64)` | FK → listen_sessions.id, NULL | 手動連結至聽課進度紀錄 |
+| `linked_listen_session_id` | `UUID` | FK → listen_sessions.id, NULL | 手動連結至聽課進度紀錄 |
 | `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
 | `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 最後更新時間 |
 
@@ -1428,31 +1507,9 @@ CREATE INDEX idx_booking_sessions_proposed ON booking_sessions(proposed_at DESC)
 - `attendance_status` 由教師在場次完成後填寫，預設 `invited`
 - `student_feedback` 由學員自行從學員端填寫
 - `linked_listen_session_id` 為選填，允許手動關聯到已存在的 `listen_sessions` 紀錄
-- `student_username` 冗餘儲存方便前端直接顯示，避免 JOIN 查詢
+- 不另存學員帳號：帳號是永不變的識別碼，需要時由 `student_id` JOIN `users` 取得（見 5.7）
 
-**SQL DDL**：
-```sql
-CREATE TABLE booking_attendees (
-  id                       VARCHAR(128) PRIMARY KEY,
-  session_id               VARCHAR(64)  NOT NULL REFERENCES booking_sessions(id) ON DELETE CASCADE,
-  student_id               UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  student_username         VARCHAR(50)  NOT NULL,
-  attendance_status        VARCHAR(20)  NOT NULL DEFAULT 'invited'
-                             CHECK (attendance_status IN ('invited','attended','absent')),
-  student_feedback         TEXT,
-  teacher_feedback         TEXT,
-  feedback_at              TIMESTAMPTZ,
-  linked_listen_session_id VARCHAR(64)  REFERENCES listen_sessions(id) ON DELETE SET NULL,
-  created_at               TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-  updated_at               TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-
-  CONSTRAINT uq_booking_attendees_session_student UNIQUE (session_id, student_id)
-);
-
-CREATE INDEX idx_booking_attendees_session ON booking_attendees(session_id);
-CREATE INDEX idx_booking_attendees_student ON booking_attendees(student_id);
-CREATE INDEX idx_booking_attendees_status  ON booking_attendees(attendance_status);
-```
+**SQL DDL**：見[第 6 節](#6-sql-建表語句postgresql)（依相依順序與其他表一起建立）。
 
 ---
 
@@ -1479,25 +1536,7 @@ CREATE INDEX idx_booking_attendees_status  ON booking_attendees(attendance_statu
 - 外鍵均使用 `ON DELETE SET NULL`，避免教會或管理員被刪除時連帶刪除邀請碼歷史（詳見 Section 5.8）
 - 有效判斷：`revoked = FALSE AND used_by IS NULL AND expires_at > NOW()`
 
-**SQL DDL**：
-```sql
-CREATE TABLE invite_codes (
-  code       VARCHAR(20)  PRIMARY KEY,
-  role       user_role    NOT NULL,
-  church_id  UUID         REFERENCES churches(id) ON DELETE SET NULL,
-  created_by UUID         REFERENCES users(id)    ON DELETE SET NULL,
-  created_at TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-  expires_at TIMESTAMPTZ  NOT NULL,
-  used_by    UUID         REFERENCES users(id)    ON DELETE SET NULL,
-  used_at    TIMESTAMPTZ,
-  revoked    BOOLEAN      NOT NULL DEFAULT FALSE
-);
-
-CREATE INDEX idx_invite_codes_created_by ON invite_codes(created_by);
-CREATE INDEX idx_invite_codes_used_by    ON invite_codes(used_by);
-CREATE INDEX idx_invite_codes_expires_at ON invite_codes(expires_at);
-CREATE INDEX idx_invite_codes_church     ON invite_codes(church_id);
-```
+**SQL DDL**：見[第 6 節](#6-sql-建表語句postgresql)（依相依順序與其他表一起建立）。
 
 ---
 
@@ -1531,30 +1570,7 @@ CREATE INDEX idx_invite_codes_church     ON invite_codes(church_id);
 - 相同 email 的不同 provider 可自動合併到同一 `user_id`（由後端 `SocialAccountService` 處理）
 - `access_token` / `refresh_token` 建議使用 AES-256 加密後儲存，在 `application.yml` 設定密鑰
 
-**SQL DDL**：
-```sql
-CREATE TABLE social_accounts (
-  id                UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id           UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  provider          VARCHAR(20)  NOT NULL,
-  provider_user_id  VARCHAR(255) NOT NULL,
-  email             VARCHAR(255),
-  display_name      VARCHAR(255),
-  avatar_url        TEXT,
-  access_token      TEXT,
-  refresh_token     TEXT,
-  token_expires_at  TIMESTAMPTZ,
-  created_at        TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-  updated_at        TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-
-  CONSTRAINT uq_social_provider_uid UNIQUE (provider, provider_user_id),
-  CONSTRAINT uq_user_provider       UNIQUE (user_id, provider)
-);
-
-CREATE INDEX idx_social_accounts_user_id         ON social_accounts(user_id);
-CREATE INDEX idx_social_accounts_provider_uid    ON social_accounts(provider, provider_user_id);
-CREATE INDEX idx_social_accounts_email           ON social_accounts(email);
-```
+**SQL DDL**：見[第 6 節](#6-sql-建表語句postgresql)（依相依順序與其他表一起建立）。
 
 ---
 
