@@ -80,6 +80,18 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 **同一預約中看不到的學員**：教師管理的預約若含有其看不到的學員（例如資料是在規則實施前建立的），
 回應中不列出這些學員，只回傳人數 `hiddenAttendeeCount`。
 
+### 時間格式
+
+- **使用者選的時間**（聽課時間 `listenedAt`、預約時間 `proposedAt` / `confirmedAt`）：`YYYY-MM-DDTHH:mm`，**不帶時區**，
+  代表台灣時間（`Asia/Taipei`）。後端以台灣時間解讀後儲存，回傳同樣格式
+- **系統時間戳記**（`createdAt`、`updatedAt`、`lastLoginAt` 等）：ISO 8601，UTC（例如 `2026-10-28T06:30:00.000Z`）
+- 詳見 `docs/database_schema.md` 5.14
+
+### 識別碼
+
+各資源的 `id` 由後端產生（UUID），前端一律當不透明字串，不解析內容。前端 mock 期間的 `sess_...`、`l_...` 等格式只是暫時的。
+預約學員沒有自己的 `id`，以「場次 + 學員帳號」定位。
+
 ### 標準回應格式
 
 #### 成功
@@ -1313,7 +1325,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 
 ---
 
-## 10. 聽課預約 Booking System ⭐
+## 10. 聽課預約 Booking System
 
 > **新增於 v1.3.0**  
 > 管理「教師為學員安排聽課場次（BookingSession）」及「個別學員出席與回饋（BookingAttendee）」的完整預約流程。
@@ -1350,7 +1362,7 @@ GET /bookings/sessions?teacherUsername={username}&status={status}
   "success": true,
   "data": [
     {
-      "id": "sess_1751234567890",
+      "id": "2b9c3f0e-5d1a-4c7e-9a52-6f1d3e8b7a40",
       "courseId": "course_001",
       "courseTitle": "信仰基礎課程",
       "lecturerId": "lec_abc123",
@@ -1509,8 +1521,7 @@ GET /bookings/sessions/:sessionId/attendees
   "success": true,
   "data": [
     {
-      "id": "att_sess_1751234567890_student_a",
-      "sessionId": "sess_1751234567890",
+      "sessionId": "2b9c3f0e-5d1a-4c7e-9a52-6f1d3e8b7a40",
       "studentUsername": "student_a",
       "attendanceStatus": "attended",
       "studentFeedback": "這次課程讓我對信仰有更深的認識",

@@ -24,7 +24,7 @@
    - [shining_lectures（專題課登記）](#210-shining_lectures-專題課登記)
    - [themes（動態專題大綱）](#211-themes-動態專題大綱)
    - [page_restrictions（頁面存取限制）](#212-page_restrictions-頁面存取限制)
-   - [refresh_tokens（Token 管理）](#213-refresh_tokens-token-管理)
+   - [refresh_tokens（Token 管理）](#213-refresh_tokens-jwt-token-管理)
    - [teaching_stats（年度教學統計）](#214-teaching_stats-年度教學統計)
    - [booking_sessions（預約場次）](#215-booking_sessions-預約場次) ⭐ NEW
    - [booking_attendees（場次學員）](#216-booking_attendees-場次學員) ⭐ NEW
@@ -33,7 +33,7 @@
    - [parent_children（家長綁定）](#219-parent_children-家長綁定) ⭐ NEW
    - [course_feedback（心得回覆）](#220-course_feedback-心得回覆) ⭐ NEW
 3. [索引設計](#3-索引設計)
-4. [資料關聯圖（文字版）](#4-資料關聯圖文字版)
+4. [資料關聯一覽](#4-資料關聯一覽)
 5. [設計決策與說明](#5-設計決策與說明)
 6. [SQL 建表語句（PostgreSQL）](#6-sql-建表語句postgresql)
 7. [種子資料（Seed Data）](#7-種子資料seed-data)
@@ -43,40 +43,37 @@
 
 ## 1. 資料庫設計總覽
 
-```
-┌─────────────┐     ┌──────────────────┐     ┌──────────────────┐
-│   churches  │────<│      users       │>────│ student_assign   │
-└─────────────┘     └──────────────────┘     └──────────────────┘
-                           │   │   │
-              ┌────────────┘   │   └────────────────┐
-              ▼               │                    ▼
-┌──────────────────────┐      │     ┌──────────────────────────┐
-│   listen_sessions    │      │     │    shining_projects       │
-│  (多次聽課紀錄)       │      │     │    (閃耀計畫主表)          │
-└──────────────────────┘      │     └──────────────────────────┘
-         │                    │              │
-         ▼                    ▼              ├──> shining_faith_checklists
-  ┌─────────────┐   ┌────────────────────┐  └──> shining_lectures
-  │   courses   │   │  booking_sessions  │ ⭐
-  └─────────────┘   │  (預約場次)         │
-         │          └────────────────────┘
-         ▼                    │
-  ┌────────────────────┐      ▼
-  │  lecturer_courses  │────>┌──────────────────────┐
-  └────────────────────┘    │  booking_attendees   │ ⭐
-         │                  │  (學員出席與回饋)      │
-         ▼                  └──────────────────────┘
-  ┌──────────────┐
-  │   lecturers  │
-  └──────────────┘
+共 20 張表，依用途分組（`─<` 表示一對多，`>─<` 表示多對多；完整欄位與關聯見 [第 8 節 ERD](#8-mermaid-erd-關聯圖)，
+外鍵清單見[第 4 節](#4-資料關聯一覽)）：
 
-其他獨立表：
-  themes               (動態專題大綱清單)
-  page_restrictions    (頁面存取限制)
-  refresh_tokens       (JWT Refresh Token 黑名單)
-  teaching_stats       (年度教學統計)
-  invite_codes ⭐       (邀請碼，NEW) — created_by/used_by → users, church_id → churches
-  parent_children ⭐    (家長綁定，NEW) — parent_id/student_id → users（多對多）
+```
+帳號與教會
+  churches ─< users ─┬─< social_accounts      社群帳號綁定（Google / LINE）
+                     ├─< refresh_tokens       JWT Refresh Token
+                     └─< page_restrictions    頁面存取限制
+  churches ─< invite_codes >─ users           邀請碼（建立者 / 使用者）
+
+關懷
+  users ─< student_assignments                學員 → 輔導教師、分區牧者
+  users >─< users（parent_children）          家長 ↔ 孩子
+
+課程、聽課與回覆
+  courses >─< lecturers（lecturer_courses）   講師可授的課程；lecturers ─ users（連結帳號，可空）
+  users ─< listen_sessions >─ courses         學員每次聽課一筆
+  users ─< course_feedback >─ courses         教師、牧者對學員課程心得的回覆
+
+預約
+  users（教師）─< booking_sessions >─ courses, lecturers, churches
+  booking_sessions ─< booking_attendees >─ users（學員）
+  booking_attendees ─ listen_sessions         選填連結
+
+閃耀計畫
+  users ─ shining_projects ─┬─< shining_faith_checklists
+                            └─< shining_lectures
+  churches ─< themes                          各教會的專題大綱
+
+統計
+  users（教師）─< teaching_stats              年度教學人次
 ```
 
 > **v1.7.0 異動摘要**
@@ -85,7 +82,7 @@
 >   `student_assignments` 移除 `parent_id`，只記錄教師與牧者
 > - `booking_sessions.teacher_id` 改為 `ON DELETE RESTRICT`，帳號一律軟刪除，預約紀錄保留為歷史
 > - 新增設計說明：講師例外（[5.11](#511-講師在自己授課的預約中看得到全部學員)）、
->   刪除帳號或變更角色時的清理（[5.12](#512-刪除帳號或變更角色時的清理)）、牧者的教會預約總覽（[5.13](#513-牧者的教會預約總覽)）；
+>   刪除帳號或變更角色時的清理（[5.12](#512-刪除帳號或變更角色時的清理)）、牧者與管理員的預約總覽（[5.13](#513-牧者與管理員的預約總覽)）；
 >   講師可連結教師或牧者帳號
 > - 修正：第 6 節補齊所有表的建表語句（原本 5 張散在 2.14–2.18）；預約表的 `lecturer_id`、
 >   `linked_listen_session_id` 改為 `UUID`、`course_id` 改為 `VARCHAR(20)`，與被參照的欄位同型別（原本建表會失敗）
@@ -93,6 +90,8 @@
 >   移除 `booking_attendees.student_username` 冗餘欄位；種子資料補上性別與家長綁定
 > - 新增 `course_feedback`：教師、牧者、管理員對學員課程心得的回覆（見 2.20）。前端舊版的回覆只顯示「已儲存」、實際沒有保存
 > - `users` 新增 `email`（選填、不可重複）、`email_verified`、`must_change_password`；`username` 加格式檢查
+> - 整理：`booking_sessions.id` 改為 UUID；`booking_attendees` 改以 `(session_id, student_id)` 為主鍵、移除拼接字串 `id`；
+>   新增時間與時區規則（[5.14](#514-時間與時區)）；總覽圖與關聯一覽改寫為涵蓋全部 20 張表；2.14–2.20 移回第 2 節
 > - `users.password_hash` 改為可為 NULL：社群登入建立的帳號沒有密碼（見 2.1）
 
 ---
@@ -127,7 +126,7 @@
 - `username` 唯一索引，用於登入
 - `role` 決定整個系統的存取權限邏輯
 - `admin` 角色的 `church_id` 為 NULL（跨教會管理）
-- `real_name` 僅式於管理端（教師/牧者/管理員）顯示，不對學員公開
+- `real_name` 僅用於管理端（教師/牧者/管理員）顯示，不對學員公開
 - `is_active = FALSE` 為軟刪除，歷史資料保留；軟刪除時須一併做 [5.12](#512-刪除帳號或變更角色時的清理) 的清理
 - 社群登入（Google / LINE）的使用者同樣是 `users` 的一筆資料，`password_hash` 為 NULL；
   完成 onboarding（填入教會）後，牧者與管理員才能在名冊看到並設定性別、指派教師、綁定家長
@@ -391,6 +390,227 @@
 
 ---
 
+### 2.14 `teaching_stats` 年度教學統計
+
+> **對應前端**：`courses.ts` → `TeachingStats` interface，`superstart_teaching_stats_db` localStorage key
+
+| 欄位名 | 資料型別 | 限制 | 說明 |
+|--------|----------|------|------|
+| `id` | `UUID` | PK, NOT NULL | 系統唯一識別碼 |
+| `teacher_id` | `UUID` | FK → users.id, NOT NULL, ON DELETE RESTRICT | 教師帳號（role = teacher）；帳號軟刪除，統計保留為歷史 |
+| `year` | `SMALLINT` | NOT NULL, CHECK >= 2020 | 統計年度（如 2025） |
+| `one_on_one_30` | `INTEGER` | NOT NULL, DEFAULT 0, CHECK >= 0 | 1對1 講「三十個論」人次 |
+| `one_to_many_30` | `INTEGER` | NOT NULL, DEFAULT 0, CHECK >= 0 | 1對多 講「三十個論」人次 |
+| `one_on_one_shining` | `INTEGER` | NOT NULL, DEFAULT 0, CHECK >= 0 | 1對1 講「閃耀計畫課程」人次 |
+| `one_to_many_shining` | `INTEGER` | NOT NULL, DEFAULT 0, CHECK >= 0 | 1對多 講「閃耀計畫課程」人次 |
+| `submitted_at` | `TIMESTAMPTZ` | NULL | 最後申報/更新時間 |
+| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
+| `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 最後更新時間 |
+
+**設計說明**：
+- `(teacher_id, year)` 為複合唯一鍵，保證每位教師每年度僅一筆紀錄
+- 人次對應前端計算規則：一次對多人講義以「人次」計（如一次對3人 = 3人次）
+- 後端可用 `GROUP BY year` 提供跨教會的年度比較
+
+**SQL DDL**：見[第 6 節](#6-sql-建表語句postgresql)（依相依順序與其他表一起建立）。
+
+---
+
+### 2.15 `booking_sessions` 預約場次
+
+> **對應前端**：`bookings.ts` → `BookingSession` interface，`superstart_booking_sessions_db` localStorage key  
+> **新增於**：v1.3.0（2026-06-30）
+
+| 欄位名 | 資料型別 | 限制 | 說明 |
+|--------|----------|------|------|
+| `id` | `UUID` | PK, NOT NULL | 系統產生；前端 mock 的 `sess_...` 只是暫時格式，API 一律當不透明字串處理 |
+| `teacher_id` | `UUID` | FK → users.id, NOT NULL, ON DELETE RESTRICT | 建立並管理預約的輔導教師 |
+| `church_id` | `UUID` | FK → churches.id, NULL | 場次所屬教會 |
+| `course_id` | `VARCHAR(20)` | FK → courses.id, NULL | 對應課程（與 courses.id 同型別） |
+| `course_title` | `VARCHAR(200)` | NOT NULL | 課程名稱（冗餘儲存，保留歷史） |
+| `lecturer_id` | `UUID` | FK → lecturers.id, NULL | 對應講師（連結帳號的講師可在「我的授課」看到此預約，見 5.11） |
+| `lecturer_name` | `VARCHAR(100)` | NOT NULL | 講師姓名（冗餘儲存） |
+| `lecturer_title` | `VARCHAR(50)` | NOT NULL, DEFAULT '' | 講師稱謂（如「牧師」） |
+| `proposed_at` | `TIMESTAMPTZ` | NOT NULL | 教師提議的時間 |
+| `confirmed_at` | `TIMESTAMPTZ` | NULL | 最終確認的時間（雙方同意後填入） |
+| `duration_minutes` | `SMALLINT` | NULL, CHECK >= 1 | 預計課程時長（分鐘） |
+| `status` | `VARCHAR(20)` | NOT NULL, DEFAULT 'pending' | `pending / confirmed / completed / cancelled` |
+| `cancel_reason` | `TEXT` | NULL | 取消原因（status = cancelled 時填入） |
+| `teacher_session_notes` | `TEXT` | NULL | 教師整場備注（完成後填寫） |
+| `is_group_session` | `BOOLEAN` | NOT NULL, DEFAULT FALSE | 是否為團體聽課 |
+| `prep_scriptures` | `TEXT[]` | NOT NULL, DEFAULT '{}' | 預習經文列表（PostgreSQL 陣列） |
+| `prep_reading_notes` | `TEXT` | NULL | 預習說明 |
+| `prep_materials` | `TEXT` | NULL | 補充材料說明 |
+| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
+| `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 最後更新時間 |
+
+**狀態機**：
+```
+pending ──confirm──> confirmed ──complete──> completed
+  │                      │
+  └──cancel──────────────┴──cancel──> cancelled
+```
+
+**設計說明**：
+- `course_title`、`lecturer_name`、`lecturer_title` 冗餘儲存，避免講師/課程被刪除後歷史資料遺失
+- `prep_scriptures` 使用 PostgreSQL 原生陣列型別；MySQL 替代方案可改用 JSON 欄位
+- 建議後端在 `status = completed` 時自動 trigger 同步至 `listen_sessions`（若需要）
+- 誰能看、誰能改：安排的教師管理整筆預約，但只看得到同性別的學員；連結帳號的講師看得到全部學員
+  並可記錄出席（見 5.10、5.11）
+- 刪除教師帳號或變更其角色時，`pending` / `confirmed` 的預約改為 `cancelled` 並附原因（見 5.12）
+
+**SQL DDL**：見[第 6 節](#6-sql-建表語句postgresql)（依相依順序與其他表一起建立）。
+
+---
+
+### 2.16 `booking_attendees` 場次學員
+
+> **對應前端**：`bookings.ts` → `BookingAttendee` interface，`superstart_booking_attendees_db` localStorage key  
+> **新增於**：v1.3.0（2026-06-30）
+
+| 欄位名 | 資料型別 | 限制 | 說明 |
+|--------|----------|------|------|
+| `session_id` | `UUID` | PK, FK → booking_sessions.id, NOT NULL | 所屬預約場次 |
+| `student_id` | `UUID` | PK, FK → users.id, NOT NULL, ON DELETE RESTRICT | 受邀學員；帳號軟刪除，出席紀錄保留 |
+| `attendance_status` | `VARCHAR(20)` | NOT NULL, DEFAULT 'invited' | `invited / attended / absent` |
+| `student_feedback` | `TEXT` | NULL | 學員課後心得（由學員自行填寫） |
+| `teacher_feedback` | `TEXT` | NULL | 教師對該學員的個別回饋 |
+| `feedback_at` | `TIMESTAMPTZ` | NULL | 回饋最後更新時間 |
+| `linked_listen_session_id` | `UUID` | FK → listen_sessions.id, NULL | 手動連結至聽課進度紀錄 |
+| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
+| `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 最後更新時間 |
+
+**設計說明**：
+- 主鍵為 `(session_id, student_id)`：同一場次同一學員只有一筆，不需要另外的 `id`
+  （API 也以「場次 + 學員帳號」定位，例如 `PATCH /bookings/sessions/:id/attendees/:username`）
+- `attendance_status` 由教師在場次完成後填寫，預設 `invited`
+- `student_feedback` 由學員自行從學員端填寫
+- `linked_listen_session_id` 為選填，允許手動關聯到已存在的 `listen_sessions` 紀錄
+- 不另存學員帳號：帳號是永不變的識別碼，需要時由 `student_id` JOIN `users` 取得（見 5.7）
+
+**SQL DDL**：見[第 6 節](#6-sql-建表語句postgresql)（依相依順序與其他表一起建立）。
+
+---
+
+### 2.17 `invite_codes` 邀請碼
+
+> **對應前端**：`auth.ts` → `InviteCode` interface，`superstart_invite_codes` localStorage key  
+> **新增於**：v1.4.0（2026-07-30）
+
+| 欄位名 | 資料型別 | 限制 | 說明 |
+|--------|----------|------|------|
+| `code` | `VARCHAR(20)` | PK, NOT NULL | 邀請碼（例：`SS-TCH-A3F7`） |
+| `role` | `ENUM` | NOT NULL | 允許註冊的角色 |
+| `church_id` | `UUID` | FK → churches.id, NULL | 指定教會（admin為NULL） |
+| `created_by` | `UUID` | FK → users.id, NULL, ON DELETE SET NULL | 產生此邀請碼的管理員 ID（管理員被刪除後置 NULL） |
+| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
+| `expires_at` | `TIMESTAMPTZ` | NOT NULL | 到期時間 |
+| `used_by` | `UUID` | FK → users.id, NULL | 使用此邀請碼註冊的帳號 ID |
+| `used_at` | `TIMESTAMPTZ` | NULL | 使用時間 |
+| `revoked` | `BOOLEAN` | NOT NULL, DEFAULT FALSE | 是否已被管理員作廢 |
+
+**設計說明**：
+- `code` 為主鍵，具唯一性
+- 透過 `role` 和 `church_id` 來鎖定使用者註冊時可獲得的權限
+- 外鍵均使用 `ON DELETE SET NULL`，避免教會或管理員被刪除時連帶刪除邀請碼歷史（詳見 Section 5.8）
+- 有效判斷：`revoked = FALSE AND used_by IS NULL AND expires_at > NOW()`
+
+**SQL DDL**：見[第 6 節](#6-sql-建表語句postgresql)（依相依順序與其他表一起建立）。
+
+---
+
+### 2.18 `social_accounts` 社群帳號綁定
+
+> **新增於**：v1.6.0（2026-08-14）  
+> **用途**：儲存使用者透過 Google / LINE OAuth2 登入後的第三方帳號綁定資料。一個使用者可以綁定多個社群平台帳號。
+
+| 欄位名 | 資料型別 | 限制 | 說明 |
+|--------|----------|------|------|
+| `id` | `UUID` | PK, DEFAULT gen_random_uuid() | 主鍵 |
+| `user_id` | `UUID` | FK → users.id, NOT NULL, ON DELETE CASCADE | 對應的使用者 |
+| `provider` | `VARCHAR(20)` | NOT NULL | 第三方平台（`google` / `line`） |
+| `provider_user_id` | `VARCHAR(255)` | NOT NULL | 第三方平台的使用者唯一 ID |
+| `email` | `VARCHAR(255)` | NULL | 從第三方取得的 email（LINE 不一定有） |
+| `display_name` | `VARCHAR(255)` | NULL | 第三方顯示名稱 |
+| `avatar_url` | `TEXT` | NULL | 第三方頭像 URL |
+| `access_token` | `TEXT` | NULL | 第三方 Access Token（加密儲存） |
+| `refresh_token` | `TEXT` | NULL | 第三方 Refresh Token（加密儲存，若有） |
+| `token_expires_at` | `TIMESTAMPTZ` | NULL | Access Token 到期時間 |
+| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 首次綁定時間 |
+| `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 最近更新時間（Token 更新時） |
+
+**Unique 約束**：
+- `UNIQUE (provider, provider_user_id)`：同一平台的使用者 ID 全域唯一（防止同帳號綁定多個本地使用者）
+- `UNIQUE (user_id, provider)`：一個使用者在同平台只能綁定一次
+
+**設計說明**：
+- `ON DELETE CASCADE`：本地使用者帳號被刪除時，自動刪除所有關聯的社群綁定記錄
+- `provider_user_id` 是從 OAuth2 Provider 取得的 `sub`（Google）或 `userId`（LINE）
+- 相同 email 的不同 provider 可自動合併到同一 `user_id`（由後端 `SocialAccountService` 處理）
+- `access_token` / `refresh_token` 建議使用 AES-256 加密後儲存，在 `application.yml` 設定密鑰
+
+**SQL DDL**：見[第 6 節](#6-sql-建表語句postgresql)（依相依順序與其他表一起建立）。
+
+---
+
+### 2.19 `parent_children` 家長綁定
+
+> **對應前端**：`auth.ts` → 家長帳號的 `childUsernames`（`bindChild()` / `unbindChild()` / `parentsOf()` / `childrenOf()`）  
+> **新增於**：v1.7.0（2026-10-30），取代 `student_assignments.parent_id`
+
+| 欄位名 | 資料型別 | 限制 | 說明 |
+|--------|----------|------|------|
+| `parent_id` | `UUID` | PK, FK → users.id, NOT NULL | 家長帳號（`role = 'parent'`） |
+| `student_id` | `UUID` | PK, FK → users.id, NOT NULL | 綁定的孩子（`role = 'student'`） |
+| `bound_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 綁定時間 |
+
+**複合主鍵**：`(parent_id, student_id)`
+
+**設計說明**：
+- 多對多：一位家長可綁定多位孩子（如兄弟姊妹），一位孩子可有多位家長（如父母各一個帳號）
+- 綁定來源：家長以邀請碼註冊時勾選、或由牧者 / 管理員設定；應用端須檢查兩個帳號的角色與教會
+- 家長只看得到綁定的孩子（見 5.10）
+- 學員或家長帳號刪除時，對應的綁定一併刪除（軟刪除時由應用端處理，見 5.12）
+
+**資料遷移**（自 v1.6.0）：
+```sql
+INSERT INTO parent_children (parent_id, student_id)
+SELECT parent_id, student_id FROM student_assignments WHERE parent_id IS NOT NULL
+ON CONFLICT DO NOTHING;
+
+ALTER TABLE student_assignments DROP COLUMN parent_id;
+```
+
+**SQL DDL**：見 [第 6 節](#6-sql-建表語句postgresql) `parent_children`。
+
+---
+
+### 2.20 `course_feedback` 心得回覆
+
+> **對應前端**：`courses.ts` → `feedbackDb`、`getFeedback()` / `addFeedback()`；`CourseFeedback` interface，`superstart_feedback_db` localStorage key  
+> **新增於**：v1.7.0
+
+| 欄位名 | 資料型別 | 限制 | 說明 |
+|--------|----------|------|------|
+| `id` | `UUID` | PK, NOT NULL | 唯一識別碼 |
+| `student_id` | `UUID` | FK → users.id, NOT NULL, ON DELETE RESTRICT | 學員 |
+| `course_id` | `VARCHAR(20)` | FK → courses.id, NOT NULL | 課程 |
+| `author_id` | `UUID` | FK → users.id, NOT NULL, ON DELETE RESTRICT | 回覆者（教師、牧者或管理員） |
+| `message` | `TEXT` | NOT NULL，不可為空白 | 回覆內容 |
+| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 回覆時間 |
+
+**設計說明**：
+- 回覆的對象是「學員在某課程的心得」，同一學員同一課程可以有多則回覆（教師、牧者都可回），依時間排序
+- 掛在課程上而不是單一 `listen_sessions` 紀錄：教師看到的是學員該課程最新的心得，學員重聽同一課程時，
+  先前的回覆仍然有意義；如未來需要對某一次聽課回覆，可再加 `listen_session_id`（可為空）
+- 誰能回覆：看得到這位學員的教師（同教會、同性別）、同教會牧者、管理員（見 5.10）；家長只能看
+- 學員在自己的課程頁看到回覆（新的在前）；教師的「學員筆記」對話框依時間列出
+- 只會新增、不修改；帳號軟刪除後回覆保留為歷史（`ON DELETE RESTRICT`）
+
+**SQL DDL**：見[第 6 節](#6-sql-建表語句postgresql)。
+
+---
+
 ## 3. 索引設計
 
 ```sql
@@ -440,7 +660,6 @@ CREATE INDEX idx_booking_sessions_status   ON booking_sessions(status);
 CREATE INDEX idx_booking_sessions_proposed ON booking_sessions(proposed_at DESC);
 
 -- booking_attendees 表 ⭐
-CREATE INDEX idx_booking_attendees_session ON booking_attendees(session_id);
 CREATE INDEX idx_booking_attendees_student ON booking_attendees(student_id);
 CREATE INDEX idx_booking_attendees_status  ON booking_attendees(attendance_status);
 
@@ -453,37 +672,80 @@ CREATE INDEX idx_invite_codes_church     ON invite_codes(church_id);
 
 ---
 
-## 4. 資料關聯圖（文字版）
+## 4. 資料關聯一覽
 
-```
-churches (1) ──────────────────────────── (N) users
-    │                                           │
-    │                                    ┌──────┴──────────┐
-    │                                    │                  │
-    (1)                               student          teacher/
-    │                                   (1)           pastor
-    └──> (N) themes                     │         （parent 見下方）
-    │                                   │               │
-    (1)                    ┌────────────┼──────────┐    │
-    │                      │            │          │    │
-    └──> (N) lecturers     │            │          │    │
-              │            ▼            ▼          ▼    ▼
-              │     listen_sessions  shining_   student_ booking_
-              │     (N 筆聽課)       projects   assign   sessions ⭐
-              └──> (N) lecturer_         │                  │
-                   courses           ┌──┴──┐          booking_
-                       │             │     │          attendees ⭐
-                       ▼           faith_ shining_       │
-                   courses        checklists lectures     ├──> student
-                                                         └──> listen_sessions
-                                                              (選填連結)
+所有外鍵依被參照的表分組。「刪除父列時」說明實體刪除被參照的資料時會發生什麼；帳號一律軟刪除
+（`users.is_active = FALSE`，見 5.12），所以 `RESTRICT` 的關聯在正常流程中不會被觸發，只是防止誤刪歷史資料。
 
-invite_codes ⭐ (created_by → users, used_by → users, church_id → churches)
-  [code 為 PK，透過 role+church_id 鎖定可註冊的角色與教會]
+> 此表由第 6 節建表語句在 PostgreSQL 16 實際建立後，從 `pg_constraint` 查出整理而成。
 
-parent_children ⭐ (parent_id → users, student_id → users)
-  [家長 N ── M 學員；家長只看得到綁定的孩子]
-```
+**churches**
+
+| 子表.欄位 | 刪除父列時 |
+|-----------|------------|
+| `users.church_id` | `SET NULL`：設為 NULL（保留子列） |
+| `lecturers.church_id` | `SET NULL`：設為 NULL（保留子列） |
+| `themes.church_id` | `CASCADE`：一起刪除 |
+| `booking_sessions.church_id` | `SET NULL`：設為 NULL（保留子列） |
+| `invite_codes.church_id` | `SET NULL`：設為 NULL（保留子列） |
+
+**users**
+
+| 子表.欄位 | 刪除父列時 |
+|-----------|------------|
+| `lecturers.linked_user_id` | `SET NULL`：設為 NULL（保留子列） |
+| `listen_sessions.student_id` | `RESTRICT`：禁止刪除（保留為歷史） |
+| `student_assignments.pastor_id` | `SET NULL`：設為 NULL（保留子列） |
+| `student_assignments.student_id` | `CASCADE`：一起刪除 |
+| `student_assignments.teacher_id` | `SET NULL`：設為 NULL（保留子列） |
+| `parent_children.parent_id` | `CASCADE`：一起刪除 |
+| `parent_children.student_id` | `CASCADE`：一起刪除 |
+| `shining_projects.student_id` | `CASCADE`：一起刪除 |
+| `page_restrictions.user_id` | `CASCADE`：一起刪除 |
+| `refresh_tokens.user_id` | `CASCADE`：一起刪除 |
+| `teaching_stats.teacher_id` | `RESTRICT`：禁止刪除（保留為歷史） |
+| `booking_sessions.teacher_id` | `RESTRICT`：禁止刪除（保留為歷史） |
+| `booking_attendees.student_id` | `RESTRICT`：禁止刪除（保留為歷史） |
+| `invite_codes.created_by` | `SET NULL`：設為 NULL（保留子列） |
+| `invite_codes.used_by` | `SET NULL`：設為 NULL（保留子列） |
+| `social_accounts.user_id` | `CASCADE`：一起刪除 |
+| `course_feedback.author_id` | `RESTRICT`：禁止刪除（保留為歷史） |
+| `course_feedback.student_id` | `RESTRICT`：禁止刪除（保留為歷史） |
+
+**courses**
+
+| 子表.欄位 | 刪除父列時 |
+|-----------|------------|
+| `lecturer_courses.course_id` | `CASCADE`：一起刪除 |
+| `listen_sessions.course_id` | `NO ACTION`：禁止刪除（課程不應刪除） |
+| `booking_sessions.course_id` | `SET NULL`：設為 NULL（保留子列） |
+| `course_feedback.course_id` | `NO ACTION`：禁止刪除（課程不應刪除） |
+
+**lecturers**
+
+| 子表.欄位 | 刪除父列時 |
+|-----------|------------|
+| `lecturer_courses.lecturer_id` | `CASCADE`：一起刪除 |
+| `booking_sessions.lecturer_id` | `SET NULL`：設為 NULL（保留子列） |
+
+**listen_sessions**
+
+| 子表.欄位 | 刪除父列時 |
+|-----------|------------|
+| `booking_attendees.linked_listen_session_id` | `SET NULL`：設為 NULL（保留子列） |
+
+**booking_sessions**
+
+| 子表.欄位 | 刪除父列時 |
+|-----------|------------|
+| `booking_attendees.session_id` | `CASCADE`：一起刪除 |
+
+**shining_projects**
+
+| 子表.欄位 | 刪除父列時 |
+|-----------|------------|
+| `shining_faith_checklists.shining_project_id` | `CASCADE`：一起刪除 |
+| `shining_lectures.shining_project_id` | `CASCADE`：一起刪除 |
 
 ---
 
@@ -531,14 +793,14 @@ WHERE student_id = $1
 -- 若 completed_count >= 30，則 courses30 = true
 ```
 
-### 5.6 Booking System 的冠餘資料為何負載講師/課程名稱？
+### 5.6 預約為何冗餘儲存講師與課程名稱？
 
 `booking_sessions` 表同時儲存 `lecturer_id`（FK）及 `lecturer_name`（文字）。
 
 **原因**：
 - 講師進行了安排後，若將來講師資料被刪除或改名，歷史預約紀錄仍需可讀
 - `lecturer_id` 供系統查詢關聯用，設為 `ON DELETE SET NULL`
-- `course_title` 同理：課程被冊除後預約紀錄仍需可讀
+- `course_title` 同理：課程被刪除後預約紀錄仍需可讀
 
 ### 5.7 `booking_attendees` 為何不冗餘儲存學員帳號？
 
@@ -646,6 +908,26 @@ FROM booking_sessions bs
 WHERE bs.church_id = :pastor_church_id
 ORDER BY COALESCE(bs.confirmed_at, bs.proposed_at) DESC;
 ```
+
+### 5.14 時間與時區
+
+時間分兩種，處理方式不同：
+
+| 種類 | 欄位 | 意義 | 前端格式 | 後端處理 |
+|------|------|------|----------|----------|
+| 牆上時間（使用者選的時間） | `listen_sessions.listened_at`、`booking_sessions.proposed_at` / `confirmed_at` | 「台灣時間幾點」 | `YYYY-MM-DDTHH:mm`，**不帶時區**（`<input type="datetime-local">`） | 一律以 `Asia/Taipei` 解讀後存成 `TIMESTAMPTZ`；回傳時再轉回同樣格式 |
+| 系統時間戳記 | `created_at`、`updated_at`、`submitted_at`、`last_login_at`、`feedback_at` 等 | 事件發生的時刻 | ISO 8601（UTC，`...Z`） | 直接存 `TIMESTAMPTZ`，原樣回傳 ISO 8601 |
+
+```sql
+-- 寫入：前端的 '2026-10-28T14:30' 代表台灣時間 14:30
+INSERT INTO booking_sessions (..., proposed_at) VALUES (..., '2026-10-28T14:30'::timestamp AT TIME ZONE 'Asia/Taipei');
+-- 讀出：轉回不帶時區的台灣時間
+SELECT to_char(proposed_at AT TIME ZONE 'Asia/Taipei', 'YYYY-MM-DD"T"HH24:MI') AS proposed_at FROM booking_sessions;
+```
+
+- 不可把牆上時間當成 UTC（會差 8 小時），也不要依伺服器所在時區解讀（雲端主機多半是 UTC）
+- 目前所有教會都在台灣，所以固定 `Asia/Taipei`；若未來有其他時區的教會，再在 `churches` 加 `time_zone` 欄位
+- 前端相關工具：`src/utils/datetime.ts`（`toLocalDateTimeInput()` 產生牆上時間、`nowIso()` 產生系統時間戳記）
 
 ---
 
@@ -908,7 +1190,7 @@ CREATE INDEX idx_teaching_stats_teacher ON teaching_stats(teacher_id);
 --  15. booking_sessions（預約場次，見 2.15）
 -- ═══════════════════════════════════════════════════
 CREATE TABLE booking_sessions (
-  id                    VARCHAR(64)  PRIMARY KEY,
+  id                    UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
   teacher_id            UUID         NOT NULL REFERENCES users(id) ON DELETE RESTRICT, -- 帳號軟刪除，預約保留為歷史
   church_id             UUID         REFERENCES churches(id) ON DELETE SET NULL,
   course_id             VARCHAR(20)  REFERENCES courses(id) ON DELETE SET NULL,
@@ -941,8 +1223,7 @@ CREATE INDEX idx_booking_sessions_proposed ON booking_sessions(proposed_at DESC)
 --  16. booking_attendees（場次學員，見 2.16）
 -- ═══════════════════════════════════════════════════
 CREATE TABLE booking_attendees (
-  id                       VARCHAR(128) PRIMARY KEY,
-  session_id               VARCHAR(64)  NOT NULL REFERENCES booking_sessions(id) ON DELETE CASCADE,
+  session_id               UUID         NOT NULL REFERENCES booking_sessions(id) ON DELETE CASCADE,
   student_id               UUID         NOT NULL REFERENCES users(id) ON DELETE RESTRICT, -- 出席紀錄保留為歷史
   attendance_status        VARCHAR(20)  NOT NULL DEFAULT 'invited'
                              CHECK (attendance_status IN ('invited','attended','absent')),
@@ -953,10 +1234,10 @@ CREATE TABLE booking_attendees (
   created_at               TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
   updated_at               TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
 
-  CONSTRAINT uq_booking_attendees_session_student UNIQUE (session_id, student_id)
+  -- 一場預約裡每位學員一筆：直接以 (場次, 學員) 當主鍵，主鍵也涵蓋依場次查詢
+  PRIMARY KEY (session_id, student_id)
 );
 
-CREATE INDEX idx_booking_attendees_session ON booking_attendees(session_id);
 CREATE INDEX idx_booking_attendees_student ON booking_attendees(student_id);
 CREATE INDEX idx_booking_attendees_status  ON booking_attendees(attendance_status);
 
@@ -1101,10 +1382,6 @@ INSERT INTO users (username, password_hash, role, church_id, display_name, gende
 INSERT INTO parent_children (parent_id, student_id)
 SELECT p.id, s.id FROM users p, users s WHERE p.username = 'parent' AND s.username = 'student';
 ```
-
----
-
-*本文件由前端分析自動生成，後端工程師可直接參考此 SQL 進行資料庫建置。如有結構調整需求，請同步更新 `backend_api_spec.md` 文件。*
 
 ---
 
@@ -1314,7 +1591,7 @@ erDiagram
   %% ════════════════════════════════════
 
   booking_sessions {
-    VARCHAR     id                      PK  "sess_${timestamp}"
+    UUID        id                      PK
     UUID        teacher_id              FK  "-> users.id RESTRICT"
     UUID        church_id               FK  "-> churches.id SET NULL"
     VARCHAR     course_id               FK  "-> courses.id SET NULL"
@@ -1337,9 +1614,8 @@ erDiagram
   }
 
   booking_attendees {
-    VARCHAR     id                       PK  "att_${sessionId}_${username}"
-    VARCHAR     session_id               FK  "-> booking_sessions.id CASCADE"
-    UUID        student_id               FK  "-> users.id CASCADE"
+    UUID        session_id               PK,FK "-> booking_sessions.id CASCADE"
+    UUID        student_id               PK,FK "-> users.id RESTRICT"
     VARCHAR     attendance_status           "invited/attended/absent"
     TEXT        student_feedback
     TEXT        teacher_feedback
@@ -1441,225 +1717,4 @@ erDiagram
 
 ---
 
-### 2.14 `teaching_stats` 年度教學統計
-
-> **對應前端**：`courses.ts` → `TeachingStats` interface，`superstart_teaching_stats_db` localStorage key
-
-| 欄位名 | 資料型別 | 限制 | 說明 |
-|--------|----------|------|------|
-| `id` | `UUID` | PK, NOT NULL | 系統唯一識別碼 |
-| `teacher_id` | `UUID` | FK → users.id, NOT NULL, ON DELETE RESTRICT | 教師帳號（role = teacher）；帳號軟刪除，統計保留為歷史 |
-| `year` | `SMALLINT` | NOT NULL, CHECK >= 2020 | 統計年度（如 2025） |
-| `one_on_one_30` | `INTEGER` | NOT NULL, DEFAULT 0, CHECK >= 0 | 1對1 講「三十個論」人次 |
-| `one_to_many_30` | `INTEGER` | NOT NULL, DEFAULT 0, CHECK >= 0 | 1對多 講「三十個論」人次 |
-| `one_on_one_shining` | `INTEGER` | NOT NULL, DEFAULT 0, CHECK >= 0 | 1對1 講「閃耀計畫課程」人次 |
-| `one_to_many_shining` | `INTEGER` | NOT NULL, DEFAULT 0, CHECK >= 0 | 1對多 講「閃耀計畫課程」人次 |
-| `submitted_at` | `TIMESTAMPTZ` | NULL | 最後申報/更新時間 |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
-| `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 最後更新時間 |
-
-**設計說明**：
-- `(teacher_id, year)` 為複合唯一鍵，保證每位教師每年度僅一筆紀錄
-- 人次對應前端計算規則：一次對多人講義以「人次」計（如一次對3人 = 3人次）
-- 可由後端提供查詢橫醵：`GROUP BY year` 提供跨教會年度比較
-
-**SQL DDL**：見[第 6 節](#6-sql-建表語句postgresql)（依相依順序與其他表一起建立）。
-
----
-
-### 2.15 `booking_sessions` 預約場次 ⭐
-
-> **對應前端**：`bookings.ts` → `BookingSession` interface，`superstart_booking_sessions_db` localStorage key  
-> **新增於**：v1.3.0（2026-06-30）
-
-| 欄位名 | 資料型別 | 限制 | 說明 |
-|--------|----------|------|------|
-| `id` | `VARCHAR(64)` | PK, NOT NULL | 前端格式：`sess_${Date.now()}` |
-| `teacher_id` | `UUID` | FK → users.id, NOT NULL, ON DELETE RESTRICT | 建立並管理預約的輔導教師 |
-| `church_id` | `UUID` | FK → churches.id, NULL | 場次所屬教會 |
-| `course_id` | `VARCHAR(20)` | FK → courses.id, NULL | 對應課程（與 courses.id 同型別） |
-| `course_title` | `VARCHAR(200)` | NOT NULL | 課程名稱（冗餘儲存，保留歷史） |
-| `lecturer_id` | `UUID` | FK → lecturers.id, NULL | 對應講師（連結帳號的講師可在「我的授課」看到此預約，見 5.11） |
-| `lecturer_name` | `VARCHAR(100)` | NOT NULL | 講師姓名（冗餘儲存） |
-| `lecturer_title` | `VARCHAR(50)` | NOT NULL, DEFAULT '' | 講師稱謂（如「牧師」） |
-| `proposed_at` | `TIMESTAMPTZ` | NOT NULL | 教師提議的時間 |
-| `confirmed_at` | `TIMESTAMPTZ` | NULL | 最終確認的時間（雙方同意後填入） |
-| `duration_minutes` | `SMALLINT` | NULL, CHECK >= 1 | 預計課程時長（分鐘） |
-| `status` | `VARCHAR(20)` | NOT NULL, DEFAULT 'pending' | `pending / confirmed / completed / cancelled` |
-| `cancel_reason` | `TEXT` | NULL | 取消原因（status = cancelled 時填入） |
-| `teacher_session_notes` | `TEXT` | NULL | 教師整場備注（完成後填寫） |
-| `is_group_session` | `BOOLEAN` | NOT NULL, DEFAULT FALSE | 是否為團體聽課 |
-| `prep_scriptures` | `TEXT[]` | NOT NULL, DEFAULT '{}' | 預習經文列表（PostgreSQL 陣列） |
-| `prep_reading_notes` | `TEXT` | NULL | 預習說明 |
-| `prep_materials` | `TEXT` | NULL | 補充材料說明 |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
-| `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 最後更新時間 |
-
-**狀態機**：
-```
-pending ──confirm──> confirmed ──complete──> completed
-  │                      │
-  └──cancel──────────────┴──cancel──> cancelled
-```
-
-**設計說明**：
-- `course_title`、`lecturer_name`、`lecturer_title` 冗餘儲存，避免講師/課程被刪除後歷史資料遺失
-- `prep_scriptures` 使用 PostgreSQL 原生陣列型別；MySQL 替代方案可改用 JSON 欄位
-- 建議後端在 `status = completed` 時自動 trigger 同步至 `listen_sessions`（若需要）
-- 誰能看、誰能改：安排的教師管理整筆預約，但只看得到同性別的學員；連結帳號的講師看得到全部學員
-  並可記錄出席（見 5.10、5.11）
-- 刪除教師帳號或變更其角色時，`pending` / `confirmed` 的預約改為 `cancelled` 並附原因（見 5.12）
-
-**SQL DDL**：見[第 6 節](#6-sql-建表語句postgresql)（依相依順序與其他表一起建立）。
-
----
-
-### 2.16 `booking_attendees` 場次學員 ⭐
-
-> **對應前端**：`bookings.ts` → `BookingAttendee` interface，`superstart_booking_attendees_db` localStorage key  
-> **新增於**：v1.3.0（2026-06-30）
-
-| 欄位名 | 資料型別 | 限制 | 說明 |
-|--------|----------|------|------|
-| `id` | `VARCHAR(128)` | PK, NOT NULL | 前端格式：`att_${sessionId}_${studentUsername}` |
-| `session_id` | `VARCHAR(64)` | FK → booking_sessions.id, NOT NULL | 所屬預約場次 |
-| `student_id` | `UUID` | FK → users.id, NOT NULL, ON DELETE RESTRICT | 受邀學員；帳號軟刪除，出席紀錄保留 |
-| `attendance_status` | `VARCHAR(20)` | NOT NULL, DEFAULT 'invited' | `invited / attended / absent` |
-| `student_feedback` | `TEXT` | NULL | 學員課後心得（由學員自行填寫） |
-| `teacher_feedback` | `TEXT` | NULL | 教師對該學員的個別回饋 |
-| `feedback_at` | `TIMESTAMPTZ` | NULL | 回饋最後更新時間 |
-| `linked_listen_session_id` | `UUID` | FK → listen_sessions.id, NULL | 手動連結至聽課進度紀錄 |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
-| `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 最後更新時間 |
-
-**設計說明**：
-- `(session_id, student_id)` 為複合唯一鍵，確保同一場次同一學員只有一筆
-- `attendance_status` 由教師在場次完成後填寫，預設 `invited`
-- `student_feedback` 由學員自行從學員端填寫
-- `linked_listen_session_id` 為選填，允許手動關聯到已存在的 `listen_sessions` 紀錄
-- 不另存學員帳號：帳號是永不變的識別碼，需要時由 `student_id` JOIN `users` 取得（見 5.7）
-
-**SQL DDL**：見[第 6 節](#6-sql-建表語句postgresql)（依相依順序與其他表一起建立）。
-
----
-
-### 2.17 `invite_codes` 邀請碼 ⭐
-
-> **對應前端**：`auth.ts` → `InviteCode` interface，`superstart_invite_codes` localStorage key  
-> **新增於**：v1.4.0（2026-07-30）
-
-| 欄位名 | 資料型別 | 限制 | 說明 |
-|--------|----------|------|------|
-| `code` | `VARCHAR(20)` | PK, NOT NULL | 邀請碼（例：`SS-TCH-A3F7`） |
-| `role` | `ENUM` | NOT NULL | 允許註冊的角色 |
-| `church_id` | `UUID` | FK → churches.id, NULL | 指定教會（admin為NULL） |
-| `created_by` | `UUID` | FK → users.id, NULL, ON DELETE SET NULL | 產生此邀請碼的管理員 ID（管理員被刪除後置 NULL） |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
-| `expires_at` | `TIMESTAMPTZ` | NOT NULL | 到期時間 |
-| `used_by` | `UUID` | FK → users.id, NULL | 使用此邀請碼註冊的帳號 ID |
-| `used_at` | `TIMESTAMPTZ` | NULL | 使用時間 |
-| `revoked` | `BOOLEAN` | NOT NULL, DEFAULT FALSE | 是否已被管理員作廢 |
-
-**設計說明**：
-- `code` 為主鍵，具唯一性
-- 透過 `role` 和 `church_id` 來鎖定使用者註冊時可獲得的權限
-- 外鍵均使用 `ON DELETE SET NULL`，避免教會或管理員被刪除時連帶刪除邀請碼歷史（詳見 Section 5.8）
-- 有效判斷：`revoked = FALSE AND used_by IS NULL AND expires_at > NOW()`
-
-**SQL DDL**：見[第 6 節](#6-sql-建表語句postgresql)（依相依順序與其他表一起建立）。
-
----
-
-### 2.18 `social_accounts` 社群帳號綁定 ⭐ NEW
-
-> **新增於**：v1.6.0（2026-08-14）  
-> **用途**：儲存使用者透過 Google / LINE OAuth2 登入後的第三方帳號綁定資料。一個使用者可以綁定多個社群平台帳號。
-
-| 欄位名 | 資料型別 | 限制 | 說明 |
-|--------|----------|------|------|
-| `id` | `UUID` | PK, DEFAULT gen_random_uuid() | 主鍵 |
-| `user_id` | `UUID` | FK → users.id, NOT NULL, ON DELETE CASCADE | 對應的使用者 |
-| `provider` | `VARCHAR(20)` | NOT NULL | 第三方平台（`google` / `line`） |
-| `provider_user_id` | `VARCHAR(255)` | NOT NULL | 第三方平台的使用者唯一 ID |
-| `email` | `VARCHAR(255)` | NULL | 從第三方取得的 email（LINE 不一定有） |
-| `display_name` | `VARCHAR(255)` | NULL | 第三方顯示名稱 |
-| `avatar_url` | `TEXT` | NULL | 第三方頭像 URL |
-| `access_token` | `TEXT` | NULL | 第三方 Access Token（加密儲存） |
-| `refresh_token` | `TEXT` | NULL | 第三方 Refresh Token（加密儲存，若有） |
-| `token_expires_at` | `TIMESTAMPTZ` | NULL | Access Token 到期時間 |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 首次綁定時間 |
-| `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 最近更新時間（Token 更新時） |
-
-**Unique 約束**：
-- `UNIQUE (provider, provider_user_id)`：同一平台的使用者 ID 全域唯一（防止同帳號綁定多個本地使用者）
-- `UNIQUE (user_id, provider)`：一個使用者在同平台只能綁定一次
-
-**設計說明**：
-- `ON DELETE CASCADE`：本地使用者帳號被刪除時，自動刪除所有關聯的社群綁定記錄
-- `provider_user_id` 是從 OAuth2 Provider 取得的 `sub`（Google）或 `userId`（LINE）
-- 相同 email 的不同 provider 可自動合併到同一 `user_id`（由後端 `SocialAccountService` 處理）
-- `access_token` / `refresh_token` 建議使用 AES-256 加密後儲存，在 `application.yml` 設定密鑰
-
-**SQL DDL**：見[第 6 節](#6-sql-建表語句postgresql)（依相依順序與其他表一起建立）。
-
----
-
 *本文件由前端分析自動生成，後端工程師可直接參考此 SQL 進行資料庫建置。如有結構調整需求，請同步更新 `backend_api_spec.md` 文件。*
-
----
-
-### 2.19 `parent_children` 家長綁定
-
-> **對應前端**：`auth.ts` → 家長帳號的 `childUsernames`（`bindChild()` / `unbindChild()` / `parentsOf()` / `childrenOf()`）  
-> **新增於**：v1.7.0（2026-10-30），取代 `student_assignments.parent_id`
-
-| 欄位名 | 資料型別 | 限制 | 說明 |
-|--------|----------|------|------|
-| `parent_id` | `UUID` | PK, FK → users.id, NOT NULL | 家長帳號（`role = 'parent'`） |
-| `student_id` | `UUID` | PK, FK → users.id, NOT NULL | 綁定的孩子（`role = 'student'`） |
-| `bound_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 綁定時間 |
-
-**複合主鍵**：`(parent_id, student_id)`
-
-**設計說明**：
-- 多對多：一位家長可綁定多位孩子（如兄弟姊妹），一位孩子可有多位家長（如父母各一個帳號）
-- 綁定來源：家長以邀請碼註冊時勾選、或由牧者 / 管理員設定；應用端須檢查兩個帳號的角色與教會
-- 家長只看得到綁定的孩子（見 5.10）
-- 學員或家長帳號刪除時，對應的綁定一併刪除（軟刪除時由應用端處理，見 5.12）
-
-**資料遷移**（自 v1.6.0）：
-```sql
-INSERT INTO parent_children (parent_id, student_id)
-SELECT parent_id, student_id FROM student_assignments WHERE parent_id IS NOT NULL
-ON CONFLICT DO NOTHING;
-
-ALTER TABLE student_assignments DROP COLUMN parent_id;
-```
-
-**SQL DDL**：見 [第 6 節](#6-sql-建表語句postgresql) `parent_children`。
-
----
-
-### 2.20 `course_feedback` 心得回覆
-
-> **對應前端**：`courses.ts` → `feedbackDb`、`getFeedback()` / `addFeedback()`；`CourseFeedback` interface，`superstart_feedback_db` localStorage key  
-> **新增於**：v1.7.0
-
-| 欄位名 | 資料型別 | 限制 | 說明 |
-|--------|----------|------|------|
-| `id` | `UUID` | PK, NOT NULL | 唯一識別碼 |
-| `student_id` | `UUID` | FK → users.id, NOT NULL, ON DELETE RESTRICT | 學員 |
-| `course_id` | `VARCHAR(20)` | FK → courses.id, NOT NULL | 課程 |
-| `author_id` | `UUID` | FK → users.id, NOT NULL, ON DELETE RESTRICT | 回覆者（教師、牧者或管理員） |
-| `message` | `TEXT` | NOT NULL，不可為空白 | 回覆內容 |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 回覆時間 |
-
-**設計說明**：
-- 回覆的對象是「學員在某課程的心得」，同一學員同一課程可以有多則回覆（教師、牧者都可回），依時間排序
-- 掛在課程上而不是單一 `listen_sessions` 紀錄：教師看到的是學員該課程最新的心得，學員重聽同一課程時，
-  先前的回覆仍然有意義；如未來需要對某一次聽課回覆，可再加 `listen_session_id`（可為空）
-- 誰能回覆：看得到這位學員的教師（同教會、同性別）、同教會牧者、管理員（見 5.10）；家長只能看
-- 學員在自己的課程頁看到回覆（新的在前）；教師的「學員筆記」對話框依時間列出
-- 只會新增、不修改；帳號軟刪除後回覆保留為歷史（`ON DELETE RESTRICT`）
-
-**SQL DDL**：見[第 6 節](#6-sql-建表語句postgresql)。
