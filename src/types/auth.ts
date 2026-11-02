@@ -34,6 +34,7 @@ export interface User {
   needsOnboarding?: boolean // 首次社群登入，尚未完成 onboarding 流程
   lastLoginAt?: string // 上次登入時間
   gender?: Gender // 性別（教師與學員；由牧者設定）
+  mustChangePassword?: boolean // 管理員建立或重設密碼後，下次登入須先改密碼
 }
 
 /** 邀請碼 */

@@ -51,7 +51,28 @@
         type="text"
         class="form-input"
         :placeholder="$t('auth.register.usernamePlaceholder')"
+        autocomplete="username"
+        aria-describedby="reg-username-hint"
         required
+      />
+      <p id="reg-username-hint" class="field-hint-inline">
+        {{ $t('account.usernameHint', { min: USERNAME_MIN, max: USERNAME_MAX }) }}
+      </p>
+    </div>
+
+    <!-- Email (optional) -->
+    <div class="form-group">
+      <label class="form-label" for="reg-email">
+        {{ $t('account.email') }}
+        <span class="field-hint-inline">{{ $t('account.optional') }}</span>
+      </label>
+      <input
+        id="reg-email"
+        v-model="registerForm.email"
+        type="email"
+        class="form-input"
+        autocomplete="email"
+        :placeholder="$t('account.emailPlaceholder')"
       />
     </div>
 
@@ -186,6 +207,7 @@ import { useAuthStore, CHURCHES } from '@/stores/auth'
 import type { UserRole, InviteCode } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
 import ChildPicker from '@/components/auth/ChildPicker.vue'
+import { USERNAME_MIN, USERNAME_MAX } from '@/utils/account'
 import { useI18nHelper } from '@/composables/useI18nHelper'
 import { usePasswordStrength } from '@/composables/usePasswordStrength'
 import { DEFAULT_CHURCH } from '@/types/auth'
@@ -228,6 +250,7 @@ function onInviteCodeInput() {
 
 const registerForm = reactive({
   username: '',
+  email: '',
   password: '',
   role: 'student' as UserRole,
   church: DEFAULT_CHURCH,
@@ -288,11 +311,13 @@ function handleRegister() {
     registerForm.password,
     role,
     role !== 'admin' ? church : undefined,
-    role === 'parent' ? registerForm.childUsernames : undefined
+    role === 'parent' ? registerForm.childUsernames : undefined,
+    registerForm.email
   )
   if (result.success) {
-    if (validatedInvite.value) {
-      authStore.consumeInviteCode(validatedInvite.value.code, registerForm.username)
+    if (validatedInvite.value && authStore.currentUser) {
+      // The username as stored (trimmed, lower-case), not as typed
+      authStore.consumeInviteCode(validatedInvite.value.code, authStore.currentUser.username)
     }
     toast(result.message, 'success')
     setTimeout(() => {

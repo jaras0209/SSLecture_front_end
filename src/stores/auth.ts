@@ -17,6 +17,14 @@ export { CHURCHES, DEFAULT_RESET_PASSWORD } from '@/types/auth'
 import type { UserRole, User, InviteCode, Gender, LoginMethod } from '@/types/auth'
 import { DEFAULT_RESET_PASSWORD, DEFAULT_CHURCH, GENDERED_ROLES } from '@/types/auth'
 import { defaultAvatarUrl } from '@/utils/avatar'
+import {
+  normalizeUsername,
+  normalizeEmail,
+  usernameProblem,
+  isValidEmail,
+  USERNAME_MIN,
+  USERNAME_MAX
+} from '@/utils/account'
 
 /** 邀請碼前綴（用於產生易讀的邀請碼） */
 const ROLE_CODE_PREFIX: Record<UserRole, string> = {
@@ -52,7 +60,10 @@ export const useAuthStore = defineStore('auth', () => {
         gender?: Gender
         /** How the account signs in; missing means a password ('credentials') */
         loginMethod?: LoginMethod
+        /** Optional; can be used to sign in; unique (case-insensitive) */
         email?: string
+        /** Set by an admin (new account or password reset): change it at next sign-in */
+        mustChangePassword?: boolean
       }
     >
   >({
@@ -150,7 +161,12 @@ export const useAuthStore = defineStore('auth', () => {
       church: user.church,
       displayName: existing?.displayName ?? user.displayName,
       avatarUrl: existing?.avatarUrl ?? user.avatarUrl,
-      email: existing?.email ?? user.email,
+      // Keep the provider's email unless another account already uses it
+      email:
+        existing?.email ??
+        (user.email && !emailOwner(user.email, user.username)
+          ? normalizeEmail(user.email)
+          : undefined),
       loginMethod: user.loginMethod,
       lastLoginAt: user.lastLoginAt ?? existing?.lastLoginAt
     }
@@ -175,8 +191,51 @@ export const useAuthStore = defineStore('auth', () => {
 
   persistToStorage(inviteCodesDb, 'superstart_invite_codes')
 
+  // ── Account names and emails ─────────────────────────────────────────────
+  // Rules in src/utils/account.ts. Names and emails compare case-insensitively; usernames
+  // stored before the rules existed (possibly with capitals) keep working.
+
+  /** The account a username or email signs in to */
+  function findUsername(identifier: string): string | undefined {
+    const raw = identifier.trim()
+    if (usersDb.value[raw]) return raw
+    const wanted = raw.toLowerCase()
+    return Object.keys(usersDb.value).find((u) => u.toLowerCase() === wanted) ?? emailOwner(wanted)
+  }
+
+  /** Whether `username` is taken by an account other than `except` */
+  function isUsernameTaken(username: string, except?: string): boolean {
+    const wanted = username.toLowerCase()
+    return Object.keys(usersDb.value).some((u) => u !== except && u.toLowerCase() === wanted)
+  }
+
+  /** The account using `email`, other than `except` */
+  function emailOwner(email: string, except?: string): string | undefined {
+    const wanted = normalizeEmail(email)
+    return Object.keys(usersDb.value).find(
+      (u) => u !== except && normalizeEmail(usersDb.value[u].email ?? '') === wanted
+    )
+  }
+
+  /** Why a new username can't be used (translated); undefined if it can */
+  function usernameError(username: string, except?: string): string | undefined {
+    const problem = usernameProblem(username)
+    if (problem) return t(problem, { min: USERNAME_MIN, max: USERNAME_MAX })
+    if (isUsernameTaken(username, except)) return t('stores.auth.usernameTaken')
+    return undefined
+  }
+
+  /** Why an (optional) email can't be used (translated); undefined if it can */
+  function emailError(email: string, except?: string): string | undefined {
+    if (!email) return undefined
+    if (!isValidEmail(email)) return t('account.emailInvalid')
+    if (emailOwner(email, except)) return t('account.emailTaken')
+    return undefined
+  }
+
   // Actions
-  function login(username: string, passwordHash: string): { success: boolean; message: string } {
+  function login(identifier: string, passwordHash: string): { success: boolean; message: string } {
+    const username = findUsername(identifier) ?? ''
     const user = usersDb.value[username]
     if (!user) {
       return { success: false, message: t('stores.auth.accountNotFound') }
@@ -202,27 +261,32 @@ export const useAuthStore = defineStore('auth', () => {
       childUsernames: user.childUsernames,
       displayName: user.displayName,
       realName: user.realName,
-      lastLoginAt: now
+      email: user.email,
+      lastLoginAt: now,
+      mustChangePassword: user.mustChangePassword || undefined
     }
     return { success: true, message: t('stores.auth.loginSuccess') }
   }
 
   function register(
-    username: string,
+    rawUsername: string,
     passwordHash: string,
     role: UserRole,
     church?: string,
-    childUsernames?: string[]
+    childUsernames?: string[],
+    rawEmail = ''
   ): { success: boolean; message: string } {
-    if (usersDb.value[username]) {
-      return { success: false, message: t('stores.auth.usernameTaken') }
-    }
+    const username = normalizeUsername(rawUsername)
+    const email = normalizeEmail(rawEmail)
+    const error = usernameError(username) ?? emailError(email)
+    if (error) return { success: false, message: error }
 
     usersDb.value[username] = {
       passwordHash,
       role,
       church: role === 'admin' ? undefined : church || DEFAULT_CHURCH,
-      childUsernames: role === 'parent' ? childUsernames || [] : undefined
+      childUsernames: role === 'parent' ? childUsernames || [] : undefined,
+      email: email || undefined
     }
 
     currentUser.value = {
@@ -231,9 +295,35 @@ export const useAuthStore = defineStore('auth', () => {
       loginMethod: 'credentials',
       avatarUrl: defaultAvatarUrl(username),
       church: role === 'admin' ? undefined : church || DEFAULT_CHURCH,
-      childUsernames: role === 'parent' ? childUsernames || [] : undefined
+      childUsernames: role === 'parent' ? childUsernames || [] : undefined,
+      email: email || undefined
     }
     return { success: true, message: t('stores.auth.registerSuccess') }
+  }
+
+  /**
+   * Admin-only: create an account with a first password the person must change when they
+   * first sign in (so an admin never knows a password in use).
+   */
+  function createAccount(account: {
+    username: string
+    password: string
+    role: UserRole
+    church?: string
+    email?: string
+  }): { success: boolean; message: string; username?: string } {
+    const username = normalizeUsername(account.username)
+    const email = normalizeEmail(account.email ?? '')
+    const error = usernameError(username) ?? emailError(email)
+    if (error) return { success: false, message: error }
+    usersDb.value[username] = {
+      passwordHash: account.password,
+      role: account.role,
+      church: account.role !== 'admin' ? account.church || DEFAULT_CHURCH : undefined,
+      email: email || undefined,
+      mustChangePassword: true
+    }
+    return { success: true, message: '', username }
   }
 
   /**
@@ -315,9 +405,10 @@ export const useAuthStore = defineStore('auth', () => {
     // === 開發期 mock（後端就緒後移除）===
     console.warn('[AUTH] completeProfile: Using dev mock — 後端就緒後請替換為真實 API 呼叫')
     if (!currentUser.value) return { success: false, message: t('stores.auth.notLoggedIn') }
-    const wanted = payload.username?.trim()
-    if (wanted && wanted !== currentUser.value.username && usersDb.value[wanted]) {
-      return { success: false, message: t('stores.auth.usernameTaken') }
+    const wanted = payload.username ? normalizeUsername(payload.username) : ''
+    if (wanted && wanted !== currentUser.value.username) {
+      const error = usernameError(wanted, currentUser.value.username)
+      if (error) return { success: false, message: error }
     }
     if (payload.inviteCode) {
       const invite = validateInviteCode(payload.inviteCode)
@@ -368,6 +459,10 @@ export const useAuthStore = defineStore('auth', () => {
       return { success: false, message: t('stores.auth.wrongOldPassword') }
     }
     user.passwordHash = newPasswordHash
+    delete user.mustChangePassword
+    if (currentUser.value?.username === username && currentUser.value.mustChangePassword) {
+      currentUser.value = { ...currentUser.value, mustChangePassword: undefined }
+    }
     return { success: true, message: t('stores.auth.passwordChanged') }
   }
 
@@ -381,6 +476,8 @@ export const useAuthStore = defineStore('auth', () => {
       return { success: false, message: t('stores.auth.accountNotFoundShort') }
     }
     user.passwordHash = DEFAULT_RESET_PASSWORD
+    // The default password is known to others: it must be replaced at the next sign-in
+    user.mustChangePassword = true
     return { success: true, message: t('stores.auth.passwordReset', { username }) }
   }
 
@@ -390,11 +487,17 @@ export const useAuthStore = defineStore('auth', () => {
    */
   function updateProfile(
     username: string,
-    patch: { displayName?: string; realName?: string; avatarUrl?: string }
+    patch: { displayName?: string; realName?: string; avatarUrl?: string; email?: string }
   ): { success: boolean; message: string } {
     const dbUser = usersDb.value[username]
     if (!dbUser) {
       return { success: false, message: t('stores.auth.accountNotFoundShort') }
+    }
+    if (patch.email !== undefined) {
+      const email = normalizeEmail(patch.email)
+      const error = emailError(email, username)
+      if (error) return { success: false, message: error }
+      dbUser.email = email || undefined
     }
     if (patch.displayName !== undefined) {
       dbUser.displayName = patch.displayName.trim() || undefined
@@ -411,6 +514,7 @@ export const useAuthStore = defineStore('auth', () => {
         ...currentUser.value,
         displayName: dbUser.displayName,
         realName: dbUser.realName,
+        email: dbUser.email,
         avatarUrl: dbUser.avatarUrl || currentUser.value.avatarUrl
       }
     }
@@ -569,6 +673,12 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   return {
+    findUsername,
+    isUsernameTaken,
+    emailOwner,
+    usernameError,
+    emailError,
+    createAccount,
     hasGender,
     setGender,
     displayNameOf,

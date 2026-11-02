@@ -97,4 +97,27 @@ describe('RegisterForm', () => {
     await wrapper.find('form').trigger('submit')
     expect(auth.usersDb.mom).toMatchObject({ role: 'parent', childUsernames: ['student'] })
   })
+
+  it('registers with an optional email and the username as stored', async () => {
+    const { wrapper } = mountWith(RegisterForm)
+    const auth = useAuthStore()
+    const code = auth.generateInviteCode('teacher', '愛與話語', 'admin')
+    await wrapper.find('#reg-invite-code').setValue(code)
+    await wrapper.find('#reg-invite-code').trigger('input')
+    await fill(wrapper, '  NewTeacher ', STRONG)
+    await wrapper.find('#reg-email').setValue('New@Church.org')
+    await wrapper.find('form').trigger('submit')
+
+    expect(auth.usersDb.newteacher).toMatchObject({ role: 'teacher', email: 'new@church.org' })
+    expect(auth.getInviteCodes().find((c) => c.code === code)?.usedBy).toBe('newteacher')
+  })
+
+  it('explains the username rules and refuses names that break them', async () => {
+    const { wrapper } = mountWith(RegisterForm)
+    expect(wrapper.find('#reg-username').attributes('aria-describedby')).toBe('reg-username-hint')
+    await fill(wrapper, 'amy lin', STRONG)
+    await wrapper.find('form').trigger('submit')
+    expect(toastTexts().at(-1)).toBe(t('account.usernameChars'))
+    expect(useAuthStore().currentUser).toBeNull()
+  })
 })

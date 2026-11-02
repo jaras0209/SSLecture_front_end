@@ -12,7 +12,7 @@ describe('AdminCreateUserPanel', () => {
     await wrapper.find('#new-username').setValue('student')
     await wrapper.find('#new-password').setValue('pw')
     await wrapper.find('form').trigger('submit')
-    expect(wrapper.find('.alert-box.error').text()).toBe(t('admin.createUser.usernameTaken'))
+    expect(wrapper.find('.alert-box.error').text()).toBe(t('stores.auth.usernameTaken'))
   })
 
   it('creates the user, then clears the form', async () => {
@@ -35,5 +35,33 @@ describe('AdminCreateUserPanel', () => {
     await wrapper.find('#new-role').setValue('admin')
     await wrapper.find('form').trigger('submit')
     expect(useAuthStore().usersDb.admin2.church).toBeUndefined()
+  })
+
+  it('stores an optional email and asks for a new password at first sign-in', async () => {
+    const { wrapper } = mountWith(AdminCreateUserPanel)
+    await wrapper.find('#new-username').setValue('Kid2')
+    await wrapper.find('#new-email').setValue('kid2@church.org')
+    await wrapper.find('#new-password').setValue('pw')
+    await wrapper.find('form').trigger('submit')
+    expect(useAuthStore().usersDb.kid2).toMatchObject({
+      email: 'kid2@church.org',
+      mustChangePassword: true
+    })
+    expect(wrapper.find('.alert-box.success').text()).toContain('kid2')
+    expect((wrapper.find('#new-email').element as HTMLInputElement).value).toBe('')
+  })
+
+  it('shows why a username or email is refused', async () => {
+    const { wrapper } = mountWith(AdminCreateUserPanel)
+    await wrapper.find('#new-username').setValue('a b')
+    await wrapper.find('#new-password').setValue('pw')
+    await wrapper.find('form').trigger('submit')
+    expect(wrapper.find('.alert-box.error').text()).toBe(t('account.usernameChars'))
+
+    await wrapper.find('#new-username').setValue('kid3')
+    await wrapper.find('#new-email').setValue('nope')
+    await wrapper.find('form').trigger('submit')
+    expect(wrapper.find('.alert-box.error').text()).toBe(t('account.emailInvalid'))
+    expect(useAuthStore().usersDb.kid3).toBeUndefined()
   })
 })

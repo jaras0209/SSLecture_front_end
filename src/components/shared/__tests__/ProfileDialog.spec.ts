@@ -58,6 +58,28 @@ describe('ProfileDialog', () => {
     wrapper.unmount()
   })
 
+  it('saves an email, but keeps the dialog open to fix one already in use', async () => {
+    vi.useFakeTimers()
+    const { wrapper, auth } = await openAsStudent()
+    auth.usersDb.teacher.email = 'taken@church.org'
+    const save = () => $$('.pd-footer-btns button')[1].trigger('click')
+
+    await $('#pd-email').setValue('Taken@church.org')
+    await save()
+    expect($('.save-status').text()).toBe(t('account.emailTaken'))
+    expect($('.save-status').classes()).toContain('save-error')
+    vi.advanceTimersByTime(2000)
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+    expect($('.save-status').exists()).toBe(true)
+
+    await $('#pd-email').setValue(' Kid@Church.org ')
+    await save()
+    expect(auth.usersDb.student.email).toBe('kid@church.org')
+    vi.advanceTimersByTime(1200)
+    expect(wrapper.emitted('update:modelValue')).toEqual([[false]])
+    wrapper.unmount()
+  })
+
   it('uses a custom avatar URL instead of a preset', async () => {
     const { wrapper, auth } = await openAsStudent()
     await $$('.pd-preset-btn')[1].trigger('click')

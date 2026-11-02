@@ -159,7 +159,9 @@ SELECT * FROM social_accounts WHERE provider='google' AND provider_user_id=?
     |
     `-- 找不到 --> 查詢 email 是否存在於 users 表
                     |
-                    |-- email 已存在 --> 綁定 google_sub 到現有帳號 --> 正常登入
+                    |-- email 已存在，且雙方 email 都已驗證 --> 綁定 google_sub 到現有帳號 --> 正常登入
+                    |-- email 已存在，但任一方未驗證 --> 不自動綁定：請使用者先以密碼登入，
+                    |                                  再到個人資料手動綁定（防止帳號預先劫持）
                     |
                     `-- 全新使用者 --> 建立新 User（role=student, church=null）
                                        回傳 needsOnboarding=true
@@ -640,10 +642,11 @@ VITE_API_BASE_URL=https://api.sslecture.example.com
 |------|------|---------|
 | 首次 Google 登入 | 無現有帳號 | 建立新帳號（student），要求選教會 |
 | 重複 Google 登入 | social_accounts 已有紀錄 | 直接登入，更新 last_login_at |
-| Google 登入 email 與密碼帳號相同 | users.email 已存在 | 自動綁定，不建立新帳號 |
+| Google 登入 email 與密碼帳號相同 | users.email 已存在，且雙方 email 都已驗證 | 自動綁定，不建立新帳號 |
+| 同上，但本地 email 尚未驗證 | users.email_verified = false | 不自動綁定；請使用者以密碼登入後手動綁定（防止有人先用他人信箱註冊來劫持帳號） |
 | 首次 LINE 登入 | 無現有帳號 | 建立新帳號，要求選教會 |
 | LINE 無 email 首次登入 | LINE email scope 未授予 | 建立帳號，onboarding 時請使用者填 email |
-| 同一人有 Google + LINE | 後登入 provider email 與前者相同 | 自動綁定到同一帳號 |
+| 同一人有 Google + LINE | 後登入 provider email 與前者相同，且兩者都回報已驗證 | 自動綁定到同一帳號 |
 | 社群登入 + 邀請碼 | onboarding 時輸入邀請碼 | 角色升級為邀請碼指定角色 |
 
 ### 7.2 多 Provider 支援

@@ -49,6 +49,57 @@ test.describe('sign-in and routing', () => {
     expect(await headerDisplay()).toBe(fresh)
   })
 
+  test('signs in with an email address, in any case', async ({ page, openWith }) => {
+    await openWith('login', {
+      superstart_users_db: {
+        amy: {
+          passwordHash: 'Abcdef1!',
+          role: 'student',
+          church: '愛與話語',
+          email: 'amy@mail.com'
+        }
+      }
+    })
+    await page.fill('#login-username', ' Amy@Mail.com ')
+    await page.fill('#login-password', 'Abcdef1!')
+    await page.click('form.auth-form button[type=submit]')
+    await expect(page).toHaveURL(/\/student$/)
+  })
+
+  test('an admin-set password must be replaced before anything else', async ({
+    page,
+    openWith
+  }) => {
+    await openWith('login', {
+      superstart_users_db: {
+        newkid: {
+          passwordHash: 'first',
+          role: 'student',
+          church: '愛與話語',
+          mustChangePassword: true
+        }
+      }
+    })
+    await page.fill('#login-username', 'newkid')
+    await page.fill('#login-password', 'first')
+    await page.click('form.auth-form button[type=submit]')
+    await expect(page).toHaveURL(/\/change-password$/)
+
+    await page.goto('student') // can't get around it
+    await expect(page).toHaveURL(/\/change-password$/)
+
+    await page.fill('#cp-old', 'first')
+    await page.fill('#cp-new', 'Better#2026')
+    await page.fill('#cp-confirm', 'Better#2026')
+    await page.getByRole('button', { name: '設定新密碼並繼續' }).click()
+    await expect(page).toHaveURL(/\/student$/)
+    const usersDb = await stored<Record<string, { mustChangePassword?: boolean }>>(
+      page,
+      'superstart_users_db'
+    )
+    expect(usersDb.newkid.mustChangePassword).toBeUndefined()
+  })
+
   test('rejects a wrong password', async ({ page, openWith }) => {
     await openWith('login')
     await page.fill('#login-username', 'student')

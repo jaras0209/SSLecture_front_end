@@ -86,6 +86,7 @@
 > - 新增設計說明：講師例外（[5.11](#511-講師在自己授課的預約中看得到全部學員)）、
 >   刪除帳號或變更角色時的清理（[5.12](#512-刪除帳號或變更角色時的清理)）、牧者的教會預約總覽（[5.13](#513-牧者的教會預約總覽)）；
 >   講師可連結教師或牧者帳號
+> - `users` 新增 `email`（選填、不可重複）、`email_verified`、`must_change_password`；`username` 加格式檢查
 > - `users.password_hash` 改為可為 NULL：社群登入建立的帳號沒有密碼（見 2.1）
 
 ---
@@ -99,12 +100,15 @@
 | 欄位名 | 資料型別 | 限制 | 說明 |
 |--------|----------|------|------|
 | `id` | `UUID` | PK, NOT NULL | 系統唯一識別碼 |
-| `username` | `VARCHAR(50)` | UNIQUE, NOT NULL | 登入帳號（英數字、底線） |
+| `username` | `VARCHAR(30)` | UNIQUE, NOT NULL, CHECK | 帳號：小寫、3–30 字元、只用英數字與 `. _ -`；系統內永不變的識別碼 ⭐ |
 | `password_hash` | `VARCHAR(255)` | NULL | bcrypt 雜湊密碼；NULL = 只用 Google / LINE 登入，不能以密碼登入 ⭐ |
 | `role` | `ENUM` | NOT NULL | `student` / `teacher` / `pastor` / `parent` / `admin` |
 | `church_id` | `UUID` | FK → churches.id, NULL | 所屬教會（admin 為 NULL） |
 | `display_name` | `VARCHAR(100)` | NULL | 暱稱（公開顯示） |
 | `real_name` | `VARCHAR(100)` | NULL | 真實姓名（管理端顯示，不對學員公開） |
+| `email` | `VARCHAR(255)` | NULL, UNIQUE（小寫） | 選填，可用來登入；孩子常沒有信箱所以可為空 ⭐ |
+| `email_verified` | `BOOLEAN` | NOT NULL, DEFAULT FALSE | 信箱是否已驗證；社群帳號自動合併的前提 ⭐ |
+| `must_change_password` | `BOOLEAN` | NOT NULL, DEFAULT FALSE | 管理員建立帳號或重設密碼後為 TRUE，使用者改密碼後清除 ⭐ |
 | `gender` | `ENUM` | NULL | `male` / `female`；只用於 `student`、`teacher`，由牧者或管理員設定 ⭐ |
 | `avatar_url` | `VARCHAR(512)` | NULL | 頭像圖片 URL |
 | `login_method` | `ENUM` | NOT NULL, DEFAULT 'credentials' | `credentials` / `google` / `line` |
@@ -666,13 +670,17 @@ CREATE TYPE user_gender AS ENUM ('male', 'female');
 
 CREATE TABLE users (
   id            UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
-  username      VARCHAR(50)  NOT NULL UNIQUE,
+  username      VARCHAR(30)  NOT NULL UNIQUE
+                CHECK (username ~ '^[a-z0-9._-]{3,30}$'),
   password_hash VARCHAR(255),                 -- NULL = 只用社群登入
   role          user_role    NOT NULL,
   church_id     UUID         REFERENCES churches(id) ON DELETE SET NULL,
   display_name  VARCHAR(100),
   real_name     VARCHAR(100),
   gender        user_gender,                 -- 只用於 student / teacher；NULL = 未設定
+  email                VARCHAR(255),           -- 選填，小寫儲存
+  email_verified       BOOLEAN NOT NULL DEFAULT FALSE,
+  must_change_password BOOLEAN NOT NULL DEFAULT FALSE,
   avatar_url    VARCHAR(512),
   login_method  login_method NOT NULL DEFAULT 'credentials',
   is_active     BOOLEAN      NOT NULL DEFAULT TRUE,
@@ -683,6 +691,7 @@ CREATE TABLE users (
 
 CREATE INDEX idx_users_username    ON users(username);
 CREATE INDEX idx_users_church_role ON users(church_id, role);
+CREATE UNIQUE INDEX uq_users_email ON users(lower(email)) WHERE email IS NOT NULL;
 
 -- ═══════════════════════════════════════════════════
 --  3. courses（課程）
@@ -980,6 +989,9 @@ erDiagram
     VARCHAR     display_name
     VARCHAR     real_name
     user_gender gender           "ENUM male/female, NULL = 未設定"
+    VARCHAR     email            "選填，UNIQUE(lower)"
+    BOOLEAN     email_verified   "DEFAULT FALSE"
+    BOOLEAN     must_change_password "DEFAULT FALSE"
     VARCHAR     avatar_url
     login_method login_method    "ENUM, DEFAULT credentials"
     BOOLEAN     is_active        "DEFAULT TRUE"

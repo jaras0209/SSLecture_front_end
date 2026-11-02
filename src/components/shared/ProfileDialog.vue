@@ -90,6 +90,20 @@
             <p class="pd-field-note">🔒 {{ $t('profile.realNameNote') }}</p>
           </div>
 
+          <!-- ── Email (optional; can be used to sign in) ── -->
+          <div class="form-group mt-3">
+            <label class="form-label" for="pd-email">✉️ {{ $t('account.email') }}</label>
+            <input
+              id="pd-email"
+              v-model="draftEmail"
+              type="email"
+              class="form-input"
+              autocomplete="email"
+              :placeholder="$t('account.emailPlaceholder')"
+            />
+            <p class="pd-field-note">{{ $t('account.emailNote') }}</p>
+          </div>
+
           <!-- ── Info (readonly) ── -->
           <div class="pd-info-grid mt-3">
             <div class="pd-info-item">
@@ -306,7 +320,12 @@
 
           <!-- ── Footer Actions ── -->
           <div class="pd-footer mt-4">
-            <span v-if="saveMsg" class="save-status">{{ saveMsg }}</span>
+            <span
+              v-if="saveMsg"
+              :class="['save-status', { 'save-error': !saveOk }]"
+              :role="saveOk ? 'status' : 'alert'"
+              >{{ saveMsg }}</span
+            >
             <div class="pd-footer-btns">
               <button class="btn btn-ghost btn-sm" @click="close">{{ $t('common.cancel') }}</button>
               <button class="btn btn-primary btn-sm" @click="saveProfile">
@@ -339,6 +358,8 @@ const { tDateTime } = useI18nHelper()
 // ── Draft state ──
 const draftDisplayName = ref('')
 const draftRealName = ref('')
+const draftEmail = ref('')
+const saveOk = ref(true)
 const draftAvatarUrl = ref('')
 const customAvatarUrl = ref('')
 const selectedStyle = ref('')
@@ -359,6 +380,7 @@ watch(
       const u = authStore.currentUser
       draftDisplayName.value = u?.displayName || ''
       draftRealName.value = u?.realName || ''
+      draftEmail.value = (u && authStore.usersDb[u.username]?.email) || ''
       draftAvatarUrl.value = u?.avatarUrl || defaultAvatarUrl(u?.username ?? '')
       customAvatarUrl.value = ''
       selectedStyle.value = ''
@@ -436,12 +458,16 @@ function saveProfile() {
   const result = authStore.updateProfile(username, {
     displayName: draftDisplayName.value.trim(),
     realName: draftRealName.value.trim(),
-    avatarUrl: draftAvatarUrl.value
+    avatarUrl: draftAvatarUrl.value,
+    email: draftEmail.value
   })
   saveMsg.value = result.message
+  saveOk.value = result.success
+  // A problem (e.g. an email in use) stays until fixed; success closes the dialog
+  if (!result.success) return
   setTimeout(() => {
     saveMsg.value = ''
-    if (result.success) close()
+    close()
   }, 1200)
 }
 
@@ -915,6 +941,10 @@ function close() {
   align-items: center;
   gap: 0.5rem;
 }
+.save-status.save-error {
+  color: #b91c1c;
+}
+
 .save-status {
   font-size: 0.82rem;
   font-weight: 700;

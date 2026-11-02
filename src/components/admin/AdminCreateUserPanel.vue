@@ -16,6 +16,19 @@
         />
       </div>
       <div class="form-group">
+        <label class="form-label" for="new-email">
+          {{ $t('account.email') }}
+          <span class="text-xs text-muted">{{ $t('account.optional') }}</span>
+        </label>
+        <input
+          id="new-email"
+          v-model="newUser.email"
+          type="email"
+          class="form-input"
+          :placeholder="$t('account.emailPlaceholder')"
+        />
+      </div>
+      <div class="form-group">
         <label class="form-label" for="new-password">{{ $t('admin.createUser.password') }}</label>
         <input
           id="new-password"
@@ -23,8 +36,12 @@
           type="password"
           class="form-input"
           :placeholder="$t('admin.createUser.passwordPlaceholder')"
+          aria-describedby="new-password-note"
           required
         />
+        <p id="new-password-note" class="text-xs text-muted mt-1">
+          {{ $t('admin.createUser.firstPasswordNote') }}
+        </p>
       </div>
       <div class="form-group">
         <label class="form-label" for="new-role">{{ $t('admin.createUser.role') }}</label>
@@ -67,6 +84,7 @@ const authStore = useAuthStore()
 
 const newUser = reactive({
   username: '',
+  email: '',
   password: '',
   role: 'student' as UserRole,
   church: DEFAULT_CHURCH
@@ -88,20 +106,16 @@ function createUser() {
     showAlert(t('auth.validation.fillAll'), 'error')
     return
   }
-
-  if (authStore.usersDb[newUser.username]) {
-    showAlert(t('admin.createUser.usernameTaken'), 'error')
+  // The person replaces this first password when they first sign in
+  const result = authStore.createAccount(newUser)
+  if (!result.success) {
+    showAlert(result.message, 'error')
     return
   }
 
-  authStore.usersDb[newUser.username] = {
-    passwordHash: newUser.password,
-    role: newUser.role,
-    church: newUser.role !== 'admin' ? newUser.church : undefined
-  }
-
-  showAlert(t('admin.createUser.successMsg', { username: newUser.username }), 'success')
+  showAlert(t('admin.createUser.successMsg', { username: result.username }), 'success')
   newUser.username = ''
+  newUser.email = ''
   newUser.password = ''
   newUser.role = 'student'
   newUser.church = DEFAULT_CHURCH

@@ -8,6 +8,7 @@
         type="text"
         class="form-input"
         :placeholder="$t('auth.login.usernamePlaceholder')"
+        autocomplete="username"
         required
       />
     </div>

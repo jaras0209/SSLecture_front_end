@@ -47,8 +47,8 @@
       "register": "註冊新成員"
     },
     "login": {
-      "username": "使用者帳號",
-      "usernamePlaceholder": "請輸入您的帳號",
+      "username": "帳號或信箱",
+      "usernamePlaceholder": "請輸入帳號或電子信箱",
       "password": "密碼",
       "passwordPlaceholder": "請輸入密碼",
       "submit": "登入平台",
@@ -624,8 +624,8 @@
       "role": "指定角色",
       "church": "所屬教會",
       "submit": "建立使用者",
-      "usernameTaken": "帳號已被佔用！",
-      "successMsg": "已成功建立用戶 {username}！"
+      "successMsg": "已成功建立用戶 {username}！",
+      "firstPasswordNote": "使用者第一次登入時會被要求改成自己的密碼"
     },
     "userList": {
       "title": "成員清單與權限設定矩陣",
@@ -862,7 +862,9 @@
       "ATTENDEE_ALREADY_EXISTS": "這位學員已經在此預約中",
       "CHURCH_REQUIRED": "請選擇所屬教會",
       "INVALID_INVITE_CODE": "邀請碼無效",
-      "INTERNAL_ERROR": "伺服器發生錯誤，請稍後再試"
+      "INTERNAL_ERROR": "伺服器發生錯誤，請稍後再試",
+      "EMAIL_TAKEN": "這個信箱已被其他帳號使用",
+      "PASSWORD_CHANGE_REQUIRED": "請先設定新密碼"
     }
   },
   "a11y": {
@@ -885,5 +887,25 @@
     "mismatch": "有 {n} 位學員的輔導教師看不到他們（性別不同或未設定），請重新指派",
     "mismatchMark": "這位教師看不到此學員（性別不同或未設定）",
     "teacherUnsetNotice": "您的性別尚未設定，暫時看不到任何學員。請聯絡分區牧者設定。"
+  },
+  "account": {
+    "usernameHint": "{min}–{max} 個字元，可用英文字母、數字與 . _ -（不分大小寫）",
+    "usernameLength": "帳號長度需為 {min}–{max} 個字元",
+    "usernameChars": "帳號只能使用英文字母、數字，以及 . _ -",
+    "email": "電子信箱",
+    "optional": "（選填）",
+    "emailPlaceholder": "name{'@'}example.com",
+    "emailNote": "選填。填寫後可用信箱登入；之後也會用來寄送重設密碼信。",
+    "emailInvalid": "信箱格式不正確",
+    "emailTaken": "這個信箱已被其他帳號使用"
+  },
+  "changePassword": {
+    "title": "請先設定新密碼",
+    "desc": "您的密碼是由管理員設定的，為了帳號安全，請換成只有您知道的新密碼後再繼續使用。",
+    "current": "目前的密碼",
+    "new": "新密碼",
+    "confirm": "再次輸入新密碼",
+    "submit": "設定新密碼並繼續",
+    "errSame": "新密碼不能和目前的密碼相同"
   }
 }

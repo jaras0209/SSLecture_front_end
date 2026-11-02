@@ -1,6 +1,6 @@
 # SSLecture 後端 API 規格文件
 
-> **文件版本**：v1.6.0
+> **文件版本**：v1.7.0
 > **最後更新**：2026-10-30
 > **前端版本**：Vue 3 + TypeScript（目前以 localStorage 模擬，待串接）
 > **目標後端技術**：Spring Boot 3.x + Spring Security 6.x（OAuth2 Client + JWT）
@@ -22,6 +22,12 @@
 11. [資料模型定義](#11-資料模型定義)
 12. [錯誤碼一覽](#12-錯誤碼一覽)
 13. [前端串接遷移指南](#13-前端串接遷移指南)
+
+> **v1.7.0 異動摘要**（帳號與信箱）
+> - 帳號規則：小寫、3–30 字元、只用英數字與 `. _ -`，比對不分大小寫（前端 `src/utils/account.ts`）
+> - 信箱選填、不可重複，可用來登入：`POST /auth/login` 的 `identifier` 可填帳號或信箱
+> - 管理員建立帳號或重設密碼後 `mustChangePassword = true`，使用者須先改密碼才能使用其他 API
+> - 規劃中（需後端）：信箱驗證、寄信重設密碼、社群帳號只在雙方信箱都已驗證時自動合併，見[帳號與信箱](#帳號與信箱規劃)
 
 > **v1.6.0 異動摘要**
 > - 新增[可見範圍規則](#可見範圍規則誰看得到誰)：教師與學員依性別分開管理，牧者以上看整體，以教會為單位；講師在自己授課的預約中看得到全部學員
@@ -119,7 +125,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 **Request Body**：
 ```json
 {
-  "username": "student01",
+  "identifier": "student01",
   "password": "123456"
 }
 ```
@@ -137,11 +143,17 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
       "username": "student01",
       "role": "student",
       "church": "愛與話語",
-      "avatarUrl": "https://..."
+      "email": "student01@example.com",
+      "avatarUrl": "https://...",
+      "mustChangePassword": false
     }
   }
 }
 ```
+
+- `identifier`：帳號或信箱，去掉前後空白、不分大小寫比對（前端 `authStore.findUsername()`）
+- `mustChangePassword = true` 時，這組 token 只能呼叫 `POST /auth/reset-password`（改自己的密碼）與
+  `POST /auth/logout`，其他 API 回傳 `403 PASSWORD_CHANGE_REQUIRED`；前端會導向「請先設定新密碼」頁
 
 **錯誤**：
 - `401 INVALID_CREDENTIALS`：帳號或密碼錯誤
@@ -159,10 +171,16 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 ```json
 {
   "username": "new_user",
+  "email": "new_user@example.com", // 可選
   "password": "123456",
   "church": "愛與話語",          // 若無邀請碼或邀請碼未指定教會時必填
   "inviteCode": "SS-TCH-A3F7" // 可選
 }
+```
+
+- `username`：去掉前後空白後轉小寫儲存；3–30 字元，只用英數字與 `. _ -`，不分大小寫不可重複
+- `email`：選填；去掉前後空白後轉小寫儲存，不分大小寫不可與其他帳號重複
+```
 ```
 
 **Response**：
@@ -182,7 +200,9 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 
 **錯誤**：
 - `400 INVALID_INVITE_CODE`：邀請碼無效、過期或已作廢
-- `409 USERNAME_EXISTS`：帳號已存在
+- `400 VALIDATION_ERROR`：帳號或信箱格式不符（訊息指出哪個欄位）
+- `409 USERNAME_TAKEN`：帳號已被使用（不分大小寫）
+- `409 EMAIL_TAKEN`：信箱已被其他帳號使用
 
 ---
 
@@ -204,6 +224,9 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 ```json
 { "success": true }
 ```
+
+- Admin 重設他人密碼時，該帳號設為 `mustChangePassword = true`；使用者自己改密碼成功後清除
+- 前端在強制修改時另外要求新密碼與目前密碼不同
 
 ---
 
@@ -820,6 +843,29 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 
 ---
 
+### 帳號與信箱（規劃）
+
+前端已完成：帳號規則、選填信箱、帳號或信箱登入、管理員設定的密碼須更換。以下需要後端寄信，尚未實作：
+
+#### `POST /auth/email/verify-request`
+寄出信箱驗證信（含一次性連結，建議 24 小時有效）。**權限**：登入者本人
+
+#### `POST /auth/email/verify`
+`{ "token": "..." }`：驗證成功後 `emailVerified = true`。更換信箱時重設為 `false`。
+
+#### `POST /auth/password/forgot`
+`{ "identifier": "帳號或信箱" }`：帳號有**已驗證**信箱時寄出重設連結（建議 30 分鐘有效、只能用一次）。
+不論帳號是否存在都回傳相同的成功訊息，避免被用來試探帳號。
+
+#### `POST /auth/password/reset`
+`{ "token": "...", "newPassword": "..." }`：重設成功後清除 `mustChangePassword`，並撤銷該帳號所有 refresh token。
+
+**社群登入合併規則（安全性）**：只有在本地帳號的信箱**已驗證**、且 Google / LINE 回報的信箱也已驗證時，
+才自動把社群帳號綁定到同信箱的本地帳號；否則請使用者先以密碼登入後，再於個人資料手動綁定。
+否則有人可先用他人的信箱註冊密碼帳號，等信箱主人以 Google 登入時被自動綁進該帳號（帳號預先劫持）。
+
+---
+
 ## 7. 閃耀計畫 Shining Project
 
 ### `GET /shining/:username`
@@ -930,12 +976,16 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 ```json
 {
   "username": "student02",
+  "email": "student02@example.com",
   "password": "初始密碼",
   "role": "student",
   "church": "愛與話語",
   "displayName": "李小華"
 }
 ```
+
+- 帳號與信箱規則同 `POST /auth/register`；建立的帳號 `mustChangePassword = true`，
+  使用者第一次登入須先換掉管理員設定的密碼（前端 `authStore.createAccount()`）
 
 ---
 
@@ -1516,6 +1566,9 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | `displayName` | string? | 暱稱（公開顯示） |
 | `realName` | string? | 真實姓名（管理端顯示，不對其他學員公開） |
 | `loginMethod` | `credentials` \| `google` \| `line` | 首次登入方式；社群帳號沒有密碼 |
+| `email` | string? | 選填，可用來登入；小寫儲存，不可重複 ⭐ |
+| `emailVerified` | boolean | 信箱是否已驗證（規劃中，見[帳號與信箱](#帳號與信箱規劃)） |
+| `mustChangePassword` | boolean | 管理員設定的密碼，須在下次登入時更換 ⭐ |
 | `gender` | `male` \| `female` \| null | 性別，只用於 `student`、`teacher`；null = 未設定 ⭐ |
 | `childUsernames` | string[]? | 只用於 `parent`：綁定的孩子（後端對應 `parent_children` 表） ⭐ |
 | `avatarUrl` | string? | 頭像 URL |
@@ -1594,7 +1647,9 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | 404 | `BOOKING_ATTENDEE_NOT_FOUND` | 找不到此場次的學員記錄 |
 | 404 | `LECTURER_NOT_FOUND` | 找不到此講師 |
 | 404 | `STATS_NOT_FOUND` | 找不到此年度教學統計 |
-| 409 | `USERNAME_TAKEN` | 帳號名稱已被使用 |
+| 409 | `USERNAME_TAKEN` | 帳號名稱已被使用（不分大小寫） |
+| 409 | `EMAIL_TAKEN` | 信箱已被其他帳號使用 ⭐ |
+| 403 | `PASSWORD_CHANGE_REQUIRED` | 須先修改管理員設定的密碼 ⭐ |
 | 409 | `ATTENDEE_ALREADY_EXISTS` | 該學員已加入此場次 |
 | 500 | `INTERNAL_ERROR` | 伺服器內部錯誤 |
 

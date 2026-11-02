@@ -47,8 +47,8 @@
       "register": "Register"
     },
     "login": {
-      "username": "Username",
-      "usernamePlaceholder": "Enter your username",
+      "username": "Username or email",
+      "usernamePlaceholder": "Enter your username or email",
       "password": "Password",
       "passwordPlaceholder": "Enter your password",
       "submit": "Sign In",
@@ -624,8 +624,8 @@
       "role": "Assign Role",
       "church": "Home Church",
       "submit": "Create User",
-      "usernameTaken": "Username is already taken!",
-      "successMsg": "User {username} created successfully!"
+      "successMsg": "User {username} created successfully!",
+      "firstPasswordNote": "They will be asked to replace it with their own password when they first sign in"
     },
     "userList": {
       "title": "Member List & Permission Matrix",
@@ -862,7 +862,9 @@
       "ATTENDEE_ALREADY_EXISTS": "This student is already in the booking",
       "CHURCH_REQUIRED": "Please choose your church",
       "INVALID_INVITE_CODE": "Invalid invite code",
-      "INTERNAL_ERROR": "Something went wrong on the server. Please try again later"
+      "INTERNAL_ERROR": "Something went wrong on the server. Please try again later",
+      "EMAIL_TAKEN": "That email is already used by another account",
+      "PASSWORD_CHANGE_REQUIRED": "Please set a new password first"
     }
   },
   "a11y": {
@@ -885,5 +887,25 @@
     "mismatch": "{n} students have a mentor who can't see them (different or unset gender); please reassign",
     "mismatchMark": "This teacher can't see this student (different or unset gender)",
     "teacherUnsetNotice": "Your gender hasn't been set yet, so no students are shown. Please ask your district pastor to set it."
+  },
+  "account": {
+    "usernameHint": "{min}–{max} characters: letters, numbers and . _ - (not case-sensitive)",
+    "usernameLength": "Usernames must be {min}–{max} characters long",
+    "usernameChars": "Usernames may only use letters, numbers and . _ -",
+    "email": "Email",
+    "optional": "(optional)",
+    "emailPlaceholder": "name{'@'}example.com",
+    "emailNote": "Optional. You can sign in with it, and it will be used to send password reset emails.",
+    "emailInvalid": "That email address isn't valid",
+    "emailTaken": "That email is already used by another account"
+  },
+  "changePassword": {
+    "title": "Set a new password first",
+    "desc": "Your password was set by an administrator. For your account's safety, replace it with one only you know before continuing.",
+    "current": "Current password",
+    "new": "New password",
+    "confirm": "Confirm new password",
+    "submit": "Set new password and continue",
+    "errSame": "The new password must differ from the current one"
   }
 }

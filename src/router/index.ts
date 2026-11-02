@@ -46,6 +46,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true } // 需有 token，但 church 可為空
   },
   {
+    path: '/change-password',
+    name: 'ChangePassword',
+    component: () => import('@/views/ChangePasswordView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/unauthorized',
     name: 'Unauthorized',
     component: () => import('@/views/UnauthorizedView.vue')
@@ -71,6 +77,11 @@ router.beforeEach((to, _from) => {
 
   const isAuthenticated = authStore.isAuthenticated
   const currentUser = authStore.currentUser
+
+  // 0. An admin set this password (new account or reset): replace it before anything else
+  if (currentUser?.mustChangePassword && to.name !== 'ChangePassword') {
+    return { name: 'ChangePassword' }
+  }
 
   // 1. Guest-only route check (e.g., Login page should not be accessed if logged in)
   if (to.matched.some((record) => record.meta.guestOnly)) {

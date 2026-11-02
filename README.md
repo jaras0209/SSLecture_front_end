@@ -25,7 +25,7 @@ SSLecture 是一個基於 **Vue 3 + TypeScript + Vite** 技術棧開發的現代
 *   **多語系架構**：Vue I18n 11（Composition API 模式，`zh-TW` / `en` 雙語系；`en` 語系檔按需載入）
 *   **路由管理**：Vue Router 5（HTML5 History 模式，內建角色與頁面限制導航守衛、平滑捲動）
 *   **字型**：Quicksand / Outfit 由 `@fontsource` 隨專案打包，不向 Google Fonts 發出請求
-*   **測試**：Vitest 5 + Happy DOM + Vue Test Utils（43 個測試檔案、373 項測試，含四個主要頁面、composable 與表單元件測試，以及以本機 HTTP 伺服器驗證 `api.ts` 的整合測試）；Playwright 端對端測試（41 項，含以 axe 檢查 WCAG 2.1 AA 無障礙與鍵盤操作）
+*   **測試**：Vitest 5 + Happy DOM + Vue Test Utils（46 個測試檔案、406 項測試，含四個主要頁面、composable 與表單元件測試，以及以本機 HTTP 伺服器驗證 `api.ts` 的整合測試）；Playwright 端對端測試（43 項，含以 axe 檢查 WCAG 2.1 AA 無障礙與鍵盤操作）
 *   **程式碼品質**：TypeScript 6.0（Strict 嚴格模式，以 vue-tsc 3 檢查）、ESLint 10、Prettier 3
 *   **樣式設計**：Vanilla CSS（響應式排版，適配行動端、桌面端與 `@media print` 列印模式）
 
@@ -115,7 +115,7 @@ SSLecture/
 
 ### 1. 帳號密碼登入
 
-在登入頁輸入帳號與密碼。可使用以下預設測試帳號（**密碼皆為 `123456`**）：
+在登入頁輸入帳號（或已填寫的電子信箱）與密碼，大小寫與前後空白不影響。帳號為 3–30 個字元的英文字母、數字與 `. _ -`；信箱選填、不可與他人重複。管理員建立帳號或重設密碼後，使用者下次登入會先被要求設定自己的新密碼。可使用以下預設測試帳號（**密碼皆為 `123456`**）：
 
 | 角色 | 預設帳號 | 核心功能 |
 | :--- | :--- | :--- |

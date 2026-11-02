@@ -122,6 +122,21 @@
 - [x] 錯誤訊息：`src/utils/api.ts` 依 `error.code` 顯示目前語系的訊息（`api.codes.*`，`VALIDATION_ERROR` 沿用後端訊息）；
   `src/i18n/__tests__/apiCodes.spec.ts` 確保 API 規格第 12 節的每個錯誤碼都有中英文訊息
 
+### 帳號與信箱
+
+前端已完成（`src/utils/account.ts`、`authStore.findUsername()` / `createAccount()`、`ChangePasswordView.vue`）：
+帳號規則、選填信箱、帳號或信箱登入、管理員設定的密碼須先更換。後端需要：
+
+- [ ] `users` 新增 `email`（小寫唯一索引）、`email_verified`、`must_change_password`；`username` 加格式 CHECK
+      （`docs/database_schema.md` 2.1 / 第 6 節）。既有帳號若有大寫，遷移時轉小寫並確認沒有撞名
+- [ ] `POST /auth/login` 接受 `identifier`（帳號或信箱）；`mustChangePassword` 時其他 API 回傳 `403 PASSWORD_CHANGE_REQUIRED`
+- [ ] 註冊與管理員建立帳號：套用帳號規則，`409 USERNAME_TAKEN` / `409 EMAIL_TAKEN`
+- [ ] 信箱驗證：`POST /auth/email/verify-request`、`POST /auth/email/verify`（更換信箱時重設為未驗證）
+- [ ] 寄信重設密碼：`POST /auth/password/forgot`、`POST /auth/password/reset`；之後把「忘記密碼」對話框改為輸入帳號或信箱寄送連結，
+      並逐步取消「重設為固定預設密碼 123456」
+- [ ] **社群帳號只在雙方信箱都已驗證時自動合併**（`docs/oauth2_social_login_spec.md` 3.3、7.1），防止帳號預先劫持
+- [ ] 登入失敗次數限制（同帳號 / 同 IP），避免暴力猜密碼
+
 ### 既有資料搬遷
 
 - [ ] 決定是否要把示範站 localStorage 的資料（`superstart_*` 鍵）匯入後端；若要，需寫一次性匯入腳本，

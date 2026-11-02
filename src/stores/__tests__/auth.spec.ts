@@ -563,4 +563,124 @@ describe('useAuthStore', () => {
       expect(useAuthStore().usersDb.oauth_2).toBeUndefined()
     })
   })
+
+  describe('usernames, emails and admin-set passwords', () => {
+    it('signs in by username or email, ignoring case and surrounding spaces', () => {
+      const auth = useAuthStore()
+      auth.usersDb.student.email = 'kid@example.com'
+      expect(auth.login('  STUDENT ', '123456').success).toBe(true)
+      auth.logout()
+      expect(auth.login('Kid@Example.com', '123456').success).toBe(true)
+      expect(auth.currentUser).toMatchObject({ username: 'student', email: 'kid@example.com' })
+    })
+
+    it('still signs in to an older account whose username has capitals', () => {
+      const auth = useAuthStore()
+      auth.usersDb.OldUser = { passwordHash: 'pw', role: 'student', church: '愛與話語' }
+      expect(auth.login('olduser', 'pw').success).toBe(true)
+      expect(auth.currentUser?.username).toBe('OldUser')
+      auth.logout()
+      // ...and nobody can register its lower-case twin
+      expect(auth.register('olduser', 'pw', 'student', '愛與話語').message).toBe(
+        t('stores.auth.usernameTaken')
+      )
+    })
+
+    it('registers a normalized username and optional email, refusing clashes', () => {
+      const auth = useAuthStore()
+      expect(
+        auth.register(' Amy ', 'pw', 'student', '愛與話語', undefined, ' Amy@Mail.com ')
+      ).toEqual({ success: true, message: t('stores.auth.registerSuccess') })
+      expect(auth.usersDb.amy).toMatchObject({ email: 'amy@mail.com' })
+      auth.logout()
+
+      expect(auth.register('AMY', 'pw', 'student', '愛與話語').message).toBe(
+        t('stores.auth.usernameTaken')
+      )
+      expect(
+        auth.register('amy2', 'pw', 'student', '愛與話語', undefined, 'amy@mail.com').message
+      ).toBe(t('account.emailTaken'))
+      expect(
+        auth.register('amy3', 'pw', 'student', '愛與話語', undefined, 'not-an-email').message
+      ).toBe(t('account.emailInvalid'))
+      expect(auth.register('a b', 'pw', 'student', '愛與話語').message).toBe(
+        t('account.usernameChars')
+      )
+      expect(auth.usersDb.amy2).toBeUndefined()
+      // no email is fine, and two accounts without one don't clash
+      expect(auth.register('amy4', 'pw', 'student', '愛與話語').success).toBe(true)
+      expect(auth.usersDb.amy4.email).toBeUndefined()
+    })
+
+    it('makes people replace a password an admin set, then forgets that', () => {
+      const auth = useAuthStore()
+      const created = auth.createAccount({
+        username: 'NewKid',
+        password: 'first',
+        role: 'student',
+        church: '愛與話語',
+        email: 'new@kid.org'
+      })
+      expect(created).toMatchObject({ success: true, username: 'newkid' })
+      expect(auth.usersDb.newkid).toMatchObject({ mustChangePassword: true, email: 'new@kid.org' })
+
+      auth.login('newkid', 'first')
+      expect(auth.currentUser?.mustChangePassword).toBe(true)
+      expect(auth.updatePassword('newkid', 'first', 'Better#2026').success).toBe(true)
+      expect(auth.currentUser?.mustChangePassword).toBeUndefined()
+      expect(auth.usersDb.newkid.mustChangePassword).toBeUndefined()
+
+      auth.adminResetPassword('newkid')
+      expect(auth.usersDb.newkid.mustChangePassword).toBe(true)
+    })
+
+    it('refuses an admin-created account with a bad or taken name', () => {
+      const auth = useAuthStore()
+      const make = (username: string) =>
+        auth.createAccount({ username, password: 'x', role: 'student', church: '愛與話語' })
+      expect(make('Teacher').message).toBe(t('stores.auth.usernameTaken'))
+      expect(make('no').success).toBe(false)
+    })
+
+    it('sets, changes and clears the email on the profile', () => {
+      const auth = useAuthStore()
+      auth.usersDb.pastor.email = 'pastor@church.org'
+      auth.login('teacher', '123456')
+      expect(auth.updateProfile('teacher', { email: ' T@Church.org ' }).success).toBe(true)
+      expect(auth.usersDb.teacher.email).toBe('t@church.org')
+      expect(auth.currentUser?.email).toBe('t@church.org')
+
+      expect(auth.updateProfile('teacher', { email: 'PASTOR@church.org' })).toEqual({
+        success: false,
+        message: t('account.emailTaken')
+      })
+      expect(auth.updateProfile('teacher', { email: 't@church.org' }).success).toBe(true) // own
+      expect(auth.updateProfile('teacher', { email: '' }).success).toBe(true)
+      expect(auth.usersDb.teacher.email).toBeUndefined()
+    })
+
+    it('applies the username rules when a social user picks one', async () => {
+      const auth = useAuthStore()
+      auth.currentUser = { username: 'oauth_9', role: 'student', loginMethod: 'google' }
+      const bad = await auth.completeProfile({ churchId: '愛與話語', username: 'a b' })
+      expect(bad).toEqual({ success: false, message: t('account.usernameChars') })
+      const taken = await auth.completeProfile({ churchId: '愛與話語', username: 'TEACHER' })
+      expect(taken.message).toBe(t('stores.auth.usernameTaken'))
+      await auth.completeProfile({ churchId: '愛與話語', username: ' Mia ' })
+      expect(auth.currentUser?.username).toBe('mia')
+    })
+
+    it("doesn't give a social account an email another account already uses", async () => {
+      const auth = useAuthStore()
+      auth.usersDb.student.email = 'shared@example.com'
+      auth.currentUser = {
+        username: 'oauth_7',
+        role: 'student',
+        loginMethod: 'google',
+        email: 'Shared@example.com'
+      }
+      await auth.completeProfile({ churchId: '愛與話語' })
+      expect(auth.usersDb.oauth_7.email).toBeUndefined()
+    })
+  })
 })
