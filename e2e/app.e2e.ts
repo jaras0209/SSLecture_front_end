@@ -249,6 +249,66 @@ test.describe('teacher', () => {
     )
     expect(lecturers.find((l) => l.name === '測試講師')?.courseIds).toHaveLength(1)
   })
+
+  test("replies to a student's notes, which the student then sees on the course", async ({
+    page,
+    openWith
+  }) => {
+    const church = '愛與話語'
+    await openWith('teacher', {
+      superstart_user: users.teacher,
+      superstart_users_db: {
+        teacher: {
+          passwordHash: '123456',
+          role: 'teacher',
+          church,
+          gender: 'male',
+          realName: '王老師'
+        },
+        student: { passwordHash: '123456', role: 'student', church, gender: 'male' }
+      },
+      superstart_progress_db: {
+        student: {
+          'bible-01': {
+            courseId: 'bible-01',
+            completed: true,
+            notes: '我的心得',
+            lastUpdated: '2026-01-01T00:00:00.000Z',
+            sessions: [
+              {
+                id: 's1',
+                lecturer: '張牧師 牧師',
+                listenedAt: '2026-01-01T10:00',
+                notes: '我的心得',
+                createdAt: '2026-01-01T00:00:00.000Z'
+              }
+            ]
+          }
+        }
+      }
+    })
+    await page.getByRole('button', { name: /全體學員名冊/ }).click()
+    await page
+      .locator('.students-table tbody tr', { hasText: 'student' })
+      .locator('.btn-secondary')
+      .click()
+    await page.locator('.drawer-tab-btn').first().click()
+    const reply = page.locator('.notes-feedback-area input').first()
+    await reply.fill('寫得很好，繼續加油')
+    await reply.press('Enter')
+    await expect(page.locator('.feedback-item').first()).toContainText('寫得很好，繼續加油')
+
+    await page.keyboard.press('Escape')
+    await page.getByRole('button', { name: /登出/ }).click()
+    await page.fill('#login-username', 'student')
+    await page.fill('#login-password', '123456')
+    await page.click('form.auth-form button[type=submit]')
+    await expect(page).toHaveURL(/\/student$/)
+    await page.locator('.course-card').first().click()
+    const item = page.locator('.course-feedback-item')
+    await expect(item).toContainText('王老師')
+    await expect(item).toContainText('寫得很好，繼續加油')
+  })
 })
 
 test.describe('gender separation', () => {

@@ -4,7 +4,9 @@ import TeacherNotesDialog, {
   type StudentProgressSummary,
   type StudentRecordDetail
 } from '@/components/teacher/TeacherNotesDialog.vue'
-import { mountWith, t } from '@/__tests__/helpers'
+import { useAuthStore } from '@/stores/auth'
+import { useCoursesStore } from '@/stores/courses'
+import { mountWith, toastTexts, t } from '@/__tests__/helpers'
 
 const $ = (sel: string) => new DOMWrapper(document.body).find(sel)
 const $$ = (sel: string) => new DOMWrapper(document.body).findAll(sel)
@@ -65,26 +67,48 @@ describe('TeacherNotesDialog', () => {
     wrapper.unmount()
   })
 
-  it('sends feedback on a note, shows it and clears the field', async () => {
+  it('saves a reply to a note, lists it and clears the field', async () => {
     const { wrapper } = open()
+    const auth = useAuthStore()
+    auth.currentUser = { username: 'teacher', role: 'teacher', loginMethod: 'credentials' }
+    auth.usersDb.teacher.realName = '王老師'
+    const courses = useCoursesStore()
     const input = $('.notes-feedback-area input')
     const send = $('.notes-feedback-area .btn-primary')
+    expect(input.attributes('aria-label')).toBe(
+      t('teacher.notes.feedbackInputLabel', { course: '課程 c1' })
+    )
 
-    await send.trigger('click') // empty: nothing happens
-    expect(wrapper.emitted('feedback-sent')).toBeUndefined()
+    await send.trigger('click') // empty: nothing is saved
+    expect(courses.getFeedback('student', 'c1')).toEqual([])
 
     await input.setValue('  寫得很好  ')
     await send.trigger('click')
-    expect(wrapper.emitted('feedback-sent')).toEqual([['student', 'c1', '寫得很好']])
-    expect($('.feedback-sent-msg').text()).toContain('寫得很好')
+    expect(courses.getFeedback('student', 'c1')).toMatchObject([
+      { author: 'teacher', message: '寫得很好' }
+    ])
     expect((input.element as HTMLInputElement).value).toBe('')
+    expect(toastTexts().at(-1)).toBe(t('teacher.notes.feedbackSaved'))
+
+    await input.setValue('繼續加油')
+    await input.trigger('keydown', { key: 'Enter' })
+    const items = $$('.feedback-item').map((i) => i.text())
+    expect(items).toHaveLength(2)
+    expect(items[0]).toContain('王老師')
+    expect(items[0]).toContain('寫得很好')
+    expect(items[1]).toContain('繼續加油')
     wrapper.unmount()
   })
 
-  it('hides the feedback field from viewers who cannot send feedback', () => {
+  it('shows replies, but no reply field, to viewers who cannot reply (parents)', async () => {
     const { wrapper } = open({ canSendFeedback: false })
     expect($('.notes-text-box').exists()).toBe(true)
     expect($('.notes-feedback-area').exists()).toBe(false)
+
+    useCoursesStore().addFeedback('student', 'c1', 'teacher', '寫得很好')
+    await wrapper.vm.$nextTick()
+    expect($('.notes-feedback-area').text()).toContain('寫得很好')
+    expect($('.notes-feedback-area input').exists()).toBe(false)
     wrapper.unmount()
   })
 

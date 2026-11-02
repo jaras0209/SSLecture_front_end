@@ -31,6 +31,7 @@
    - [invite_codes（邀請碼）](#217-invite_codes-邀請碼) ⭐
    - [social_accounts（社群帳號綁定）](#218-social_accounts-社群帳號綁定)
    - [parent_children（家長綁定）](#219-parent_children-家長綁定) ⭐ NEW
+   - [course_feedback（心得回覆）](#220-course_feedback-心得回覆) ⭐ NEW
 3. [索引設計](#3-索引設計)
 4. [資料關聯圖（文字版）](#4-資料關聯圖文字版)
 5. [設計決策與說明](#5-設計決策與說明)
@@ -86,10 +87,11 @@
 > - 新增設計說明：講師例外（[5.11](#511-講師在自己授課的預約中看得到全部學員)）、
 >   刪除帳號或變更角色時的清理（[5.12](#512-刪除帳號或變更角色時的清理)）、牧者的教會預約總覽（[5.13](#513-牧者的教會預約總覽)）；
 >   講師可連結教師或牧者帳號
-> - 修正：第 6 節補齊全部 19 張表的建表語句（原本 5 張散在 2.14–2.18）；預約表的 `lecturer_id`、
+> - 修正：第 6 節補齊所有表的建表語句（原本 5 張散在 2.14–2.18）；預約表的 `lecturer_id`、
 >   `linked_listen_session_id` 改為 `UUID`、`course_id` 改為 `VARCHAR(20)`，與被參照的欄位同型別（原本建表會失敗）
 > - 出席紀錄、教學統計、聽課紀錄的學員／教師外鍵改為 `ON DELETE RESTRICT`，與「保留為歷史」一致；
 >   移除 `booking_attendees.student_username` 冗餘欄位；種子資料補上性別與家長綁定
+> - 新增 `course_feedback`：教師、牧者、管理員對學員課程心得的回覆（見 2.20）。前端舊版的回覆只顯示「已儲存」、實際沒有保存
 > - `users` 新增 `email`（選填、不可重複）、`email_verified`、`must_change_password`；`username` 加格式檢查
 > - `users.password_hash` 改為可為 NULL：社群登入建立的帳號沒有密碼（見 2.1）
 
@@ -1002,6 +1004,20 @@ CREATE TABLE social_accounts (
 CREATE INDEX idx_social_accounts_user_id         ON social_accounts(user_id);
 CREATE INDEX idx_social_accounts_provider_uid    ON social_accounts(provider, provider_user_id);
 CREATE INDEX idx_social_accounts_email           ON social_accounts(email);
+
+-- ═══════════════════════════════════════════════════
+--  19. course_feedback（心得回覆，見 2.20）
+-- ═══════════════════════════════════════════════════
+CREATE TABLE course_feedback (
+  id         UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  student_id UUID        NOT NULL REFERENCES users(id) ON DELETE RESTRICT,   -- 保留為歷史
+  course_id  VARCHAR(20) NOT NULL REFERENCES courses(id),
+  author_id  UUID        NOT NULL REFERENCES users(id) ON DELETE RESTRICT,   -- 教師、牧者或管理員
+  message    TEXT        NOT NULL CHECK (length(btrim(message)) > 0),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_course_feedback_student_course ON course_feedback(student_id, course_id, created_at);
 ```
 
 ---
@@ -1196,6 +1212,15 @@ erDiagram
     TIMESTAMPTZ bound_at
   }
 
+  course_feedback {
+    UUID        id         PK
+    UUID        student_id FK "-> users.id RESTRICT"
+    VARCHAR     course_id  FK "-> courses.id"
+    UUID        author_id  FK "-> users.id RESTRICT"
+    TEXT        message       "NOT NULL"
+    TIMESTAMPTZ created_at
+  }
+
   %% ════════════════════════════════════
   %% 閃耀計畫
   %% ════════════════════════════════════
@@ -1367,6 +1392,11 @@ erDiagram
   %% 家長綁定（M:N）
   users ||--o{ parent_children : "parent_id (CASCADE)"
   users ||--o{ parent_children : "student_id (CASCADE)"
+
+  %% 心得回覆
+  users   ||--o{ course_feedback : "student_id (RESTRICT)"
+  users   ||--o{ course_feedback : "author_id (RESTRICT)"
+  courses ||--o{ course_feedback : "course_id"
 
   %% 閃耀計畫（1:1 + 1:N）
   users            ||--o| shining_projects        : "student_id UK (CASCADE)"
@@ -1607,3 +1637,29 @@ ALTER TABLE student_assignments DROP COLUMN parent_id;
 ```
 
 **SQL DDL**：見 [第 6 節](#6-sql-建表語句postgresql) `parent_children`。
+
+---
+
+### 2.20 `course_feedback` 心得回覆
+
+> **對應前端**：`courses.ts` → `feedbackDb`、`getFeedback()` / `addFeedback()`；`CourseFeedback` interface，`superstart_feedback_db` localStorage key  
+> **新增於**：v1.7.0
+
+| 欄位名 | 資料型別 | 限制 | 說明 |
+|--------|----------|------|------|
+| `id` | `UUID` | PK, NOT NULL | 唯一識別碼 |
+| `student_id` | `UUID` | FK → users.id, NOT NULL, ON DELETE RESTRICT | 學員 |
+| `course_id` | `VARCHAR(20)` | FK → courses.id, NOT NULL | 課程 |
+| `author_id` | `UUID` | FK → users.id, NOT NULL, ON DELETE RESTRICT | 回覆者（教師、牧者或管理員） |
+| `message` | `TEXT` | NOT NULL，不可為空白 | 回覆內容 |
+| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 回覆時間 |
+
+**設計說明**：
+- 回覆的對象是「學員在某課程的心得」，同一學員同一課程可以有多則回覆（教師、牧者都可回），依時間排序
+- 掛在課程上而不是單一 `listen_sessions` 紀錄：教師看到的是學員該課程最新的心得，學員重聽同一課程時，
+  先前的回覆仍然有意義；如未來需要對某一次聽課回覆，可再加 `listen_session_id`（可為空）
+- 誰能回覆：看得到這位學員的教師（同教會、同性別）、同教會牧者、管理員（見 5.10）；家長只能看
+- 學員在自己的課程頁看到回覆（新的在前）；教師的「學員筆記」對話框依時間列出
+- 只會新增、不修改；帳號軟刪除後回覆保留為歷史（`ON DELETE RESTRICT`）
+
+**SQL DDL**：見[第 6 節](#6-sql-建表語句postgresql)。

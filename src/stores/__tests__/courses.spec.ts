@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
+import { nextTick } from 'vue'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -560,6 +561,39 @@ describe('useCoursesStore', () => {
       expect(byName('王老師')).toBeDefined()
       expect(byName('王老師')?.linkedUsername).toBeUndefined()
       expect(byName('李老師')?.linkedUsername).toBe('t2')
+    })
+  })
+
+  describe('replies to notes', () => {
+    it('keeps replies per student and course, oldest first, and ignores blanks', async () => {
+      const { useCoursesStore } = await import('@/stores/courses')
+      const store = useCoursesStore()
+      expect(store.getFeedback('student', 'bible-01')).toEqual([])
+      expect(store.addFeedback('student', 'bible-01', 'teacher', '   ')).toBeUndefined()
+      store.addFeedback('student', 'bible-01', 'teacher', ' 寫得很好 ')
+      store.addFeedback('student', 'bible-01', 'pastor', '繼續加油')
+      store.addFeedback('student', 'bible-02', 'teacher', '另一課')
+
+      expect(store.getFeedback('student', 'bible-01')).toMatchObject([
+        { author: 'teacher', message: '寫得很好' },
+        { author: 'pastor', message: '繼續加油' }
+      ])
+      expect(store.getFeedback('student', 'bible-02')).toHaveLength(1)
+      expect(store.getFeedback('s2', 'bible-01')).toEqual([])
+      const [first, second] = store.getFeedback('student', 'bible-01')
+      expect(first.id).not.toBe(second.id)
+      expect(first.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}T/)
+    })
+
+    it('are saved and come back after a reload', async () => {
+      const { useCoursesStore } = await import('@/stores/courses')
+      useCoursesStore().addFeedback('reloaded', 'bible-01', 'teacher', '寫得很好')
+      await nextTick() // the save is scheduled by a watcher
+      window.dispatchEvent(new Event('pagehide')) // flush the debounced write
+      setActivePinia(createPinia())
+      expect(useCoursesStore().getFeedback('reloaded', 'bible-01')).toMatchObject([
+        { message: '寫得很好' }
+      ])
     })
   })
 })

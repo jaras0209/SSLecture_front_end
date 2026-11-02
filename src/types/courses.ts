@@ -129,6 +129,17 @@ export interface TeachingStats {
 /** 教學統計資料庫型別 */
 export type TeachingStatsDb = Record<string, TeachingStats>
 
+/** 關懷者（教師、牧者、管理員）對學員某課程心得的回覆 */
+export interface CourseFeedback {
+  id: string
+  author: string // 回覆者帳號
+  message: string
+  createdAt: string // ISO 8601
+}
+
+/** 學員 → 課程 → 回覆（舊的在前） */
+export type CourseFeedbackDb = Record<string, Record<string, CourseFeedback[]>>
+
 /** 閃耀計畫勾選項目鍵值型別 */
 export type ShiningChecklistKey =
   | 'worship'

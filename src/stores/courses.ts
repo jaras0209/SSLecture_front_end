@@ -22,7 +22,9 @@ export type {
   Lecturer,
   TeachingStats,
   TeachingStatsDb,
-  ShiningChecklistKey
+  ShiningChecklistKey,
+  CourseFeedback,
+  CourseFeedbackDb
 } from '@/types/courses'
 
 // 引入型別供 store 內部使用
@@ -41,7 +43,9 @@ import type {
   Lecturer,
   TeachingStats,
   TeachingStatsDb,
-  ShiningChecklistKey
+  ShiningChecklistKey,
+  CourseFeedback,
+  CourseFeedbackDb
 } from '@/types/courses'
 import { DEFAULT_CHURCH } from '@/types/auth'
 
@@ -213,6 +217,11 @@ export const useCoursesStore = defineStore('courses', () => {
     safeGet<TeachingStatsDb>('superstart_teaching_stats_db', {}, { clearOnError: true })
   )
 
+  // Caretakers' replies to a student's notes on a course (kept as history)
+  const feedbackDb = ref<CourseFeedbackDb>(
+    safeGet<CourseFeedbackDb>('superstart_feedback_db', {}, { clearOnError: true })
+  )
+
   // ── One-time data migration on load ─────────────────────────────────────────
   // 讀取函式（getStudentProgress / getShiningProject）不再修改資料，
   // 舊格式資料在 store 建立時一次轉換完成，並寫回 localStorage。
@@ -270,6 +279,8 @@ export const useCoursesStore = defineStore('courses', () => {
   persistToStorage(lecturers, 'superstart_lecturers_db')
 
   persistToStorage(teachingStatsDb, 'superstart_teaching_stats_db')
+
+  persistToStorage(feedbackDb, 'superstart_feedback_db')
 
   // Blank template initializer
   function createBlankShiningProject(): ShiningProject {
@@ -615,6 +626,26 @@ export const useCoursesStore = defineStore('courses', () => {
     return names.map((n) => (n ?? '').trim()).filter((n) => n !== '')
   }
 
+  /** Replies to `student`'s notes on `courseId`, oldest first */
+  function getFeedback(student: string, courseId: string): CourseFeedback[] {
+    return feedbackDb.value[student]?.[courseId] ?? []
+  }
+
+  /** Reply to a student's notes on a course; blank messages are ignored */
+  function addFeedback(
+    student: string,
+    courseId: string,
+    author: string,
+    message: string
+  ): CourseFeedback | undefined {
+    const text = message.trim()
+    if (!text) return undefined
+    const entry: CourseFeedback = { id: createId('fb'), author, message: text, createdAt: nowIso() }
+    const byCourse = (feedbackDb.value[student] ??= {})
+    byCourse[courseId] = [...(byCourse[courseId] ?? []), entry]
+    return entry
+  }
+
   /**
    * 取得教師帳號在講師資料庫中的 linked 紀錄
    */
@@ -907,6 +938,9 @@ export const useCoursesStore = defineStore('courses', () => {
     getTeachingStats,
     getAllTeachingStats,
     getLecturerByUsername,
+    feedbackDb,
+    getFeedback,
+    addFeedback,
     getActualTeachingCourseCounts
   }
 })

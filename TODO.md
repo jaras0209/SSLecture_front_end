@@ -119,6 +119,8 @@
   出席記錄走 `PATCH /bookings/sessions/:id/attendees/:username`（處理 `409 BOOKING_NOT_CONFIRMED`）
 - [ ] 教會預約總覽（牧者）：`ChurchBookings` 改用 `GET /bookings/sessions?church=`（管理員不帶 church 查全部）
 - [ ] 教師的預約面板：使用回應的 `hiddenAttendeeCount`，不再由前端過濾學員
+- [ ] 心得回覆：`coursesStore.getFeedback()` / `addFeedback()` 改用 `GET` / `POST /progress/:username/:courseId/feedback`
+      （新表 `course_feedback`，見 `docs/database_schema.md` 2.20）
 - [x] 錯誤訊息：`src/utils/api.ts` 依 `error.code` 顯示目前語系的訊息（`api.codes.*`，`VALIDATION_ERROR` 沿用後端訊息）；
   `src/i18n/__tests__/apiCodes.spec.ts` 確保 API 規格第 12 節的每個錯誤碼都有中英文訊息
 

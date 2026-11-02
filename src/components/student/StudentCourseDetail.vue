@@ -137,6 +137,21 @@
           </div>
         </div>
 
+        <!-- Replies from the student's caretakers on these notes -->
+        <div v-if="feedback.length" class="course-feedback mt-4">
+          <h4 aria-level="3" class="section-sub-title">
+            💬 {{ $t('student.course.feedbackTitle') }}
+          </h4>
+          <ul class="course-feedback-list">
+            <li v-for="fb in feedback" :key="fb.id" class="course-feedback-item glass-panel-sm">
+              <span class="course-feedback-meta"
+                >{{ authStore.displayNameOf(fb.author) }} · {{ tDateTime(fb.createdAt) }}</span
+              >
+              <p class="course-feedback-text">{{ fb.message }}</p>
+            </li>
+          </ul>
+        </div>
+
         <!-- Collapsible review panel -->
         <div class="review-section mt-4">
           <button class="btn-review-toggle" @click="showReviewPanel = !showReviewPanel">
@@ -315,6 +330,13 @@ const currentRecord = computed(() => {
   if (!props.selectedCourse) return null
   const username = authStore.currentUser?.username || ''
   return coursesStore.getStudentProgress(username, props.selectedCourse.id)
+})
+
+/** Caretakers' replies to my notes on this course, newest first */
+const feedback = computed(() => {
+  if (!props.selectedCourse) return []
+  const username = authStore.currentUser?.username || ''
+  return [...coursesStore.getFeedback(username, props.selectedCourse.id)].reverse()
 })
 
 const availableLecturers = computed(() => {
@@ -575,6 +597,32 @@ function cancelEditSession() {
   gap: 0.5rem;
   justify-content: flex-end;
   margin-top: 0.5rem;
+}
+
+.course-feedback-list {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.course-feedback-item {
+  padding: 0.65rem 0.85rem;
+  border-left: 3px solid #f59e0b;
+}
+
+.course-feedback-meta {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.course-feedback-text {
+  margin: 0.2rem 0 0;
+  font-size: 0.9rem;
+  white-space: pre-wrap;
 }
 </style>
 

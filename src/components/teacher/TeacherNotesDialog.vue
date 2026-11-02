@@ -125,29 +125,36 @@
                 </div>
               </div>
 
-              <!-- Feedback Area (teacher/admin/pastor only) -->
-              <div v-if="record.notes && canSendFeedback" class="notes-feedback-area">
-                <label class="feedback-label">💬 {{ $t('teacher.drawer.notes') }}</label>
-                <div class="feedback-input-row">
+              <!-- Caretakers' replies, oldest first; only teachers, pastors and admins can add one -->
+              <div
+                v-if="feedbackOf(record.courseId).length || (record.notes && canSendFeedback)"
+                class="notes-feedback-area"
+              >
+                <p class="feedback-label">💬 {{ $t('teacher.notes.feedbackTitle') }}</p>
+                <ul v-if="feedbackOf(record.courseId).length" class="feedback-list">
+                  <li v-for="fb in feedbackOf(record.courseId)" :key="fb.id" class="feedback-item">
+                    <span class="feedback-meta"
+                      >{{ authStore.displayNameOf(fb.author) }} ·
+                      {{ tDateTime(fb.createdAt) }}</span
+                    >
+                    <span class="feedback-text">{{ fb.message }}</span>
+                  </li>
+                </ul>
+                <div v-if="record.notes && canSendFeedback" class="feedback-input-row">
                   <input
-                    v-model="feedbackInputs[student.username + '_' + record.courseId]"
+                    v-model="feedbackInputs[record.courseId]"
                     type="text"
                     class="form-input"
-                    :placeholder="$t('profile.student.feedbackPlaceholder')"
+                    :aria-label="
+                      $t('teacher.notes.feedbackInputLabel', { course: record.courseTitle })
+                    "
+                    :placeholder="$t('teacher.notes.replyPlaceholder')"
+                    @keydown.enter.prevent="onSendFeedback(record.courseId)"
                   />
-                  <button
-                    class="btn btn-primary btn-sm"
-                    @click="onSendFeedback(student.username, record.courseId)"
-                  >
-                    {{ $t('teacher.notes.saveBtn') }}
+                  <button class="btn btn-primary btn-sm" @click="onSendFeedback(record.courseId)">
+                    {{ $t('teacher.notes.replyBtn') }}
                   </button>
                 </div>
-                <p
-                  v-if="feedbacksSent[student.username + '_' + record.courseId]"
-                  class="feedback-sent-msg"
-                >
-                  {{ feedbacksSent[student.username + '_' + record.courseId] }}
-                </p>
               </div>
             </div>
           </div>
@@ -163,6 +170,9 @@ import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useI18nHelper } from '@/composables/useI18nHelper'
 import { avatarSrc } from '@/utils/avatar'
+import { useAuthStore } from '@/stores/auth'
+import { useCoursesStore } from '@/stores/courses'
+import { useToast } from '@/composables/useToast'
 
 const { t } = useI18n()
 const { tDateTime } = useI18nHelper()
@@ -200,13 +210,16 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
-  'feedback-sent': [username: string, courseId: string, message: string]
 }>()
+
+const authStore = useAuthStore()
+const coursesStore = useCoursesStore()
+const { toast } = useToast()
 
 // Internal state
 const notesFilter = ref<'all' | 'completed' | 'incomplete' | 'has-notes'>('all')
+/** Draft replies, per course of the student shown */
 const feedbackInputs = ref<Record<string, string>>({})
-const feedbacksSent = ref<Record<string, string>>({})
 
 function close() {
   emit('update:modelValue', false)
@@ -222,13 +235,20 @@ const filteredRecords = computed(() => {
   return records
 })
 
-function onSendFeedback(username: string, courseId: string) {
-  const key = `${username}_${courseId}`
-  const msg = feedbackInputs.value[key]?.trim()
-  if (!msg) return
-  feedbacksSent.value[key] = `✅ ${t('teacher.notes.savedLabel')}：「${msg}」`
-  emit('feedback-sent', username, courseId, msg)
-  feedbackInputs.value[key] = ''
+function feedbackOf(courseId: string) {
+  return props.student ? coursesStore.getFeedback(props.student.username, courseId) : []
+}
+
+/** Save a reply to the student's notes; the student sees it on that course */
+function onSendFeedback(courseId: string) {
+  const student = props.student?.username
+  const author = authStore.currentUser?.username
+  if (!student || !author || !props.canSendFeedback) return
+  if (!coursesStore.addFeedback(student, courseId, author, feedbackInputs.value[courseId] ?? '')) {
+    return
+  }
+  feedbackInputs.value[courseId] = ''
+  toast(t('teacher.notes.feedbackSaved'), 'success')
 }
 </script>
 
@@ -543,11 +563,31 @@ function onSendFeedback(username: string, courseId: string) {
   gap: 0.5rem;
 }
 
-.feedback-sent-msg {
-  font-size: 0.77rem;
-  color: #166534;
-  margin-top: 0.4rem;
+.feedback-list {
+  list-style: none;
+  margin: 0 0 0.6rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.feedback-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  font-size: 0.85rem;
+}
+
+.feedback-meta {
+  font-size: 0.72rem;
+  color: #92400e;
   font-weight: 600;
+}
+
+.feedback-text {
+  color: var(--text-primary);
+  white-space: pre-wrap;
 }
 
 /* Transition */
@@ -842,11 +882,31 @@ function onSendFeedback(username: string, courseId: string) {
   gap: 0.5rem;
 }
 
-.feedback-sent-msg {
-  font-size: 0.77rem;
-  color: #166534;
-  margin-top: 0.4rem;
+.feedback-list {
+  list-style: none;
+  margin: 0 0 0.6rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.feedback-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  font-size: 0.85rem;
+}
+
+.feedback-meta {
+  font-size: 0.72rem;
+  color: #92400e;
   font-weight: 600;
+}
+
+.feedback-text {
+  color: var(--text-primary);
+  white-space: pre-wrap;
 }
 </style>
 

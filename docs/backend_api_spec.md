@@ -27,6 +27,7 @@
 > - 帳號規則：小寫、3–30 字元、只用英數字與 `. _ -`，比對不分大小寫（前端 `src/utils/account.ts`）
 > - 信箱選填、不可重複，可用來登入：`POST /auth/login` 的 `identifier` 可填帳號或信箱
 > - 管理員建立帳號或重設密碼後 `mustChangePassword = true`，使用者須先改密碼才能使用其他 API
+> - 新增心得回覆：`GET` / `POST /progress/:username/:courseId/feedback`
 > - 規劃中（需後端）：信箱驗證、寄信重設密碼、社群帳號只在雙方信箱都已驗證時自動合併，見[帳號與信箱](#帳號與信箱規劃)
 
 > **v1.6.0 異動摘要**
@@ -618,6 +619,38 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 ```json
 { "success": true }
 ```
+
+---
+
+### `GET /progress/:username/:courseId/feedback` ⭐
+**說明**：取得對學員某課程心得的回覆（依時間由舊到新）
+
+**權限**：學員本人；看得到這位學員的教師、牧者、家長（見[可見範圍規則](#可見範圍規則誰看得到誰)）；`admin`
+
+**Response**：
+```json
+{
+  "success": true,
+  "data": [
+    { "id": "fb_01", "author": "teacher01", "authorName": "王老師", "message": "寫得很好，繼續加油", "createdAt": "2026-01-02T01:00:00Z" }
+  ]
+}
+```
+
+---
+
+### `POST /progress/:username/:courseId/feedback` ⭐
+**說明**：回覆學員某課程的心得（只新增、不修改）
+
+**權限**：看得到這位學員的 `teacher`、同教會 `pastor`、`admin`；家長與學員不能回覆（`403 FORBIDDEN`）
+
+**Request Body**：
+```json
+{ "message": "寫得很好，繼續加油" }
+```
+- `message`：去掉前後空白後不可為空（`400 VALIDATION_ERROR`）
+
+對應前端 `coursesStore.getFeedback()` / `addFeedback()`；資料表見 `docs/database_schema.md` 2.20。
 
 ---
 
@@ -1703,6 +1736,7 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | `bookingsStore.deleteSession()` | `DELETE /bookings/sessions/:id` ⭐ |
 | `bookingsStore.getSessionsByTeacher()` | `GET /bookings/sessions?teacherUsername=...` ⭐ |
 | `bookingsStore.getSessionsByLecturers()` | `GET /bookings/sessions?lecturerUsername=...` ⭐ |
+| `coursesStore.getFeedback()` / `addFeedback()` | `GET` / `POST /progress/:username/:courseId/feedback` ⭐ |
 | `bookingsStore.cancelOpenSessionsOf()` | 由 `DELETE /admin/users/:username` 在後端處理 ⭐ |
 | `authStore.setGender()` | `PUT /users/:username/gender` ⭐ |
 | `authStore.bindChild()` / `unbindChild()` | `PUT` / `DELETE /parents/:parentUsername/children/:studentUsername` ⭐ |

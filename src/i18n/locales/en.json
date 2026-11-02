@@ -233,7 +233,7 @@
       "minutes": "{n} min",
       "bookingsTitle": "📅 My Course Bookings",
       "upcomingTitle": "⏰ Upcoming Bookings",
-      "feedbackTitle": "💌 Reflections & Feedback",
+      "feedbackTitle": "Replies from your mentors",
       "feedbackLabel": "My Personal Reflection & Feedback",
       "feedbackPlaceholder": "Record your thoughts, takeaways or reflections...",
       "noUpcoming": "No upcoming bookings",
@@ -457,11 +457,14 @@
       "title": "📝 Learning Notes & Care Records",
       "studentLabel": "🔍 Viewing:",
       "noRecord": "No matching session records found",
-      "saveBtn": "💾 Save Notes",
-      "savedLabel": "Saved",
       "lastUpdated": "📅 Updated:",
       "studentNotes": "📖 Student Notes",
-      "feedbackSent": "Feedback sent to {username}: {msg}"
+      "feedbackSent": "Feedback sent to {username}: {msg}",
+      "feedbackTitle": "Replies",
+      "feedbackInputLabel": "Reply to the notes on {course}",
+      "feedbackSaved": "Reply sent; the student can see it on that course",
+      "replyPlaceholder": "Write a reply to the student…",
+      "replyBtn": "Send reply"
     },
     "settings": {
       "churchSwitchTitle": "⛪ Church Switch",
@@ -825,7 +828,6 @@
       "upcomingTitle": "Upcoming Bookings",
       "feedbackTitle": "Reflections & Feedback",
       "feedbackLabel": "My Personal Reflection & Feedback",
-      "feedbackPlaceholder": "Record your thoughts, takeaways or reflections from this session...",
       "shiningTitle": "SS Shining Plan Personal Growth Portfolio",
       "export": "Export This Page (PDF/Print)",
       "basicInfo": "Basic Personal Info"

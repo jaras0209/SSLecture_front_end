@@ -233,7 +233,7 @@
       "minutes": "{n} 分鐘",
       "bookingsTitle": "📅 我的聽課預約",
       "upcomingTitle": "⏰ 即將到來的預約",
-      "feedbackTitle": "💌 心得與回饋",
+      "feedbackTitle": "輔導回覆",
       "feedbackLabel": "我的心得回饋與個人反思",
       "feedbackPlaceholder": "記錄這堂課的心得、體會或想法...",
       "noUpcoming": "目前沒有即將到來的預約",
@@ -457,11 +457,14 @@
       "title": "📝 學習備注與關懷記錄",
       "studentLabel": "🔍 查看：",
       "noRecord": "目前尚無符合的聽課記錄",
-      "saveBtn": "💾 儲存備注",
-      "savedLabel": "已儲存",
       "lastUpdated": "📅 更新：",
       "studentNotes": "📖 學員心得記錄",
-      "feedbackSent": "已傳送回饋給 {username}：{msg}"
+      "feedbackSent": "已傳送回饋給 {username}：{msg}",
+      "feedbackTitle": "輔導回覆",
+      "feedbackInputLabel": "回覆「{course}」的心得",
+      "feedbackSaved": "已送出回覆，學員可在該課程看到",
+      "replyPlaceholder": "寫下給學員的回覆…",
+      "replyBtn": "送出回覆"
     },
     "settings": {
       "churchSwitchTitle": "⛪ 管理教會切換",
@@ -825,7 +828,6 @@
       "upcomingTitle": "即將到來的預約",
       "feedbackTitle": "心得與回饋",
       "feedbackLabel": "我的心得回饋與個人反思",
-      "feedbackPlaceholder": "記錄這堂課的心得、體會或想法...",
       "shiningTitle": "SS 閃耀計畫個人成長檔案",
       "export": "匯出本頁檔案 (PDF/列印)",
       "basicInfo": "個人基本資料"

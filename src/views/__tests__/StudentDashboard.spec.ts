@@ -160,4 +160,26 @@ describe('StudentDashboard', () => {
     expect(bookings.getAttendeesForSession(session.id)[0].studentFeedback).toBe('收穫很多')
     expect(toastTexts().at(-1)).toBe(t('student.feedbackSaved'))
   })
+
+  it("shows caretakers' replies on the course, newest first", async () => {
+    const { wrapper } = await mountStudent(() => {
+      const courses = useCoursesStore()
+      const course = courses.courses[0]
+      courses.addListenSession('student', course.id, { ...listen, notes: '我的心得' })
+      useAuthStore().usersDb.teacher.realName = '王老師'
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2026-01-01T00:00:00Z'))
+      courses.addFeedback('student', course.id, 'teacher', '寫得很好')
+      vi.setSystemTime(new Date('2026-01-02T00:00:00Z'))
+      courses.addFeedback('student', course.id, 'pastor', '繼續加油')
+      vi.useRealTimers()
+    })
+    await wrapper.find('.course-card').trigger('click')
+    await rendered(wrapper, '.course-feedback')
+    const items = wrapper.findAll('.course-feedback-item').map((i) => i.text())
+    expect(items).toHaveLength(2)
+    expect(items[0]).toContain('繼續加油')
+    expect(items[1]).toContain('王老師')
+    expect(items[1]).toContain('寫得很好')
+  })
 })
