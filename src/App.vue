@@ -12,6 +12,8 @@
         <button
           class="hamburger-btn"
           :aria-label="mobileMenuOpen ? $t('nav.closeMenu') : $t('nav.openMenu')"
+          :aria-expanded="mobileMenuOpen"
+          aria-controls="navbar-collapse"
           @click="mobileMenuOpen = !mobileMenuOpen"
         >
           <span class="hamburger-line" :class="{ open: mobileMenuOpen }"></span>
@@ -21,7 +23,7 @@
       </div>
 
       <!-- Collapsible menu -->
-      <div class="navbar-collapse" :class="{ 'is-open': mobileMenuOpen }">
+      <div id="navbar-collapse" class="navbar-collapse" :class="{ 'is-open': mobileMenuOpen }">
         <ul class="navbar-menu">
           <!-- Student Link (hidden if restricted) -->
           <li v-if="canAccess('/student')">
@@ -63,7 +65,12 @@
           </div>
           <!-- Language Switcher -->
           <LanguageSwitcher />
-          <button class="btn btn-outline btn-sm action-btn" @click="showPasswordModal = true">
+          <!-- Google / LINE accounts have no password to change -->
+          <button
+            v-if="hasPassword"
+            class="btn btn-outline btn-sm action-btn"
+            @click="showPasswordModal = true"
+          >
             🔒 {{ $t('nav.changePassword') }}
           </button>
           <button class="btn btn-outline btn-sm action-btn logout-btn" @click="handleLogout">
@@ -93,9 +100,10 @@
             {{ pwdAlertMsg }}
           </div>
           <div class="form-group">
-            <label class="form-label">{{ $t('passwordModal.oldPassword') }}</label>
+            <label class="form-label" for="pwd-old">{{ $t('passwordModal.oldPassword') }}</label>
             <div class="pwd-input-wrap">
               <input
+                id="pwd-old"
                 v-model="pwdForm.oldPassword"
                 :type="showOldPwd ? 'text' : 'password'"
                 class="form-input"
@@ -136,9 +144,10 @@
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label">{{ $t('passwordModal.newPassword') }}</label>
+            <label class="form-label" for="pwd-new">{{ $t('passwordModal.newPassword') }}</label>
             <div class="pwd-input-wrap">
               <input
+                id="pwd-new"
                 v-model="pwdForm.newPassword"
                 :type="showNewPwd ? 'text' : 'password'"
                 class="form-input"
@@ -210,9 +219,12 @@
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label">{{ $t('passwordModal.confirmPassword') }}</label>
+            <label class="form-label" for="pwd-confirm">{{
+              $t('passwordModal.confirmPassword')
+            }}</label>
             <div class="pwd-input-wrap">
               <input
+                id="pwd-confirm"
                 v-model="pwdForm.confirmPassword"
                 :type="showConfirmPwd ? 'text' : 'password'"
                 class="form-input"
@@ -285,7 +297,7 @@
 
 <script setup lang="ts">
 import { vDialog } from '@/directives/dialog'
-import { ref, reactive, toRef, watch } from 'vue'
+import { ref, reactive, toRef, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
@@ -370,28 +382,29 @@ function handlePasswordChange() {
   }
 }
 
-// Dynamic navigation guards checks for link displays
+/** Whether the signed-in account has a password (Google / LINE accounts don't) */
+const hasPassword = computed(() => {
+  const me = authStore.currentUser
+  return !!me && !!authStore.usersDb[me.username]?.passwordHash
+})
+
+/**
+ * Whether to show a navbar link: the route's own role list (the router is the one place that
+ * says who may open a page) and the admin's page restrictions for this user
+ */
 function canAccess(path: string): boolean {
-  if (!authStore.currentUser) return false
-  const role = authStore.currentUser.role
-  const username = authStore.currentUser.username
-
-  // If the admin blocked this path for this user
-  if (coursesStore.isPageRestricted(username, path)) return false
-
-  // Role permissions checks
-  if (path === '/student') {
-    return role === 'student'
-  }
-  if (path === '/teacher') {
-    return ['teacher', 'pastor', 'parent'].includes(role)
-  }
-  if (path === '/admin') {
-    return role === 'admin'
-  }
-
-  return true
+  const me = authStore.currentUser
+  if (!me) return false
+  if (coursesStore.isPageRestricted(me.username, path)) return false
+  const roles = router.resolve(path).meta.roles as string[] | undefined
+  return !roles || roles.includes(me.role)
 }
+
+// The phone menu closes whenever the page changes (a link, signing out, another tab)
+watch(
+  () => router.currentRoute.value.fullPath,
+  () => (mobileMenuOpen.value = false)
+)
 
 function handleLogout() {
   authStore.logout()
