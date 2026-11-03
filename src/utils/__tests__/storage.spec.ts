@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { safeGet, safeSet, safeRemove, safeGetAll } from '@/utils/storage'
+import { safeGet, safeSet, safeRemove } from '@/utils/storage'
 
 describe('safeGet', () => {
   beforeEach(() => {
@@ -94,38 +94,5 @@ describe('safeRemove', () => {
 
   it('does not throw when removing a non-existent key', () => {
     expect(() => safeRemove('ghost_key')).not.toThrow()
-  })
-})
-
-describe('safeGetAll', () => {
-  beforeEach(() => {
-    localStorage.clear()
-    vi.spyOn(console, 'warn').mockImplementation(() => {})
-  })
-
-  afterEach(() => {
-    vi.restoreAllMocks()
-  })
-
-  it('reads multiple keys at once', () => {
-    localStorage.setItem('k1', JSON.stringify({ a: 1 }))
-    localStorage.setItem('k2', JSON.stringify([1, 2]))
-
-    const result = safeGetAll({
-      first: { key: 'k1', fallback: {} as { a: number } },
-      second: { key: 'k2', fallback: [] as number[] }
-    })
-
-    expect(result.first).toEqual({ a: 1 })
-    expect(result.second).toEqual([1, 2])
-  })
-
-  it('returns individual fallbacks for missing keys', () => {
-    const result = safeGetAll({
-      sessions: { key: 'missing_sessions', fallback: {} as Record<string, unknown> },
-      attendees: { key: 'missing_attendees', fallback: [] as unknown[] }
-    })
-    expect(result.sessions).toEqual({})
-    expect(result.attendees).toEqual([])
   })
 })

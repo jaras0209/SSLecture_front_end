@@ -107,8 +107,3 @@ export function avatarSrc(url: string | undefined): string | undefined {
   cache.set(url, dataUri)
   return dataUri
 }
-
-/** 預先載入風格（例如開啟頭像選擇器前），回傳載入完成的 Promise。 */
-export function preloadAvatarStyles(styleIds: AvatarStyleId[]): Promise<void> {
-  return Promise.all(styleIds.map(loadStyle)).then(() => undefined)
-}

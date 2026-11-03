@@ -1,11 +1,14 @@
-import { describe, it, expect } from 'vitest'
-import {
-  avatarSrc,
-  defaultAvatarUrl,
-  dicebearAvatarUrl,
-  preloadAvatarStyles,
-  AVATAR_PLACEHOLDER
-} from '@/utils/avatar'
+import { describe, it, expect, vi } from 'vitest'
+import { avatarSrc, defaultAvatarUrl, dicebearAvatarUrl, AVATAR_PLACEHOLDER } from '@/utils/avatar'
+
+/** Ask for each avatar until its style has loaded and it is a generated SVG, as the app does */
+const loaded = (...urls: string[]) =>
+  vi.waitFor(
+    () => {
+      for (const url of urls) expect(avatarSrc(url)).not.toBe(AVATAR_PLACEHOLDER)
+    },
+    { timeout: 5000 }
+  )
 
 const svgOf = (dataUri: string) =>
   decodeURIComponent(dataUri.replace(/^data:image\/svg\+xml;[^,]*,/, ''))
@@ -37,21 +40,21 @@ describe('avatarSrc()', () => {
     const url = dicebearAvatarUrl('bottts', 'placeholder-check')
     expect(avatarSrc(url)).toBe(AVATAR_PLACEHOLDER)
 
-    await preloadAvatarStyles(['bottts'])
+    await loaded(url)
     const src = avatarSrc(url)!
     expect(src.startsWith('data:image/svg+xml')).toBe(true)
     expect(svgOf(src)).toContain('<svg')
   })
 
   it('is deterministic per URL and differs between seeds', async () => {
-    await preloadAvatarStyles(['fun-emoji'])
+    await loaded(defaultAvatarUrl('alice'))
     const a = avatarSrc(defaultAvatarUrl('alice'))
     expect(avatarSrc(defaultAvatarUrl('alice'))).toBe(a)
     expect(avatarSrc(defaultAvatarUrl('bob'))).not.toBe(a)
   })
 
   it('decodes the seed like the API server does (%xx and + in the query)', async () => {
-    await preloadAvatarStyles(['fun-emoji'])
+    await loaded(defaultAvatarUrl('王 小明'))
     // "王 小明" written two ways must produce the same avatar
     const encoded = avatarSrc(
       'https://api.dicebear.com/7.x/fun-emoji/svg?seed=%E7%8E%8B+%E5%B0%8F%E6%98%8E'
@@ -71,7 +74,7 @@ describe('avatarSrc()', () => {
       'micah',
       'notionists'
     ] as const
-    await preloadAvatarStyles([...styles])
+    await loaded(...styles.map((style) => dicebearAvatarUrl(style, 'every-style')))
     for (const style of styles) {
       const src = avatarSrc(dicebearAvatarUrl(style, 'every-style'))!
       expect(src, style).not.toBe(AVATAR_PLACEHOLDER)

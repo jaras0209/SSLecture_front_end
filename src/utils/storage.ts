@@ -87,29 +87,6 @@ export function safeRemove(key: string): void {
 }
 
 /**
- * 批次安全讀取多個 key。
- *
- * @param specs 每個 key 的設定（key、fallback、options）
- * @returns 以 key 為索引的結果物件
- *
- * @example
- *   const { sessionsDb, attendeesDb } = safeGetAll({
- *     sessionsDb:  { key: 'superstart_sessions_db',  fallback: {} },
- *     attendeesDb: { key: 'superstart_attendees_db', fallback: {} },
- *   })
- */
-export function safeGetAll<T extends Record<string, unknown>>(specs: {
-  [K in keyof T]: { key: string; fallback: T[K]; options?: SafeGetOptions }
-}): T {
-  const result = {} as T
-  for (const name in specs) {
-    const { key, fallback, options } = specs[name]
-    result[name] = safeGet(key, fallback, options) as T[typeof name]
-  }
-  return result
-}
-
-/**
  * 監聽「其他分頁」對 localStorage[key] 的變更（storage 事件只在別的分頁寫入時觸發）。
  * newValue 為原始字串；key 被移除或整個 localStorage 被清除時為 null。
  * 回傳取消監聽的函式。

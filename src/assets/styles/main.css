@@ -597,7 +597,7 @@ h6 {
   background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
 }
 
-/* Modal Overlay (global base — used by legacy modals and BaseModal alike) */
+/* Modal Overlay (global base shared by the app's dialogs) */
 .modal-overlay {
   position: fixed;
   inset: 0;
