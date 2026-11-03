@@ -253,104 +253,11 @@ function onSendFeedback(courseId: string) {
 </script>
 
 <style scoped>
-/* ===================== Notes Dialog ===================== */
-.notes-dialog-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(6px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  padding: 1rem;
-}
-
-.notes-dialog-card {
-  width: 100%;
-  max-width: 840px;
-  max-height: 88vh;
-  display: flex;
-  flex-direction: column;
-  border-radius: 16px;
-  background: #ffffff;
-  box-shadow: 0 32px 96px rgba(0, 0, 0, 0.28);
-  overflow: hidden;
-}
-
-.notes-dialog-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem 2rem;
-  border-bottom: 1px solid #e2e8f0;
-  background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
-  flex-shrink: 0;
-}
-
-.notes-dialog-profile {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
 .notes-dialog-profile h3 {
   margin: 0 0 0.25rem 0;
   font-size: 1.15rem;
   font-weight: 800;
   color: #1e293b;
-}
-
-.notes-dialog-subtitle {
-  margin: 0;
-  font-size: 0.82rem;
-  color: #475569;
-}
-
-.notes-close-btn {
-  width: 36px;
-  height: 36px;
-  border: none;
-  background: rgba(0, 0, 0, 0.06);
-  border-radius: 50%;
-  font-size: 1.2rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #475569;
-  transition: background 0.15s;
-  flex-shrink: 0;
-}
-
-.notes-close-btn:hover {
-  background: rgba(239, 68, 68, 0.12);
-  color: #ef4444;
-}
-
-/* Filter Bar */
-.notes-filter-bar {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.85rem 2rem;
-  background: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
-  flex-wrap: wrap;
-  flex-shrink: 0;
-}
-
-.filter-label {
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: #475569;
-  white-space: nowrap;
-}
-
-.filter-btns {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
 }
 
 .filter-btn {
@@ -380,96 +287,6 @@ function onSendFeedback(courseId: string) {
   box-shadow: 0 3px 10px rgba(99, 102, 241, 0.3);
 }
 
-/* Dialog Body */
-.notes-dialog-body {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding: 1.25rem 1.75rem;
-  display: block;
-  background: #f1f5f9;
-}
-
-.notes-empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem;
-  color: #556377;
-  gap: 0.5rem;
-}
-
-.notes-empty-icon {
-  font-size: 2.5rem;
-  opacity: 0.5;
-}
-
-/* Individual record card */
-.notes-record-card {
-  border-radius: 12px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
-  transition: box-shadow 0.2s ease;
-  flex-shrink: 0;
-  margin-bottom: 0.85rem;
-}
-
-.notes-record-card:hover {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-}
-
-.notes-record-completed {
-  border-left: 4px solid #10b981;
-}
-.notes-record-incomplete {
-  border-left: 4px solid #f59e0b;
-}
-
-.notes-record-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.85rem 1.25rem;
-  background: #fafbfc;
-  border-bottom: 1px solid #f0f2f5;
-}
-
-.notes-record-title-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-width: 0;
-  flex: 1;
-}
-
-.notes-record-index {
-  font-size: 1rem;
-  flex-shrink: 0;
-}
-
-.notes-record-title {
-  margin: 0;
-  font-size: 0.92rem;
-  font-weight: 700;
-  color: #1e293b;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.notes-status-badge {
-  padding: 0.2rem 0.7rem;
-  border-radius: 999px;
-  font-size: 0.76rem;
-  font-weight: 700;
-  white-space: nowrap;
-  flex-shrink: 0;
-  margin-left: 0.75rem;
-}
-
 .status-done {
   background: rgba(16, 185, 129, 0.1);
   color: #047857;
@@ -477,117 +294,6 @@ function onSendFeedback(courseId: string) {
 .status-pending {
   background: rgba(245, 158, 11, 0.1);
   color: #92400e;
-}
-
-.notes-record-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  padding: 0.55rem 1.25rem;
-  background: white;
-  border-bottom: 1px dashed #eaecf0;
-}
-
-.meta-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.2rem;
-  font-size: 0.75rem;
-  color: #475569;
-  background: #f1f5f9;
-  padding: 0.15rem 0.55rem;
-  border-radius: 999px;
-  border: 1px solid #e2e8f0;
-}
-
-.notes-record-content {
-  padding: 0.85rem 1.25rem;
-  background: white;
-}
-
-.notes-text-box {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.notes-text-header {
-  font-size: 0.73rem;
-  font-weight: 700;
-  color: #166534;
-  padding: 0.35rem 0.8rem;
-  background: rgba(22, 163, 74, 0.07);
-  border-bottom: 1px solid #bbf7d0;
-}
-
-.notes-text-body {
-  padding: 0.7rem 0.8rem;
-  font-size: 0.88rem;
-  line-height: 1.75;
-  color: #1e293b;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.notes-empty-note {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.65rem;
-  background: #f8fafc;
-  border-radius: 8px;
-  font-size: 0.83rem;
-  color: #556377;
-  font-style: italic;
-  border: 1px dashed #e2e8f0;
-}
-
-/* Feedback */
-.notes-feedback-area {
-  padding: 0.8rem 1.25rem;
-  border-top: 1px dashed #e2e8f0;
-  background: #fffbeb;
-}
-
-.feedback-label {
-  display: block;
-  font-size: 0.76rem;
-  font-weight: 700;
-  color: #92400e;
-  margin-bottom: 0.45rem;
-}
-
-.feedback-input-row {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.feedback-list {
-  list-style: none;
-  margin: 0 0 0.6rem;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.feedback-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  font-size: 0.85rem;
-}
-
-.feedback-meta {
-  font-size: 0.72rem;
-  color: #92400e;
-  font-weight: 600;
-}
-
-.feedback-text {
-  color: var(--text-primary);
-  white-space: pre-wrap;
 }
 
 /* Transition */
@@ -609,9 +315,7 @@ function onSendFeedback(courseId: string) {
   transform: scale(0.96) translateY(8px);
   opacity: 0;
 }
-</style>
 
-<style scoped>
 /* [css-migration] moved from TeacherDashboard.vue */
 /* ===================== Notes Dialog ===================== */
 .notes-dialog-overlay {

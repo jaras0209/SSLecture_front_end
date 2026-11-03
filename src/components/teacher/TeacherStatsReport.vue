@@ -225,14 +225,6 @@ function handleSaveStats() {
 </script>
 
 <style scoped>
-/* [css-migration] moved from TeacherDashboard.vue */
-@media (max-width: 480px) {
-  /* Stats form */
-  .stats-form-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
 .stats-report-header {
   display: flex;
   justify-content: space-between;
