@@ -304,10 +304,70 @@ test.describe('teacher', () => {
     await page.fill('#login-password', '123456')
     await page.click('form.auth-form button[type=submit]')
     await expect(page).toHaveURL(/\/student$/)
+    // the student is told there is a new reply, and on which course
+    await expect(page.locator('#tab-sermons .booking-badge')).toHaveText('1')
+    await expect(page.locator('.course-card').first().locator('.badge-new-reply')).toBeVisible()
     await page.locator('.course-card').first().click()
     const item = page.locator('.course-feedback-item')
     await expect(item).toContainText('王老師')
     await expect(item).toContainText('寫得很好，繼續加油')
+    await expect(item.locator('.course-feedback-new')).toBeVisible()
+    // opening the course counts as reading it
+    await expect(page.locator('#tab-sermons .booking-badge')).toHaveCount(0)
+    await expect(page.locator('.badge-new-reply')).toHaveCount(0)
+  })
+
+  test("lets a parent see their child's bookings", async ({ page, openWith }) => {
+    await openWith('teacher', {
+      superstart_user: {
+        username: 'parent',
+        role: 'parent',
+        loginMethod: 'credentials',
+        church: '愛與話語'
+      },
+      superstart_booking_sessions_db: {
+        s1: {
+          id: 's1',
+          courseId: 'bible-01',
+          courseTitle: '聖經時觀',
+          lecturerId: 'l1',
+          lecturerName: '王講師',
+          lecturerTitle: '牧師',
+          teacherUsername: 'teacher',
+          proposedAt: '2099-01-10T10:00',
+          confirmedAt: '2099-01-10T10:00',
+          durationMinutes: 90,
+          status: 'confirmed',
+          prep: { scriptures: [], readingNotes: '', materials: '' },
+          teacherSessionNotes: '',
+          church: '愛與話語',
+          isGroupSession: false,
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z'
+        }
+      },
+      superstart_booking_attendees_db: {
+        att_s1_student: {
+          id: 'att_s1_student',
+          sessionId: 's1',
+          studentUsername: 'student',
+          attendanceStatus: 'invited',
+          studentFeedback: '',
+          teacherFeedback: '',
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z'
+        }
+      }
+    })
+    await page
+      .locator('.students-table tbody tr', { hasText: 'student' })
+      .locator('.btn-secondary')
+      .click()
+    await page.locator('#drawer-tab-bookings').click()
+    const booking = page.locator('.bookings-summary .summary-item')
+    await expect(booking).toHaveCount(1)
+    await expect(booking).toContainText('聖經時觀')
+    await expect(booking).toContainText('王講師')
   })
 })
 

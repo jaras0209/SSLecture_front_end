@@ -91,6 +91,12 @@
         @click="activeDashboardTab = 'sermons'"
       >
         {{ $t('student.tabs.sermons') }}
+        <template v-if="coursesWithNewReplies > 0">
+          <span class="booking-badge" aria-hidden="true">{{ coursesWithNewReplies }}</span>
+          <span class="sr-only">{{
+            $t('student.course.coursesWithNewReplies', { n: coursesWithNewReplies })
+          }}</span>
+        </template>
       </button>
       <button
         id="tab-shining"
@@ -202,6 +208,12 @@ const coursesStore = useCoursesStore()
 const bookingsStore = useBookingsStore()
 
 // ─── Student Booking (for tab badge only - detail handled in StudentBookingList) ────
+
+/** Courses with caretakers' replies the student hasn't seen yet */
+const coursesWithNewReplies = computed(() => {
+  const me = authStore.currentUser
+  return me ? coursesStore.coursesWithUnreadFeedback(me.username).length : 0
+})
 
 const upcomingBookingsCount = computed(() => {
   const me = authStore.currentUser
@@ -506,6 +518,9 @@ const overallProgressPercent = computed(() => {
 }
 
 :where(body:has(.student-dashboard)) .main-tab-btn {
+  /* Contains the badges' screen-reader text, which would otherwise widen the page
+     when the tab row scrolls sideways on phones */
+  position: relative;
   flex: 1;
   padding: 0.85rem;
   font-family: var(--font-family);

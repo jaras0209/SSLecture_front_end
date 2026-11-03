@@ -182,4 +182,49 @@ describe('StudentDashboard', () => {
     expect(items[1]).toContain('王老師')
     expect(items[1]).toContain('寫得很好')
   })
+
+  it('marks courses with new replies until the student opens them', async () => {
+    let courseId = ''
+    const { wrapper } = await mountStudent(() => {
+      const courses = useCoursesStore()
+      courseId = courses.courses[0].id
+      courses.addListenSession('student', courseId, { ...listen, notes: '我的心得' })
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2026-01-01T00:00:00Z'))
+      courses.addFeedback('student', courseId, 'teacher', '第一則')
+      courses.markFeedbackSeen('student', courseId) // already read
+      vi.setSystemTime(new Date('2026-01-02T00:00:00Z'))
+      courses.addFeedback('student', courseId, 'teacher', '第二則')
+      vi.useRealTimers()
+    })
+    const tab = wrapper.find('#tab-sermons')
+    expect(tab.find('.booking-badge').text()).toBe('1')
+    expect(tab.text()).toContain(t('student.course.coursesWithNewReplies', { n: 1 }))
+    const card = wrapper.find('.course-card')
+    expect(card.find('.badge-new-reply').text()).toContain(t('student.course.newReplies', { n: 1 }))
+
+    await card.trigger('click')
+    await rendered(wrapper, '.course-feedback')
+    // only the reply that was new when the course was opened is marked
+    const items = wrapper.findAll('.course-feedback-item')
+    expect(items[0].text()).toContain('第二則')
+    expect(items[0].find('.course-feedback-new').exists()).toBe(true)
+    expect(items[1].find('.course-feedback-new').exists()).toBe(false)
+    // ...and opening it counts as seeing it
+    expect(useCoursesStore().unreadFeedback('student', courseId)).toEqual([])
+    expect(wrapper.find('#tab-sermons .booking-badge').exists()).toBe(false)
+    expect(wrapper.find('.badge-new-reply').exists()).toBe(false)
+
+    // a reply arriving while the course is open is new too, and the earlier mark stays
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-01-03T00:00:00Z'))
+    useCoursesStore().addFeedback('student', courseId, 'teacher', '第三則')
+    vi.useRealTimers()
+    await wrapper.vm.$nextTick()
+    const marks = wrapper
+      .findAll('.course-feedback-item')
+      .map((i) => i.find('.course-feedback-new').exists())
+    expect(marks).toEqual([true, true, false])
+    expect(useCoursesStore().unreadFeedback('student', courseId)).toEqual([])
+  })
 })

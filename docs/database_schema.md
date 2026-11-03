@@ -32,6 +32,7 @@
    - [social_accounts（社群帳號綁定）](#218-social_accounts-社群帳號綁定)
    - [parent_children（家長綁定）](#219-parent_children-家長綁定) ⭐ NEW
    - [course_feedback（心得回覆）](#220-course_feedback-心得回覆) ⭐ NEW
+   - [course_feedback_reads（回覆已讀）](#221-course_feedback_reads-回覆已讀) ⭐ NEW
 3. [索引設計](#3-索引設計)
 4. [資料關聯一覽](#4-資料關聯一覽)
 5. [設計決策與說明](#5-設計決策與說明)
@@ -43,7 +44,7 @@
 
 ## 1. 資料庫設計總覽
 
-共 20 張表，依用途分組（`─<` 表示一對多，`>─<` 表示多對多；完整欄位與關聯見 [第 8 節 ERD](#8-mermaid-erd-關聯圖)，
+共 21 張表，依用途分組（`─<` 表示一對多，`>─<` 表示多對多；完整欄位與關聯見 [第 8 節 ERD](#8-mermaid-erd-關聯圖)，
 外鍵清單見[第 4 節](#4-資料關聯一覽)）：
 
 ```
@@ -61,6 +62,7 @@
   courses >─< lecturers（lecturer_courses）   講師可授的課程；lecturers ─ users（連結帳號，可空）
   users ─< listen_sessions >─ courses         學員每次聽課一筆
   users ─< course_feedback >─ courses         教師、牧者對學員課程心得的回覆
+  users ─< course_feedback_reads >─ courses   學員已讀到哪一則回覆（新回覆提醒）
 
 預約
   users（教師）─< booking_sessions >─ courses, lecturers, churches
@@ -91,7 +93,7 @@
 > - 新增 `course_feedback`：教師、牧者、管理員對學員課程心得的回覆（見 2.20）。前端舊版的回覆只顯示「已儲存」、實際沒有保存
 > - `users` 新增 `email`（選填、不可重複）、`email_verified`、`must_change_password`；`username` 加格式檢查
 > - 整理：`booking_sessions.id` 改為 UUID；`booking_attendees` 改以 `(session_id, student_id)` 為主鍵、移除拼接字串 `id`；
->   新增時間與時區規則（[5.14](#514-時間與時區)）；總覽圖與關聯一覽改寫為涵蓋全部 20 張表；2.14–2.20 移回第 2 節
+>   新增時間與時區規則（[5.14](#514-時間與時區)）；總覽圖與關聯一覽改寫為涵蓋全部表；2.14–2.20 移回第 2 節
 > - `users.password_hash` 改為可為 NULL：社群登入建立的帳號沒有密碼（見 2.1）
 
 ---
@@ -611,6 +613,35 @@ ALTER TABLE student_assignments DROP COLUMN parent_id;
 
 ---
 
+### 2.21 `course_feedback_reads` 回覆已讀
+
+> **對應前端**：`courses.ts` → `feedbackSeenDb`、`unreadFeedback()` / `markFeedbackSeen()`，`superstart_feedback_seen_db` localStorage key  
+> **新增於**：v1.7.0
+
+| 欄位名 | 資料型別 | 限制 | 說明 |
+|--------|----------|------|------|
+| `student_id` | `UUID` | PK, FK → users.id, NOT NULL | 學員 |
+| `course_id` | `VARCHAR(20)` | PK, FK → courses.id, NOT NULL | 課程 |
+| `seen_up_to` | `TIMESTAMPTZ` | NOT NULL | 已讀到的最新一則回覆的 `created_at` |
+
+**設計說明**：
+- 學員打開課程即視為已讀；`created_at > seen_up_to` 的回覆算「新回覆」，顯示在課程卡片與「課程」分頁上
+- 記錄的是回覆本身的時間而不是讀的時間，避免伺服器與瀏覽器時鐘不一致時漏掉或重複提醒
+- 只有學員本人會改變已讀狀態（家長、教師查看不算）
+
+```sql
+-- 學員 :student_id 有新回覆的課程與則數
+SELECT f.course_id, COUNT(*) AS unread
+FROM course_feedback f
+LEFT JOIN course_feedback_reads r ON r.student_id = f.student_id AND r.course_id = f.course_id
+WHERE f.student_id = :student_id AND (r.seen_up_to IS NULL OR f.created_at > r.seen_up_to)
+GROUP BY f.course_id;
+```
+
+**SQL DDL**：見[第 6 節](#6-sql-建表語句postgresql)。
+
+---
+
 ## 3. 索引設計
 
 ```sql
@@ -711,6 +742,7 @@ CREATE INDEX idx_invite_codes_church     ON invite_codes(church_id);
 | `social_accounts.user_id` | `CASCADE`：一起刪除 |
 | `course_feedback.author_id` | `RESTRICT`：禁止刪除（保留為歷史） |
 | `course_feedback.student_id` | `RESTRICT`：禁止刪除（保留為歷史） |
+| `course_feedback_reads.student_id` | `CASCADE`：一起刪除 |
 
 **courses**
 
@@ -720,6 +752,7 @@ CREATE INDEX idx_invite_codes_church     ON invite_codes(church_id);
 | `listen_sessions.course_id` | `NO ACTION`：禁止刪除（課程不應刪除） |
 | `booking_sessions.course_id` | `SET NULL`：設為 NULL（保留子列） |
 | `course_feedback.course_id` | `NO ACTION`：禁止刪除（課程不應刪除） |
+| `course_feedback_reads.course_id` | `CASCADE`：一起刪除 |
 
 **lecturers**
 
@@ -1299,6 +1332,16 @@ CREATE TABLE course_feedback (
 );
 
 CREATE INDEX idx_course_feedback_student_course ON course_feedback(student_id, course_id, created_at);
+
+-- ═══════════════════════════════════════════════════
+--  20. course_feedback_reads（回覆已讀，見 2.21）
+-- ═══════════════════════════════════════════════════
+CREATE TABLE course_feedback_reads (
+  student_id UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  course_id  VARCHAR(20) NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+  seen_up_to TIMESTAMPTZ NOT NULL,
+  PRIMARY KEY (student_id, course_id)
+);
 ```
 
 ---
@@ -1498,6 +1541,12 @@ erDiagram
     TIMESTAMPTZ created_at
   }
 
+  course_feedback_reads {
+    UUID        student_id PK,FK "-> users.id CASCADE"
+    VARCHAR     course_id  PK,FK "-> courses.id CASCADE"
+    TIMESTAMPTZ seen_up_to    "已讀到的最新回覆時間"
+  }
+
   %% ════════════════════════════════════
   %% 閃耀計畫
   %% ════════════════════════════════════
@@ -1672,6 +1721,8 @@ erDiagram
   %% 心得回覆
   users   ||--o{ course_feedback : "student_id (RESTRICT)"
   users   ||--o{ course_feedback : "author_id (RESTRICT)"
+  users   ||--o{ course_feedback_reads : "student_id (CASCADE)"
+  courses ||--o{ course_feedback_reads : "course_id (CASCADE)"
   courses ||--o{ course_feedback : "course_id"
 
   %% 閃耀計畫（1:1 + 1:N）

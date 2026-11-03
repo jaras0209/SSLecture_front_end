@@ -237,7 +237,10 @@
       "feedbackLabel": "我的心得回饋與個人反思",
       "feedbackPlaceholder": "記錄這堂課的心得、體會或想法...",
       "noUpcoming": "目前沒有即將到來的預約",
-      "noPast": "目前沒有過去的預約紀錄"
+      "noPast": "目前沒有過去的預約紀錄",
+      "newReplies": "{n} 則新回覆",
+      "newReply": "新",
+      "coursesWithNewReplies": "{n} 門課有新的輔導回覆"
     },
     "shining": {
       "pageTitle": "✨ SS 閃耀計畫自我檢視平台",
@@ -579,7 +582,16 @@
       "notFilled": "未填寫",
       "completed": "已完成",
       "notCompleted": "未完成",
-      "notes": "心得筆記"
+      "notes": "心得筆記",
+      "bookings": {
+        "tab": "預約",
+        "title": "預約與出席",
+        "upcoming": "即將到來",
+        "past": "過去的預約",
+        "attendance": "出席",
+        "cancelReason": "取消原因：{reason}",
+        "empty": "目前沒有任何預約"
+      }
     },
     "lecture": {
       "title": "我的授課",

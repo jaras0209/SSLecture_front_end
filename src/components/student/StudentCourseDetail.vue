@@ -147,6 +147,9 @@
               <span class="course-feedback-meta"
                 >{{ authStore.displayNameOf(fb.author) }} · {{ tDateTime(fb.createdAt) }}</span
               >
+              <span v-if="fb.createdAt > repliesSeenBefore" class="course-feedback-new">{{
+                $t('student.course.newReply')
+              }}</span>
               <p class="course-feedback-text">{{ fb.message }}</p>
             </li>
           </ul>
@@ -332,12 +335,32 @@ const currentRecord = computed(() => {
   return coursesStore.getStudentProgress(username, props.selectedCourse.id)
 })
 
+/**
+ * Replies newer than this were new when the course was opened; they keep their "new" mark
+ * while the course stays open even though they now count as seen.
+ */
+const repliesSeenBefore = ref('')
+
 /** Caretakers' replies to my notes on this course, newest first */
 const feedback = computed(() => {
   if (!props.selectedCourse) return []
   const username = authStore.currentUser?.username || ''
   return [...coursesStore.getFeedback(username, props.selectedCourse.id)].reverse()
 })
+
+/** Opening a course (or a reply arriving while it is open) counts as seeing its replies */
+watch(
+  () => [props.selectedCourse?.id, feedback.value.length] as const,
+  ([courseId], previous) => {
+    const username = authStore.currentUser?.username
+    if (!courseId || !username) return
+    if (courseId !== previous?.[0]) {
+      repliesSeenBefore.value = coursesStore.feedbackSeenAt(username, courseId)
+    }
+    coursesStore.markFeedbackSeen(username, courseId)
+  },
+  { immediate: true }
+)
 
 const availableLecturers = computed(() => {
   if (!props.selectedCourse) return []
@@ -617,6 +640,16 @@ function cancelEditSession() {
   font-size: 0.75rem;
   font-weight: 600;
   color: #92400e;
+}
+
+.course-feedback-new {
+  margin-left: 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: white;
+  background: #ef4444;
+  border-radius: 999px;
+  padding: 0.05rem 0.45rem;
 }
 
 .course-feedback-text {

@@ -664,6 +664,22 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 
 對應前端 `coursesStore.getFeedback()` / `addFeedback()`；資料表見 `docs/database_schema.md` 2.20。
 
+### `GET /progress/:username/feedback/unread` ⭐
+**說明**：學員有新回覆的課程與則數（前端在課程卡片與「課程」分頁上顯示提醒）
+
+**權限**：學員本人
+
+```json
+{ "success": true, "data": { "bible-01": 2, "lecture-03": 1 } }
+```
+
+### `POST /progress/:username/:courseId/feedback/seen` ⭐
+**說明**：學員打開課程即視為已讀該課程的回覆；記錄的時間為已讀到的最新一則回覆的 `createdAt`
+
+**權限**：學員本人（家長、教師查看不會改變學員的已讀狀態）
+
+對應前端 `coursesStore.unreadFeedback()` / `coursesStore.coursesWithUnreadFeedback()` / `coursesStore.markFeedbackSeen()`。
+
 ---
 
 ## 5. 講師管理 Lecturers
@@ -1408,6 +1424,9 @@ GET /bookings/sessions?studentUsername={username}
 ```
 回傳該學員所有 BookingAttendee 對應的 Session，並 join attendee 出席資料。
 
+**權限**：學員本人；綁定的家長；看得到這位學員的教師、同教會牧者、`admin`（唯讀）。
+家長在孩子的資料抽屜「📅 預約」分頁看到即將到來與過去的預約、出席與取消原因（前端 `StudentBookingsSummary.vue`）。
+
 ---
 
 #### 建立預約場次
@@ -1748,6 +1767,7 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | `bookingsStore.getSessionsByTeacher()` | `GET /bookings/sessions?teacherUsername=...` ⭐ |
 | `bookingsStore.getSessionsByLecturers()` | `GET /bookings/sessions?lecturerUsername=...` ⭐ |
 | `coursesStore.getFeedback()` / `addFeedback()` | `GET` / `POST /progress/:username/:courseId/feedback` ⭐ |
+| `coursesStore.coursesWithUnreadFeedback()` / `markFeedbackSeen()` | `GET /progress/:username/feedback/unread` / `POST .../feedback/seen` ⭐ |
 | `bookingsStore.cancelOpenSessionsOf()` | 由 `DELETE /admin/users/:username` 在後端處理 ⭐ |
 | `authStore.setGender()` | `PUT /users/:username/gender` ⭐ |
 | `authStore.bindChild()` / `unbindChild()` | `PUT` / `DELETE /parents/:parentUsername/children/:studentUsername` ⭐ |

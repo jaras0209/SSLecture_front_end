@@ -596,4 +596,38 @@ describe('useCoursesStore', () => {
       ])
     })
   })
+
+  describe('new replies', () => {
+    it('counts replies a student has not seen, per course, until they look', async () => {
+      vi.useFakeTimers()
+      const { useCoursesStore } = await import('@/stores/courses')
+      const store = useCoursesStore()
+      const reply = (course: string, at: string) => {
+        vi.setSystemTime(new Date(at))
+        store.addFeedback('student', course, 'teacher', '回覆 ' + at)
+      }
+      reply('bible-01', '2026-01-01T00:00:00Z')
+      reply('bible-01', '2026-01-02T00:00:00Z')
+      reply('bible-02', '2026-01-03T00:00:00Z')
+      expect(store.unreadFeedback('student', 'bible-01')).toHaveLength(2)
+      expect(store.coursesWithUnreadFeedback('student')).toEqual(['bible-01', 'bible-02'])
+
+      store.markFeedbackSeen('student', 'bible-01')
+      expect(store.feedbackSeenAt('student', 'bible-01')).toBe('2026-01-02T00:00:00.000Z')
+      expect(store.unreadFeedback('student', 'bible-01')).toEqual([])
+      expect(store.coursesWithUnreadFeedback('student')).toEqual(['bible-02'])
+
+      reply('bible-01', '2026-01-04T00:00:00Z') // a later reply is new again
+      expect(store.unreadFeedback('student', 'bible-01')).toHaveLength(1)
+      expect(store.coursesWithUnreadFeedback('other')).toEqual([])
+      vi.useRealTimers()
+    })
+
+    it('does nothing when there is nothing new to mark', async () => {
+      const { useCoursesStore } = await import('@/stores/courses')
+      const store = useCoursesStore()
+      store.markFeedbackSeen('student', 'bible-09')
+      expect(store.feedbackSeenAt('student', 'bible-09')).toBe('')
+    })
+  })
 })

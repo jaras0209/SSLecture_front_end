@@ -26,6 +26,13 @@
       >
         {{ $t('teacher.drawer.shiningAuditBtn') }}
       </button>
+      <button
+        id="drawer-tab-bookings"
+        :class="['drawer-tab-btn', { active: activeDrawerTab === 'bookings' }]"
+        @click="activeDrawerTab = 'bookings'"
+      >
+        📅 {{ $t('teacher.drawer.bookings.tab') }}
+      </button>
     </div>
 
     <div class="drawer-body mt-2">
@@ -255,6 +262,14 @@
           </div>
         </div>
       </div>
+
+      <!-- Bookings (read-only), e.g. for a parent following their child -->
+      <div v-else-if="activeDrawerTab === 'bookings'" class="bookings-panel">
+        <h5 aria-level="3" class="section-title mb-2">
+          📅 {{ $t('teacher.drawer.bookings.title') }}
+        </h5>
+        <StudentBookingsSummary :username="student.username" />
+      </div>
     </div>
   </section>
 
@@ -462,6 +477,7 @@ import { useCoursesStore } from '@/stores/courses'
 import type { StudentProgressSummary } from './TeacherStudentList.vue'
 import { DEFAULT_CHURCH } from '@/types/auth'
 import { avatarSrc } from '@/utils/avatar'
+import StudentBookingsSummary from '@/components/shared/StudentBookingsSummary.vue'
 
 // ── Props & Emits ─────────────────────────────────────────────────────────────
 
@@ -481,7 +497,7 @@ const coursesStore = useCoursesStore()
 
 // ── Drawer State ──────────────────────────────────────────────────────────────
 
-const activeDrawerTab = ref<'notes' | 'shining'>('shining')
+const activeDrawerTab = ref<'notes' | 'shining' | 'bookings'>('shining')
 const lectureForms = ref<Record<string, { speaker: string; date: string }>>({})
 
 // ── Context Church (for themes) ───────────────────────────────────────────────

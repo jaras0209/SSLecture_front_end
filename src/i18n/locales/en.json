@@ -237,7 +237,10 @@
       "feedbackLabel": "My Personal Reflection & Feedback",
       "feedbackPlaceholder": "Record your thoughts, takeaways or reflections...",
       "noUpcoming": "No upcoming bookings",
-      "noPast": "No past booking records"
+      "noPast": "No past booking records",
+      "newReplies": "{n} new repl(ies)",
+      "newReply": "New",
+      "coursesWithNewReplies": "{n} course(s) with new replies"
     },
     "shining": {
       "pageTitle": "✨ SS Shining Project Self-Review Platform",
@@ -579,7 +582,16 @@
       "notFilled": "Not filled in",
       "completed": "Completed",
       "notCompleted": "Not completed",
-      "notes": "Notes"
+      "notes": "Notes",
+      "bookings": {
+        "tab": "Bookings",
+        "title": "Bookings & attendance",
+        "upcoming": "Coming up",
+        "past": "Past bookings",
+        "attendance": "Attendance",
+        "cancelReason": "Cancelled because: {reason}",
+        "empty": "No bookings yet"
+      }
     },
     "lecture": {
       "title": "My Lectures",

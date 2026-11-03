@@ -222,6 +222,15 @@ export const useCoursesStore = defineStore('courses', () => {
     safeGet<CourseFeedbackDb>('superstart_feedback_db', {}, { clearOnError: true })
   )
 
+  // When each student last looked at the replies on each course (ISO time), for "new reply" marks
+  const feedbackSeenDb = ref<Record<string, Record<string, string>>>(
+    safeGet<Record<string, Record<string, string>>>(
+      'superstart_feedback_seen_db',
+      {},
+      { clearOnError: true }
+    )
+  )
+
   // ── One-time data migration on load ─────────────────────────────────────────
   // 讀取函式（getStudentProgress / getShiningProject）不再修改資料，
   // 舊格式資料在 store 建立時一次轉換完成，並寫回 localStorage。
@@ -281,6 +290,8 @@ export const useCoursesStore = defineStore('courses', () => {
   persistToStorage(teachingStatsDb, 'superstart_teaching_stats_db')
 
   persistToStorage(feedbackDb, 'superstart_feedback_db')
+
+  persistToStorage(feedbackSeenDb, 'superstart_feedback_seen_db')
 
   // Blank template initializer
   function createBlankShiningProject(): ShiningProject {
@@ -631,6 +642,33 @@ export const useCoursesStore = defineStore('courses', () => {
     return feedbackDb.value[student]?.[courseId] ?? []
   }
 
+  /** When `student` last looked at the replies on `courseId` ('' if never) */
+  function feedbackSeenAt(student: string, courseId: string): string {
+    return feedbackSeenDb.value[student]?.[courseId] ?? ''
+  }
+
+  /** Replies on `courseId` that `student` hasn't seen yet */
+  function unreadFeedback(student: string, courseId: string): CourseFeedback[] {
+    const seen = feedbackSeenAt(student, courseId)
+    return getFeedback(student, courseId).filter((f) => f.createdAt > seen)
+  }
+
+  /** Courses with replies `student` hasn't seen yet */
+  function coursesWithUnreadFeedback(student: string): string[] {
+    return Object.keys(feedbackDb.value[student] ?? {}).filter(
+      (courseId) => unreadFeedback(student, courseId).length > 0
+    )
+  }
+
+  /** `student` has now seen every reply on `courseId` */
+  function markFeedbackSeen(student: string, courseId: string): void {
+    const unread = unreadFeedback(student, courseId)
+    if (unread.length === 0) return
+    const byCourse = (feedbackSeenDb.value[student] ??= {})
+    // The newest reply's own time, so the mark doesn't depend on clocks agreeing
+    byCourse[courseId] = unread.reduce((t, f) => (f.createdAt > t ? f.createdAt : t), '')
+  }
+
   /** Reply to a student's notes on a course; blank messages are ignored */
   function addFeedback(
     student: string,
@@ -941,6 +979,10 @@ export const useCoursesStore = defineStore('courses', () => {
     feedbackDb,
     getFeedback,
     addFeedback,
+    feedbackSeenAt,
+    unreadFeedback,
+    coursesWithUnreadFeedback,
+    markFeedbackSeen,
     getActualTeachingCourseCounts
   }
 })

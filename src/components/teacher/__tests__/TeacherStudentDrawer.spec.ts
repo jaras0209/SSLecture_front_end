@@ -4,6 +4,7 @@ import TeacherStudentDrawer from '@/components/teacher/TeacherStudentDrawer.vue'
 import type { StudentProgressSummary } from '@/components/teacher/TeacherStudentList.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
+import { useBookingsStore } from '@/stores/bookings'
 import { setup, toastTexts, t } from '@/__tests__/helpers'
 
 const summary: StudentProgressSummary = {
@@ -109,5 +110,32 @@ describe('TeacherStudentDrawer', () => {
     expect(wrapper.emitted('close')).toHaveLength(1)
     expect(wrapper.emitted('open-notes')).toEqual([[summary]])
     expect(print).toHaveBeenCalledOnce()
+  })
+
+  it("shows a parent their child's bookings in their own tab", async () => {
+    const wrapper = mountDrawer('parent', () => {
+      useBookingsStore().createSession({
+        courseId: 'bible-01',
+        courseTitle: '聖經時觀',
+        lecturerId: 'l1',
+        lecturerName: '王講師',
+        lecturerTitle: '牧師',
+        teacherUsername: 'teacher',
+        proposedAt: '2099-01-10T10:00',
+        durationMinutes: 90,
+        prep: { scriptures: [], readingNotes: '', materials: '' },
+        studentUsernames: ['student'],
+        church: '愛與話語'
+      })
+    })
+    expect(wrapper.find('.bookings-summary').exists()).toBe(false)
+    await wrapper.find('#drawer-tab-bookings').trigger('click')
+    expect(wrapper.find('#drawer-tab-bookings').classes()).toContain('active')
+    expect(wrapper.find('.shining-audit-panel').exists()).toBe(false)
+    expect(wrapper.find('.bookings-summary').text()).toContain('聖經時觀')
+
+    // a different student starts back on the default tab
+    await wrapper.setProps({ student: { ...summary, username: 's2' } })
+    expect(wrapper.find('.bookings-summary').exists()).toBe(false)
   })
 })

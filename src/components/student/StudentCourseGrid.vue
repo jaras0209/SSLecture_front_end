@@ -23,7 +23,7 @@
 
     <div class="courses-grid">
       <div
-        v-for="{ course, completed, sessionCount, latestLecturer } in courseCards"
+        v-for="{ course, completed, sessionCount, latestLecturer, unreadReplies } in courseCards"
         :key="course.id"
         class="course-card glass-panel"
         :class="{ 'card-selected': selectedCourseId === course.id }"
@@ -58,6 +58,10 @@
               <template v-else>
                 {{ $t('student.course.notRegistered') }}
               </template>
+            </span>
+            <!-- Replies from caretakers not seen yet -->
+            <span v-if="unreadReplies > 0" class="badge badge-new-reply">
+              💬 {{ $t('student.course.newReplies', { n: unreadReplies }) }}
             </span>
             <!-- Show latest session lecturer -->
             <span
@@ -120,13 +124,20 @@ const courseCards = computed(() => {
       course,
       completed,
       sessionCount: sessions.length,
-      latestLecturer: sessions[sessions.length - 1]?.lecturer ?? ''
+      latestLecturer: sessions[sessions.length - 1]?.lecturer ?? '',
+      unreadReplies: coursesStore.unreadFeedback(username, course.id).length
     }
   })
 })
 </script>
 
 <style scoped>
+.badge-new-reply {
+  margin-left: 0.35rem;
+  background: rgba(245, 158, 11, 0.16);
+  color: #92400e;
+}
+
 .filter-tabs {
   display: flex;
   background: rgba(255, 255, 255, 0.5);
