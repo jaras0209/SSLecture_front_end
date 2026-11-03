@@ -20,7 +20,7 @@ SSLecture 是一個基於 **Vue 3 + TypeScript + Vite** 技術棧開發的現代
 ## 🛠️ 技術棧說明
 
 *   **前端核心**：Vue 3.5 (Composition API, `<script setup>`, `defineAsyncComponent` 按需載入)
-*   **建置工具**：Vite 7（含 `vue-vendor` 與 `i18n` 獨立 chunk 拆分最佳化）
+*   **建置工具**：Vite 8（Rolldown 打包；`vue-vendor`、`i18n`、`vendor` 以 `codeSplitting` 群組拆成獨立 chunk）
 *   **狀態管理**：Pinia 4（模組化設計：`auth` 權限模組、`courses` 課程與進度模組、`bookings` 預約與出席模組）
 *   **多語系架構**：Vue I18n 11（Composition API 模式，`zh-TW` / `en` 雙語系；`en` 語系檔按需載入）
 *   **路由管理**：Vue Router 5（HTML5 History 模式，內建角色與頁面限制導航守衛、平滑捲動）
