@@ -52,7 +52,8 @@
       "password": "Password",
       "passwordPlaceholder": "Enter your password",
       "submit": "Sign In",
-      "forgotPassword": "Forgot password?"
+      "forgotPassword": "Forgot password?",
+      "socialFailed": "Signing in with Google / LINE did not complete. Please try again, or sign in with your username and password."
     },
     "register": {
       "inviteCode": "Invite Code",

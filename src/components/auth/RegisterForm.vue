@@ -201,12 +201,13 @@
 
 <script setup lang="ts">
 import { ref, reactive, toRef, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore, CHURCHES } from '@/stores/auth'
 import type { UserRole, InviteCode } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
 import ChildPicker from '@/components/auth/ChildPicker.vue'
+import { afterLoginRoute } from '@/router/homeRoute'
 import { USERNAME_MIN, USERNAME_MAX } from '@/utils/account'
 import { useI18nHelper } from '@/composables/useI18nHelper'
 import { usePasswordStrength } from '@/composables/usePasswordStrength'
@@ -214,6 +215,7 @@ import { DEFAULT_CHURCH } from '@/types/auth'
 import { membersOf } from '@/utils/scope'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 const { toast } = useToast()
 const { t } = useI18n()
@@ -320,8 +322,9 @@ function handleRegister() {
       authStore.consumeInviteCode(validatedInvite.value.code, authStore.currentUser.username)
     }
     toast(result.message, 'success')
+    const back = afterLoginRoute(route.query.redirect, role, router)
     setTimeout(() => {
-      router.push('/')
+      router.push(back ?? '/')
     }, 500)
   } else {
     toast(result.message, 'error')

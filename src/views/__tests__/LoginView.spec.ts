@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach, vi } from 'vitest'
-import { DOMWrapper, flushPromises } from '@vue/test-utils'
+import { DOMWrapper, flushPromises, mount } from '@vue/test-utils'
 import LoginView from '@/views/LoginView.vue'
-import { mountWith, toastTexts, t } from '@/__tests__/helpers'
+import { mountWith, setup, toastTexts, t } from '@/__tests__/helpers'
 
 const input = (wrapper: ReturnType<typeof mountWith>['wrapper'], id: string) =>
   wrapper.find<HTMLInputElement>(`#${id}`).element
@@ -65,5 +65,21 @@ describe('LoginView', () => {
     await flushPromises()
     expect(body.find('[role="dialog"]').exists()).toBe(true)
     wrapper.unmount()
+  })
+
+  it('says why a social sign-in failed, then drops it from the address', async () => {
+    const { plugins, router } = setup()
+    await router.push('/login?error=oauth_failed&redirect=/admin')
+    const wrapper = mount(LoginView, { global: { plugins } })
+    await flushPromises()
+    expect(wrapper.find('.login-error').text()).toContain(t('auth.login.socialFailed'))
+    expect(wrapper.find('.login-error').attributes('role')).toBe('alert')
+    // gone from the address (a reload won't show it again), but the redirect is kept
+    expect(router.currentRoute.value.query).toEqual({ redirect: '/admin' })
+  })
+
+  it('shows no error on a normal visit', () => {
+    const { wrapper } = mountWith(LoginView)
+    expect(wrapper.find('.login-error').exists()).toBe(false)
   })
 })

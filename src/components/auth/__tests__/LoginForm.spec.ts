@@ -38,6 +38,26 @@ describe('LoginForm', () => {
     expect(push).toHaveBeenCalledWith('/')
   })
 
+  it('goes back to the page that sent them to sign in', async () => {
+    vi.useFakeTimers()
+    const { wrapper, router } = mountForm('student', '123456')
+    await router.push('/login?redirect=/student/somewhere')
+    const push = vi.spyOn(router, 'push')
+    await wrapper.find('form').trigger('submit')
+    vi.advanceTimersByTime(500)
+    expect(push).toHaveBeenCalledWith('/student/somewhere')
+  })
+
+  it('ignores a redirect to another site', async () => {
+    vi.useFakeTimers()
+    const { wrapper, router } = mountForm('student', '123456')
+    await router.push('/login?redirect=//evil.example')
+    const push = vi.spyOn(router, 'push')
+    await wrapper.find('form').trigger('submit')
+    vi.advanceTimersByTime(500)
+    expect(push).toHaveBeenCalledWith('/')
+  })
+
   it('binds the fields with v-model', async () => {
     const { wrapper } = mountForm()
     await wrapper.find('#login-username').setValue('teacher')

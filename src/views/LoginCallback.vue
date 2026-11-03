@@ -23,7 +23,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useI18n } from 'vue-i18n'
@@ -42,8 +42,10 @@ function goToLogin() {
   router.push('/login?error=oauth_failed')
 }
 
+let timer: ReturnType<typeof setInterval> | undefined
+
 function startCountdown() {
-  const timer = setInterval(() => {
+  timer = setInterval(() => {
     countdown.value--
     if (countdown.value <= 0) {
       clearInterval(timer)
@@ -51,6 +53,9 @@ function startCountdown() {
     }
   }, 1000)
 }
+
+// Leaving early ("go to login now") must not let the countdown navigate again later
+onUnmounted(() => clearInterval(timer))
 
 onMounted(async () => {
   const code = route.query.code as string | undefined

@@ -52,7 +52,8 @@
       "password": "密碼",
       "passwordPlaceholder": "請輸入密碼",
       "submit": "登入平台",
-      "forgotPassword": "忘記密碼？"
+      "forgotPassword": "忘記密碼？",
+      "socialFailed": "Google / LINE 登入沒有完成，請再試一次，或改用帳號密碼登入。"
     },
     "register": {
       "inviteCode": "邀請碼",

@@ -67,10 +67,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
+import { afterLoginRoute } from '@/router/homeRoute'
 
 // Credentials are owned by LoginView so the demo-account chips can fill them
 const username = defineModel<string>('username', { required: true })
@@ -81,6 +82,7 @@ const emit = defineEmits<{
 }>()
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 const { toast } = useToast()
 const { t } = useI18n()
@@ -95,8 +97,11 @@ function handleLogin() {
   const result = authStore.login(username.value, password.value)
   if (result.success) {
     toast(result.message, 'success')
+    // Back to the page they were sent here from, if they may open it; else their home
+    const role = authStore.currentUser?.role
+    const back = role ? afterLoginRoute(route.query.redirect, role, router) : undefined
     setTimeout(() => {
-      router.push('/')
+      router.push(back ?? '/')
     }, 500)
   } else {
     toast(result.message, 'error')

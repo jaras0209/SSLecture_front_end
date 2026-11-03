@@ -109,9 +109,26 @@ test.describe('sign-in and routing', () => {
     await expect(page).toHaveURL(/\/login$/)
   })
 
-  test('sends signed-out visitors to login with a redirect', async ({ page, openWith }) => {
+  test('sends signed-out visitors to login, and back to that page once signed in', async ({
+    page,
+    openWith
+  }) => {
     await openWith('admin')
     await expect(page).toHaveURL(/\/login\?redirect=(%2F|\/)admin$/)
+    await page.fill('#login-username', 'admin')
+    await page.fill('#login-password', '123456')
+    await page.click('form.auth-form button[type=submit]')
+    await expect(page).toHaveURL(/\/admin$/)
+  })
+
+  test('a failed Google / LINE sign-in comes back to login with a message', async ({
+    page,
+    openWith
+  }) => {
+    await openWith('login/callback?error=access_denied')
+    await page.locator('.callback-error button').click()
+    await expect(page).toHaveURL(/\/login$/) // the error is shown, then dropped from the address
+    await expect(page.getByRole('alert')).toContainText('登入沒有完成')
   })
 
   test('blocks pages outside the signed-in role', async ({ page, openWith }) => {

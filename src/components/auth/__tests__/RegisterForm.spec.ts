@@ -52,6 +52,17 @@ describe('RegisterForm', () => {
     expect(push).toHaveBeenCalledWith('/')
   })
 
+  it('after registering, goes back to the page that sent them to sign in', async () => {
+    vi.useFakeTimers()
+    const { wrapper, router } = mountWith(RegisterForm)
+    await router.push('/login?redirect=/student/courses')
+    const push = vi.spyOn(router, 'push')
+    await fill(wrapper, 'newbie', STRONG)
+    await wrapper.find('form').trigger('submit')
+    vi.advanceTimersByTime(500)
+    expect(push).toHaveBeenCalledWith('/student/courses')
+  })
+
   it('validates invite codes as they are typed', async () => {
     const { wrapper } = mountWith(RegisterForm)
     const auth = useAuthStore()

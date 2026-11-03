@@ -10,6 +10,11 @@
         <p class="brand-tagline">{{ $t('auth.tagline') }}</p>
       </div>
 
+      <!-- Social sign-in that failed sends people back here with ?error= -->
+      <p v-if="signInError" class="alert-box error login-error" role="alert">
+        ⚠️ {{ signInError }}
+      </p>
+
       <!-- Tab Buttons -->
       <div class="auth-tabs">
         <button
@@ -68,6 +73,7 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useToast } from '@/composables/useToast'
 import LanguageSwitcher from '@/components/shared/LanguageSwitcher.vue'
@@ -81,6 +87,19 @@ const { t } = useI18n()
 
 // Mock 階段的快速測試帳號；接上真正的後端後在正式環境把 VITE_DEMO_MODE 設為 false
 const showDemoAccounts = import.meta.env.VITE_DEMO_MODE === 'true'
+
+const route = useRoute()
+const router = useRouter()
+
+/**
+ * Why the last sign-in failed (from LoginCallback's ?error=). Read once, then dropped from
+ * the address so a reload or a shared link doesn't show it again; ?redirect= is kept.
+ */
+const signInError = ref(route.query.error ? t('auth.login.socialFailed') : '')
+if (route.query.error) {
+  const { error: _error, ...rest } = route.query
+  void router.replace({ query: rest })
+}
 
 const activeTab = ref<'login' | 'register'>('login')
 const showForgotModal = ref(false)
@@ -99,6 +118,10 @@ function fillDemo(role: string) {
 </script>
 
 <style scoped>
+.login-error {
+  margin-bottom: 1rem;
+}
+
 .login-wrapper {
   display: flex;
   justify-content: center;
