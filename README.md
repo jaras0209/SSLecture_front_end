@@ -25,7 +25,7 @@ SSLecture 是一個基於 **Vue 3 + TypeScript + Vite** 技術棧開發的現代
 *   **多語系架構**：Vue I18n 11（Composition API 模式，`zh-TW` / `en` 雙語系；`en` 語系檔按需載入）
 *   **路由管理**：Vue Router 5（HTML5 History 模式，內建角色與頁面限制導航守衛、平滑捲動）
 *   **字型**：Quicksand / Outfit 由 `@fontsource` 隨專案打包，不向 Google Fonts 發出請求
-*   **測試**：Vitest 5 + Happy DOM + Vue Test Utils（52 個測試檔案、469 項測試，含四個主要頁面、composable 與表單元件測試，以及以本機 HTTP 伺服器驗證 `api.ts` 的整合測試）；Playwright 端對端測試（46 項，含以 axe 檢查 WCAG 2.1 AA 無障礙與鍵盤操作）
+*   **測試**：Vitest 5 + Happy DOM + Vue Test Utils（54 個測試檔案、484 項測試，含四個主要頁面、composable 與表單元件測試，以及以本機 HTTP 伺服器驗證 `api.ts` 的整合測試）；Playwright 端對端測試（46 項，含以 axe 檢查 WCAG 2.1 AA 無障礙與鍵盤操作）
 *   **程式碼品質**：TypeScript 6.0（Strict 嚴格模式，以 vue-tsc 3 檢查）、ESLint 10、Prettier 3
 *   **樣式設計**：Vanilla CSS（響應式排版，適配行動端、桌面端與 `@media print` 列印模式）
 
@@ -48,8 +48,8 @@ SSLecture/
 │   │   ├── admin/          # 管理員後台區塊（新增使用者、使用者列表、教會概況、年度教學統計、邀請碼管理）
 │   │   ├── auth/           # 登入頁元件（登入表單、註冊表單、社群登入按鈕、忘記密碼 Modal）
 │   │   ├── shared/         # 全域共用元件（AppToast、LanguageSwitcher、ProfileDialog、PasswordChangeForm、GenderSelect、ChurchBookings、StudentBookingsSummary）
-│   │   ├── student/        # 學員專屬子元件（課程卡片、詳情、預約清單、回饋 Modal、閃耀計畫面板）
-│   │   └── teacher/        # 教師/牧者專屬子元件（學員清單、進度抽屜、筆記對話框、預約面板、我的授課（講師）、牧者總覽與教會預約總覽、年度申報、講師與主題設定、講師新增/編輯 Modal）
+│   │   ├── student/        # 學員專屬子元件（課程卡片、詳情、預約清單、回饋 Modal、閃耀計畫面板與列印版）
+│   │   └── teacher/        # 教師/牧者專屬子元件（學員清單、進度抽屜、筆記對話框、預約面板與建立／完成預約對話框、我的授課（講師）、牧者總覽與教會預約總覽、年度申報、講師與主題設定、講師新增/編輯 Modal）
 │   ├── composables/        # 可複用邏輯（Composition API）
 │   │   ├── useI18nHelper.ts        # 動態 i18n Key、角色與狀態翻譯輔助函式
 │   │   ├── usePasswordStrength.ts  # 密碼強度計算與多語系提示

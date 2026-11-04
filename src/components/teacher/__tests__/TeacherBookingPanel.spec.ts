@@ -87,6 +87,19 @@ describe('TeacherBookingPanel', () => {
     expect(ctx.wrapper.findAll('.booking-card')).toHaveLength(1)
   })
 
+  it('starts the booking form afresh each time it is opened', async () => {
+    const ctx = mountAsTeacher()
+    await ctx.wrapper.find('#btn-create-booking').trigger('click')
+    await $('#booking-course-select').setValue(ctx.course.id)
+    await $$('.attendee-check-item input')[0].setValue(true)
+    await $('.booking-modal-card .modal-footer .btn-outline').trigger('click')
+    expect($('#booking-create-title').exists()).toBe(false)
+
+    await ctx.wrapper.find('#btn-create-booking').trigger('click')
+    expect(($('#booking-course-select').element as HTMLSelectElement).value).toBe('')
+    expect($$('.attendee-check-item input:checked')).toHaveLength(0)
+  })
+
   it("invites only students of the teacher's own church", async () => {
     const ctx = mountAsTeacher()
     useAuthStore().usersDb.sx = { passwordHash: 'x', role: 'student', church: '主大明' }

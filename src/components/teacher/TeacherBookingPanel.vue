@@ -165,153 +165,7 @@
       </div>
     </section>
 
-    <!-- ─── Modal: Create Booking ─── -->
-    <Teleport to="body">
-      <div
-        v-if="showCreateBookingModal"
-        class="modal-overlay"
-        @click.self="showCreateBookingModal = false"
-      >
-        <div
-          v-dialog="() => (showCreateBookingModal = false)"
-          class="glass-panel modal-card booking-modal-card"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="booking-create-title"
-        >
-          <h3 id="booking-create-title" aria-level="2">
-            {{ $t('teacher.booking.createModalTitle') }}
-          </h3>
-          <div class="form-grid mt-4">
-            <div class="form-group">
-              <label for="booking-course-select" class="form-label">{{
-                $t('teacher.booking.fieldCourse')
-              }}</label>
-              <select
-                id="booking-course-select"
-                v-model="bookingForm.courseId"
-                class="form-input"
-                @change="onBookingCourseChange"
-              >
-                <option value="">{{ $t('teacher.booking.selectCourse') }}</option>
-                <option v-for="c in coursesStore.courses" :key="c.id" :value="c.id">
-                  {{ c.title }}
-                </option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="booking-lecturer-select" class="form-label">{{
-                $t('teacher.booking.fieldLecturer')
-              }}</label>
-              <select
-                id="booking-lecturer-select"
-                v-model="bookingForm.lecturerId"
-                class="form-input"
-              >
-                <option value="">{{ $t('teacher.booking.selectLecturer') }}</option>
-                <option v-for="l in availableLecturers" :key="l.id" :value="l.id">
-                  {{ tLecturerTitle(l.title) }} {{ l.name }}
-                </option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="booking-time" class="form-label">{{
-                $t('teacher.booking.fieldTime')
-              }}</label>
-              <input
-                id="booking-time"
-                v-model="bookingForm.proposedAt"
-                type="datetime-local"
-                class="form-input"
-              />
-            </div>
-            <div class="form-group">
-              <label for="booking-duration" class="form-label">{{
-                $t('teacher.booking.fieldDuration')
-              }}</label>
-              <select
-                id="booking-duration"
-                v-model="bookingForm.durationMinutes"
-                class="form-input"
-              >
-                <option :value="60">60 min</option>
-                <option :value="90">90 min</option>
-                <option :value="120">120 min</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-group mt-3" role="group" aria-labelledby="booking-students-title">
-            <span id="booking-students-title" class="form-label">{{
-              $t('teacher.booking.fieldStudents')
-            }}</span>
-            <div class="attendee-selector">
-              <label v-for="s in myStudentsList" :key="s.username" class="attendee-check-item">
-                <input v-model="bookingForm.studentUsernames" type="checkbox" :value="s.username" />
-                <span>{{ s.realName || s.displayName || s.username }}</span>
-                <span class="att-username-hint">@{{ s.username }}</span>
-              </label>
-              <div v-if="myStudentsList.length === 0" class="text-muted text-xs italic">
-                {{ $t('teacher.booking.noStudents') }}
-              </div>
-            </div>
-          </div>
-
-          <div class="form-group mt-3" role="group" aria-labelledby="booking-prep-title">
-            <span id="booking-prep-title" class="form-label">{{
-              $t('teacher.booking.fieldPrep')
-            }}</span>
-            <div class="mb-2">
-              <div v-for="(_, i) in bookingForm.prep.scriptures" :key="i" class="flex gap-2 mb-1">
-                <input
-                  v-model="bookingForm.prep.scriptures[i]"
-                  class="form-input flex-1"
-                  :aria-label="$t('teacher.booking.prepScriptureN', { n: i + 1 })"
-                  :placeholder="$t('common.scripturePlaceholder')"
-                />
-                <button
-                  class="btn btn-sm btn-danger"
-                  @click="bookingForm.prep.scriptures.splice(i, 1)"
-                >
-                  ✕
-                </button>
-              </div>
-              <button
-                id="btn-add-scripture"
-                class="btn btn-sm btn-outline mt-1"
-                @click="bookingForm.prep.scriptures.push('')"
-              >
-                {{ $t('teacher.booking.addScripture') }}
-              </button>
-            </div>
-            <textarea
-              id="booking-prep-notes"
-              v-model="bookingForm.prep.readingNotes"
-              class="form-input"
-              rows="2"
-              :aria-label="$t('teacher.booking.prepNotesLabel')"
-              :placeholder="$t('teacher.booking.prepReadingPlaceholder')"
-            ></textarea>
-            <input
-              id="booking-prep-materials"
-              v-model="bookingForm.prep.materials"
-              class="form-input mt-2"
-              :aria-label="$t('teacher.booking.prepMaterialsLabel')"
-              :placeholder="$t('teacher.booking.prepMaterialsPlaceholder')"
-            />
-          </div>
-
-          <div class="modal-footer mt-4">
-            <button class="btn btn-outline" @click="showCreateBookingModal = false">
-              {{ $t('common.cancel') }}
-            </button>
-            <button id="btn-submit-booking" class="btn btn-primary" @click="submitCreateBooking">
-              {{ $t('teacher.booking.createSubmit') }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </Teleport>
+    <TeacherBookingCreateModal v-model="showCreateBookingModal" />
 
     <!-- ─── Modal: Confirm Time ─── -->
     <Teleport to="body">
@@ -355,131 +209,7 @@
       </div>
     </Teleport>
 
-    <!-- ─── Modal: Mark Complete + Feedback ─── -->
-    <Teleport to="body">
-      <div v-if="showCompleteModal" class="modal-overlay" @click.self="showCompleteModal = false">
-        <div
-          v-dialog="() => (showCompleteModal = false)"
-          class="glass-panel modal-card complete-modal-card"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="booking-complete-title"
-        >
-          <h3 id="booking-complete-title" aria-level="2">
-            {{ $t('teacher.booking.completeModalTitle') }}
-          </h3>
-          <p v-if="completingSession" class="text-muted mt-1 text-sm">
-            {{ completingSession.courseTitle }} ／
-            {{ tLecturerTitle(completingSession.lecturerTitle) }}
-            {{ completingSession.lecturerName }} ／ {{ tBookingTime(completingSession) }}
-          </p>
-          <div class="form-group mt-4">
-            <label for="complete-session-notes" class="form-label">{{
-              $t('teacher.booking.sessionNotesLabel')
-            }}</label>
-            <textarea
-              id="complete-session-notes"
-              v-model="completeForm.teacherNotes"
-              class="form-input"
-              rows="2"
-              :placeholder="$t('teacher.booking.sessionNotesPlaceholder')"
-            ></textarea>
-          </div>
-          <div
-            class="complete-attendees mt-4"
-            role="group"
-            aria-labelledby="complete-attendees-title"
-          >
-            <span id="complete-attendees-title" class="form-label mb-2">{{
-              $t('teacher.booking.attendeeFeedbackLabel')
-            }}</span>
-            <p v-if="completingHiddenCount > 0" class="hidden-attendees-note mb-2">
-              {{ $t('gender.hiddenAttendees', { n: completingHiddenCount }) }}
-            </p>
-            <div
-              v-for="att in completingAttendees"
-              :key="att.studentUsername"
-              class="complete-attendee-card"
-            >
-              <div class="complete-att-header">
-                <div>
-                  <strong>{{ authStore.displayNameOf(att.studentUsername) }}</strong>
-                  <span class="text-muted text-xs ml-2">@{{ att.studentUsername }}</span>
-                </div>
-                <div class="att-status-toggle">
-                  <button
-                    :class="[
-                      'att-toggle-btn',
-                      {
-                        active:
-                          completeForm.attendeeData[att.studentUsername]?.attendanceStatus ===
-                          'attended'
-                      }
-                    ]"
-                    @click="setAttStatus(att.studentUsername, 'attended')"
-                  >
-                    {{ $t('teacher.booking.attended') }}
-                  </button>
-                  <button
-                    :class="[
-                      'att-toggle-btn danger',
-                      {
-                        active:
-                          completeForm.attendeeData[att.studentUsername]?.attendanceStatus ===
-                          'absent'
-                      }
-                    ]"
-                    @click="setAttStatus(att.studentUsername, 'absent')"
-                  >
-                    {{ $t('teacher.booking.absent') }}
-                  </button>
-                </div>
-              </div>
-              <div class="mt-2">
-                <textarea
-                  v-model="completeForm.attendeeData[att.studentUsername].teacherFeedback"
-                  class="form-input form-input-sm"
-                  rows="2"
-                  :aria-label="
-                    $t('teacher.booking.teacherFeedbackPlaceholder', {
-                      name: authStore.displayNameOf(att.studentUsername)
-                    })
-                  "
-                  :placeholder="
-                    $t('teacher.booking.teacherFeedbackPlaceholder', {
-                      name: authStore.displayNameOf(att.studentUsername)
-                    })
-                  "
-                ></textarea>
-                <textarea
-                  v-model="completeForm.attendeeData[att.studentUsername].studentFeedback"
-                  class="form-input form-input-sm mt-1"
-                  rows="2"
-                  :aria-label="
-                    $t('teacher.booking.studentFeedbackPlaceholder', {
-                      name: authStore.displayNameOf(att.studentUsername)
-                    })
-                  "
-                  :placeholder="
-                    $t('teacher.booking.studentFeedbackPlaceholder', {
-                      name: authStore.displayNameOf(att.studentUsername)
-                    })
-                  "
-                ></textarea>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer mt-4">
-            <button class="btn btn-outline" @click="showCompleteModal = false">
-              {{ $t('common.cancel') }}
-            </button>
-            <button id="btn-submit-complete" class="btn btn-primary" @click="submitCompleteBooking">
-              {{ $t('teacher.booking.completeSubmit') }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </Teleport>
+    <TeacherBookingCompleteModal v-model="showCompleteModal" :session="completingSession" />
 
     <!-- ─── Modal: Cancel Booking ─── -->
     <Teleport to="body">
@@ -534,52 +264,23 @@ import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useI18nHelper } from '@/composables/useI18nHelper'
 import { useAuthStore } from '@/stores/auth'
-import { useCoursesStore } from '@/stores/courses'
 import { useBookingsStore } from '@/stores/bookings'
-import type { BookingSession, BookingAttendee, AttendanceStatus } from '@/stores/bookings'
+import type { BookingSession } from '@/stores/bookings'
 import { useToast } from '@/composables/useToast'
-import { canViewAttendee, visibleStudents, viewerOf } from '@/utils/scope'
+import { useVisibleAttendees } from '@/composables/useVisibleAttendees'
+import TeacherBookingCreateModal from '@/components/teacher/TeacherBookingCreateModal.vue'
+import TeacherBookingCompleteModal from '@/components/teacher/TeacherBookingCompleteModal.vue'
 
 const { toast } = useToast()
 const { t } = useI18n()
 const { tStatus, tBookingTime, tLecturerTitle } = useI18nHelper()
 
 const authStore = useAuthStore()
-const coursesStore = useCoursesStore()
 const bookingsStore = useBookingsStore()
 
 // ── Data ─────────────────────────────────────────────────────────────────────
 
-const myChurch = computed(() => authStore.currentUser?.church || '')
-
-/** The signed-in teacher, read from the account so their gender is current */
-const viewer = computed(() => {
-  const me = authStore.currentUser
-  return me ? (viewerOf(me.username, authStore.usersDb) ?? me) : null
-})
-
-const myStudentsList = computed(() => {
-  if (!viewer.value)
-    return [] as Array<{ username: string; displayName?: string; realName?: string }>
-  return visibleStudents(viewer.value, authStore.usersDb).map((username) => ({
-    username,
-    ...authStore.usersDb[username]
-  }))
-})
-
-/** A session's attendees split into those this teacher may see and how many are hidden */
-function attendeesOf(sessionId: string): { shown: BookingAttendee[]; hidden: number } {
-  const all = bookingsStore.getAttendeesForSession(sessionId)
-  const session = bookingsStore.sessionsDb[sessionId]
-  const v = viewer.value
-  const shown =
-    v && session
-      ? all.filter((a) =>
-          canViewAttendee(v, session, a.studentUsername, authStore.usersDb, coursesStore.lecturers)
-        )
-      : []
-  return { shown, hidden: all.length - shown.length }
-}
+const { attendeesOf } = useVisibleAttendees()
 
 const myBookingSessions = computed(() => {
   const me = authStore.currentUser
@@ -620,72 +321,12 @@ const filteredBookingSessions = computed<BookingSession[]>(() => {
   return myBookingSessions.value.filter((s) => s.status === bookingFilter.value)
 })
 
-const availableLecturers = computed(() => {
-  const courseId = bookingForm.value.courseId
-  if (!courseId) return coursesStore.lecturers.filter((l) => l.church === myChurch.value)
-  return coursesStore.lecturers.filter(
-    (l) => l.church === myChurch.value && l.courseIds.includes(courseId)
-  )
-})
-
 // ── Create Modal ──────────────────────────────────────────────────────────────
 
 const showCreateBookingModal = ref(false)
-const bookingForm = ref({
-  courseId: '',
-  lecturerId: '',
-  proposedAt: '',
-  durationMinutes: 90,
-  studentUsernames: [] as string[],
-  prep: { scriptures: [] as string[], readingNotes: '', materials: '' }
-})
 
 function openCreateBooking() {
-  bookingForm.value = {
-    courseId: '',
-    lecturerId: '',
-    proposedAt: '',
-    durationMinutes: 90,
-    studentUsernames: [],
-    prep: { scriptures: [], readingNotes: '', materials: '' }
-  }
   showCreateBookingModal.value = true
-}
-
-function onBookingCourseChange() {
-  bookingForm.value.lecturerId = ''
-}
-
-function submitCreateBooking() {
-  const f = bookingForm.value
-  if (!f.courseId || !f.lecturerId || !f.proposedAt) {
-    toast(t('teacher.booking.toastSelectCourse'), 'warning')
-    return
-  }
-  if (f.studentUsernames.length === 0) {
-    toast(t('teacher.booking.noStudents'), 'warning')
-    return
-  }
-  const course = coursesStore.courses.find((c) => c.id === f.courseId)
-  const lecturer = coursesStore.lecturers.find((l) => l.id === f.lecturerId)
-  if (!course || !lecturer) return
-
-  const cleanScriptures = f.prep.scriptures.filter((s) => s.trim() !== '')
-  bookingsStore.createSession({
-    courseId: f.courseId,
-    courseTitle: course.title,
-    lecturerId: f.lecturerId,
-    lecturerName: lecturer.name,
-    lecturerTitle: lecturer.title,
-    teacherUsername: authStore.currentUser!.username,
-    proposedAt: f.proposedAt,
-    durationMinutes: f.durationMinutes,
-    prep: { ...f.prep, scriptures: cleanScriptures },
-    studentUsernames: f.studentUsernames,
-    church: myChurch.value
-  })
-  showCreateBookingModal.value = false
-  toast(t('teacher.booking.toastCreated'))
 }
 
 // ── Confirm Modal ─────────────────────────────────────────────────────────────
@@ -716,59 +357,10 @@ function submitConfirmBooking() {
 
 const showCompleteModal = ref(false)
 const completingSession = ref<BookingSession | null>(null)
-const completingAttendees = ref<BookingAttendee[]>([])
-const completingHiddenCount = ref(0)
-const completeForm = ref<{
-  teacherNotes: string
-  attendeeData: Record<
-    string,
-    { attendanceStatus: AttendanceStatus; teacherFeedback: string; studentFeedback: string }
-  >
-}>({ teacherNotes: '', attendeeData: {} })
 
 function openCompleteBooking(session: BookingSession) {
   completingSession.value = session
-  // Only the students this teacher may see; the others' attendance is left as it is
-  const { shown, hidden } = attendeesOf(session.id)
-  completingAttendees.value = shown
-  completingHiddenCount.value = hidden
-  completeForm.value = {
-    teacherNotes: session.teacherSessionNotes || '',
-    attendeeData: Object.fromEntries(
-      completingAttendees.value.map((a) => [
-        a.studentUsername,
-        {
-          attendanceStatus: (a.attendanceStatus === 'invited'
-            ? 'attended'
-            : a.attendanceStatus) as AttendanceStatus,
-          teacherFeedback: a.teacherFeedback || '',
-          studentFeedback: a.studentFeedback || ''
-        }
-      ])
-    )
-  }
   showCompleteModal.value = true
-}
-
-function setAttStatus(username: string, status: AttendanceStatus) {
-  if (completeForm.value.attendeeData[username]) {
-    completeForm.value.attendeeData[username].attendanceStatus = status
-  }
-}
-
-function submitCompleteBooking() {
-  if (!completingSession.value) return
-  const sessionId = completingSession.value.id
-  Object.entries(completeForm.value.attendeeData).forEach(([username, data]) => {
-    bookingsStore.updateAttendee(sessionId, username, {
-      attendanceStatus: data.attendanceStatus,
-      teacherFeedback: data.teacherFeedback,
-      studentFeedback: data.studentFeedback
-    })
-  })
-  bookingsStore.completeSession(sessionId, completeForm.value.teacherNotes)
-  showCompleteModal.value = false
-  toast(t('teacher.booking.toastFeedbackSaved'))
 }
 
 // ── Cancel Modal ──────────────────────────────────────────────────────────────
@@ -972,49 +564,6 @@ defineExpose({
   border-radius: 6px;
   padding: 0.4rem 0.75rem;
 }
-
-/* Attendee selector (checkbox list in create modal) */
-.attendee-selector {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  max-height: 200px;
-  overflow-y: auto;
-  border: 1px solid rgba(99, 102, 241, 0.12);
-  border-radius: 8px;
-  padding: 0.75rem;
-  background: rgba(248, 250, 252, 0.8);
-}
-
-.attendee-check-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.83rem;
-  cursor: pointer;
-}
-
-/* Complete modal attendee cards */
-.complete-attendees {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.complete-attendee-card {
-  border: 1px solid rgba(99, 102, 241, 0.12);
-  border-radius: 10px;
-  padding: 0.85rem 1rem;
-  background: rgba(248, 250, 252, 0.6);
-}
-
-.complete-att-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
 </style>
 
 <style>
@@ -1043,29 +592,6 @@ defineExpose({
 :where(body:has(.teacher-dashboard)) .booking-card:hover {
   box-shadow: 0 4px 20px rgba(99, 102, 241, 0.1);
 }
-
-/* Booking modals */
-:where(body:has(.teacher-dashboard)) .booking-modal-card {
-  max-width: 640px;
-  width: 92%;
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: 2rem;
-}
-
-:where(body:has(.teacher-dashboard)) .complete-modal-card {
-  max-width: 580px;
-  width: 92%;
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: 2rem;
-}
-
-:where(body:has(.teacher-dashboard)) .attendee-check-item input[type='checkbox'] {
-  accent-color: var(--primary);
-  width: 15px;
-  height: 15px;
-}
 </style>
 
 <style scoped>
@@ -1075,17 +601,5 @@ defineExpose({
   background: var(--primary);
   color: white;
   border-color: var(--primary);
-}
-
-.att-toggle-btn.active {
-  background: rgba(16, 185, 129, 0.15);
-  color: #047857;
-  border-color: rgba(16, 185, 129, 0.4);
-}
-
-.att-toggle-btn.danger.active {
-  background: rgba(239, 68, 68, 0.12);
-  color: #b91c1c;
-  border-color: rgba(239, 68, 68, 0.35);
 }
 </style>
