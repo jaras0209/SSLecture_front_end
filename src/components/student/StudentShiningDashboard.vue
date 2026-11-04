@@ -20,8 +20,11 @@
           <div class="basic-info-fields mt-4">
             <div class="form-group-inline">
               <span class="info-dot">✦</span>
-              <label class="info-lbl">{{ $t('student.shining.fieldName') }}</label>
+              <label for="shining-name" class="info-lbl">{{
+                $t('student.shining.fieldName')
+              }}</label>
               <input
+                id="shining-name"
                 v-model="basicInfo.name"
                 type="text"
                 class="form-input-clean"
@@ -42,8 +45,11 @@
             </div>
             <div class="form-group-inline">
               <span class="info-dot">✦</span>
-              <label class="info-lbl">{{ $t('student.shining.fieldChurch') }}</label>
+              <label for="shining-church" class="info-lbl">{{
+                $t('student.shining.fieldChurch')
+              }}</label>
               <input
+                id="shining-church"
                 v-model="basicInfo.church"
                 type="text"
                 class="form-input-clean"
@@ -52,8 +58,11 @@
             </div>
             <div class="form-group-inline">
               <span class="info-dot">✦</span>
-              <label class="info-lbl">{{ $t('student.shining.fieldSchool') }}</label>
+              <label for="shining-school" class="info-lbl">{{
+                $t('student.shining.fieldSchool')
+              }}</label>
               <input
+                id="shining-school"
                 v-model="basicInfo.schoolGrade"
                 type="text"
                 class="form-input-clean"

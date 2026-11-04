@@ -156,8 +156,8 @@
     </div>
 
     <!-- Role: locked by invite, or fixed to student -->
-    <div class="form-group">
-      <label class="form-label">{{ $t('auth.register.role') }}</label>
+    <div class="form-group" role="group" aria-labelledby="reg-role-title">
+      <span id="reg-role-title" class="form-label">{{ $t('auth.register.role') }}</span>
       <div v-if="validatedInvite" class="locked-field-display">
         {{ roleLabel(validatedInvite.role) }}
         <span class="locked-badge">{{ $t('auth.register.inviteLockedBadge') }}</span>

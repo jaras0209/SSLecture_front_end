@@ -16,7 +16,9 @@
             {{ tBookingTime(session) }}
           </p>
           <div class="form-group mt-4">
-            <label class="form-label">📝 {{ $t('student.course.feedbackLabel') }}</label>
+            <label class="form-label" for="student-feedback-textarea"
+              >📝 {{ $t('student.course.feedbackLabel') }}</label
+            >
             <textarea
               id="student-feedback-textarea"
               v-model="localFeedback"

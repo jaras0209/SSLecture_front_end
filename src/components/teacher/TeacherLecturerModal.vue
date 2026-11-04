@@ -69,7 +69,7 @@
 
         <!-- Lecturer display name (editable in custom mode, auto in link mode) -->
         <div class="form-group" :class="{ 'mt-4': lecturerForm.linkMode !== 'link' }">
-          <label class="form-label">
+          <label class="form-label" for="input-lecturer-name">
             🎤 {{ $t('teacher.lecturer.displayName') }}
             <span v-if="lecturerForm.linkMode === 'link'" class="text-xs text-muted ml-1">{{
               $t('teacher.lecturer.autoFillNote')

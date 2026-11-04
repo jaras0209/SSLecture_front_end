@@ -455,7 +455,10 @@
       "toastEnterTime": "Please enter confirmed time",
       "toastFeedbackSaved": "🎉 Feedback saved and marked complete!",
       "toastCancelled": "Booking cancelled",
-      "toastCancelFailed": "(cancel)"
+      "toastCancelFailed": "(cancel)",
+      "prepScriptureN": "Scripture to read {n}",
+      "prepNotesLabel": "Preparation notes",
+      "prepMaterialsLabel": "Extra materials"
     },
     "notes": {
       "title": "📝 Learning Notes & Care Records",
@@ -889,7 +892,9 @@
     "statsYear": "Statistics year",
     "caretakerFor": "{role} for {student}",
     "lectureDateFor": "Date for {theme}",
-    "tableScroll": "{title} (scrolls sideways)"
+    "tableScroll": "{title} (scrolls sideways)",
+    "lecturerFor": "Lecturer for “{theme}”",
+    "searchStudents": "Search students"
   },
   "gender": {
     "label": "Gender",

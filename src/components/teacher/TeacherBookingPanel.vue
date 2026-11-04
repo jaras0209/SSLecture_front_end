@@ -239,8 +239,10 @@
             </div>
           </div>
 
-          <div class="form-group mt-3">
-            <label class="form-label">{{ $t('teacher.booking.fieldStudents') }}</label>
+          <div class="form-group mt-3" role="group" aria-labelledby="booking-students-title">
+            <span id="booking-students-title" class="form-label">{{
+              $t('teacher.booking.fieldStudents')
+            }}</span>
             <div class="attendee-selector">
               <label v-for="s in myStudentsList" :key="s.username" class="attendee-check-item">
                 <input v-model="bookingForm.studentUsernames" type="checkbox" :value="s.username" />
@@ -253,13 +255,16 @@
             </div>
           </div>
 
-          <div class="form-group mt-3">
-            <label class="form-label">{{ $t('teacher.booking.fieldPrep') }}</label>
+          <div class="form-group mt-3" role="group" aria-labelledby="booking-prep-title">
+            <span id="booking-prep-title" class="form-label">{{
+              $t('teacher.booking.fieldPrep')
+            }}</span>
             <div class="mb-2">
               <div v-for="(_, i) in bookingForm.prep.scriptures" :key="i" class="flex gap-2 mb-1">
                 <input
                   v-model="bookingForm.prep.scriptures[i]"
                   class="form-input flex-1"
+                  :aria-label="$t('teacher.booking.prepScriptureN', { n: i + 1 })"
                   :placeholder="$t('common.scripturePlaceholder')"
                 />
                 <button
@@ -282,12 +287,14 @@
               v-model="bookingForm.prep.readingNotes"
               class="form-input"
               rows="2"
+              :aria-label="$t('teacher.booking.prepNotesLabel')"
               :placeholder="$t('teacher.booking.prepReadingPlaceholder')"
             ></textarea>
             <input
               id="booking-prep-materials"
               v-model="bookingForm.prep.materials"
               class="form-input mt-2"
+              :aria-label="$t('teacher.booking.prepMaterialsLabel')"
               :placeholder="$t('teacher.booking.prepMaterialsPlaceholder')"
             />
           </div>
@@ -375,8 +382,14 @@
               :placeholder="$t('teacher.booking.sessionNotesPlaceholder')"
             ></textarea>
           </div>
-          <div class="complete-attendees mt-4">
-            <label class="form-label mb-2">{{ $t('teacher.booking.attendeeFeedbackLabel') }}</label>
+          <div
+            class="complete-attendees mt-4"
+            role="group"
+            aria-labelledby="complete-attendees-title"
+          >
+            <span id="complete-attendees-title" class="form-label mb-2">{{
+              $t('teacher.booking.attendeeFeedbackLabel')
+            }}</span>
             <p v-if="completingHiddenCount > 0" class="hidden-attendees-note mb-2">
               {{ $t('gender.hiddenAttendees', { n: completingHiddenCount }) }}
             </p>
@@ -424,6 +437,11 @@
                   v-model="completeForm.attendeeData[att.studentUsername].teacherFeedback"
                   class="form-input form-input-sm"
                   rows="2"
+                  :aria-label="
+                    $t('teacher.booking.teacherFeedbackPlaceholder', {
+                      name: authStore.displayNameOf(att.studentUsername)
+                    })
+                  "
                   :placeholder="
                     $t('teacher.booking.teacherFeedbackPlaceholder', {
                       name: authStore.displayNameOf(att.studentUsername)
@@ -434,6 +452,11 @@
                   v-model="completeForm.attendeeData[att.studentUsername].studentFeedback"
                   class="form-input form-input-sm mt-1"
                   rows="2"
+                  :aria-label="
+                    $t('teacher.booking.studentFeedbackPlaceholder', {
+                      name: authStore.displayNameOf(att.studentUsername)
+                    })
+                  "
                   :placeholder="
                     $t('teacher.booking.studentFeedbackPlaceholder', {
                       name: authStore.displayNameOf(att.studentUsername)

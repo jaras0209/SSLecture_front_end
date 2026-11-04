@@ -176,6 +176,7 @@
                     v-model="lectureForms[theme].speaker"
                     type="text"
                     class="form-input text-xs pt-1 pb-1"
+                    :aria-label="$t('a11y.lecturerFor', { theme })"
                     :placeholder="$t('teacher.drawer.lecturerPlaceholder')"
                   />
                   <input
@@ -225,6 +226,7 @@
                     v-model="lectureForms[theme].speaker"
                     type="text"
                     class="form-input text-xs pt-1 pb-1"
+                    :aria-label="$t('a11y.lecturerFor', { theme })"
                     :placeholder="$t('teacher.drawer.lecturerPlaceholder')"
                   />
                   <input

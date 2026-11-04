@@ -1,6 +1,8 @@
 <template>
-  <div class="form-group">
-    <label class="form-label">👶 {{ $t('auth.register.bindChildren') }}</label>
+  <div class="form-group" role="group" aria-labelledby="child-picker-title">
+    <span id="child-picker-title" class="form-label"
+      >👶 {{ $t('auth.register.bindChildren') }}</span
+    >
     <div v-if="students.length === 0" class="alert-box error">
       ⚠️ {{ $t('auth.register.noStudentsAlert', { church }) }}
     </div>

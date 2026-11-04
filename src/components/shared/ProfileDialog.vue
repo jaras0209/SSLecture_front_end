@@ -50,6 +50,7 @@
                   v-model="customAvatarUrl"
                   type="url"
                   class="form-input form-input-sm"
+                  :aria-label="$t('profile.avatarUrl')"
                   :placeholder="$t('profile.avatarUrl')"
                   @input="applyCustomUrl"
                 />

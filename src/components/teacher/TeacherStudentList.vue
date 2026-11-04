@@ -37,6 +37,7 @@
         v-model="searchQuery"
         type="text"
         class="form-input search-input"
+        :aria-label="$t('a11y.searchStudents')"
         :placeholder="$t('teacher.studentList.searchPlaceholder')"
       />
     </div>

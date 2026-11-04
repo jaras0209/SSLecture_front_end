@@ -455,7 +455,10 @@
       "toastEnterTime": "請輸入確認時間",
       "toastFeedbackSaved": "🎉 課後回饋已儲存，標記完成！",
       "toastCancelled": "已取消預約",
-      "toastCancelFailed": "（取消）"
+      "toastCancelFailed": "（取消）",
+      "prepScriptureN": "預習經文 {n}",
+      "prepNotesLabel": "準備說明",
+      "prepMaterialsLabel": "補充材料"
     },
     "notes": {
       "title": "📝 學習備注與關懷記錄",
@@ -889,7 +892,9 @@
     "statsYear": "統計年度",
     "caretakerFor": "{student} 的{role}",
     "lectureDateFor": "{theme} 上課日期",
-    "tableScroll": "{title}（可左右捲動）"
+    "tableScroll": "{title}（可左右捲動）",
+    "lecturerFor": "「{theme}」的授課講師",
+    "searchStudents": "搜尋學員"
   },
   "gender": {
     "label": "性別",
