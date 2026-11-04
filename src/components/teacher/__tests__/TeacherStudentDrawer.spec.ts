@@ -100,6 +100,26 @@ describe('TeacherStudentDrawer', () => {
     expect(wrapper.find('.inputs-row-readonly').exists()).toBe(true)
   })
 
+  it("prints the student's own sheet, not the teacher's", () => {
+    mountDrawer('teacher', () => {
+      const courses = useCoursesStore()
+      courses.updateShiningBasicInfo('student', {
+        name: '小明',
+        birthday: '',
+        church: '愛與話語',
+        schoolGrade: ''
+      })
+      courses.updateShiningChecklist('student', 'faithPhase1', 'worship', true)
+      courses.assignStudentCaretaker('student', 'teacher', 'teacher')
+    })
+    // the sheet is teleported to <body>
+    const sheet = document.body.querySelector('.print-page-layout')!
+    expect(sheet.querySelector('.print-info-line strong')?.textContent).toBe('小明')
+    expect(sheet.querySelectorAll('.print-check-circle.checked')).toHaveLength(1)
+    expect(sheet.querySelector('.print-sig-space')?.textContent?.trim()).toBe('teacher')
+    expect(sheet.textContent).toContain(t('student.shining.printBannerLogo'))
+  })
+
   it('asks to close, to open the notes and prints', async () => {
     const print = vi.fn()
     vi.stubGlobal('print', print) // happy-dom has no window.print

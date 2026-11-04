@@ -176,16 +176,20 @@
 <script setup lang="ts">
 /**
  * 閃耀計畫的列印版：平常隱藏，按「匯出／列印」時才顯示。內容與畫面上的
- * 閃耀計畫相同，另加教師、牧者、家長的簽名欄。
+ * 閃耀計畫相同，另加教師、牧者、家長的簽名欄。學員自己的閃耀計畫頁與
+ * 教師的學員抽屜共用；未指定學員時為目前登入的學員。
  */
 import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import { useShiningProject } from '@/composables/useShiningProject'
 
+const props = defineProps<{ username?: string }>()
+
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
 const {
+  username,
   shiningProject,
   characterThemes,
   comingOfAgeThemes,
@@ -194,9 +198,7 @@ const {
   phase1Labels,
   phase2Labels,
   advancedLabels
-} = useShiningProject()
-
-const username = computed(() => authStore.currentUser?.username || '')
+} = useShiningProject(() => props.username)
 
 // Who signs the printed sheet
 const assignedTeacher = computed(() => coursesStore.getStudentCaretaker(username.value, 'teacher'))
@@ -204,27 +206,166 @@ const assignedPastor = computed(() => coursesStore.getStudentCaretaker(username.
 const assignedParent = computed(() => authStore.parentsOf(username.value).join('、'))
 </script>
 
-<!-- 不使用 scoped，因為 Teleport 的 print-only 掛載在 body，scoped 無法命中；
-     版面樣式在 StudentDashboard.vue 的列印區塊 -->
+<!-- 不使用 scoped，因為列印版 Teleport 到 body，scoped 無法命中。
+     各頁面在列印時隱藏自己的畫面（見 StudentDashboard / TeacherDashboard 的 @media print） -->
 <style>
 /*
- * Intentionally global: used by several components, element selectors / keyframes,
- * or rules whose look depends on cascade order against main.css and other global
- * styles (scoping would raise their specificity and change what wins).
- *
- * Every selector is guarded by :where(body:has(.student-dashboard)) so these rules only apply
- * while that page is on screen; otherwise they would keep applying to other pages
- * after the user switches account in the same tab. :where() adds no specificity.
+ * Every selector is guarded by :where(body:has(...)) so these rules only apply while a page
+ * that prints the sheet is on screen. :where() adds no specificity.
  */
 /* 平常瀏覽時隱藏列印模板 */
-:where(body:has(.student-dashboard)) .print-page-layout.print-only {
+:where(body:has(.student-dashboard, .teacher-dashboard)) .print-page-layout.print-only {
   display: none;
 }
 
-/* 列印時強制顯示 */
 @media print {
-  :where(body:has(.student-dashboard)) .print-page-layout.print-only {
+  /* 列印時強制顯示 */
+  :where(body:has(.student-dashboard, .teacher-dashboard)) .print-page-layout.print-only {
     display: block !important;
+  }
+
+  :where(body:has(.student-dashboard, .teacher-dashboard)) .print-page-layout {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    padding: 20px;
+    background-color: white;
+  }
+  :where(body:has(.student-dashboard, .teacher-dashboard)) .print-container {
+    border: 3px double #000;
+    border-radius: 12px;
+    padding: 25px;
+    background: white;
+  }
+  :where(body:has(.student-dashboard, .teacher-dashboard)) .print-banner {
+    text-align: center;
+    border-bottom: 2px solid #000;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+  }
+  :where(body:has(.student-dashboard, .teacher-dashboard)) .print-banner-logo {
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+  }
+  :where(body:has(.student-dashboard, .teacher-dashboard)) .print-banner-sub {
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: #444;
+  }
+  :where(body:has(.student-dashboard, .teacher-dashboard)) .print-flex-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+  }
+  :where(body:has(.student-dashboard, .teacher-dashboard)) .print-w-45 {
+    width: 45%;
+  }
+  :where(body:has(.student-dashboard, .teacher-dashboard)) .print-w-48 {
+    width: 48%;
+  }
+  :where(body:has(.student-dashboard, .teacher-dashboard)) .print-w-50 {
+    width: 50%;
+  }
+  :where(body:has(.student-dashboard, .teacher-dashboard)) .print-box {
+    border: 1px solid #000;
+    border-radius: 8px;
+    padding: 15px;
+    background: #fff;
+  }
+  :where(body:has(.student-dashboard, .teacher-dashboard)) .print-box-title {
+    font-size: 1rem;
+    font-weight: 800;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+  }
+  :where(body:has(.student-dashboard, .teacher-dashboard)) .print-box-subtitle {
+    font-size: 0.75rem;
+    color: #555;
+    margin-bottom: 8px;
+    font-style: italic;
+  }
+  :where(body:has(.student-dashboard, .teacher-dashboard)) .print-info-line {
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+    border-bottom: 1px dashed #ddd;
+    padding-bottom: 2px;
+  }
+  :where(body:has(.student-dashboard, .teacher-dashboard)) .print-checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  :where(body:has(.student-dashboard, .teacher-dashboard)) .print-check-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+  }
+  :where(body:has(.student-dashboard, .teacher-dashboard)) .print-check-circle {
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid #000;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.7rem;
+    flex-shrink: 0;
+  }
+  :where(body:has(.student-dashboard, .teacher-dashboard)) .print-check-circle.checked {
+    background-color: #000;
+    color: #fff;
+  }
+  :where(body:has(.student-dashboard, .teacher-dashboard)) .print-table-box {
+    border: 1px solid #000;
+    border-radius: 8px;
+    padding: 15px;
+    background: #fff;
+  }
+  :where(body:has(.student-dashboard, .teacher-dashboard)) .print-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+  :where(body:has(.student-dashboard, .teacher-dashboard)) .print-table th,
+  :where(body:has(.student-dashboard, .teacher-dashboard)) .print-table td {
+    border: 1px solid #000;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    text-align: left;
+  }
+  :where(body:has(.student-dashboard, .teacher-dashboard)) .print-table th {
+    background-color: #f2f2f2;
+    font-weight: 700;
+  }
+  :where(body:has(.student-dashboard, .teacher-dashboard)) .print-signatures-box {
+    border: 1px solid #000;
+    border-radius: 8px;
+    padding: 15px;
+  }
+  :where(body:has(.student-dashboard, .teacher-dashboard)) .print-signatures-row {
+    display: flex;
+    justify-content: space-around;
+  }
+  :where(body:has(.student-dashboard, .teacher-dashboard)) .print-sig-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  :where(body:has(.student-dashboard, .teacher-dashboard)) .print-sig-lbl {
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+  :where(body:has(.student-dashboard, .teacher-dashboard)) .print-sig-space {
+    width: 80px;
+    height: 50px;
+    border: 1.5px dashed #777;
+    border-radius: 50%;
   }
 }
 </style>

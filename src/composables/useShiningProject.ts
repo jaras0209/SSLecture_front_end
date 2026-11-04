@@ -1,20 +1,25 @@
 /**
- * 目前登入學員的閃耀計畫：資料、本教會的專題講座主題、課程完成數與檢核項目名稱。
- * 閃耀計畫頁與它的列印版共用。
+ * 一位學員的閃耀計畫：資料、該教會的專題講座主題、課程完成數與檢核項目名稱。
+ * 學員的閃耀計畫頁、教師的學員抽屜與兩者共用的列印版都用它。
+ * 未指定學員時為目前登入的學員。
  */
-import { computed } from 'vue'
+import { computed, toValue, type MaybeRefOrGetter } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore, type ShiningChecklistKey } from '@/stores/courses'
 import { DEFAULT_CHURCH } from '@/types/auth'
 
-export function useShiningProject() {
+export function useShiningProject(student?: MaybeRefOrGetter<string | undefined>) {
   const { t } = useI18n()
   const authStore = useAuthStore()
   const coursesStore = useCoursesStore()
 
-  const username = computed(() => authStore.currentUser?.username || '')
-  const church = computed(() => authStore.currentUser?.church || DEFAULT_CHURCH)
+  const username = computed(() => toValue(student) || authStore.currentUser?.username || '')
+  // the themes of the student's own church
+  const church = computed(
+    () =>
+      authStore.usersDb[username.value]?.church || authStore.currentUser?.church || DEFAULT_CHURCH
+  )
 
   const shiningProject = computed(() => coursesStore.getShiningProject(username.value))
 
@@ -56,6 +61,7 @@ export function useShiningProject() {
   }))
 
   return {
+    username,
     shiningProject,
     characterThemes,
     comingOfAgeThemes,
