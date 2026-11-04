@@ -22,6 +22,25 @@ describe('useCoursesStore', () => {
     vi.restoreAllMocks()
   })
 
+  describe('lecturer titles', () => {
+    it('stores them as codes', async () => {
+      const { useCoursesStore } = await import('@/stores/courses')
+      const store = useCoursesStore()
+      expect(store.lecturers.map((l) => l.title)).toEqual(['pastor', 'preacher', 'counselor'])
+      store.addLecturer('新講師', '師母', [], '愛與話語')
+      expect(store.lecturers.at(-1)?.title).toBe('pastor_wife')
+    })
+
+    it('turns the Chinese titles of saved lecturers into codes', async () => {
+      seedLocalStorage('superstart_lecturers_db', [
+        { id: 'a', name: '甲', title: '牧師', courseIds: [], church: '愛與話語' },
+        { id: 'b', name: '乙', title: '執事', courseIds: [], church: '愛與話語' }
+      ])
+      const { useCoursesStore } = await import('@/stores/courses')
+      expect(useCoursesStore().lecturers.map((l) => l.title)).toEqual(['pastor', '執事'])
+    })
+  })
+
   // ── courses list ──────────────────────────────────────────────────────────
 
   describe('courses list', () => {

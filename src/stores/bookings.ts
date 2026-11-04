@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { safeGet } from '@/utils/storage'
+import { normalizeLecturerTitle } from '@/utils/lecturerTitle'
 import { persistToStorage } from '@/utils/persist'
 import { toLocalDateTimeInput } from '@/utils/datetime'
 import { createId } from '@/utils/id'
@@ -38,6 +39,11 @@ export const useBookingsStore = defineStore('bookings', () => {
   const attendeesDb = ref<BookingAttendeesDb>(
     safeGet<BookingAttendeesDb>('superstart_booking_attendees_db', {}, { clearOnError: true })
   )
+
+  // Lecturer titles used to be stored as Chinese text; they are codes now
+  for (const s of Object.values(sessionsDb.value)) {
+    s.lecturerTitle = normalizeLecturerTitle(s.lecturerTitle ?? '')
+  }
 
   // ── Persistence ────────────────────────────────────────────────────────────
 
@@ -124,7 +130,7 @@ export const useBookingsStore = defineStore('bookings', () => {
       courseTitle: params.courseTitle,
       lecturerId: params.lecturerId,
       lecturerName: params.lecturerName,
-      lecturerTitle: params.lecturerTitle,
+      lecturerTitle: normalizeLecturerTitle(params.lecturerTitle),
       teacherUsername: params.teacherUsername,
       proposedAt: params.proposedAt,
       durationMinutes: params.durationMinutes,

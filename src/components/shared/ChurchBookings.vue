@@ -59,7 +59,7 @@
             <td class="nowrap">{{ tBookingTime(row.session) }}</td>
             <td v-if="showChurch" class="nowrap">{{ row.session.church }}</td>
             <td>{{ row.session.courseTitle }}</td>
-            <td>{{ row.session.lecturerTitle }} {{ row.session.lecturerName }}</td>
+            <td>{{ tLecturerTitle(row.session.lecturerTitle) }} {{ row.session.lecturerName }}</td>
             <td>{{ authStore.displayNameOf(row.session.teacherUsername) }}</td>
             <td>
               <span
@@ -117,7 +117,7 @@ const church = computed(() => props.church ?? chosenChurch.value)
 const showChurch = computed(() => allChurches.value && !chosenChurch.value)
 
 const { t } = useI18n()
-const { tBookingTime } = useI18nHelper()
+const { tBookingTime, tLecturerTitle } = useI18nHelper()
 const authStore = useAuthStore()
 const bookingsStore = useBookingsStore()
 

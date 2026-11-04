@@ -35,7 +35,8 @@
               <div class="sbc-info-item">
                 <span class="sbc-label">{{ $t('student.course.lecturer') }}</span>
                 <span class="sbc-value"
-                  >{{ item.session.lecturerTitle }} {{ item.session.lecturerName }}</span
+                  >{{ tLecturerTitle(item.session.lecturerTitle) }}
+                  {{ item.session.lecturerName }}</span
                 >
               </div>
               <div class="sbc-info-item">
@@ -136,7 +137,8 @@
               <div class="sbc-info-item">
                 <span class="sbc-label">{{ $t('student.course.lecturer') }}</span>
                 <span class="sbc-value"
-                  >{{ item.session.lecturerTitle }} {{ item.session.lecturerName }}</span
+                  >{{ tLecturerTitle(item.session.lecturerTitle) }}
+                  {{ item.session.lecturerName }}</span
                 >
               </div>
               <div class="sbc-info-item">
@@ -187,7 +189,7 @@ const emit = defineEmits<{
 const authStore = useAuthStore()
 const bookingsStore = useBookingsStore()
 const { t } = useI18n()
-const { tBookingTime } = useI18nHelper()
+const { tBookingTime, tLecturerTitle } = useI18nHelper()
 
 // ── Session Lists ─────────────────────────────────────────────────────────────
 

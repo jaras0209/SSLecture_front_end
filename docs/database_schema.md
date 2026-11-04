@@ -184,7 +184,7 @@
 |--------|----------|------|------|
 | `id` | `UUID` | PK, NOT NULL | 唯一識別碼 |
 | `name` | `VARCHAR(100)` | NOT NULL | 講師顯示名稱 |
-| `title` | `VARCHAR(30)` | NOT NULL | 職稱（牧師、傳道、長老、輔導、老師） |
+| `title` | `VARCHAR(30)` | NOT NULL | 稱謂代碼：`lecturer`、`pastor`、`preacher`、`elder`、`pastor_wife`、`counselor`、`guest`；畫面依語言翻譯（見設計說明） |
 | `church_id` | `UUID` | FK → churches.id, NULL | 所屬教會（NULL 表示跨教會） |
 | `linked_user_id` | `UUID` | FK → users.id, NULL | 連結的教師或牧者帳號（NULL = 外來/自訂講師） |
 | `is_active` | `BOOLEAN` | NOT NULL, DEFAULT TRUE | 是否啟用 |
@@ -197,6 +197,11 @@
     該帳號有「我的授課」（見 5.11）
   - NULL → 自訂講師或外來講員，僅儲存名稱字串
 - 同一位教師帳號在同一教會應僅連結一筆講師記錄（建議應用端進行檢查）
+- `title` 存代碼而非中文字，英文介面才能顯示 "Pastor" 而非「牧師」；翻譯在前端
+  （`teacher.lecturer.titleOptions.{code}`）。不設 CHECK 限制：早期資料存的是中文字，
+  前端讀取時會換成代碼（`src/utils/lecturerTitle.ts`），認不得的稱謂原樣保留並原樣顯示。
+  匯入舊資料時請依同一份對照表轉換（牧師→`pastor`、傳道／傳道人→`preacher`、長老→`elder`、
+  師母→`pastor_wife`、輔導→`counselor`、講師→`lecturer`、特約講師→`guest`）
 
 ---
 
@@ -432,7 +437,7 @@
 | `course_title` | `VARCHAR(200)` | NOT NULL | 課程名稱（冗餘儲存，保留歷史） |
 | `lecturer_id` | `UUID` | FK → lecturers.id, NULL | 對應講師（連結帳號的講師可在「我的授課」看到此預約，見 5.11） |
 | `lecturer_name` | `VARCHAR(100)` | NOT NULL | 講師姓名（冗餘儲存） |
-| `lecturer_title` | `VARCHAR(50)` | NOT NULL, DEFAULT '' | 講師稱謂（如「牧師」） |
+| `lecturer_title` | `VARCHAR(50)` | NOT NULL, DEFAULT '' | 講師稱謂代碼（如 `pastor`，同 `lecturers.title`） |
 | `proposed_at` | `TIMESTAMPTZ` | NOT NULL | 教師提議的時間 |
 | `confirmed_at` | `TIMESTAMPTZ` | NULL | 最終確認的時間（雙方同意後填入） |
 | `duration_minutes` | `SMALLINT` | NULL, CHECK >= 1 | 預計課程時長（分鐘） |

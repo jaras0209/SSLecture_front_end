@@ -112,7 +112,7 @@
             <div>
               <h5 aria-level="3" style="margin: 0">
                 <strong>{{ lec.name }}</strong>
-                <span class="badge badge-teacher ml-2">{{ lec.title }}</span>
+                <span class="badge badge-teacher ml-2">{{ tLecturerTitle(lec.title) }}</span>
               </h5>
               <div class="lec-link-tags mt-1">
                 <span v-if="lec.linkedUsername" class="lec-linked-badge">
@@ -174,9 +174,11 @@ import { CHURCHES } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import type { Lecturer } from '@/stores/courses'
 import { useToast } from '@/composables/useToast'
+import { useI18nHelper } from '@/composables/useI18nHelper'
 
 const { confirm } = useToast()
 const { t } = useI18n()
+const { tLecturerTitle } = useI18nHelper()
 
 defineProps<{ isAdmin: boolean }>()
 

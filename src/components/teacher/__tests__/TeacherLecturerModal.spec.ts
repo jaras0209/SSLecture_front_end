@@ -4,6 +4,7 @@ import TeacherLecturerModal from '@/components/teacher/TeacherLecturerModal.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore, type Lecturer } from '@/stores/courses'
 import { mountWith, toastTexts, t } from '@/__tests__/helpers'
+import { LECTURER_TITLES } from '@/utils/lecturerTitle'
 
 const CHURCH = '愛與話語'
 
@@ -85,16 +86,36 @@ describe('TeacherLecturerModal', () => {
       attachTo: document.body
     })
     const courses = useCoursesStore()
-    courses.addLecturer('舊名字', '牧師', [], CHURCH)
+    courses.addLecturer('舊名字', 'pastor', [], CHURCH)
     const lec = courses.lecturers.find((l) => l.name === '舊名字')!
 
     await wrapper.setProps({ modelValue: true, lecturer: lec })
     expect(($('#input-lecturer-name').element as HTMLInputElement).value).toBe('舊名字')
-    expect(($('#select-lecturer-title').element as HTMLSelectElement).value).toBe('牧師')
+    const title = $('#select-lecturer-title').element as HTMLSelectElement
+    expect(title.value).toBe('pastor')
+    expect(title.selectedOptions[0].text.trim()).toBe(t('teacher.lecturer.titleOptions.pastor'))
 
     await $('#input-lecturer-name').setValue('新名字')
     await $('#btn-save-lecturer').trigger('click')
     expect(courses.lecturers.find((l) => l.id === lec.id)?.name).toBe('新名字')
+    wrapper.unmount()
+  })
+
+  it('keeps a hand-written title from older data selectable', async () => {
+    const { wrapper } = mountWith(TeacherLecturerModal, {
+      props: { modelValue: false, lecturer: null, church: CHURCH },
+      attachTo: document.body
+    })
+    const courses = useCoursesStore()
+    courses.addLecturer('客座', '執事', [], CHURCH)
+    const lec = courses.lecturers.find((l) => l.name === '客座')!
+    expect(lec.title).toBe('執事')
+
+    await wrapper.setProps({ modelValue: true, lecturer: lec })
+    const title = $('#select-lecturer-title').element as HTMLSelectElement
+    expect(title.value).toBe('執事')
+    const codes = [...title.options].map((o) => o.value)
+    expect(codes).toEqual(['執事', ...LECTURER_TITLES])
     wrapper.unmount()
   })
 })

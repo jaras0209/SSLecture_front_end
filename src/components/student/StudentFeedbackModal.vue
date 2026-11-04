@@ -12,7 +12,8 @@
         >
           <h3 id="feedback-modal-title" aria-level="2">{{ $t('student.course.feedbackTitle') }}</h3>
           <p v-if="session" class="text-muted text-sm mt-1">
-            {{ session.courseTitle }} ／ {{ session.lecturerTitle }} {{ session.lecturerName }} ／
+            {{ session.courseTitle }} ／ {{ tLecturerTitle(session.lecturerTitle) }}
+            {{ session.lecturerName }} ／
             {{ tBookingTime(session) }}
           </p>
           <div class="form-group mt-4">
@@ -45,7 +46,7 @@ import { ref, watch } from 'vue'
 import type { BookingSession } from '@/stores/bookings'
 import { useI18nHelper } from '@/composables/useI18nHelper'
 
-const { tBookingTime } = useI18nHelper()
+const { tBookingTime, tLecturerTitle } = useI18nHelper()
 
 const props = defineProps<{
   modelValue: boolean

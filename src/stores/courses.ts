@@ -48,6 +48,7 @@ import type {
   CourseFeedbackDb
 } from '@/types/courses'
 import { DEFAULT_CHURCH } from '@/types/auth'
+import { normalizeLecturerTitle } from '@/utils/lecturerTitle'
 
 export const useCoursesStore = defineStore('courses', () => {
   // Course catalog — dev seed data lives in src/mocks/courses.ts
@@ -151,6 +152,8 @@ export const useCoursesStore = defineStore('courses', () => {
     // Migrate existing to have church
     lecturers.value.forEach((l) => {
       if (!l.church) l.church = DEFAULT_CHURCH
+      // titles used to be stored as Chinese text
+      l.title = normalizeLecturerTitle(l.title)
     })
   } else {
     // Default initial mock database
@@ -158,7 +161,7 @@ export const useCoursesStore = defineStore('courses', () => {
       {
         id: 'l1',
         name: '張牧師',
-        title: '牧師',
+        title: 'pastor',
         courseIds: [
           'bible-01',
           'bible-02',
@@ -176,7 +179,7 @@ export const useCoursesStore = defineStore('courses', () => {
       {
         id: 'l2',
         name: '陳傳道',
-        title: '傳道',
+        title: 'preacher',
         courseIds: [
           'bible-11',
           'bible-12',
@@ -194,7 +197,7 @@ export const useCoursesStore = defineStore('courses', () => {
       {
         id: 'l3',
         name: '林輔導',
-        title: '輔導',
+        title: 'counselor',
         courseIds: [
           'lecture-06',
           'lecture-07',
@@ -596,7 +599,14 @@ export const useCoursesStore = defineStore('courses', () => {
     linkedUsername?: string
   ): void {
     const id = createId('l')
-    lecturers.value.push({ id, name, title, courseIds, church, linkedUsername })
+    lecturers.value.push({
+      id,
+      name,
+      title: normalizeLecturerTitle(title),
+      courseIds,
+      church,
+      linkedUsername
+    })
   }
 
   function updateLecturer(
@@ -610,7 +620,7 @@ export const useCoursesStore = defineStore('courses', () => {
     const lec = lecturers.value.find((l) => l.id === id)
     if (lec) {
       lec.name = name
-      lec.title = title
+      lec.title = normalizeLecturerTitle(title)
       lec.courseIds = courseIds
       if (church) lec.church = church
       // linkedUsername: pass undefined to keep existing, pass '' to clear, pass value to set

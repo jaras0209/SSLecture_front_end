@@ -328,7 +328,9 @@
         "lecturer": "Lecturer",
         "pastor": "Pastor",
         "preacher": "Preacher",
+        "elder": "Elder",
         "pastor_wife": "Pastor's Wife",
+        "counselor": "Counselor",
         "guest": "Guest Lecturer"
       },
       "courseCategory": {

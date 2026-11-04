@@ -39,6 +39,23 @@ describe('useBookingsStore', () => {
     setActivePinia(createPinia())
   })
 
+  describe('lecturer titles', () => {
+    it('stores the title as a code', () => {
+      expect(makeSession().lecturerTitle).toBe('pastor')
+    })
+
+    it('turns the Chinese titles of saved bookings into codes', () => {
+      const old = makeSession({ lecturerTitle: '傳道' })
+      const saved = {
+        ...useBookingsStore().sessionsDb,
+        [old.id]: { ...old, lecturerTitle: '傳道' }
+      }
+      localStorage.setItem('superstart_booking_sessions_db', JSON.stringify(saved))
+      setActivePinia(createPinia())
+      expect(useBookingsStore().sessionsDb[old.id].lecturerTitle).toBe('preacher')
+    })
+  })
+
   // ── createSession ─────────────────────────────────────────────────────────
 
   describe('createSession()', () => {

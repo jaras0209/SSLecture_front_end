@@ -93,11 +93,13 @@
             v-model="lecturerForm.title"
             class="form-input select-input"
           >
-            <option value="講師">{{ $t('teacher.lecturer.titleOptions.lecturer') }}</option>
-            <option value="牧師">{{ $t('teacher.lecturer.titleOptions.pastor') }}</option>
-            <option value="傳道人">{{ $t('teacher.lecturer.titleOptions.preacher') }}</option>
-            <option value="師母">{{ $t('teacher.lecturer.titleOptions.pastor_wife') }}</option>
-            <option value="特約講師">{{ $t('teacher.lecturer.titleOptions.guest') }}</option>
+            <!-- a title written by hand in older data stays selectable -->
+            <option v-if="!lecturerTitleCode(lecturerForm.title)" :value="lecturerForm.title">
+              {{ lecturerForm.title }}
+            </option>
+            <option v-for="code in LECTURER_TITLES" :key="code" :value="code">
+              {{ $t(`teacher.lecturer.titleOptions.${code}`) }}
+            </option>
           </select>
         </div>
 
@@ -145,6 +147,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import type { Lecturer } from '@/stores/courses'
 import { LECTURER_ROLES, membersOf } from '@/utils/scope'
+import { LECTURER_TITLES, lecturerTitleCode } from '@/utils/lecturerTitle'
 
 const props = defineProps<{
   /** v-model：是否顯示 */
@@ -166,7 +169,7 @@ const coursesStore = useCoursesStore()
 
 const lecturerForm = ref({
   name: '',
-  title: '講師',
+  title: 'lecturer',
   courseIds: [] as string[],
   linkedUsername: '', // '' = 未連結輔導教師帳號
   linkMode: 'custom' as 'link' | 'custom' // 'link'=連結帳號, 'custom'=自訂
@@ -181,12 +184,12 @@ watch(
     lecturerForm.value = lec
       ? {
           name: lec.name,
-          title: lec.title,
+          title: lecturerTitleCode(lec.title) ?? lec.title,
           courseIds: [...lec.courseIds],
           linkedUsername: lec.linkedUsername || '',
           linkMode: lec.linkedUsername ? 'link' : 'custom'
         }
-      : { name: '', title: '講師', courseIds: [], linkedUsername: '', linkMode: 'custom' }
+      : { name: '', title: 'lecturer', courseIds: [], linkedUsername: '', linkMode: 'custom' }
   },
   { immediate: true }
 )

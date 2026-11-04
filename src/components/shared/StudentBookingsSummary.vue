@@ -21,7 +21,7 @@
           </div>
           <div class="summary-meta">
             <span>🕐 {{ tBookingTime(session) }}</span>
-            <span>🎤 {{ session.lecturerTitle }} {{ session.lecturerName }}</span>
+            <span>🎤 {{ tLecturerTitle(session.lecturerTitle) }} {{ session.lecturerName }}</span>
             <span v-if="session.status !== 'cancelled'">
               {{ $t('teacher.drawer.bookings.attendance') }}：{{
                 $t(`student.attendance.${attendee.attendanceStatus}`)
@@ -50,7 +50,7 @@ import { useBookingsStore } from '@/stores/bookings'
 const props = defineProps<{ username: string }>()
 
 const { t } = useI18n()
-const { tBookingTime } = useI18nHelper()
+const { tBookingTime, tLecturerTitle } = useI18nHelper()
 const bookingsStore = useBookingsStore()
 
 const time = (s: { confirmedAt?: string; proposedAt: string }) => s.confirmedAt || s.proposedAt

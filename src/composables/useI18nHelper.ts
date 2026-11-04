@@ -15,6 +15,7 @@
  */
 import { useI18n } from 'vue-i18n'
 import { formatDate, formatDateTime } from '@/utils/datetime'
+import { lecturerTitleCode } from '@/utils/lecturerTitle'
 
 export function useI18nHelper() {
   const { t, locale } = useI18n()
@@ -66,5 +67,16 @@ export function useI18nHelper() {
     return proposed ? time + t('student.attendance.proposed') : time
   }
 
-  return { tDynamic, tRole, tStatus, tDateTime, tDate, tBookingTime }
+  /**
+   * A lecturer's title in the current language. Titles are stored as codes (`pastor`);
+   * older Chinese ones are understood too, and anything else is shown as written.
+   * @example tLecturerTitle('pastor') → 'Pastor' (en) / '牧師' (zh-TW)
+   */
+  function tLecturerTitle(value: string | undefined): string {
+    if (!value) return ''
+    const code = lecturerTitleCode(value)
+    return code ? tDynamic(`teacher.lecturer.titleOptions.${code}`) : value
+  }
+
+  return { tDynamic, tRole, tStatus, tDateTime, tDate, tBookingTime, tLecturerTitle }
 }

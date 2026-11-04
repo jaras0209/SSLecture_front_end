@@ -57,4 +57,18 @@ describe('useI18nHelper()', () => {
     await setLocale('en')
     expect(tDate('2026-11-07T10:00')).toBe('11/07/2026')
   })
+
+  it("shows a lecturer's title in the current language, old Chinese ones included", async () => {
+    const { tLecturerTitle } = withSetup(() => useI18nHelper())
+    expect(tLecturerTitle('pastor')).toBe('牧師')
+    expect(tLecturerTitle('傳道')).toBe('傳道人')
+    expect(tLecturerTitle('執事')).toBe('執事')
+    expect(tLecturerTitle(undefined)).toBe('')
+
+    await setLocale('en')
+    expect(tLecturerTitle('pastor')).toBe('Pastor')
+    expect(tLecturerTitle('牧師')).toBe('Pastor')
+    expect(tLecturerTitle('輔導')).toBe('Counselor')
+    expect(tLecturerTitle('執事')).toBe('執事')
+  })
 })

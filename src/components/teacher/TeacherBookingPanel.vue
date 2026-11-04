@@ -69,7 +69,9 @@
             </div>
             <div class="booking-info-item">
               <span class="info-label">{{ $t('teacher.booking.lecturer') }}</span>
-              <span class="info-value">{{ session.lecturerTitle }} {{ session.lecturerName }}</span>
+              <span class="info-value"
+                >{{ tLecturerTitle(session.lecturerTitle) }} {{ session.lecturerName }}</span
+              >
             </div>
             <div class="booking-info-item">
               <span class="info-label">{{ $t('teacher.booking.time') }}</span>
@@ -208,7 +210,7 @@
               >
                 <option value="">{{ $t('teacher.booking.selectLecturer') }}</option>
                 <option v-for="l in availableLecturers" :key="l.id" :value="l.id">
-                  {{ l.title }} {{ l.name }}
+                  {{ tLecturerTitle(l.title) }} {{ l.name }}
                 </option>
               </select>
             </div>
@@ -367,7 +369,8 @@
             {{ $t('teacher.booking.completeModalTitle') }}
           </h3>
           <p v-if="completingSession" class="text-muted mt-1 text-sm">
-            {{ completingSession.courseTitle }} ／ {{ completingSession.lecturerTitle }}
+            {{ completingSession.courseTitle }} ／
+            {{ tLecturerTitle(completingSession.lecturerTitle) }}
             {{ completingSession.lecturerName }} ／ {{ tBookingTime(completingSession) }}
           </p>
           <div class="form-group mt-4">
@@ -539,7 +542,7 @@ import { canViewAttendee, visibleStudents, viewerOf } from '@/utils/scope'
 
 const { toast } = useToast()
 const { t } = useI18n()
-const { tStatus, tBookingTime } = useI18nHelper()
+const { tStatus, tBookingTime, tLecturerTitle } = useI18nHelper()
 
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()

@@ -328,7 +328,9 @@
         "lecturer": "講師",
         "pastor": "牧師",
         "preacher": "傳道人",
+        "elder": "長老",
         "pastor_wife": "師母",
+        "counselor": "輔導",
         "guest": "特約講師"
       },
       "courseCategory": {
