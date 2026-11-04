@@ -95,181 +95,7 @@
             &times;
           </button>
         </div>
-        <form class="mt-4" @submit.prevent="handlePasswordChange">
-          <div v-if="pwdAlertMsg" :class="['alert-box', pwdAlertType]">
-            {{ pwdAlertMsg }}
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="pwd-old">{{ $t('passwordModal.oldPassword') }}</label>
-            <div class="pwd-input-wrap">
-              <input
-                id="pwd-old"
-                v-model="pwdForm.oldPassword"
-                :type="showOldPwd ? 'text' : 'password'"
-                class="form-input"
-                required
-                :placeholder="$t('passwordModal.oldPlaceholder')"
-              />
-              <button
-                type="button"
-                class="pwd-eye-btn"
-                :title="showOldPwd ? $t('common.hidePwd') : $t('common.showPwd')"
-                @click="showOldPwd = !showOldPwd"
-              >
-                <svg
-                  v-if="!showOldPwd"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-                <svg
-                  v-else
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path
-                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
-                  />
-                  <line x1="1" y1="1" x2="23" y2="23" />
-                </svg>
-              </button>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="pwd-new">{{ $t('passwordModal.newPassword') }}</label>
-            <div class="pwd-input-wrap">
-              <input
-                id="pwd-new"
-                v-model="pwdForm.newPassword"
-                :type="showNewPwd ? 'text' : 'password'"
-                class="form-input"
-                required
-                :placeholder="$t('passwordModal.newPlaceholder')"
-              />
-              <button
-                type="button"
-                class="pwd-eye-btn"
-                :title="showNewPwd ? $t('common.hidePwd') : $t('common.showPwd')"
-                @click="showNewPwd = !showNewPwd"
-              >
-                <svg
-                  v-if="!showNewPwd"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-                <svg
-                  v-else
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path
-                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
-                  />
-                  <line x1="1" y1="1" x2="23" y2="23" />
-                </svg>
-              </button>
-            </div>
-            <!-- Password Strength Indicator & Rules -->
-            <div v-if="pwdForm.newPassword" class="pwd-strength-section">
-              <div class="pwd-bars-row">
-                <div class="pwd-bar" :class="newPwdBarClass(0)"></div>
-                <div class="pwd-bar" :class="newPwdBarClass(1)"></div>
-                <div class="pwd-bar" :class="newPwdBarClass(2)"></div>
-                <span class="pwd-strength-label" :class="newPwdTextClass">{{ newPwdLabel }}</span>
-              </div>
-              <ul class="pwd-rules-list">
-                <li :class="{ 'rule-ok': pwdForm.newPassword.length >= 8 }">
-                  {{ pwdForm.newPassword.length >= 8 ? '✅' : '❌' }}
-                  {{ $t('auth.passwordRules.minLength') }}
-                </li>
-                <li :class="{ 'rule-ok': /[A-Z]/.test(pwdForm.newPassword) }">
-                  {{ /[A-Z]/.test(pwdForm.newPassword) ? '✅' : '❌' }}
-                  {{ $t('auth.passwordRules.uppercase') }}
-                </li>
-                <li :class="{ 'rule-ok': /[a-z]/.test(pwdForm.newPassword) }">
-                  {{ /[a-z]/.test(pwdForm.newPassword) ? '✅' : '❌' }}
-                  {{ $t('auth.passwordRules.lowercase') }}
-                </li>
-                <li :class="{ 'rule-ok': /[0-9]/.test(pwdForm.newPassword) }">
-                  {{ /[0-9]/.test(pwdForm.newPassword) ? '✅' : '❌' }}
-                  {{ $t('auth.passwordRules.number') }}
-                </li>
-                <li :class="{ 'rule-ok': /[^A-Za-z0-9]/.test(pwdForm.newPassword) }">
-                  {{ /[^A-Za-z0-9]/.test(pwdForm.newPassword) ? '✅' : '❌' }}
-                  {{ $t('auth.passwordRules.special') }}
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="pwd-confirm">{{
-              $t('passwordModal.confirmPassword')
-            }}</label>
-            <div class="pwd-input-wrap">
-              <input
-                id="pwd-confirm"
-                v-model="pwdForm.confirmPassword"
-                :type="showConfirmPwd ? 'text' : 'password'"
-                class="form-input"
-                required
-                :placeholder="$t('passwordModal.confirmPlaceholder')"
-              />
-              <button
-                type="button"
-                class="pwd-eye-btn"
-                :title="showConfirmPwd ? $t('common.hidePwd') : $t('common.showPwd')"
-                @click="showConfirmPwd = !showConfirmPwd"
-              >
-                <svg
-                  v-if="!showConfirmPwd"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-                <svg
-                  v-else
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path
-                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
-                  />
-                  <line x1="1" y1="1" x2="23" y2="23" />
-                </svg>
-              </button>
-            </div>
-            <p
-              v-if="pwdForm.confirmPassword && pwdForm.newPassword !== pwdForm.confirmPassword"
-              class="pwd-mismatch"
-            >
-              {{ $t('profile.pwdMismatch') }}
-            </p>
-          </div>
+        <PasswordChangeForm id-prefix="pwd" class="mt-4" @changed="onPasswordChanged">
           <div class="modal-actions mt-4 flex gap-2">
             <button type="button" class="btn btn-outline w-full" @click="closePasswordModal">
               {{ $t('passwordModal.cancelBtn') }}
@@ -278,7 +104,7 @@
               {{ $t('passwordModal.submitBtn') }}
             </button>
           </div>
-        </form>
+        </PasswordChangeForm>
       </div>
     </div>
 
@@ -297,13 +123,13 @@
 
 <script setup lang="ts">
 import { vDialog } from '@/directives/dialog'
-import { ref, reactive, toRef, watch, computed } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import { useI18n } from 'vue-i18n'
-import { usePasswordStrength } from '@/composables/usePasswordStrength'
 import AppToast from '@/components/shared/AppToast.vue'
+import PasswordChangeForm from '@/components/shared/PasswordChangeForm.vue'
 import LanguageSwitcher from '@/components/shared/LanguageSwitcher.vue'
 import { avatarSrc } from '@/utils/avatar'
 import { homeRouteFor } from '@/router/homeRoute'
@@ -313,73 +139,19 @@ const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
 const { t } = useI18n()
 
-// Password Change State
 const mobileMenuOpen = ref(false)
 const showPasswordModal = ref(false)
-const showOldPwd = ref(false)
-const showNewPwd = ref(false)
-const showConfirmPwd = ref(false)
-const pwdForm = reactive({
-  oldPassword: '',
-  newPassword: '',
-  confirmPassword: ''
-})
-const {
-  strength: newPwdStrength,
-  label: newPwdLabel,
-  textClass: newPwdTextClass,
-  barClass: newPwdBarClass
-} = usePasswordStrength(toRef(pwdForm, 'newPassword'))
-const pwdAlertMsg = ref('')
-const pwdAlertType = ref<'success' | 'error'>('success')
+
+let closeTimer: ReturnType<typeof setTimeout> | undefined
 
 function closePasswordModal() {
+  clearTimeout(closeTimer)
   showPasswordModal.value = false
-  showOldPwd.value = false
-  showNewPwd.value = false
-  showConfirmPwd.value = false
-  pwdForm.oldPassword = ''
-  pwdForm.newPassword = ''
-  pwdForm.confirmPassword = ''
-  pwdAlertMsg.value = ''
 }
 
-function showPwdAlert(msg: string, type: 'success' | 'error') {
-  pwdAlertMsg.value = msg
-  pwdAlertType.value = type
-  setTimeout(() => {
-    pwdAlertMsg.value = ''
-  }, 3000)
-}
-
-function handlePasswordChange() {
-  if (!pwdForm.oldPassword || !pwdForm.newPassword || !pwdForm.confirmPassword) {
-    showPwdAlert(t('profile.errFillAll'), 'error')
-    return
-  }
-  if (pwdForm.newPassword !== pwdForm.confirmPassword) {
-    showPwdAlert(t('profile.errMismatch'), 'error')
-    return
-  }
-  if (newPwdStrength.value < 2) {
-    showPwdAlert(t('profile.errWeak'), 'error')
-    return
-  }
-  if (!authStore.currentUser) return
-
-  const result = authStore.updatePassword(
-    authStore.currentUser.username,
-    pwdForm.oldPassword,
-    pwdForm.newPassword
-  )
-  if (result.success) {
-    showPwdAlert(result.message, 'success')
-    setTimeout(() => {
-      closePasswordModal()
-    }, 1000)
-  } else {
-    showPwdAlert(result.message, 'error')
-  }
+/** Leave the success message up for a moment, then close */
+function onPasswordChanged() {
+  closeTimer = setTimeout(closePasswordModal, 1000)
 }
 
 /** Whether the signed-in account has a password (Google / LINE accounts don't) */

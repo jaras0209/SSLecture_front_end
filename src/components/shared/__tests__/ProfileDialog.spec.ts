@@ -93,35 +93,42 @@ describe('ProfileDialog', () => {
   it('validates and changes the password', async () => {
     const { wrapper, auth } = await openAsStudent()
     await $('.pd-pwd-toggle').trigger('click')
-    const submit = () => $('.pd-pwd-form .save-row button').trigger('click')
-    const alert = () => $('.pd-pwd-alert')
+    const submit = () => $('.pd-pwd-form form').trigger('submit')
+    const alert = () => $('.pd-pwd-form .alert-box')
 
     await submit()
     expect(alert().text()).toBe(t('profile.errFillAll'))
 
-    await $('#pd-old-pwd').setValue('123456')
-    await $('#pd-new-pwd').setValue('Abcdef1!')
-    await $('#pd-confirm-pwd').setValue('Abcdef1?')
+    await $('#pd-pwd-old').setValue('123456')
+    await $('#pd-pwd-new').setValue('Abcdef1!')
+    await $('#pd-pwd-confirm').setValue('Abcdef1?')
     await submit()
     expect(alert().text()).toBe(t('profile.errMismatch'))
 
-    await $('#pd-new-pwd').setValue('abcdef')
-    await $('#pd-confirm-pwd').setValue('abcdef')
+    await $('#pd-pwd-new').setValue('abcdef')
+    await $('#pd-pwd-confirm').setValue('abcdef')
     await submit()
     expect(alert().text()).toBe(t('profile.errWeak'))
 
-    await $('#pd-old-pwd').setValue('wrong')
-    await $('#pd-new-pwd').setValue('Abcdef1!')
-    await $('#pd-confirm-pwd').setValue('Abcdef1!')
+    // the same rules as everywhere else a password is changed
+    await $('#pd-pwd-old').setValue('Abcdef1!')
+    await $('#pd-pwd-new').setValue('Abcdef1!')
+    await $('#pd-pwd-confirm').setValue('Abcdef1!')
+    await submit()
+    expect(alert().text()).toBe(t('changePassword.errSame'))
+
+    await $('#pd-pwd-old').setValue('wrong')
+    await $('#pd-pwd-new').setValue('Abcdef1!')
+    await $('#pd-pwd-confirm').setValue('Abcdef1!')
     await submit()
     expect(alert().classes()).toContain('error')
     expect(auth.usersDb.student.passwordHash).toBe('123456')
 
-    await $('#pd-old-pwd').setValue('123456')
+    await $('#pd-pwd-old').setValue('123456')
     await submit()
     expect(alert().classes()).toContain('success')
     expect(auth.usersDb.student.passwordHash).toBe('Abcdef1!')
-    expect(value('#pd-old-pwd')).toBe('') // cleared
+    expect(value('#pd-pwd-old')).toBe('') // cleared
     wrapper.unmount()
   })
 

@@ -142,6 +142,8 @@ describe('App', () => {
       expect(wrapper.find('.pwd-mismatch').exists()).toBe(true)
       await fill(wrapper, '123456', 'abc')
       expect(alert(wrapper)).toBe(t('profile.errWeak'))
+      await fill(wrapper, 'Better#2026', 'Better#2026')
+      expect(alert(wrapper)).toBe(t('changePassword.errSame'))
       await fill(wrapper, 'wrong', 'Better#2026')
       expect(alert(wrapper)).toBe(t('stores.auth.wrongOldPassword'))
     })

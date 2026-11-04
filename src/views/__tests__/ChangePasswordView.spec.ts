@@ -25,7 +25,7 @@ async function fill(wrapper: Wrapper, old: string, new1: string, new2 = new1) {
   await wrapper.find('form').trigger('submit')
 }
 
-const error = (wrapper: Wrapper) => wrapper.find('.cp-error').text()
+const error = (wrapper: Wrapper) => wrapper.find('.alert-box.error').text()
 
 describe('ChangePasswordView', () => {
   it('checks the new password before changing it', async () => {

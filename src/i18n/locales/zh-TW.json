@@ -37,8 +37,7 @@
     "newPlaceholder": "至少 8 字元，含大小寫、數字",
     "confirmPlaceholder": "請再次輸入新密碼",
     "submitBtn": "確認修改",
-    "cancelBtn": "取消",
-    "mismatch": "新密碼與確認新密碼不相符！"
+    "cancelBtn": "取消"
   },
   "auth": {
     "tagline": "聆聽神的話語，開啟智慧的全新一天",
@@ -807,12 +806,6 @@
     "infoChurch": "教會",
     "infoLastLogin": "上次登入",
     "changePwd": "修改密碼",
-    "oldPwd": "目前密碼",
-    "oldPwdPlaceholder": "請輸入目前的密碼",
-    "newPwd": "新密碼",
-    "newPwdPlaceholder": "至少 8 字元，含大小寫、數字",
-    "confirmPwd": "確認新密碼",
-    "confirmPwdPlaceholder": "請再次輸入新密碼",
     "pwdMismatch": "⚠️ 兩次新密碼不一致",
     "updatePwdBtn": "確認修改",
     "errFillAll": "請填寫所有密碼欄位！",
@@ -922,9 +915,6 @@
   "changePassword": {
     "title": "請先設定新密碼",
     "desc": "您的密碼是由管理員設定的，為了帳號安全，請換成只有您知道的新密碼後再繼續使用。",
-    "current": "目前的密碼",
-    "new": "新密碼",
-    "confirm": "再次輸入新密碼",
     "submit": "設定新密碼並繼續",
     "errSame": "新密碼不能和目前的密碼相同"
   }

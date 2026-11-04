@@ -37,8 +37,7 @@
     "newPlaceholder": "At least 8 chars, upper & lowercase, number",
     "confirmPlaceholder": "Re-enter new password",
     "submitBtn": "Confirm Change",
-    "cancelBtn": "Cancel",
-    "mismatch": "New password and confirmation do not match!"
+    "cancelBtn": "Cancel"
   },
   "auth": {
     "tagline": "Listen to God's Word and start every day with wisdom",
@@ -807,12 +806,6 @@
     "infoChurch": "Church",
     "infoLastLogin": "Last Login",
     "changePwd": "Change Password",
-    "oldPwd": "Current Password",
-    "oldPwdPlaceholder": "Enter your current password",
-    "newPwd": "New Password",
-    "newPwdPlaceholder": "At least 8 chars, upper & lowercase, number",
-    "confirmPwd": "Confirm New Password",
-    "confirmPwdPlaceholder": "Re-enter new password",
     "pwdMismatch": "⚠️ Passwords do not match",
     "updatePwdBtn": "Confirm Change",
     "errFillAll": "Please fill in all password fields!",
@@ -922,9 +915,6 @@
   "changePassword": {
     "title": "Set a new password first",
     "desc": "Your password was set by an administrator. For your account's safety, replace it with one only you know before continuing.",
-    "current": "Current password",
-    "new": "New password",
-    "confirm": "Confirm new password",
     "submit": "Set new password and continue",
     "errSame": "The new password must differ from the current one"
   }
