@@ -35,7 +35,7 @@ describe('ChangePasswordView', () => {
     await fill(wrapper, 'first', 'Better#2026', 'Better#2027')
     expect(error(wrapper)).toBe(t('profile.errMismatch'))
     await fill(wrapper, 'first', 'abc')
-    expect(error(wrapper)).toBe(t('profile.errWeak'))
+    expect(error(wrapper)).toBe(t('auth.passwordRules.tooWeak'))
     await fill(wrapper, 'Better#2026', 'Better#2026')
     expect(error(wrapper)).toBe(t('changePassword.errSame'))
     await fill(wrapper, 'wrong', 'Better#2026')

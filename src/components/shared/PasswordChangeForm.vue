@@ -61,23 +61,11 @@
         </button>
       </div>
 
-      <div
-        v-if="field.key === 'new' && form.new"
+      <PasswordStrengthMeter
+        v-if="field.key === 'new'"
         :id="`${idPrefix}-strength`"
-        class="pwd-strength-section"
-      >
-        <div class="pwd-bars-row">
-          <div class="pwd-bar" :class="barClass(0)"></div>
-          <div class="pwd-bar" :class="barClass(1)"></div>
-          <div class="pwd-bar" :class="barClass(2)"></div>
-          <span class="pwd-strength-label" :class="strengthClass">{{ strengthLabel }}</span>
-        </div>
-        <ul class="pwd-rules-list">
-          <li v-for="rule in rules" :key="rule.key" :class="{ 'rule-ok': rule.ok }">
-            {{ rule.ok ? '✅' : '❌' }} {{ $t(`auth.passwordRules.${rule.key}`) }}
-          </li>
-        </ul>
-      </div>
+        :password="form.new"
+      />
 
       <p
         v-if="field.key === 'confirm' && mismatch"
@@ -98,10 +86,11 @@
  * 修改密碼表單：導覽列的對話框、個人資料視窗、強制改密碼頁共用，
  * 三處的檢查規則與欄位標示因此一致。按鈕由使用處放進預設插槽。
  */
-import { computed, reactive, ref, toRef } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
-import { usePasswordStrength } from '@/composables/usePasswordStrength'
+import { isStrongEnough } from '@/composables/usePasswordStrength'
+import PasswordStrengthMeter from '@/components/shared/PasswordStrengthMeter.vue'
 
 type Field = 'old' | 'new' | 'confirm'
 
@@ -138,24 +127,6 @@ const shown = reactive<Record<Field, boolean>>({ old: false, new: false, confirm
 const message = ref('')
 const messageType = ref<'success' | 'error'>('error')
 
-const {
-  strength,
-  label: strengthLabel,
-  textClass: strengthClass,
-  barClass
-} = usePasswordStrength(toRef(form, 'new'))
-
-const rules = computed(() => {
-  const p = form.new
-  return [
-    { key: 'minLength', ok: p.length >= 8 },
-    { key: 'uppercase', ok: /[A-Z]/.test(p) },
-    { key: 'lowercase', ok: /[a-z]/.test(p) },
-    { key: 'number', ok: /[0-9]/.test(p) },
-    { key: 'special', ok: /[^A-Za-z0-9]/.test(p) }
-  ]
-})
-
 const mismatch = computed(() => !!form.confirm && form.new !== form.confirm)
 
 function describedBy(key: Field) {
@@ -168,7 +139,7 @@ function describedBy(key: Field) {
 function problem(): string {
   if (!form.old || !form.new || !form.confirm) return t('profile.errFillAll')
   if (form.new !== form.confirm) return t('profile.errMismatch')
-  if (strength.value < 2) return t('profile.errWeak')
+  if (!isStrongEnough(form.new)) return t('auth.passwordRules.tooWeak')
   if (form.new === form.old) return t('changePassword.errSame')
   return ''
 }

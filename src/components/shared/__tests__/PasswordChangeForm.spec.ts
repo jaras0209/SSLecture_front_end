@@ -49,7 +49,7 @@ describe('PasswordChangeForm', () => {
     await fill(wrapper, '123456', 'Better#2026', 'Better#2027')
     expect(alert(wrapper).text()).toBe(t('profile.errMismatch'))
     await fill(wrapper, '123456', 'abc')
-    expect(alert(wrapper).text()).toBe(t('profile.errWeak'))
+    expect(alert(wrapper).text()).toBe(t('auth.passwordRules.tooWeak'))
     await fill(wrapper, 'Better#2026', 'Better#2026')
     expect(alert(wrapper).text()).toBe(t('changePassword.errSame'))
     await fill(wrapper, 'wrong', 'Better#2026')
@@ -78,9 +78,9 @@ describe('PasswordChangeForm', () => {
 
     await input.setValue('abcdefg1')
     expect(input.attributes('aria-describedby')).toBe('x-strength')
-    const ok = wrapper.findAll('#x-strength li').map((li) => li.classes('rule-ok'))
-    // 8+ characters, uppercase, lowercase, number, symbol
-    expect(ok).toEqual([true, false, true, true, false])
+    const ok = wrapper.findAll('#x-strength li.pwd-rule').map((li) => li.classes('rule-ok'))
+    // 6+ characters (required); then 8+ characters, mixed case, number, symbol
+    expect(ok).toEqual([true, true, false, true, false])
   })
 
   it('points the confirm field at the mismatch note while they differ', async () => {

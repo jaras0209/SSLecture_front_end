@@ -34,7 +34,7 @@
     "newPassword": "新密碼",
     "confirmPassword": "確認新密碼",
     "oldPlaceholder": "請輸入目前的密碼",
-    "newPlaceholder": "至少 8 字元，含大小寫、數字",
+    "newPlaceholder": "至少 6 字元，並符合任兩項：8 字元以上、大小寫、數字、符號",
     "confirmPlaceholder": "請再次輸入新密碼",
     "submitBtn": "確認修改",
     "cancelBtn": "取消"
@@ -65,7 +65,7 @@
       "username": "設定使用者帳號",
       "usernamePlaceholder": "請輸入帳號",
       "password": "設定密碼",
-      "passwordPlaceholder": "至少 8 字元，含大小寫、數字",
+      "passwordPlaceholder": "至少 6 字元，並符合任兩項：8 字元以上、大小寫、數字、符號",
       "role": "角色身分",
       "studentRole": "🎒 SS 學員",
       "studentRoleHint": "其他身分需要邀請碼",
@@ -77,11 +77,13 @@
       "submit": "完成註冊並登入"
     },
     "passwordRules": {
-      "minLength": "至少 8 個字元",
-      "uppercase": "包含英文大寫字母",
-      "lowercase": "包含英文小寫字母",
+      "minLength": "至少 6 個字元（必要）",
+      "pickTwo": "並符合以下任兩項：",
+      "length8": "8 個字元以上",
+      "mixedCase": "同時有大寫和小寫英文字母",
       "number": "包含數字",
-      "special": "包含特殊符號（!{'@'}#$%^&*）"
+      "special": "包含符號（如 !{'@'}#$%）",
+      "tooWeak": "密碼太弱：需至少 6 個字元，並符合以下任兩項：8 個字元以上、大小寫字母混合、數字、符號"
     },
     "social": {
       "divider": "或者透過社群平台快速登入",
@@ -100,7 +102,6 @@
     },
     "validation": {
       "fillAll": "請填寫所有欄位！",
-      "pwdTooWeak": "密碼強度不足，請設定中等以上強度的密碼（需 8 字元以上，並含數字或特殊符號）",
       "selectChurch": "請選擇所屬教會！",
       "parentBindStudent": "家長帳號必須至少綁定一位 SS學員！"
     },
@@ -812,7 +813,6 @@
     "updatePwdBtn": "確認修改",
     "errFillAll": "請填寫所有密碼欄位！",
     "errMismatch": "新密碼與確認新密碼不相符！",
-    "errWeak": "新密碼強度不足（需達中等強度以上）",
     "avatar": {
       "funEmoji": "趣味",
       "lorelei": "人像",
@@ -877,7 +877,8 @@
       "INVALID_INVITE_CODE": "邀請碼無效",
       "INTERNAL_ERROR": "伺服器發生錯誤，請稍後再試",
       "EMAIL_TAKEN": "這個信箱已被其他帳號使用",
-      "PASSWORD_CHANGE_REQUIRED": "請先設定新密碼"
+      "PASSWORD_CHANGE_REQUIRED": "請先設定新密碼",
+      "WEAK_PASSWORD": "密碼太弱：需至少 6 個字元，並符合以下任兩項：8 個字元以上、大小寫字母混合、數字、符號"
     }
   },
   "a11y": {

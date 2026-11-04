@@ -26,7 +26,7 @@ describe('RegisterForm', () => {
 
     await fill(wrapper, 'newbie', 'abcdef')
     await wrapper.find('form').trigger('submit')
-    expect(toastTexts().at(-1)).toBe(t('auth.validation.pwdTooWeak'))
+    expect(toastTexts().at(-1)).toBe(t('auth.passwordRules.tooWeak'))
     expect(useAuthStore().usersDb.newbie).toBeUndefined()
   })
 

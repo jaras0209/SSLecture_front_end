@@ -34,7 +34,7 @@
     "newPassword": "New Password",
     "confirmPassword": "Confirm New Password",
     "oldPlaceholder": "Enter your current password",
-    "newPlaceholder": "At least 8 chars, upper & lowercase, number",
+    "newPlaceholder": "6+ characters and two of: 8+ characters, upper & lower case, number, symbol",
     "confirmPlaceholder": "Re-enter new password",
     "submitBtn": "Confirm Change",
     "cancelBtn": "Cancel"
@@ -65,7 +65,7 @@
       "username": "Set Username",
       "usernamePlaceholder": "Enter username",
       "password": "Set Password",
-      "passwordPlaceholder": "At least 8 chars, upper/lower/digits",
+      "passwordPlaceholder": "6+ characters and two of: 8+ characters, upper & lower case, number, symbol",
       "role": "Role",
       "studentRole": "🎒 SS Student",
       "studentRoleHint": "Other roles require an invite code",
@@ -77,11 +77,13 @@
       "submit": "Complete Registration & Sign In"
     },
     "passwordRules": {
-      "minLength": "At least 8 characters",
-      "uppercase": "Contains uppercase letters",
-      "lowercase": "Contains lowercase letters",
-      "number": "Contains numbers",
-      "special": "Contains special characters (!{'@'}#$%^&*)"
+      "minLength": "At least 6 characters (required)",
+      "pickTwo": "and any two of these:",
+      "length8": "8 or more characters",
+      "mixedCase": "Both upper and lower case letters",
+      "number": "A number",
+      "special": "A symbol (e.g. !{'@'}#$%)",
+      "tooWeak": "Password is too weak: use at least 6 characters and any two of: 8 or more characters, upper and lower case letters, a number, a symbol"
     },
     "social": {
       "divider": "Or sign in with a social platform",
@@ -100,7 +102,6 @@
     },
     "validation": {
       "fillAll": "Please fill in all fields.",
-      "pwdTooWeak": "Password is too weak. Please use at least 8 characters including numbers or special symbols.",
       "selectChurch": "Please select your church.",
       "parentBindStudent": "Parent account must bind at least one SS student."
     },
@@ -812,7 +813,6 @@
     "updatePwdBtn": "Confirm Change",
     "errFillAll": "Please fill in all password fields!",
     "errMismatch": "New password and confirmation do not match!",
-    "errWeak": "Password is too weak (at least medium strength required)",
     "avatar": {
       "funEmoji": "Fun",
       "lorelei": "Portrait",
@@ -877,7 +877,8 @@
       "INVALID_INVITE_CODE": "Invalid invite code",
       "INTERNAL_ERROR": "Something went wrong on the server. Please try again later",
       "EMAIL_TAKEN": "That email is already used by another account",
-      "PASSWORD_CHANGE_REQUIRED": "Please set a new password first"
+      "PASSWORD_CHANGE_REQUIRED": "Please set a new password first",
+      "WEAK_PASSWORD": "Password is too weak: use at least 6 characters and any two of: 8 or more characters, upper and lower case letters, a number, a symbol"
     }
   },
   "a11y": {

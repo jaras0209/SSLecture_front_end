@@ -108,7 +108,7 @@ describe('ProfileDialog', () => {
     await $('#pd-pwd-new').setValue('abcdef')
     await $('#pd-pwd-confirm').setValue('abcdef')
     await submit()
-    expect(alert().text()).toBe(t('profile.errWeak'))
+    expect(alert().text()).toBe(t('auth.passwordRules.tooWeak'))
 
     // the same rules as everywhere else a password is changed
     await $('#pd-pwd-old').setValue('Abcdef1!')

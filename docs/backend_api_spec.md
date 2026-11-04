@@ -193,8 +193,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 
 - `username`：去掉前後空白後轉小寫儲存；3–30 字元，只用英數字與 `. _ -`，不分大小寫不可重複
 - `email`：選填；去掉前後空白後轉小寫儲存，不分大小寫不可與其他帳號重複
-```
-```
+- `password`：須符合[密碼規則](#密碼規則)
 
 **Response**：
 ```json
@@ -214,8 +213,22 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 **錯誤**：
 - `400 INVALID_INVITE_CODE`：邀請碼無效、過期或已作廢
 - `400 VALIDATION_ERROR`：帳號或信箱格式不符（訊息指出哪個欄位）
+- `400 WEAK_PASSWORD`：密碼不符合[密碼規則](#密碼規則)
 - `409 USERNAME_TAKEN`：帳號已被使用（不分大小寫）
 - `409 EMAIL_TAKEN`：信箱已被其他帳號使用
+
+#### 密碼規則
+
+使用者自己設定的密碼（註冊、修改密碼）須至少 6 個字元，並符合以下四項中的任兩項：
+
+- 8 個字元以上
+- 同時有大寫和小寫英文字母
+- 包含數字
+- 包含符號（英文字母與數字以外的任何字元）
+
+前端在 `src/composables/usePasswordStrength.ts`（`passwordChecks()`、`isStrongEnough()`）檢查同一套規則，
+畫面上的提示與規則清單也由此產生；後端須再檢查一次，不符合時回 `400 WEAK_PASSWORD`。
+管理員建立帳號或重設密碼時不受此限，因為使用者下次登入須先換掉（`mustChangePassword`）。
 
 ---
 
@@ -239,7 +252,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 ```
 
 - Admin 重設他人密碼時，該帳號設為 `mustChangePassword = true`；使用者自己改密碼成功後清除
-- 前端在強制修改時另外要求新密碼與目前密碼不同
+- 修改自己的密碼時，`newPassword` 須符合[密碼規則](#密碼規則)（否則 `400 WEAK_PASSWORD`），且不可與目前密碼相同
 
 ---
 
@@ -1712,6 +1725,7 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | 404 | `STATS_NOT_FOUND` | 找不到此年度教學統計 |
 | 409 | `USERNAME_TAKEN` | 帳號名稱已被使用（不分大小寫） |
 | 409 | `EMAIL_TAKEN` | 信箱已被其他帳號使用 ⭐ |
+| 400 | `WEAK_PASSWORD` | 密碼不符合密碼規則（見 `POST /auth/register`） ⭐ |
 | 403 | `PASSWORD_CHANGE_REQUIRED` | 須先修改管理員設定的密碼 ⭐ |
 | 409 | `ATTENDEE_ALREADY_EXISTS` | 該學員已加入此場次 |
 | 500 | `INTERNAL_ERROR` | 伺服器內部錯誤 |

@@ -120,39 +120,7 @@
           </svg>
         </button>
       </div>
-      <!-- Password Strength Indicator -->
-      <div v-if="registerForm.password" class="pwd-strength-section">
-        <div class="pwd-bars-row">
-          <div class="pwd-bar" :class="regPwdBarClass(0)"></div>
-          <div class="pwd-bar" :class="regPwdBarClass(1)"></div>
-          <div class="pwd-bar" :class="regPwdBarClass(2)"></div>
-          <span class="pwd-strength-label" :class="regPwdStrengthTextClass">{{
-            regPwdStrengthLabel
-          }}</span>
-        </div>
-        <ul class="pwd-rules-list">
-          <li :class="{ 'rule-ok': registerForm.password.length >= 8 }">
-            {{ registerForm.password.length >= 8 ? '✅' : '❌' }}
-            {{ $t('auth.passwordRules.minLength') }}
-          </li>
-          <li :class="{ 'rule-ok': /[A-Z]/.test(registerForm.password) }">
-            {{ /[A-Z]/.test(registerForm.password) ? '✅' : '❌' }}
-            {{ $t('auth.passwordRules.uppercase') }}
-          </li>
-          <li :class="{ 'rule-ok': /[a-z]/.test(registerForm.password) }">
-            {{ /[a-z]/.test(registerForm.password) ? '✅' : '❌' }}
-            {{ $t('auth.passwordRules.lowercase') }}
-          </li>
-          <li :class="{ 'rule-ok': /[0-9]/.test(registerForm.password) }">
-            {{ /[0-9]/.test(registerForm.password) ? '✅' : '❌' }}
-            {{ $t('auth.passwordRules.number') }}
-          </li>
-          <li :class="{ 'rule-ok': /[^A-Za-z0-9]/.test(registerForm.password) }">
-            {{ /[^A-Za-z0-9]/.test(registerForm.password) ? '✅' : '❌' }}
-            {{ $t('auth.passwordRules.special') }}
-          </li>
-        </ul>
-      </div>
+      <PasswordStrengthMeter id="reg-password-strength" :password="registerForm.password" />
     </div>
 
     <!-- Role: locked by invite, or fixed to student -->
@@ -200,7 +168,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, toRef, computed } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore, CHURCHES } from '@/stores/auth'
@@ -210,7 +178,8 @@ import ChildPicker from '@/components/auth/ChildPicker.vue'
 import { afterLoginRoute } from '@/router/homeRoute'
 import { USERNAME_MIN, USERNAME_MAX } from '@/utils/account'
 import { useI18nHelper } from '@/composables/useI18nHelper'
-import { usePasswordStrength } from '@/composables/usePasswordStrength'
+import { isStrongEnough } from '@/composables/usePasswordStrength'
+import PasswordStrengthMeter from '@/components/shared/PasswordStrengthMeter.vue'
 import { DEFAULT_CHURCH } from '@/types/auth'
 import { membersOf } from '@/utils/scope'
 
@@ -275,21 +244,13 @@ const registerAvailableStudents = computed(() =>
   membersOf(authStore.usersDb, 'student', effectiveChurch.value)
 )
 
-// ── Password strength ──
-const {
-  strength: regPwdStrength,
-  label: regPwdStrengthLabel,
-  textClass: regPwdStrengthTextClass,
-  barClass: regPwdBarClass
-} = usePasswordStrength(toRef(registerForm, 'password'))
-
 function handleRegister() {
   if (!registerForm.username || !registerForm.password) {
     toast(t('auth.validation.fillAll'), 'error')
     return
   }
-  if (regPwdStrength.value < 2) {
-    toast(t('auth.validation.pwdTooWeak'), 'error')
+  if (!isStrongEnough(registerForm.password)) {
+    toast(t('auth.passwordRules.tooWeak'), 'error')
     return
   }
   const role = effectiveRole.value
@@ -365,79 +326,6 @@ function handleRegister() {
   color: #b45309;
   margin-top: 0.35rem;
   font-weight: 600;
-}
-
-/* ── Password Strength ── */
-.pwd-strength-section {
-  margin-top: 0.5rem;
-}
-
-.pwd-bars-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 0.5rem;
-}
-
-.pwd-bar {
-  height: 5px;
-  flex: 1;
-  border-radius: 3px;
-  transition: background 0.3s;
-}
-
-.bar-empty {
-  background: #e2e8f0;
-}
-.bar-weak {
-  background: #ef4444;
-}
-.bar-fair {
-  background: #f59e0b;
-}
-.bar-medium {
-  background: #3b82f6;
-}
-.bar-strong {
-  background: #10b981;
-}
-
-.pwd-strength-label {
-  font-size: 0.72rem;
-  font-weight: 700;
-  white-space: nowrap;
-}
-.text-weak {
-  color: #ef4444;
-}
-.text-fair {
-  color: #f59e0b;
-}
-.text-medium {
-  color: #2563eb;
-}
-.text-strong {
-  color: #10b981;
-}
-
-.pwd-rules-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem 1rem;
-}
-
-.pwd-rules-list li {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  transition: color 0.2s;
-}
-
-.pwd-rules-list li.rule-ok {
-  color: #047857;
 }
 
 /* Invite Code UI */
