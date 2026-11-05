@@ -24,7 +24,8 @@
 
       <!-- Collapsible menu -->
       <div id="navbar-collapse" class="navbar-collapse" :class="{ 'is-open': mobileMenuOpen }">
-        <ul class="navbar-menu">
+        <!-- No page links while an admin-set password must be replaced first -->
+        <ul v-if="!mustChangePassword" class="navbar-menu">
           <!-- Student Link (hidden if restricted) -->
           <li v-if="canAccess('/student')">
             <router-link to="/student" class="navbar-link" @click="mobileMenuOpen = false"
@@ -65,9 +66,9 @@
           </div>
           <!-- Language Switcher -->
           <LanguageSwitcher />
-          <!-- Google / LINE accounts have no password to change -->
+          <!-- Google / LINE accounts have no password to change; the forced-change page is its own form -->
           <button
-            v-if="hasPassword"
+            v-if="hasPassword && !mustChangePassword"
             class="btn btn-outline btn-sm action-btn"
             @click="showPasswordModal = true"
           >
@@ -153,6 +154,9 @@ function closePasswordModal() {
 function onPasswordChanged() {
   closeTimer = setTimeout(closePasswordModal, 1000)
 }
+
+/** Whether the signed-in account must replace an admin-set password before anything else */
+const mustChangePassword = computed(() => !!authStore.currentUser?.mustChangePassword)
 
 /** Whether the signed-in account has a password (Google / LINE accounts don't) */
 const hasPassword = computed(() => {

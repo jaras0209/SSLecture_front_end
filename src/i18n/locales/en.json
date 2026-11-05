@@ -735,6 +735,7 @@
       "accountNotFound": "Account not found. Please register first.",
       "wrongPassword": "Incorrect password. Please try again.",
       "loginSuccess": "Signed in successfully!",
+      "loginMustChangePassword": "Signed in. Please set a new password first.",
       "usernameTaken": "Username already taken. Please choose another.",
       "registerSuccess": "Account created successfully!",
       "notLoggedIn": "Not signed in",

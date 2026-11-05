@@ -735,6 +735,7 @@
       "accountNotFound": "找不到此帳號，請先註冊。",
       "wrongPassword": "密碼錯誤，請再試一次。",
       "loginSuccess": "登入成功！",
+      "loginMustChangePassword": "登入成功，請先設定新密碼",
       "usernameTaken": "帳號已被使用，請更換名稱。",
       "registerSuccess": "註冊成功！",
       "notLoggedIn": "未登入",

@@ -265,7 +265,11 @@ export const useAuthStore = defineStore('auth', () => {
       lastLoginAt: now,
       mustChangePassword: user.mustChangePassword || undefined
     }
-    return { success: true, message: t('stores.auth.loginSuccess') }
+    // An admin-set password must be replaced first; say so rather than just "signed in"
+    const message = user.mustChangePassword
+      ? t('stores.auth.loginMustChangePassword')
+      : t('stores.auth.loginSuccess')
+    return { success: true, message }
   }
 
   function register(

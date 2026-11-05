@@ -108,6 +108,17 @@ describe('App', () => {
     expect(router.currentRoute.value.path).toBe('/login')
   })
 
+  it('offers only the language and signing out while an admin-set password must be replaced', async () => {
+    const { wrapper } = await mountApp('student', () => {
+      useAuthStore().currentUser!.mustChangePassword = true
+    })
+    expect(links(wrapper)).toEqual([])
+    const buttons = wrapper.findAll('.action-btn').map((b) => b.text())
+    expect(buttons.some((l) => l.includes(t('nav.changePassword')))).toBe(false)
+    expect(wrapper.find('.logout-btn').exists()).toBe(true)
+    expect(wrapper.find('.lang-btn').exists()).toBe(true)
+  })
+
   describe('changing the password', () => {
     async function openModal() {
       const result = await mountApp('student')

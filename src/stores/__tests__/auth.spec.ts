@@ -36,6 +36,14 @@ describe('useAuthStore', () => {
       expect(auth.isAuthenticated).toBe(true)
     })
 
+    it('says to set a new password first, rather than just "signed in", when one is required', () => {
+      const auth = useAuthStore()
+      expect(auth.login('student', '123456').message).toBe(t('stores.auth.loginSuccess'))
+      auth.logout()
+      auth.usersDb.student.mustChangePassword = true
+      expect(auth.login('student', '123456').message).toBe(t('stores.auth.loginMustChangePassword'))
+    })
+
     it('records lastLoginAt after login', () => {
       const auth = useAuthStore()
       auth.login('teacher', '123456')

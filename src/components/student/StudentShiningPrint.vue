@@ -293,6 +293,10 @@ const assignedParent = computed(() => authStore.parentsOf(username.value).join('
     border-bottom: 1px dashed #ddd;
     padding-bottom: 2px;
   }
+  /* "Name:" needs a space before the value; the Chinese full-width colon has one built in */
+  :where(html:lang(en) body:has(.student-dashboard, .teacher-dashboard)) .print-info-line strong {
+    margin-inline-start: 0.35em;
+  }
   :where(body:has(.student-dashboard, .teacher-dashboard)) .print-checklist {
     display: flex;
     flex-direction: column;
