@@ -218,6 +218,7 @@
       "cancel": "Cancel",
       "save": "Save Changes",
       "recordSession": "Record This Session",
+      "recorded": "Session recorded",
       "sessionCount": "{n} session(s) recorded",
       "sessionNo": "Session {n}",
       "editTitle": "Edit this record",

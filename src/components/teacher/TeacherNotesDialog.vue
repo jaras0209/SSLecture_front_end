@@ -104,7 +104,8 @@
               <!-- Meta Info -->
               <div class="notes-record-meta">
                 <span class="meta-chip"
-                  >🎤 {{ record.lecturer || $t('student.course.noLecturerFull') }}</span
+                  >🎤
+                  {{ tLecturerLabel(record.lecturer) || $t('student.course.noLecturerFull') }}</span
                 >
                 <span v-if="record.listenedAt" class="meta-chip"
                   >📅 {{ tDateTime(record.listenedAt) }}</span
@@ -175,7 +176,7 @@ import { useCoursesStore } from '@/stores/courses'
 import { useToast } from '@/composables/useToast'
 
 const { t } = useI18n()
-const { tDateTime } = useI18nHelper()
+const { tDateTime, tLecturerLabel } = useI18nHelper()
 
 export interface StudentRecordDetail {
   courseTitle: string

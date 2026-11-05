@@ -103,10 +103,10 @@
           </select>
         </div>
 
-        <div class="form-group">
-          <label class="form-label"
+        <div class="form-group" role="group" aria-labelledby="lecturer-courses-title">
+          <span id="lecturer-courses-title" class="form-label"
             >{{ $t('teacher.lecturer.courses') }}
-            <span class="text-xs text-muted">{{ $t('teacher.lecturer.coursesHint') }}</span></label
+            <span class="text-xs text-muted">{{ $t('teacher.lecturer.coursesHint') }}</span></span
           >
           <div class="courses-checkboxes-grid mt-2">
             <label v-for="c in coursesStore.courses" :key="c.id" class="check-item-row">

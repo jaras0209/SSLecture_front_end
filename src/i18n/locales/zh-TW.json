@@ -218,6 +218,7 @@
       "cancel": "取消",
       "save": "儲存修改",
       "recordSession": "記錄這次聽課",
+      "recorded": "已記錄這次聽課",
       "sessionCount": "共 {n} 次課程記錄",
       "sessionNo": "第 {n} 次",
       "editTitle": "編輯此筆紀錄",

@@ -78,5 +78,26 @@ export function useI18nHelper() {
     return code ? tDynamic(`teacher.lecturer.titleOptions.${code}`) : value
   }
 
-  return { tDynamic, tRole, tStatus, tDateTime, tDate, tBookingTime, tLecturerTitle }
+  /**
+   * The lecturer of a listen session, stored as text: "name title" (e.g. 張牧師 牧師).
+   * A known title at the end is shown in the current language; the rest as written.
+   * @example tLecturerLabel('張牧師 牧師') → '張牧師 Pastor' (en)
+   */
+  function tLecturerLabel(text: string | undefined): string {
+    if (!text) return ''
+    const m = /^(.*\S)\s+(\S+)$/.exec(text.trim())
+    if (!m || !lecturerTitleCode(m[2])) return text
+    return `${m[1]} ${tLecturerTitle(m[2])}`
+  }
+
+  return {
+    tDynamic,
+    tRole,
+    tStatus,
+    tDateTime,
+    tDate,
+    tBookingTime,
+    tLecturerTitle,
+    tLecturerLabel
+  }
 }

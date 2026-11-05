@@ -71,4 +71,17 @@ describe('useI18nHelper()', () => {
     expect(tLecturerTitle('輔導')).toBe('Counselor')
     expect(tLecturerTitle('執事')).toBe('執事')
   })
+
+  it("shows a listen session's lecturer with the title in the current language", async () => {
+    const { tLecturerLabel } = withSetup(() => useI18nHelper())
+    expect(tLecturerLabel('張牧師 pastor')).toBe('張牧師 牧師')
+    expect(tLecturerLabel('張牧師 牧師')).toBe('張牧師 牧師')
+    expect(tLecturerLabel('王老師')).toBe('王老師') // no title
+    expect(tLecturerLabel('客座 執事')).toBe('客座 執事') // a title it doesn't know
+    expect(tLecturerLabel('')).toBe('')
+
+    await setLocale('en')
+    expect(tLecturerLabel('張牧師 牧師')).toBe('張牧師 Pastor')
+    expect(tLecturerLabel('林輔導 輔導')).toBe('林輔導 Counselor')
+  })
 })

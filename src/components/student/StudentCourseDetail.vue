@@ -52,9 +52,7 @@
                   }}</span>
                   <div class="timeline-actions">
                     <span class="timeline-date">{{
-                      session.listenedAt
-                        ? session.listenedAt.replace('T', ' ')
-                        : tDateTime(session.createdAt)
+                      tDateTime(session.listenedAt || session.createdAt)
                     }}</span>
                     <button
                       v-if="editingSessionId !== session.id"
@@ -70,7 +68,7 @@
                 <!-- View mode body -->
                 <template v-if="editingSessionId !== session.id">
                   <p class="timeline-lecturer">
-                    🎤 {{ session.lecturer || $t('student.course.noLecturerFull') }}
+                    🎤 {{ tLecturerLabel(session.lecturer) || $t('student.course.noLecturerFull') }}
                   </p>
                   <p v-if="session.notes" class="timeline-notes">{{ session.notes }}</p>
                   <p v-else class="timeline-notes text-muted">
@@ -91,12 +89,12 @@
                         class="form-input form-input-sm"
                       >
                         <option value="">{{ $t('student.course.selectLecturer') }}</option>
-                        <option
-                          v-for="lec in availableLecturers"
-                          :key="lec.id"
-                          :value="lec.name + ' ' + lec.title"
-                        >
-                          {{ lec.name }} ({{ lec.title }})
+                        <!-- what was saved stays selectable, even if no longer listed -->
+                        <option v-if="editDraftUnlisted" :value="editSessionDraft.lecturer">
+                          {{ tLecturerLabel(editSessionDraft.lecturer) }}
+                        </option>
+                        <option v-for="opt in lecturerOptions" :key="opt.value" :value="opt.value">
+                          {{ opt.label }}
                         </option>
                       </select>
                     </div>
@@ -112,10 +110,11 @@
                       />
                     </div>
                     <div class="form-group mb-2">
-                      <label class="form-label form-label-sm"
+                      <label for="edit-session-notes" class="form-label form-label-sm"
                         >✍️ {{ $t('student.course.notes') }}：</label
                       >
                       <textarea
+                        id="edit-session-notes"
                         v-model="editSessionDraft.notes"
                         class="form-input form-input-sm text-area"
                         rows="3"
@@ -174,12 +173,8 @@
                 }}</label>
                 <select id="review-lecturer-select" v-model="selectedLecturer" class="form-input">
                   <option value="">{{ $t('student.course.selectLecturer') }}</option>
-                  <option
-                    v-for="lec in availableLecturers"
-                    :key="lec.id"
-                    :value="lec.name + ' ' + lec.title"
-                  >
-                    {{ lec.name }} ({{ lec.title }})
+                  <option v-for="opt in lecturerOptions" :key="opt.value" :value="opt.value">
+                    {{ opt.label }}
                   </option>
                 </select>
               </div>
@@ -210,7 +205,6 @@
               </div>
 
               <div class="save-row mt-3">
-                <span v-if="saveStatus" class="save-status">{{ saveStatus }}</span>
                 <button class="btn btn-secondary btn-sm" @click="saveNoteAndProgress">
                   💾 {{ $t('student.course.save') }}
                 </button>
@@ -229,12 +223,8 @@
             }}</label>
             <select id="lecturer-select" v-model="selectedLecturer" class="form-input">
               <option value="">{{ $t('student.course.selectLecturer') }}</option>
-              <option
-                v-for="lec in availableLecturers"
-                :key="lec.id"
-                :value="lec.name + ' ' + lec.title"
-              >
-                {{ lec.name }} ({{ lec.title }})
+              <option v-for="opt in lecturerOptions" :key="opt.value" :value="opt.value">
+                {{ opt.label }}
               </option>
             </select>
           </div>
@@ -261,7 +251,6 @@
           ></textarea>
 
           <div class="save-row mt-4">
-            <span v-if="saveStatus" class="save-status">{{ saveStatus }}</span>
             <button class="btn btn-secondary btn-sm" @click="saveNoteAndProgress">
               💾 {{ $t('student.course.recordSession') }}
             </button>
@@ -282,6 +271,7 @@
 import { ref, computed, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useI18nHelper } from '@/composables/useI18nHelper'
+import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import type { Course, ListenSession } from '@/stores/courses'
@@ -299,14 +289,14 @@ const props = defineProps<{
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
 const { t } = useI18n()
-const { tDateTime } = useI18nHelper()
+const { toast } = useToast()
+const { tDateTime, tLecturerTitle, tLecturerLabel } = useI18nHelper()
 
 // ── Form State ────────────────────────────────────────────────────────────────
 
 const selectedLecturer = ref('')
 const notesText = ref('')
 const listenedAt = ref(toLocalDateTimeInput())
-const saveStatus = ref('')
 const showReviewPanel = ref(false)
 
 // Inline edit state
@@ -321,7 +311,6 @@ watch(
     selectedLecturer.value = ''
     notesText.value = ''
     listenedAt.value = toLocalDateTimeInput()
-    saveStatus.value = ''
     showReviewPanel.value = false
     editingSessionId.value = null
   }
@@ -371,6 +360,24 @@ const availableLecturers = computed(() => {
   return list.length > 0 ? list : churchLecturers
 })
 
+/**
+ * The lecturer choices. A session stores the lecturer as text ("name title", the title in the
+ * language it was recorded in), which the teacher's views show as written.
+ */
+const lecturerOptions = computed(() =>
+  availableLecturers.value.map((l) => {
+    const title = tLecturerTitle(l.title)
+    return { value: `${l.name} ${title}`, label: `${l.name} (${title})` }
+  })
+)
+
+/** The session being edited names a lecturer that isn't among the choices (e.g. recorded in the other language) */
+const editDraftUnlisted = computed(
+  () =>
+    !!editSessionDraft.lecturer &&
+    !lecturerOptions.value.some((o) => o.value === editSessionDraft.lecturer)
+)
+
 // ── Actions ───────────────────────────────────────────────────────────────────
 
 function saveNoteAndProgress() {
@@ -382,14 +389,12 @@ function saveNoteAndProgress() {
     notes: notesText.value
   })
 
-  saveStatus.value = '✓ ' + t('student.course.save')
   selectedLecturer.value = ''
   notesText.value = ''
   listenedAt.value = toLocalDateTimeInput()
   showReviewPanel.value = false
-  setTimeout(() => {
-    saveStatus.value = ''
-  }, 3000)
+  // the form disappears as the record is added, so say so where it stays visible
+  toast(t('student.course.recorded'))
 }
 
 function startEditSession(session: ListenSession) {

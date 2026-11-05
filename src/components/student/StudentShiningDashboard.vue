@@ -112,6 +112,7 @@
                   <input
                     type="checkbox"
                     :checked="isPhase2Checked(key)"
+                    :disabled="key === 'courses30' && allCoursesDone"
                     @change="toggleCheck('faithPhase2', key)"
                   />
                   <span class="styled-checkbox"></span>
@@ -268,7 +269,7 @@
   <StudentShiningPrint />
 </template>
 <script setup lang="ts">
-import { ref, reactive, watch } from 'vue'
+import { ref, reactive, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
@@ -344,6 +345,11 @@ function saveCustomChallengeText() {
   const username = authStore.currentUser?.username || ''
   coursesStore.updateShiningCustomChallenge(username, customChallengeText.value)
 }
+
+/** Every course is done, so "listened to all 30" is ticked by the progress and can't be unticked */
+const allCoursesDone = computed(() =>
+  coursesStore.hasCompletedAllCourses(authStore.currentUser?.username || '')
+)
 
 function triggerPrint() {
   window.print()
@@ -463,6 +469,11 @@ function triggerPrint() {
   font-size: 0.75rem;
   left: 4px;
   top: -1px;
+}
+
+/* Ticked by the progress itself: nothing to click */
+.check-item-row:has(input:disabled) {
+  cursor: default;
 }
 
 .check-label-text {

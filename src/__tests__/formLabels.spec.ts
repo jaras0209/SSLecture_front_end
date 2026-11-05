@@ -28,7 +28,7 @@ describe('form fields have names', () => {
     const loose: string[] = []
     for (const { file, template } of templates) {
       for (const m of template.matchAll(
-        new RegExp(`<label\\b${ATTRS}>([\\s\\S]*?)<\\/label>`, 'g')
+        new RegExp(`<label\\b${ATTRS}>([\\s\\S]*?)<\\/label\\s*>`, 'g')
       )) {
         const [, attrs, inner] = m
         if (/(^|\s):?for=/.test(attrs) || /<(input|select|textarea)\b/.test(inner)) continue
@@ -56,7 +56,7 @@ describe('form fields have names', () => {
         [...template.matchAll(/<label\b[^>]*\sfor="([^"]+)"/g)].map((m) => m[1])
       )
       // Fields inside a <label> are named by it
-      const wrapped = [...template.matchAll(/<label\b[^>]*>[\s\S]*?<\/label>/g)].map((m) => [
+      const wrapped = [...template.matchAll(/<label\b[^>]*>[\s\S]*?<\/label\s*>/g)].map((m) => [
         m.index,
         m.index + m[0].length
       ])
