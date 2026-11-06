@@ -252,6 +252,8 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 ```
 
 - Admin 重設他人密碼時，該帳號設為 `mustChangePassword = true`；使用者自己改密碼成功後清除
+- 以 Google／LINE 登入、沒有密碼的帳號不可重設（`400 VALIDATION_ERROR`）：給它一組已知的預設密碼，
+  等於讓知道這組密碼的人能用帳號密碼登入並占用該帳號（前端 `authStore.adminResetPassword()` 也會拒絕）
 - 修改自己的密碼時，`newPassword` 須符合[密碼規則](#密碼規則)（否則 `400 WEAK_PASSWORD`），且不可與目前密碼相同
 
 ---

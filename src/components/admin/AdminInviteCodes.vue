@@ -161,8 +161,9 @@ async function revokeCode(code: string) {
 }
 
 function copyInviteCode(code: string) {
-  navigator.clipboard
-    .writeText(code)
+  // No clipboard (an older browser, or a page not served over HTTPS): show the code instead
+  const write = navigator.clipboard?.writeText(code) ?? Promise.reject(new Error('no clipboard'))
+  write
     .then(() => {
       toast(t('admin.inviteCode.copySuccess'), 'success')
     })

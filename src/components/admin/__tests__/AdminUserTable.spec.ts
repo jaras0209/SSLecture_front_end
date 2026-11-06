@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { flushPromises } from '@vue/test-utils'
 import AdminUserTable from '@/components/admin/AdminUserTable.vue'
-import { useAuthStore } from '@/stores/auth'
+import { useAuthStore, DEFAULT_RESET_PASSWORD } from '@/stores/auth'
 import { resolveConfirm } from '@/composables/useToast'
 import { useCoursesStore } from '@/stores/courses'
 import { useBookingsStore } from '@/stores/bookings'
@@ -132,5 +132,93 @@ describe('AdminUserTable', () => {
       t('admin.userList.signsInWith', { method: 'LINE' })
     )
     expect(row(wrapper, 'student').find('.social-login-tag').exists()).toBe(false)
+  })
+
+  it('resets a password to the default only after confirming, and asks for a new one at sign-in', async () => {
+    const { wrapper, auth } = mountAsAdmin()
+    auth.usersDb.teacher.passwordHash = 'Mine#2026' // not the default, so a reset shows
+    await wrapper.vm.$nextTick()
+    const reset = row(wrapper, 'teacher').find('.reset-pwd-btn')
+    expect(reset.attributes('aria-label')).toBe(t('a11y.resetPasswordFor', { username: 'teacher' }))
+
+    await reset.trigger('click')
+    resolveConfirm(false)
+    await flushPromises()
+    expect(auth.usersDb.teacher.passwordHash).toBe('Mine#2026')
+    expect(auth.usersDb.teacher.mustChangePassword).toBeUndefined()
+
+    await reset.trigger('click')
+    resolveConfirm(true)
+    await flushPromises()
+    expect(auth.usersDb.teacher.passwordHash).toBe(DEFAULT_RESET_PASSWORD)
+    expect(auth.usersDb.teacher.mustChangePassword).toBe(true)
+    expect(toastTexts().at(-1)).toBe(
+      t('admin.userList.resetPwdSuccess', { username: 'teacher', pwd: DEFAULT_RESET_PASSWORD })
+    )
+  })
+
+  it('gives a Google / LINE account no password: it has none to reset', async () => {
+    const { wrapper, auth } = mountAsAdmin()
+    auth.usersDb.amy = {
+      passwordHash: '',
+      role: 'student',
+      church: '愛與話語',
+      loginMethod: 'google'
+    }
+    await wrapper.vm.$nextTick()
+    const reset = row(wrapper, 'amy').find('.reset-pwd-btn')
+    expect(reset.attributes('disabled')).toBeDefined()
+    expect(reset.attributes('title')).toBe(
+      t('admin.userList.noPasswordToReset', { method: 'Google' })
+    )
+    // and the store refuses too, so the known default can't be used to sign in as them
+    expect(auth.adminResetPassword('amy').success).toBe(false)
+    expect(auth.usersDb.amy.passwordHash).toBe('')
+    expect(auth.login('amy', DEFAULT_RESET_PASSWORD).success).toBe(false)
+  })
+
+  it('keeps an account when deleting is cancelled, and clears its page limits when deleted', async () => {
+    const { wrapper, auth } = mountAsAdmin()
+    useCoursesStore().toggleRestriction('s2', '/student')
+    await wrapper.vm.$nextTick()
+    const del = row(wrapper, 's2').find('.delete-btn')
+    expect(del.attributes('aria-label')).toBe(t('a11y.deleteUser', { username: 's2' }))
+
+    await del.trigger('click')
+    resolveConfirm(false)
+    await flushPromises()
+    expect(auth.usersDb.s2).toBeDefined()
+
+    await del.trigger('click')
+    resolveConfirm(true)
+    await flushPromises()
+    expect(useCoursesStore().restrictionsDb.s2).toBeUndefined()
+    expect(toastTexts()).toContain(t('admin.userList.deletedToast', { username: 's2' }))
+  })
+
+  it('limits which pages someone may open', async () => {
+    const { wrapper } = mountAsAdmin()
+    await wrapper.vm.$nextTick()
+    const [student, teacher] = row(wrapper, 'teacher').findAll<HTMLInputElement>(
+      'input[type="checkbox"]'
+    )
+    await teacher.setValue(true)
+    const courses = useCoursesStore()
+    expect(courses.isPageRestricted('teacher', '/teacher')).toBe(true)
+    expect(courses.isPageRestricted('teacher', '/student')).toBe(false)
+    await student.setValue(true)
+    await teacher.setValue(false)
+    expect(courses.isPageRestricted('teacher', '/student')).toBe(true)
+    expect(courses.isPageRestricted('teacher', '/teacher')).toBe(false)
+  })
+
+  it("doesn't let the admin change, limit, reset or delete their own account", async () => {
+    const { wrapper } = mountAsAdmin()
+    await wrapper.vm.$nextTick()
+    const me = row(wrapper, 'admin')
+    expect(me.text()).toContain(t('admin.userList.me'))
+    const controls = me.findAll('select, input, button')
+    expect(controls.length).toBeGreaterThanOrEqual(5)
+    for (const c of controls) expect(c.attributes('disabled'), c.html()).toBeDefined()
   })
 })

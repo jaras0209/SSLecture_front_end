@@ -479,6 +479,11 @@ export const useAuthStore = defineStore('auth', () => {
     if (!user) {
       return { success: false, message: t('stores.auth.accountNotFoundShort') }
     }
+    if (!user.passwordHash) {
+      // A Google / LINE account has no password. Giving it the known default one would let
+      // anyone who knows it sign in with a password and take the account over.
+      return { success: false, message: t('stores.auth.noPasswordToReset', { username }) }
+    }
     user.passwordHash = DEFAULT_RESET_PASSWORD
     // The default password is known to others: it must be replaced at the next sign-in
     user.mustChangePassword = true

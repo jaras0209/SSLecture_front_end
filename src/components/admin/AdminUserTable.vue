@@ -93,10 +93,16 @@
               </label>
             </td>
             <td>
+              <!-- Google / LINE accounts have no password to reset -->
               <button
                 class="reset-pwd-btn"
-                :disabled="user.username === authStore.currentUser?.username"
-                :title="$t('admin.userList.colResetPwd')"
+                :disabled="user.username === authStore.currentUser?.username || !!user.socialLogin"
+                :title="
+                  user.socialLogin
+                    ? $t('admin.userList.noPasswordToReset', { method: user.socialLogin })
+                    : $t('admin.userList.colResetPwd')
+                "
+                :aria-label="$t('a11y.resetPasswordFor', { username: user.username })"
                 @click="resetUserPassword(user.username)"
               >
                 🔑
@@ -106,6 +112,7 @@
               <button
                 class="delete-btn"
                 :disabled="user.username === authStore.currentUser?.username"
+                :aria-label="$t('a11y.deleteUser', { username: user.username })"
                 @click="deleteUser(user.username)"
               >
                 🗑️
