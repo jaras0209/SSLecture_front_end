@@ -1,85 +1,99 @@
 <template>
   <div id="app-container">
-    <!-- Navigation Navbar (Only visible when logged in) -->
-    <nav v-if="authStore.isAuthenticated" class="navbar">
-      <div class="navbar-top-row">
-        <router-link to="/" class="navbar-brand">
-          <span class="navbar-logo-dot"></span>
-          <span>Shining Star</span>
-        </router-link>
+    <!-- Stays at the top while scrolling: the navbar, and a warning that must stay in view -->
+    <div class="app-top">
+      <!-- Navigation Navbar (Only visible when logged in) -->
+      <nav v-if="authStore.isAuthenticated" class="navbar">
+        <div class="navbar-top-row">
+          <router-link to="/" class="navbar-brand">
+            <span class="navbar-logo-dot"></span>
+            <span>Shining Star</span>
+          </router-link>
 
-        <!-- Hamburger Button (mobile only) -->
-        <button
-          class="hamburger-btn"
-          :aria-label="mobileMenuOpen ? $t('nav.closeMenu') : $t('nav.openMenu')"
-          :aria-expanded="mobileMenuOpen"
-          aria-controls="navbar-collapse"
-          @click="mobileMenuOpen = !mobileMenuOpen"
-        >
-          <span class="hamburger-line" :class="{ open: mobileMenuOpen }"></span>
-          <span class="hamburger-line" :class="{ open: mobileMenuOpen }"></span>
-          <span class="hamburger-line" :class="{ open: mobileMenuOpen }"></span>
-        </button>
-      </div>
-
-      <!-- Collapsible menu -->
-      <div id="navbar-collapse" class="navbar-collapse" :class="{ 'is-open': mobileMenuOpen }">
-        <!-- No page links while an admin-set password must be replaced first -->
-        <ul v-if="!mustChangePassword" class="navbar-menu">
-          <!-- Student Link (hidden if restricted) -->
-          <li v-if="canAccess('/student')">
-            <router-link to="/student" class="navbar-link" @click="mobileMenuOpen = false"
-              >🎒 {{ $t('nav.studentLink') }}</router-link
-            >
-          </li>
-          <!-- Teacher Link (hidden if restricted) -->
-          <li v-if="canAccess('/teacher')">
-            <router-link to="/teacher" class="navbar-link" @click="mobileMenuOpen = false"
-              >👨‍🏫 {{ $t('nav.teacherLink') }}</router-link
-            >
-          </li>
-          <!-- Admin Link -->
-          <li v-if="canAccess('/admin')">
-            <router-link to="/admin" class="navbar-link" @click="mobileMenuOpen = false"
-              >⚙️ {{ $t('nav.adminLink') }}</router-link
-            >
-          </li>
-        </ul>
-
-        <!-- User controls -->
-        <div class="user-control-panel">
-          <div class="user-meta-info">
-            <img
-              :src="avatarSrc(authStore.currentUser?.avatarUrl)"
-              class="avatar-nav"
-              alt="Avatar"
-            />
-            <div class="user-labels">
-              <span class="username-nav">{{ authStore.currentUser?.username }}</span>
-              <span :class="['badge', getBadgeClass(authStore.currentUser?.role)]">
-                {{ getRoleLabel(authStore.currentUser?.role) }}
-              </span>
-              <span v-if="authStore.currentUser?.church" class="badge badge-church">
-                ⛪ {{ authStore.currentUser.church }}
-              </span>
-            </div>
-          </div>
-          <!-- Language Switcher -->
-          <LanguageSwitcher />
-          <!-- Google / LINE accounts have no password to change; the forced-change page is its own form -->
+          <!-- Hamburger Button (mobile only) -->
           <button
-            v-if="hasPassword && !mustChangePassword"
-            class="btn btn-outline btn-sm action-btn"
-            @click="showPasswordModal = true"
+            class="hamburger-btn"
+            :aria-label="mobileMenuOpen ? $t('nav.closeMenu') : $t('nav.openMenu')"
+            :aria-expanded="mobileMenuOpen"
+            aria-controls="navbar-collapse"
+            @click="mobileMenuOpen = !mobileMenuOpen"
           >
-            🔒 {{ $t('nav.changePassword') }}
-          </button>
-          <button class="btn btn-outline btn-sm action-btn logout-btn" @click="handleLogout">
-            {{ $t('nav.logout') }} ➔
+            <span class="hamburger-line" :class="{ open: mobileMenuOpen }"></span>
+            <span class="hamburger-line" :class="{ open: mobileMenuOpen }"></span>
+            <span class="hamburger-line" :class="{ open: mobileMenuOpen }"></span>
           </button>
         </div>
+
+        <!-- Collapsible menu -->
+        <div id="navbar-collapse" class="navbar-collapse" :class="{ 'is-open': mobileMenuOpen }">
+          <!-- No page links while an admin-set password must be replaced first -->
+          <ul v-if="!mustChangePassword" class="navbar-menu">
+            <!-- Student Link (hidden if restricted) -->
+            <li v-if="canAccess('/student')">
+              <router-link to="/student" class="navbar-link" @click="mobileMenuOpen = false"
+                >🎒 {{ $t('nav.studentLink') }}</router-link
+              >
+            </li>
+            <!-- Teacher Link (hidden if restricted) -->
+            <li v-if="canAccess('/teacher')">
+              <router-link to="/teacher" class="navbar-link" @click="mobileMenuOpen = false"
+                >👨‍🏫 {{ $t('nav.teacherLink') }}</router-link
+              >
+            </li>
+            <!-- Admin Link -->
+            <li v-if="canAccess('/admin')">
+              <router-link to="/admin" class="navbar-link" @click="mobileMenuOpen = false"
+                >⚙️ {{ $t('nav.adminLink') }}</router-link
+              >
+            </li>
+          </ul>
+
+          <!-- User controls -->
+          <div class="user-control-panel">
+            <div class="user-meta-info">
+              <img
+                :src="avatarSrc(authStore.currentUser?.avatarUrl)"
+                class="avatar-nav"
+                alt="Avatar"
+              />
+              <div class="user-labels">
+                <span class="username-nav">{{ authStore.currentUser?.username }}</span>
+                <span :class="['badge', getBadgeClass(authStore.currentUser?.role)]">
+                  {{ getRoleLabel(authStore.currentUser?.role) }}
+                </span>
+                <span v-if="authStore.currentUser?.church" class="badge badge-church">
+                  ⛪ {{ authStore.currentUser.church }}
+                </span>
+              </div>
+            </div>
+            <!-- Language Switcher -->
+            <LanguageSwitcher />
+            <!-- Google / LINE accounts have no password to change; the forced-change page is its own form -->
+            <button
+              v-if="hasPassword && !mustChangePassword"
+              class="btn btn-outline btn-sm action-btn"
+              @click="showPasswordModal = true"
+            >
+              🔒 {{ $t('nav.changePassword') }}
+            </button>
+            <button class="btn btn-outline btn-sm action-btn logout-btn" @click="handleLogout">
+              {{ $t('nav.logout') }} ➔
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <!-- The browser refused to save: say so, rather than let the change vanish on reload -->
+      <div v-if="storageWriteFailed" class="storage-warning no-print" role="alert">
+        <p>
+          <strong>{{ $t('storage.writeFailedTitle') }}</strong>
+          {{ $t('storage.writeFailedBody') }}
+        </p>
+        <button type="button" class="btn btn-outline btn-sm" @click="storageWriteFailed = false">
+          {{ $t('storage.dismiss') }}
+        </button>
       </div>
-    </nav>
+    </div>
 
     <!-- Password Change Modal -->
     <div v-if="showPasswordModal" class="modal-overlay" @click.self="closePasswordModal">
@@ -107,17 +121,6 @@
           </div>
         </PasswordChangeForm>
       </div>
-    </div>
-
-    <!-- The browser refused to save: say so, rather than let the change vanish on reload -->
-    <div v-if="storageWriteFailed" class="storage-warning" role="alert">
-      <p>
-        <strong>{{ $t('storage.writeFailedTitle') }}</strong>
-        {{ $t('storage.writeFailedBody') }}
-      </p>
-      <button type="button" class="btn btn-outline btn-sm" @click="storageWriteFailed = false">
-        {{ $t('storage.dismiss') }}
-      </button>
     </div>
 
     <!-- Main router view with transition -->
@@ -224,6 +227,12 @@ function getRoleLabel(role?: string) {
 </script>
 
 <style scoped>
+.app-top {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
 .storage-warning {
   display: flex;
   align-items: center;
@@ -232,8 +241,9 @@ function getRoleLabel(role?: string) {
   flex-wrap: wrap;
   width: calc(100% - 2rem);
   max-width: 1100px;
-  margin: 1rem auto 0;
+  margin: 0.5rem auto 0;
   padding: 0.85rem 1.1rem;
+  box-shadow: var(--shadow-sm);
   border-radius: var(--radius-sm);
   background: #fef3c7;
   border: 1px solid #f59e0b;
