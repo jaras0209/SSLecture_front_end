@@ -14,7 +14,18 @@
  *
  *   // 寫入（回傳是否成功）
  *   const ok = safeSet('my_db', db)
+ *
+ * 寫入失敗（儲存空間已滿、無痕模式、瀏覽器封鎖網站資料）時另外設定
+ * storageWriteFailed，讓畫面告訴使用者資料沒有存到這台裝置上。
  */
+
+import { ref } from 'vue'
+
+/**
+ * Set when the browser refused a write: until a backend exists, what was just changed is
+ * lost on reload. App.vue shows a warning; dismissing it sets this back to false.
+ */
+export const storageWriteFailed = ref(false)
 
 export interface SafeGetOptions {
   /**
@@ -69,6 +80,7 @@ export function safeSet(key: string, value: unknown): boolean {
     return true
   } catch (err) {
     console.warn(`[safeStorage] Failed to write localStorage["${key}"].`, err)
+    storageWriteFailed.value = true
     return false
   }
 }

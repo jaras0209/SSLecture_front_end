@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { safeGet, safeSet, safeRemove } from '@/utils/storage'
+import { safeGet, safeSet, safeRemove, storageWriteFailed } from '@/utils/storage'
+import { refuseStorageWrites } from '@/__tests__/helpers'
 
 describe('safeGet', () => {
   beforeEach(() => {
@@ -80,6 +81,30 @@ describe('safeSet', () => {
     } finally {
       JSON.stringify = origStringify
     }
+  })
+})
+
+describe('a write the browser refuses', () => {
+  beforeEach(() => {
+    storageWriteFailed.value = false
+  })
+  afterEach(() => {
+    vi.restoreAllMocks()
+    vi.unstubAllGlobals()
+    storageWriteFailed.value = false
+  })
+
+  it('is flagged so the page can say the change was not saved', () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    refuseStorageWrites()
+    expect(storageWriteFailed.value).toBe(false)
+    expect(safeSet('full_key', { x: 1 })).toBe(false)
+    expect(storageWriteFailed.value).toBe(true)
+
+    // a later write that works does not hide it: the refused change is still lost
+    vi.unstubAllGlobals()
+    expect(safeSet('ok_key', 1)).toBe(true)
+    expect(storageWriteFailed.value).toBe(true)
   })
 })
 

@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 /**
  * Shared helpers for component and composable tests.
  */
@@ -79,3 +80,23 @@ export function toastTexts(): string[] {
 /** Translate with the app's i18n instance (zh-TW unless a test switched it) */
 export const t = (key: string, values: Record<string, unknown> = {}) =>
   (i18n.global.t as (k: string, v: Record<string, unknown>) => string)(key, values)
+
+/**
+ * Make the browser refuse every localStorage write from now on, as when storage is full,
+ * blocked or in some private windows (undo with vi.unstubAllGlobals()). Reads still work.
+ */
+export function refuseStorageWrites() {
+  const real = localStorage
+  vi.stubGlobal('localStorage', {
+    getItem: (key: string) => real.getItem(key),
+    removeItem: (key: string) => real.removeItem(key),
+    key: (i: number) => real.key(i),
+    get length() {
+      return real.length
+    },
+    clear: () => real.clear(),
+    setItem: () => {
+      throw new DOMException('The quota has been exceeded.', 'QuotaExceededError')
+    }
+  })
+}

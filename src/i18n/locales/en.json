@@ -898,5 +898,10 @@
     "desc": "Your password was set by an administrator. For your account's safety, replace it with one only you know before continuing.",
     "submit": "Set new password and continue",
     "errSame": "The new password must differ from the current one"
+  },
+  "storage": {
+    "writeFailedTitle": "Your changes weren't saved on this device.",
+    "writeFailedBody": "The browser refused to store them (storage may be full, you may be in a private window, or site data may be blocked), so what you just changed will be lost when you reload or close the page. Note down anything important and check your browser settings.",
+    "dismiss": "Got it"
   }
 }

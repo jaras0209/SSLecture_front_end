@@ -109,6 +109,17 @@
       </div>
     </div>
 
+    <!-- The browser refused to save: say so, rather than let the change vanish on reload -->
+    <div v-if="storageWriteFailed" class="storage-warning" role="alert">
+      <p>
+        <strong>{{ $t('storage.writeFailedTitle') }}</strong>
+        {{ $t('storage.writeFailedBody') }}
+      </p>
+      <button type="button" class="btn btn-outline btn-sm" @click="storageWriteFailed = false">
+        {{ $t('storage.dismiss') }}
+      </button>
+    </div>
+
     <!-- Main router view with transition -->
     <main class="main-content">
       <router-view v-slot="{ Component }">
@@ -134,6 +145,7 @@ import PasswordChangeForm from '@/components/shared/PasswordChangeForm.vue'
 import LanguageSwitcher from '@/components/shared/LanguageSwitcher.vue'
 import { avatarSrc } from '@/utils/avatar'
 import { homeRouteFor } from '@/router/homeRoute'
+import { storageWriteFailed } from '@/utils/storage'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -212,6 +224,28 @@ function getRoleLabel(role?: string) {
 </script>
 
 <style scoped>
+.storage-warning {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  width: calc(100% - 2rem);
+  max-width: 1100px;
+  margin: 1rem auto 0;
+  padding: 0.85rem 1.1rem;
+  border-radius: var(--radius-sm);
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  color: #78350f;
+  font-size: 0.9rem;
+}
+
+.storage-warning p {
+  margin: 0;
+  flex: 1 1 20rem;
+}
+
 .main-content {
   min-height: calc(100vh - 80px);
 }

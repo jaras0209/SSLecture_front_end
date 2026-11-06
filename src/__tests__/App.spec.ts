@@ -8,7 +8,9 @@ import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import { useToastProvider } from '@/composables/useToast'
 import type { UserRole } from '@/types/auth'
-import { t } from '@/__tests__/helpers'
+import { refuseStorageWrites, t } from '@/__tests__/helpers'
+import { storageWriteFailed } from '@/utils/storage'
+import { flushPersistence } from '@/utils/persist'
 
 // Apps share the real router, so each is unmounted after its test
 const mounted: { unmount(): void }[] = []
@@ -195,6 +197,40 @@ describe('App', () => {
       auth.sessionChangedElsewhere++
       await flushPromises()
       expect(router.currentRoute.value.path).toBe('/login')
+    })
+  })
+
+  describe('when the browser refuses to save', () => {
+    beforeEach(() => {
+      storageWriteFailed.value = false
+    })
+    afterEach(() => {
+      vi.restoreAllMocks()
+      vi.unstubAllGlobals()
+      storageWriteFailed.value = false
+    })
+
+    it('warns that the change was not saved, until dismissed', async () => {
+      const { wrapper } = await mountApp('student')
+      expect(wrapper.find('.storage-warning').exists()).toBe(false)
+
+      vi.spyOn(console, 'warn').mockImplementation(() => {})
+      refuseStorageWrites()
+      const courses = useCoursesStore()
+      courses.addListenSession('student', courses.courses[0].id, {
+        lecturer: '',
+        listenedAt: '2026-03-01T19:30',
+        notes: '寫好的心得'
+      })
+      await flushPromises() // the store's watcher schedules the write
+      flushPersistence()
+      await flushPromises()
+
+      const warning = wrapper.find('.storage-warning')
+      expect(warning.attributes('role')).toBe('alert')
+      expect(warning.text()).toContain(t('storage.writeFailedTitle'))
+      await warning.find('button').trigger('click')
+      expect(wrapper.find('.storage-warning').exists()).toBe(false)
     })
   })
 
