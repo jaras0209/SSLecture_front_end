@@ -90,7 +90,17 @@ export function useI18nHelper() {
     return `${m[1]} ${tLecturerTitle(m[2])}`
   }
 
+  /**
+   * Names joined as the current language lists them.
+   * @example tList(['媽媽', '爸爸']) → '媽媽、爸爸' (zh-TW) / 'Mom and Dad' (en)
+   */
+  function tList(items: string[]): string {
+    if (locale.value.startsWith('zh')) return items.join('、')
+    return new Intl.ListFormat(locale.value, { type: 'conjunction' }).format(items)
+  }
+
   return {
+    tList,
     tDynamic,
     tRole,
     tStatus,

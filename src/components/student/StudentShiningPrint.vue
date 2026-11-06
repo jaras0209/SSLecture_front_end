@@ -183,11 +183,13 @@ import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import { useShiningProject } from '@/composables/useShiningProject'
+import { useI18nHelper } from '@/composables/useI18nHelper'
 
 const props = defineProps<{ username?: string }>()
 
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
+const { tList } = useI18nHelper()
 const {
   username,
   shiningProject,
@@ -203,7 +205,7 @@ const {
 // Who signs the printed sheet
 const assignedTeacher = computed(() => coursesStore.getStudentCaretaker(username.value, 'teacher'))
 const assignedPastor = computed(() => coursesStore.getStudentCaretaker(username.value, 'pastor'))
-const assignedParent = computed(() => authStore.parentsOf(username.value).join('、'))
+const assignedParent = computed(() => tList(authStore.parentsOf(username.value)))
 </script>
 
 <!-- 不使用 scoped，因為列印版 Teleport 到 body，scoped 無法命中。

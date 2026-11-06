@@ -29,7 +29,7 @@
         <p class="text-muted text-xs mt-1">
           {{
             $t('teacher.lecture.bookedBy', {
-              names: lecture.teacherUsernames.map(authStore.displayNameOf).join('、')
+              names: tList(lecture.teacherUsernames.map(authStore.displayNameOf))
             })
           }}
         </p>
@@ -97,7 +97,7 @@ import { useToast } from '@/composables/useToast'
 import { useMyLectures, type LectureAttendee } from '@/composables/useMyLectures'
 
 const { t } = useI18n()
-const { tDateTime } = useI18nHelper()
+const { tDateTime, tList } = useI18nHelper()
 const { toast } = useToast()
 const authStore = useAuthStore()
 const bookingsStore = useBookingsStore()

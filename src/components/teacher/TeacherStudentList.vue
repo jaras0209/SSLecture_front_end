@@ -142,6 +142,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import { isCaretakerRole } from '@/types/courses'
 import { useStudentList } from '@/composables/useStudentList'
+import { useI18nHelper } from '@/composables/useI18nHelper'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -164,6 +165,7 @@ const emit = defineEmits<{
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
 const { t } = useI18n()
+const { tList } = useI18nHelper()
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
@@ -255,7 +257,7 @@ function getCaretakerStatusText(studentUsername: string): string {
     return parents.includes(authStore.currentUser?.username ?? '')
       ? t('teacher.studentList.youParent')
       : parents.length
-        ? t('teacher.studentList.caredBy', { name: parents.join('、') })
+        ? t('teacher.studentList.caredBy', { name: tList(parents) })
         : t('teacher.studentList.noCarer')
   }
   const tc = coursesStore.getStudentCaretaker(studentUsername, 'teacher')

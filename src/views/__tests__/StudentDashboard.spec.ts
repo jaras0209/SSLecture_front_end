@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import { useBookingsStore } from '@/stores/bookings'
 import { mountPrepared, toastTexts, t } from '@/__tests__/helpers'
+import { setLocale } from '@/i18n'
 
 const CHURCH = '愛與話語'
 
@@ -97,6 +98,23 @@ describe('StudentDashboard', () => {
     })
     const names = wrapper.findAll('.assigned-teacher-label strong').map((n) => n.text())
     expect(names).toEqual(['王老師', '李牧師', 'parent、陳媽媽'])
+  })
+
+  it('lists several parents the way the interface language does', async () => {
+    const { wrapper } = await mountStudent(() => {
+      useAuthStore().usersDb.mom = {
+        passwordHash: 'x',
+        role: 'parent',
+        church: CHURCH,
+        childUsernames: ['student']
+      }
+    })
+    const parents = () => wrapper.findAll('.assigned-teacher-label strong').at(-1)!.text()
+    expect(parents()).toBe('parent、mom')
+    await setLocale('en')
+    await wrapper.vm.$nextTick()
+    expect(parents()).toBe('parent and mom')
+    await setLocale('zh-TW')
   })
 
   it('says when nobody is caring for them yet', async () => {

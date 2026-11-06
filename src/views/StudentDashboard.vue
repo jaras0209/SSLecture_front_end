@@ -175,7 +175,7 @@ import { useI18nHelper } from '@/composables/useI18nHelper'
 import { useToast } from '@/composables/useToast'
 const { toast } = useToast()
 const { t } = useI18n()
-const { tDateTime } = useI18nHelper()
+const { tDateTime, tList } = useI18nHelper()
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import type { Course } from '@/stores/courses'
@@ -292,7 +292,7 @@ const assignedPastor = computed(() => {
 
 const assignedParent = computed(() => {
   const username = authStore.currentUser?.username || ''
-  return authStore.parentsOf(username).map(nameOf).join('、')
+  return tList(authStore.parentsOf(username).map(nameOf))
 })
 
 const completedCount = computed(() =>

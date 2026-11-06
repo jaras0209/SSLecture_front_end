@@ -84,4 +84,16 @@ describe('useI18nHelper()', () => {
     expect(tLecturerLabel('張牧師 牧師')).toBe('張牧師 Pastor')
     expect(tLecturerLabel('林輔導 輔導')).toBe('林輔導 Counselor')
   })
+
+  it('joins names as the current language lists them', async () => {
+    const { tList } = withSetup(() => useI18nHelper())
+    expect(tList(['媽媽', '爸爸'])).toBe('媽媽、爸爸')
+    expect(tList(['甲', '乙', '丙'])).toBe('甲、乙、丙')
+    expect(tList(['媽媽'])).toBe('媽媽')
+    expect(tList([])).toBe('')
+
+    await setLocale('en')
+    expect(tList(['Mom', 'Dad'])).toBe('Mom and Dad')
+    expect(tList(['A', 'B', 'C'])).toBe('A, B, and C')
+  })
 })
