@@ -185,7 +185,7 @@ async function deleteUser(username: string) {
   if (ok) {
     const role = authStore.usersDb[username]?.role
     const summary = role ? releaseRole(username, role, 'deleted') : undefined
-    delete authStore.usersDb[username]
+    authStore.deleteAccount(username)
     // Clean up restrictions as well
     if (coursesStore.restrictionsDb[username]) {
       delete coursesStore.restrictionsDb[username]

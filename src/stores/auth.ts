@@ -183,6 +183,53 @@ export const useAuthStore = defineStore('auth', () => {
 
   persistToStorage(usersDb, 'superstart_users_db')
 
+  // ── Retired usernames ────────────────────────────────────────────────────
+  // A deleted account's notes, Shining sheet, replies and bookings are kept as history, keyed by
+  // username, so its name must never go to someone new, who would otherwise see all of it. (The
+  // database keeps deleted accounts as inactive rows, which keeps their names taken the same way.)
+
+  const retiredUsernames = ref<string[]>(
+    safeGet<string[]>('superstart_retired_usernames', [], { clearOnError: true })
+  )
+
+  /** Names that still have records but no account: deleted before names were retired */
+  function namesWithRecordsButNoAccount(): string[] {
+    const names = new Set<string>()
+    const keysOf = (key: string) => Object.keys(safeGet<Record<string, unknown>>(key, {}))
+    keysOf('superstart_progress_db').forEach((n) => names.add(n))
+    keysOf('superstart_shining_project_db').forEach((n) => names.add(n))
+    keysOf('superstart_feedback_db').forEach((n) => names.add(n))
+    const values = <T>(key: string) => Object.values(safeGet<Record<string, T>>(key, {}))
+    values<{ studentUsername?: string }>('superstart_booking_attendees_db').forEach(
+      (a) => a.studentUsername && names.add(a.studentUsername)
+    )
+    values<{ teacherUsername?: string }>('superstart_booking_sessions_db').forEach(
+      (s) => s.teacherUsername && names.add(s.teacherUsername)
+    )
+    values<{ teacherUsername?: string }>('superstart_teaching_stats_db').forEach(
+      (s) => s.teacherUsername && names.add(s.teacherUsername)
+    )
+    const accounts = new Set(Object.keys(usersDb.value).map((u) => u.toLowerCase()))
+    const retired = new Set(retiredUsernames.value.map((u) => u.toLowerCase()))
+    return [...names].filter((n) => !accounts.has(n.toLowerCase()) && !retired.has(n.toLowerCase()))
+  }
+  const unclaimed = namesWithRecordsButNoAccount()
+  if (unclaimed.length) retiredUsernames.value.push(...unclaimed)
+
+  persistToStorage(retiredUsernames, 'superstart_retired_usernames')
+
+  /**
+   * Delete an account. Its records stay as history, and its username stays taken.
+   * (Clean up what depends on its role first: useAccountCleanup().releaseRole().)
+   */
+  function deleteAccount(username: string): void {
+    if (!usersDb.value[username]) return
+    delete usersDb.value[username]
+    if (!retiredUsernames.value.some((u) => u.toLowerCase() === username.toLowerCase())) {
+      retiredUsernames.value.push(username)
+    }
+  }
+
   // ── Invite Codes DB ──────────────────────────────────────────────────────────
 
   const inviteCodesDb = ref<Record<string, InviteCode>>(
@@ -206,7 +253,11 @@ export const useAuthStore = defineStore('auth', () => {
   /** Whether `username` is taken by an account other than `except` */
   function isUsernameTaken(username: string, except?: string): boolean {
     const wanted = username.toLowerCase()
-    return Object.keys(usersDb.value).some((u) => u !== except && u.toLowerCase() === wanted)
+    return (
+      Object.keys(usersDb.value).some((u) => u !== except && u.toLowerCase() === wanted) ||
+      // a deleted account's name: its records are still kept under it
+      retiredUsernames.value.some((u) => u.toLowerCase() === wanted)
+    )
   }
 
   /** The account using `email`, other than `except` */
@@ -684,6 +735,8 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     findUsername,
     isUsernameTaken,
+    retiredUsernames,
+    deleteAccount,
     emailOwner,
     usernameError,
     emailError,

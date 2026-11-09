@@ -130,6 +130,8 @@
 - `admin` 角色的 `church_id` 為 NULL（跨教會管理）
 - `real_name` 僅用於管理端（教師/牧者/管理員）顯示，不對學員公開
 - `is_active = FALSE` 為軟刪除，歷史資料保留；軟刪除時須一併做 [5.12](#512-刪除帳號或變更角色時的清理) 的清理
+- 軟刪除的帳號列仍在，`username` 的唯一限制照常生效：歷史資料掛在這個名稱下，同名的新帳號會看到前一位的資料，所以名稱不可重新使用
+- 建議加上 `token_version INTEGER NOT NULL DEFAULT 0`：停用、改角色、重設或修改密碼時遞增，讓既有的登入失效（見 API 規格「帳號變更時結束既有的登入」）
 - 社群登入（Google / LINE）的使用者同樣是 `users` 的一筆資料，`password_hash` 為 NULL；
   完成 onboarding（填入教會）後，牧者與管理員才能在名冊看到並設定性別、指派教師、綁定家長
 - `gender` 只對 `student`、`teacher` 有意義（前端 `GENDERED_ROLES`）；NULL 表示尚未設定，

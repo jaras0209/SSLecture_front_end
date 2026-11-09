@@ -193,6 +193,8 @@ describe('AdminUserTable', () => {
     resolveConfirm(true)
     await flushPromises()
     expect(useCoursesStore().restrictionsDb.s2).toBeUndefined()
+    // its name stays taken: what was kept under it must not go to someone new
+    expect(auth.isUsernameTaken('s2')).toBe(true)
     expect(toastTexts()).toContain(t('admin.userList.deletedToast', { username: 's2' }))
   })
 

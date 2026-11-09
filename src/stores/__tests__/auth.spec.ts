@@ -3,6 +3,7 @@ import { nextTick } from 'vue'
 import { setActivePinia, createPinia } from 'pinia'
 import { useAuthStore } from '@/stores/auth'
 import { translate as t } from '@/i18n'
+import { flushPersistence } from '@/utils/persist'
 
 describe('useAuthStore', () => {
   beforeEach(() => {
@@ -52,6 +53,55 @@ describe('useAuthStore', () => {
   })
 
   // ── register ─────────────────────────────────────────────────────────────
+
+  describe('deleted accounts', () => {
+    it('keep their name taken, so nobody new sees the records kept under it', async () => {
+      const auth = useAuthStore()
+      const { useCoursesStore } = await import('@/stores/courses')
+      const courses = useCoursesStore()
+      const courseId = courses.courses[0].id
+      courses.addListenSession('student', courseId, {
+        lecturer: '',
+        listenedAt: '2026-01-01T10:00',
+        notes: '私人心得'
+      })
+
+      auth.deleteAccount('student')
+      expect(auth.usersDb.student).toBeUndefined()
+      // the records stay, as history
+      expect(courses.getStudentProgress('student', courseId).sessions).toHaveLength(1)
+
+      for (const name of ['student', 'STUDENT']) {
+        const r = auth.register(name, 'Another#2026', 'student', '愛與話語')
+        expect(r).toEqual({ success: false, message: t('stores.auth.usernameTaken') })
+      }
+      expect(
+        auth.createAccount({ username: 'student', password: 'x', role: 'student' }).success
+      ).toBe(false)
+      expect(auth.usersDb.student).toBeUndefined()
+    })
+
+    it('include those deleted before names were kept: any name with records but no account', () => {
+      localStorage.setItem('superstart_progress_db', JSON.stringify({ gone: {}, student: {} }))
+      localStorage.setItem(
+        'superstart_booking_sessions_db',
+        JSON.stringify({ s1: { teacherUsername: 'oldteacher' } })
+      )
+      setActivePinia(createPinia())
+      const auth = useAuthStore()
+      expect(auth.retiredUsernames).toEqual(expect.arrayContaining(['gone', 'oldteacher']))
+      expect(auth.retiredUsernames).not.toContain('student') // still has an account
+      expect(auth.isUsernameTaken('gone')).toBe(true)
+      expect(auth.isUsernameTaken('newcomer')).toBe(false)
+    })
+
+    it('are remembered across reloads', async () => {
+      useAuthStore().deleteAccount('teacher')
+      flushPersistence()
+      setActivePinia(createPinia())
+      expect(useAuthStore().isUsernameTaken('teacher')).toBe(true)
+    })
+  })
 
   describe('register()', () => {
     it('returns failure when username is already taken', () => {
