@@ -14,6 +14,19 @@ export function randomHex(bytes: number): string {
   return Array.from(buf, (b) => b.toString(16).padStart(2, '0')).join('')
 }
 
+/**
+ * 給人看、要人輸入的代碼字元：大寫英文與數字，去掉容易看錯的 0/O、1/I。
+ * 剛好 32 個，256 可被 32 整除，所以每個字元出現機率相同（不偏向某些字）。
+ */
+export const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+
+/** 產生 n 個 CODE_ALPHABET 字元的隨機代碼（每個字元 5 bits） */
+export function randomCode(length: number): string {
+  const buf = new Uint8Array(length)
+  crypto.getRandomValues(buf)
+  return Array.from(buf, (b) => CODE_ALPHABET[b % CODE_ALPHABET.length]).join('')
+}
+
 /** 產生帶前綴的唯一 ID，例如 createId('sess') → "sess_3f9c…"（128-bit 隨機） */
 export function createId(prefix: string): string {
   return `${prefix}_${randomHex(16)}`

@@ -508,7 +508,7 @@ pending ──confirm──> confirmed ──complete──> completed
 
 | 欄位名 | 資料型別 | 限制 | 說明 |
 |--------|----------|------|------|
-| `code` | `VARCHAR(20)` | PK, NOT NULL | 邀請碼（例：`SS-TCH-A3F7`） |
+| `code` | `VARCHAR(20)` | PK, NOT NULL | 邀請碼（例：`SS-TCH-K7M2QX9D`） |
 | `role` | `ENUM` | NOT NULL | 允許註冊的角色 |
 | `church_id` | `UUID` | FK → churches.id, NULL | 指定教會（admin為NULL） |
 | `created_by` | `UUID` | FK → users.id, NULL, ON DELETE SET NULL | 產生此邀請碼的管理員 ID（管理員被刪除後置 NULL） |
@@ -1686,7 +1686,7 @@ erDiagram
   %% ════════════════════════════════════
 
   invite_codes {
-    VARCHAR     code       PK  "SS-TCH-A3F7"
+    VARCHAR     code       PK  "SS-TCH-K7M2QX9D"
     user_role   role           "ENUM"
     UUID        church_id  FK  "-> churches.id SET NULL"
     UUID        created_by FK  "-> users.id SET NULL"

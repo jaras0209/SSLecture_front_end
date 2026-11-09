@@ -3,7 +3,7 @@ import { ref, computed, watch, nextTick } from 'vue'
 import { safeGet, safeSet, safeRemove, onStorageChange } from '@/utils/storage'
 import { persistToStorage } from '@/utils/persist'
 import { nowIso, normalizeLegacyDateTime } from '@/utils/datetime'
-import { randomHex } from '@/utils/id'
+import { randomCode } from '@/utils/id'
 import { translate as t } from '@/i18n'
 
 // 後端就緒後，在 exchangeOAuthCode / completeProfile 中：
@@ -25,6 +25,9 @@ import {
   USERNAME_MIN,
   USERNAME_MAX
 } from '@/utils/account'
+
+/** Length of an invite code's random part (see generateInviteCode) */
+export const INVITE_CODE_LENGTH = 8
 
 /** 邀請碼前綴（用於產生易讀的邀請碼） */
 const ROLE_CODE_PREFIX: Record<UserRole, string> = {
@@ -288,15 +291,17 @@ export const useAuthStore = defineStore('auth', () => {
   function login(identifier: string, passwordHash: string): { success: boolean; message: string } {
     const username = findUsername(identifier) ?? ''
     const user = usersDb.value[username]
+    // The same answer for an unknown account and a wrong password, so trying names can't tell
+    // which accounts exist (the API answers both with INVALID_CREDENTIALS)
     if (!user) {
-      return { success: false, message: t('stores.auth.accountNotFound') }
+      return { success: false, message: t('stores.auth.invalidCredentials') }
     }
     if (!user.passwordHash) {
       // A Google / LINE account has no password to sign in with
       return { success: false, message: t('stores.auth.useSocialLogin') }
     }
     if (user.passwordHash !== passwordHash) {
-      return { success: false, message: t('stores.auth.wrongPassword') }
+      return { success: false, message: t('stores.auth.invalidCredentials') }
     }
 
     const now = nowIso()
@@ -585,7 +590,11 @@ export const useAuthStore = defineStore('auth', () => {
 
   /**
    * Generate a one-time invite code for a specific role.
-   * Format: SS-{ROLE_PREFIX}-{4 random uppercase hex chars}
+   * Format: SS-{ROLE_PREFIX}-{8 random characters}, e.g. SS-TCH-K7M2QX9D.
+   * A code is all it takes to register with its role, admin included, so it must not be
+   * guessable: 32^8 ≈ 1.1 trillion combinations per role (codes used to have 4 hex
+   * characters, 65,536 per role; those already handed out still work). The backend must
+   * also limit attempts (see the API spec, "嘗試次數限制").
    * The random part is regenerated until it doesn't collide with any existing code.
    */
   function generateInviteCode(
@@ -597,7 +606,7 @@ export const useAuthStore = defineStore('auth', () => {
     const prefix = ROLE_CODE_PREFIX[role]
     let code = ''
     for (let attempt = 0; attempt < 100; attempt++) {
-      const candidate = `SS-${prefix}-${randomHex(2).toUpperCase()}`
+      const candidate = `SS-${prefix}-${randomCode(INVITE_CODE_LENGTH)}`
       if (!inviteCodesDb.value[candidate]) {
         code = candidate
         break

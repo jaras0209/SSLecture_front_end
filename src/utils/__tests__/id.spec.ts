@@ -1,11 +1,21 @@
 import { describe, it, expect } from 'vitest'
-import { createId, randomHex } from '@/utils/id'
+import { createId, randomHex, randomCode, CODE_ALPHABET } from '@/utils/id'
 
 describe('randomHex()', () => {
   it('returns 2 lowercase hex chars per byte, zero-padded', () => {
     for (let i = 0; i < 50; i++) {
       expect(randomHex(2)).toMatch(/^[0-9a-f]{4}$/)
     }
+  })
+})
+
+describe('randomCode()', () => {
+  it('uses only characters that are easy to tell apart', () => {
+    expect(CODE_ALPHABET).toHaveLength(32) // so every character is equally likely
+    expect(CODE_ALPHABET).not.toMatch(/[0O1I]/)
+    const code = randomCode(200)
+    expect(code).toHaveLength(200)
+    expect([...code].every((c) => CODE_ALPHABET.includes(c))).toBe(true)
   })
 })
 

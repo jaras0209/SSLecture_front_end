@@ -31,7 +31,7 @@ describe('AdminInviteCodes', () => {
     await wrapper.find('#btn-generate-invite').trigger('click')
 
     const code = wrapper.find('.generated-code-text').text()
-    expect(code).toMatch(/^SS-PAR-[0-9A-F]{4}$/)
+    expect(code).toMatch(/^SS-PAR-[A-HJ-NP-Z2-9]{8}$/)
     expect(wrapper.find('.invite-table').text()).toContain(code)
     expect(useAuthStore().validateInviteCode(code)).toMatchObject({
       role: 'parent',

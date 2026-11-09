@@ -633,7 +633,7 @@ test.describe('admin', () => {
 
     await page.click('#btn-generate-invite')
     const code = (await page.locator('.generated-code-text').innerText()).trim()
-    expect(code).toMatch(/^SS-TCH-[0-9A-F]{4}$/)
+    expect(code).toMatch(/^SS-TCH-[A-HJ-NP-Z2-9]{8}$/)
     await expect(page.locator('.invite-table')).toContainText(code)
   })
 })

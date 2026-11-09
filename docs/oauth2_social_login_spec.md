@@ -796,7 +796,7 @@ Refresh Token：
 {
   "churchId": "uuid-church-001",
   "username": "wangxiaoming",
-  "inviteCode": "SS-TCH-A3F7"
+  "inviteCode": "SS-TCH-K7M2QX9D"
 }
 ```
 

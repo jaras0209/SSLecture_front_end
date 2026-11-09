@@ -39,7 +39,7 @@ export interface User {
 
 /** 邀請碼 */
 export interface InviteCode {
-  code: string // e.g. "SS-TCH-A3F7"
+  code: string // e.g. "SS-TCH-K7M2QX9D"
   role: UserRole // 指定註冊角色
   church?: string // 指定教會（admin 可為空）
   createdBy: string // 產生者 username
