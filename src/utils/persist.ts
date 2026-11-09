@@ -21,12 +21,14 @@ import { safeSet, onStorageChange } from '@/utils/storage'
 /** 變更後延遲寫入的時間（毫秒） */
 export const PERSIST_DELAY_MS = 300
 
-/** key → 立即寫入該 key 的函式（僅包含尚未寫入的項目） */
-const pendingWrites = new Map<string, () => void>()
+/** key → 立即寫入該 key 的函式（僅包含尚未寫入的項目）；回傳是否寫入成功 */
+const pendingWrites = new Map<string, () => boolean>()
 
-/** 立即寫入所有尚未寫入的資料。 */
-export function flushPersistence(): void {
-  for (const write of [...pendingWrites.values()]) write()
+/** 立即寫入所有尚未寫入的資料；回傳是否全部寫入成功（沒有待寫入的也算成功）。 */
+export function flushPersistence(): boolean {
+  let ok = true
+  for (const write of [...pendingWrites.values()]) ok = write() && ok
+  return ok
 }
 
 if (typeof window !== 'undefined') {
@@ -49,7 +51,7 @@ export function persistToStorage<T>(source: Ref<T>, key: string, delay = PERSIST
     if (timer !== null) clearTimeout(timer)
     timer = null
     pendingWrites.delete(key)
-    safeSet(key, source.value)
+    return safeSet(key, source.value)
   }
 
   watch(

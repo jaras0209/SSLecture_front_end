@@ -3,7 +3,8 @@
  * @description 輕量 toast 通知 composable，替換原生 alert/confirm。
  */
 
-import { ref } from 'vue'
+import { nextTick, ref } from 'vue'
+import { flushPersistence } from '@/utils/persist'
 
 export type ToastType = 'success' | 'warning' | 'error' | 'info'
 
@@ -37,6 +38,19 @@ export function useToastProvider() {
 /** Use in any component to show toasts or confirm dialogs */
 export function useToast() {
   function toast(text: string, type: ToastType = 'success', duration = 3000) {
+    if (type === 'success') {
+      // A success usually follows a change to the stores. Save it now rather than after the
+      // usual short delay, and say "done" only if it was saved: if the browser refused, the
+      // save warning shows instead. (The stores schedule their write on the next tick.)
+      void nextTick(() => {
+        if (flushPersistence()) show(text, type, duration)
+      })
+      return
+    }
+    show(text, type, duration)
+  }
+
+  function show(text: string, type: ToastType, duration: number) {
     const id = ++_idCounter
     _toasts.value.push({ id, text, type })
     setTimeout(() => {

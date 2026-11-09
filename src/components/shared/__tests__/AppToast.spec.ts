@@ -22,7 +22,8 @@ describe('AppToast', () => {
       body()
         .findAll('.toast-item')
         .map((t) => t.classes().join(' '))
-    ).toEqual(['toast-item toast-success', 'toast-item toast-error'])
+      // a success waits a tick to check the change was saved, so it comes after the error here
+    ).toEqual(['toast-item toast-error', 'toast-item toast-success'])
     expect(body().find('.toast-error').text()).toBe('出了點問題')
     wrapper.unmount()
   })
