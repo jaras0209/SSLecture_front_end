@@ -129,6 +129,33 @@ describe('api request helpers', () => {
     await expect(apiPost('/x', {})).rejects.toMatchObject({ message: 'lecturer 必填' })
   })
 
+  it('says how long to wait after too many attempts', async () => {
+    const tooMany = (headers: Record<string, string>, body = '') =>
+      fetchMock.mockResolvedValueOnce(new Response(body, { status: 429, headers }))
+
+    tooMany({ 'Retry-After': '900' }, JSON.stringify({ success: false, error: { code: 'X' } }))
+    await expect(apiPost('/auth/login', {})).rejects.toMatchObject({
+      status: 429,
+      code: 'TOO_MANY_REQUESTS',
+      message: '嘗試次數過多，請 15 分鐘後再試'
+    })
+    // a few seconds still reads as a minute; a date works too
+    tooMany({ 'Retry-After': '5' })
+    await expect(apiPost('/x', {})).rejects.toMatchObject({
+      message: '嘗試次數過多，請 1 分鐘後再試'
+    })
+    tooMany({ 'Retry-After': new Date(Date.now() + 120_000).toUTCString() })
+    await expect(apiPost('/x', {})).rejects.toMatchObject({
+      message: '嘗試次數過多，請 2 分鐘後再試'
+    })
+    // a proxy's plain-text page without the header
+    tooMany({ 'Content-Type': 'text/plain' }, 'Too Many Requests')
+    await expect(apiPost('/x', {})).rejects.toMatchObject({
+      code: 'TOO_MANY_REQUESTS',
+      message: '嘗試次數過多，請稍後再試'
+    })
+  })
+
   it('shows documented error codes in the current language, whatever the backend wrote', async () => {
     const body = JSON.stringify({
       success: false,

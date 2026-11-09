@@ -3,7 +3,7 @@
     "confirm": "Confirm",
     "cancel": "Cancel",
     "close": "Close",
-    "inviteCodePlaceholder": "e.g. SS-TCH-A3F7",
+    "inviteCodePlaceholder": "e.g. SS-TCH-K7M2QX9D",
     "scripturePlaceholder": "e.g. John 1:1-18",
     "dialog": "Dialog",
     "save": "Save",
@@ -734,8 +734,7 @@
   },
   "stores": {
     "auth": {
-      "accountNotFound": "Account not found. Please register first.",
-      "wrongPassword": "Incorrect password. Please try again.",
+      "invalidCredentials": "Incorrect username or password. Please try again.",
       "loginSuccess": "Signed in successfully!",
       "loginMustChangePassword": "Signed in. Please set a new password first.",
       "usernameTaken": "Username already taken. Please choose another.",
@@ -830,7 +829,8 @@
       "timeout": "The server took too long to respond. Please try again later.",
       "network": "Unable to reach the server. Please check your connection.",
       "parse": "The server returned an unexpected response.",
-      "http": "Server error (HTTP {status})"
+      "http": "Server error (HTTP {status})",
+      "tooManyRequestsIn": "Too many attempts. Please try again in {minutes} minute(s)"
     },
     "codes": {
       "INVALID_DATE_FORMAT": "The date or time is not in a valid format",
@@ -858,7 +858,8 @@
       "INTERNAL_ERROR": "Something went wrong on the server. Please try again later",
       "EMAIL_TAKEN": "That email is already used by another account",
       "PASSWORD_CHANGE_REQUIRED": "Please set a new password first",
-      "WEAK_PASSWORD": "Password is too weak: use at least 6 characters and any two of: 8 or more characters, upper and lower case letters, a number, a symbol"
+      "WEAK_PASSWORD": "Password is too weak: use at least 6 characters and any two of: 8 or more characters, upper and lower case letters, a number, a symbol",
+      "TOO_MANY_REQUESTS": "Too many attempts. Please try again later"
     }
   },
   "a11y": {

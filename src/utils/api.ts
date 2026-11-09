@@ -212,8 +212,32 @@ function codeMessage(code: string): string | undefined {
   return hasMessage(key) ? t(key) : undefined
 }
 
+/** Seconds to wait from a Retry-After header (seconds, or an HTTP date), if it says */
+function retryAfterSeconds(res: Response): number | undefined {
+  const value = res.headers.get('Retry-After')?.trim()
+  if (!value) return undefined
+  if (/^\d+$/.test(value)) return Number(value)
+  const at = Date.parse(value)
+  return Number.isNaN(at) ? undefined : Math.max(0, Math.round((at - Date.now()) / 1000))
+}
+
+/**
+ * Too many attempts (login, invite code...): say how long to wait when the server says. Read
+ * before the body, which may be a proxy's plain-text page rather than our JSON.
+ */
+function tooManyRequests(res: Response): ApiError {
+  const seconds = retryAfterSeconds(res)
+  const message =
+    seconds && seconds > 0
+      ? t('api.errors.tooManyRequestsIn', { minutes: Math.ceil(seconds / 60) })
+      : t('api.codes.TOO_MANY_REQUESTS')
+  return new ApiError(429, 'TOO_MANY_REQUESTS', message)
+}
+
 /** 解析後端統一回應格式；空 body（如 204）成功時回傳 undefined。 */
 function parseResponse<T>(res: Response, text: string): T {
+  if (res.status === 429) throw tooManyRequests(res)
+
   const httpError = () =>
     new ApiError(res.status, `HTTP_${res.status}`, t('api.errors.http', { status: res.status }))
 

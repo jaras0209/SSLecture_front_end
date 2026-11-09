@@ -3,7 +3,7 @@
     "confirm": "確認",
     "cancel": "取消",
     "close": "關閉",
-    "inviteCodePlaceholder": "例如：SS-TCH-A3F7",
+    "inviteCodePlaceholder": "例如：SS-TCH-K7M2QX9D",
     "scripturePlaceholder": "如：約翰福音 1:1-18",
     "dialog": "對話框",
     "save": "儲存",
@@ -734,8 +734,7 @@
   },
   "stores": {
     "auth": {
-      "accountNotFound": "找不到此帳號，請先註冊。",
-      "wrongPassword": "密碼錯誤，請再試一次。",
+      "invalidCredentials": "帳號或密碼錯誤，請再試一次。",
       "loginSuccess": "登入成功！",
       "loginMustChangePassword": "登入成功，請先設定新密碼",
       "usernameTaken": "帳號已被使用，請更換名稱。",
@@ -830,7 +829,8 @@
       "timeout": "伺服器回應逾時，請稍後再試",
       "network": "無法連線到伺服器，請檢查網路連線",
       "parse": "伺服器回應格式錯誤",
-      "http": "伺服器錯誤（HTTP {status}）"
+      "http": "伺服器錯誤（HTTP {status}）",
+      "tooManyRequestsIn": "嘗試次數過多，請 {minutes} 分鐘後再試"
     },
     "codes": {
       "INVALID_DATE_FORMAT": "日期時間格式不正確",
@@ -858,7 +858,8 @@
       "INTERNAL_ERROR": "伺服器發生錯誤，請稍後再試",
       "EMAIL_TAKEN": "這個信箱已被其他帳號使用",
       "PASSWORD_CHANGE_REQUIRED": "請先設定新密碼",
-      "WEAK_PASSWORD": "密碼太弱：需至少 6 個字元，並符合以下任兩項：8 個字元以上、大小寫字母混合、數字、符號"
+      "WEAK_PASSWORD": "密碼太弱：需至少 6 個字元，並符合以下任兩項：8 個字元以上、大小寫字母混合、數字、符號",
+      "TOO_MANY_REQUESTS": "嘗試次數過多，請稍後再試"
     }
   },
   "a11y": {

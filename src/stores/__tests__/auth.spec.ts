@@ -21,6 +21,14 @@ describe('useAuthStore', () => {
       expect(result.message).toBeTruthy() // message is i18n-translated; locale depends on test env
     })
 
+    it('gives the same answer for an unknown account and a wrong password', () => {
+      const auth = useAuthStore()
+      const unknown = auth.login('ghost', '123456')
+      const wrong = auth.login('student', 'wrong_password')
+      expect(unknown).toEqual({ success: false, message: t('stores.auth.invalidCredentials') })
+      expect(wrong).toEqual(unknown) // trying names can't tell which accounts exist
+    })
+
     it('returns failure when password is wrong', () => {
       const auth = useAuthStore()
       const result = auth.login('student', 'wrong_password')
@@ -381,29 +389,40 @@ describe('useAuthStore', () => {
       vi.restoreAllMocks()
     })
 
-    it('always produces exactly 4 hex chars', () => {
+    it('has 8 characters that are hard to guess and easy to read', () => {
       const auth = useAuthStore()
       for (let i = 0; i < 50; i++) {
+        // no 0/O or 1/I, which are easily mistaken for each other
         expect(auth.generateInviteCode('student', '愛與話語', 'admin')).toMatch(
-          /^SS-STU-[0-9A-F]{4}$/
+          /^SS-STU-[A-HJ-NP-Z2-9]{8}$/
         )
       }
     })
 
+    it('still accepts a 4-character code handed out before codes got longer', () => {
+      const auth = useAuthStore()
+      auth.inviteCodesDb['SS-TCH-A3F7'] = {
+        code: 'SS-TCH-A3F7',
+        role: 'teacher',
+        church: '愛與話語',
+        createdBy: 'admin',
+        createdAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 86400000).toISOString(),
+        revoked: false
+      }
+      expect(auth.validateInviteCode('ss-tch-a3f7')?.role).toBe('teacher') // any case
+    })
+
     it('regenerates when the random part collides with an existing code', () => {
       const auth = useAuthStore()
-      // First two draws produce 0xABCD, the third 0x1234
-      const draws = [
-        [0xab, 0xcd],
-        [0xab, 0xcd],
-        [0x12, 0x34]
-      ]
+      // The first two draws are all 0s (AAAAAAAA), the third all 1s (BBBBBBBB)
+      const draws = [0, 0, 1]
       vi.spyOn(crypto, 'getRandomValues').mockImplementation((arr) => {
-        ;(arr as unknown as Uint8Array).set(draws.shift() ?? [0, 0])
+        ;(arr as unknown as Uint8Array).fill(draws.shift() ?? 2)
         return arr
       })
-      expect(auth.generateInviteCode('student', '愛與話語', 'admin')).toBe('SS-STU-ABCD')
-      expect(auth.generateInviteCode('student', '愛與話語', 'admin')).toBe('SS-STU-1234')
+      expect(auth.generateInviteCode('student', '愛與話語', 'admin')).toBe('SS-STU-AAAAAAAA')
+      expect(auth.generateInviteCode('student', '愛與話語', 'admin')).toBe('SS-STU-BBBBBBBB')
       expect(Object.keys(auth.inviteCodesDb)).toHaveLength(2)
     })
   })

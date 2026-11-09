@@ -113,6 +113,26 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 }
 ```
 
+### 嘗試次數限制
+
+可以拿來「猜」的 API 都要限制嘗試次數，否則接上網路後就能用程式把密碼或邀請碼一個個試過去：
+邀請碼就是註冊成該角色（含管理員）的唯一憑證，密碼最短只要 6 個字元。
+
+| API | 建議限制（同時以「帳號」與「來源 IP」各算一份） |
+|-----|-----------------------------------------------|
+| `POST /auth/login` | 同一帳號 15 分鐘內失敗 5 次 → 鎖 15 分鐘；同一 IP 15 分鐘內失敗 20 次 → 鎖 15 分鐘 |
+| `POST /auth/register`、`PUT /auth/complete-profile`（帶邀請碼） | 同一 IP 每小時邀請碼錯誤 10 次 → 鎖 1 小時 |
+| `POST /auth/password/forgot` | 同一帳號每小時 3 封、同一 IP 每小時 10 次（避免被拿來大量寄信） |
+| `POST /auth/password/reset`、`POST /auth/exchange` | 同一 IP 每 15 分鐘 20 次 |
+| 修改密碼（`POST /auth/reset-password` 改自己的密碼） | 同一帳號 15 分鐘內目前密碼錯誤 5 次 → 鎖 15 分鐘 |
+
+- 超過時回 `429 TOO_MANY_REQUESTS`，並在 `Retry-After` 標頭給還要等幾秒；前端據此顯示「請 N 分鐘後再試」
+  （`src/utils/api.ts`）。被鎖期間即使這次是對的也照樣回 429，否則鎖住沒有意義。
+- 只計算**失敗**的嘗試，成功後清除該帳號的計數。
+- 不讓回應洩漏帳號是否存在：登入時帳號不存在與密碼錯誤都回 `401 INVALID_CREDENTIALS`（前端模擬登入也一樣），
+  忘記密碼不論帳號是否存在都回相同的成功訊息；被鎖的帳號與不存在的帳號同樣回 429。
+- 記錄被鎖的事件，讓管理員看得到有人在試。
+
 ### 分頁格式（列表類 API）
 ```json
 {
@@ -169,7 +189,8 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
   `POST /auth/logout`，其他 API 回傳 `403 PASSWORD_CHANGE_REQUIRED`；前端會導向「請先設定新密碼」頁
 
 **錯誤**：
-- `401 INVALID_CREDENTIALS`：帳號或密碼錯誤
+- `401 INVALID_CREDENTIALS`：帳號或密碼錯誤（帳號不存在也回這個，不透露帳號是否存在）
+- `429 TOO_MANY_REQUESTS`：失敗太多次，暫時鎖住（見[嘗試次數限制](#嘗試次數限制)）
 - `401 USE_SOCIAL_LOGIN`：此帳號沒有密碼，只能用 Google / LINE 登入 ⭐
 - `403 ACCOUNT_DISABLED`：帳號被停用
 
@@ -187,7 +208,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
   "email": "new_user@example.com", // 可選
   "password": "123456",
   "church": "愛與話語",          // 若無邀請碼或邀請碼未指定教會時必填
-  "inviteCode": "SS-TCH-A3F7" // 可選
+  "inviteCode": "SS-TCH-K7M2QX9D" // 可選
 }
 ```
 
@@ -212,6 +233,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 
 **錯誤**：
 - `400 INVALID_INVITE_CODE`：邀請碼無效、過期或已作廢
+- `429 TOO_MANY_REQUESTS`：邀請碼錯誤太多次，暫時鎖住（見[嘗試次數限制](#嘗試次數限制)）
 - `400 VALIDATION_ERROR`：帳號或信箱格式不符（訊息指出哪個欄位）
 - `400 WEAK_PASSWORD`：密碼不符合[密碼規則](#密碼規則)
 - `409 USERNAME_TAKEN`：帳號已被使用（不分大小寫）
@@ -374,7 +396,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 {
   "churchId": "uuid-church-001",
   "username": "wangxiaoming",
-  "inviteCode": "SS-PAR-A3F7",
+  "inviteCode": "SS-PAR-W4HN8RTC",
   "childUsernames": ["student01"]
 }
 ```
@@ -1186,7 +1208,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
   "success": true,
   "data": [
     {
-      "code": "SS-TCH-A3F7",
+      "code": "SS-TCH-K7M2QX9D",
       "role": "teacher",
       "church": "愛與話語",
       "createdBy": "admin01",
@@ -1221,11 +1243,17 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 {
   "success": true,
   "data": {
-    "code": "SS-TCH-A3F7",
+    "code": "SS-TCH-K7M2QX9D",
     "expiresAt": "2026-08-06T10:00:00Z"
   }
 }
 ```
+
+**邀請碼格式**：`SS-{角色前綴}-{8 個隨機字元}`，前綴為 `STU`／`TCH`／`PST`／`PAR`／`ADM`。
+- 隨機字元取自 32 個字元 `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`（去掉容易看錯的 0/O、1/I），用密碼學安全的亂數產生，
+  每種角色約 1.1 兆（32⁸）種組合（前端 `randomCode()`、`INVITE_CODE_LENGTH`）
+- 邀請碼就是註冊成該角色（含管理員）的唯一憑證，所以必須猜不到；並配合[嘗試次數限制](#嘗試次數限制)
+- 比對不分大小寫、去掉前後空白；先前發出的 4 碼舊邀請碼在到期前仍有效
 
 ---
 
@@ -1715,6 +1743,7 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | HTTP 狀態碼 | 錯誤碼 | 中文說明 |
 |-------------|--------|---------|
 | 400 | `VALIDATION_ERROR` | 請求參數格式錯誤或驗證失敗 |
+| 429 | `TOO_MANY_REQUESTS` | 嘗試次數過多，暫時鎖住；`Retry-After` 標頭為需等待的秒數（見[嘗試次數限制](#嘗試次數限制)） ⭐ |
 | 400 | `INVALID_DATE_FORMAT` | 日期時間格式不正確 |
 | 400 | `INVALID_STATUS_TRANSITION` | 場次狀態流轉不合法（如已完成場次不可再確認） |
 | 401 | `UNAUTHORIZED` | 未提供 Token 或 Token 無效 |
