@@ -1,5 +1,14 @@
 import { describe, it, expect, vi } from 'vitest'
-import { avatarSrc, defaultAvatarUrl, dicebearAvatarUrl, AVATAR_PLACEHOLDER } from '@/utils/avatar'
+import {
+  avatarSrc,
+  defaultAvatarUrl,
+  dicebearAvatarUrl,
+  AVATAR_PLACEHOLDER,
+  AVATAR_FALLBACK,
+  AVATAR_URL_MAX,
+  isAllowedAvatarUrl,
+  useFallbackAvatar
+} from '@/utils/avatar'
 
 /** Ask for each avatar until its style has loaded and it is a generated SVG, as the app does */
 const loaded = (...urls: string[]) =>
@@ -21,6 +30,38 @@ describe('avatar urls', () => {
     expect(dicebearAvatarUrl('pixel-art', 'ann')).toBe(
       'https://api.dicebear.com/7.x/pixel-art/svg?seed=ann'
     )
+  })
+})
+
+describe('which avatar addresses are accepted', () => {
+  it('takes only https addresses, since everyone who sees the avatar loads it', () => {
+    expect(isAllowedAvatarUrl('https://example.com/me.png')).toBe(true)
+    expect(isAllowedAvatarUrl('')).toBe(true) // the default avatar
+    for (const url of [
+      'http://example.com/me.png',
+      'javascript:alert(1)',
+      'data:image/svg+xml,<svg/>',
+      'ftp://example.com/me.png',
+      '//example.com/me.png',
+      'example.com/me.png',
+      'https://' + 'a'.repeat(AVATAR_URL_MAX)
+    ]) {
+      expect(isAllowedAvatarUrl(url), url).toBe(false)
+    }
+  })
+
+  it('shows the fallback for an address saved before addresses were checked', () => {
+    expect(avatarSrc('http://tracker.example/pixel.gif')).toBe(AVATAR_FALLBACK)
+    expect(avatarSrc('javascript:alert(1)')).toBe(AVATAR_FALLBACK)
+  })
+
+  it('swaps a broken image for the fallback, once', () => {
+    const img = document.createElement('img')
+    img.src = 'https://example.com/gone.png'
+    useFallbackAvatar({ target: img } as unknown as Event)
+    expect(img.src).toBe(AVATAR_FALLBACK)
+    useFallbackAvatar({ target: img } as unknown as Event) // the fallback itself can't loop
+    expect(img.src).toBe(AVATAR_FALLBACK)
   })
 })
 

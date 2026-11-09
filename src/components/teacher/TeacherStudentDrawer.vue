@@ -3,7 +3,13 @@
   <section v-if="student" class="student-details-drawer glass-panel">
     <div class="drawer-header">
       <div class="student-profile">
-        <img :src="avatarSrc(student.avatarUrl)" class="avatar-md" alt="Avatar" />
+        <img
+          :src="avatarSrc(student.avatarUrl)"
+          class="avatar-md"
+          alt="Avatar"
+          referrerpolicy="no-referrer"
+          @error="useFallbackAvatar"
+        />
         <div>
           <h4 aria-level="2">
             {{ student.realName || student.username }}
@@ -296,7 +302,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import type { StudentProgressSummary } from './TeacherStudentList.vue'
 import { useShiningProject } from '@/composables/useShiningProject'
-import { avatarSrc } from '@/utils/avatar'
+import { avatarSrc, useFallbackAvatar } from '@/utils/avatar'
 import StudentBookingsSummary from '@/components/shared/StudentBookingsSummary.vue'
 import StudentShiningPrint from '@/components/student/StudentShiningPrint.vue'
 

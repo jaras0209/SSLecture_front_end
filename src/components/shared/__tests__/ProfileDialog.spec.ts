@@ -90,6 +90,21 @@ describe('ProfileDialog', () => {
     wrapper.unmount()
   })
 
+  it('says why an avatar address is refused, and keeps the current avatar', async () => {
+    const { wrapper, auth } = await openAsStudent()
+    const input = $('.pd-custom-url-row input')
+    await input.setValue('http://tracker.example/pixel.gif')
+    expect($('#pd-avatar-url-error').text()).toBe(t('profile.avatarUrlInvalid'))
+    expect(input.attributes('aria-invalid')).toBe('true')
+    expect(input.attributes('aria-describedby')).toBe('pd-avatar-url-error')
+    await $$('.pd-footer-btns button')[1].trigger('click')
+    expect(auth.currentUser?.avatarUrl).not.toContain('tracker.example')
+
+    await input.setValue('https://example.com/me.png')
+    expect($('#pd-avatar-url-error').exists()).toBe(false)
+    wrapper.unmount()
+  })
+
   it('validates and changes the password', async () => {
     const { wrapper, auth } = await openAsStudent()
     await $('.pd-pwd-toggle').trigger('click')

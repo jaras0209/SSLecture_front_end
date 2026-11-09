@@ -197,6 +197,19 @@ describe('useAuthStore', () => {
       expect(auth.currentUser?.displayName).toBe('小明')
     })
 
+    it('refuses an avatar address that is not https, changing nothing', () => {
+      const auth = useAuthStore()
+      auth.login('student', '123456')
+      const before = auth.currentUser?.avatarUrl
+      const result = auth.updateProfile('student', {
+        displayName: '小明',
+        avatarUrl: 'http://tracker.example/pixel.gif'
+      })
+      expect(result).toEqual({ success: false, message: t('profile.avatarUrlInvalid') })
+      expect(auth.currentUser?.avatarUrl).toBe(before)
+      expect(auth.usersDb.student.displayName).toBeUndefined() // nothing half-saved
+    })
+
     it('updates realName', () => {
       const auth = useAuthStore()
       auth.login('student', '123456')

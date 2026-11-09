@@ -65,6 +65,8 @@
                     "
                     class="avatar-sm"
                     alt="Avatar"
+                    referrerpolicy="no-referrer"
+                    @error="useFallbackAvatar"
                   />
                   <div class="student-name-col">
                     <strong>{{ authStore.usersDb[stdUsername]?.realName || stdUsername }}</strong>
@@ -215,6 +217,8 @@
                     "
                     class="avatar-sm"
                     alt="Avatar"
+                    referrerpolicy="no-referrer"
+                    @error="useFallbackAvatar"
                   />
                   <div class="student-name-col">
                     <span class="student-name">{{
@@ -321,7 +325,7 @@ import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import type { ProgressRecord } from '@/stores/courses'
-import { avatarSrc, defaultAvatarUrl } from '@/utils/avatar'
+import { avatarSrc, defaultAvatarUrl, useFallbackAvatar } from '@/utils/avatar'
 import { canMentor, membersOf } from '@/utils/scope'
 import GenderSelect from '@/components/shared/GenderSelect.vue'
 import ChurchBookings from '@/components/shared/ChurchBookings.vue'

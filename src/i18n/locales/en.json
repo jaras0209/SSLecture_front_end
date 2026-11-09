@@ -776,6 +776,7 @@
     "avatarAlt": "Current avatar",
     "chooseStyle": "Choose avatar style",
     "avatarUrl": "Or paste a custom image URL",
+    "avatarUrlInvalid": "The avatar address must start with https://",
     "nickname": "Display Name",
     "nicknamePlaceholder": "Leave blank to use your username",
     "charCount": "{n}/20 characters",

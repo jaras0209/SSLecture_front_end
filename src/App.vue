@@ -55,6 +55,8 @@
                 :src="avatarSrc(authStore.currentUser?.avatarUrl)"
                 class="avatar-nav"
                 alt="Avatar"
+                referrerpolicy="no-referrer"
+                @error="useFallbackAvatar"
               />
               <div class="user-labels">
                 <span class="username-nav">{{ authStore.currentUser?.username }}</span>
@@ -146,7 +148,7 @@ import { useI18n } from 'vue-i18n'
 import AppToast from '@/components/shared/AppToast.vue'
 import PasswordChangeForm from '@/components/shared/PasswordChangeForm.vue'
 import LanguageSwitcher from '@/components/shared/LanguageSwitcher.vue'
-import { avatarSrc } from '@/utils/avatar'
+import { avatarSrc, useFallbackAvatar } from '@/utils/avatar'
 import { homeRouteFor } from '@/router/homeRoute'
 import { storageWriteFailed } from '@/utils/storage'
 

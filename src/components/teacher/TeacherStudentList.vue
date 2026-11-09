@@ -66,7 +66,13 @@
         <tbody>
           <tr v-for="student in filteredStudents" :key="student.username">
             <td class="student-cell">
-              <img :src="avatarSrc(student.avatarUrl)" class="avatar-sm" alt="Avatar" />
+              <img
+                :src="avatarSrc(student.avatarUrl)"
+                class="avatar-sm"
+                alt="Avatar"
+                referrerpolicy="no-referrer"
+                @error="useFallbackAvatar"
+              />
               <div class="student-name-col">
                 <span class="student-name">{{ student.realName || student.username }}</span>
                 <span v-if="student.realName" class="student-id-tag">@{{ student.username }}</span>
@@ -149,7 +155,7 @@ import { useI18nHelper } from '@/composables/useI18nHelper'
 // StudentProgressSummary is now defined in @/types/student to avoid
 // circular dependencies with composables that import from this file.
 import type { StudentProgressSummary } from '@/types/student'
-import { avatarSrc } from '@/utils/avatar'
+import { avatarSrc, useFallbackAvatar } from '@/utils/avatar'
 export type { StudentProgressSummary } from '@/types/student'
 
 // ── Emits ─────────────────────────────────────────────────────────────────────

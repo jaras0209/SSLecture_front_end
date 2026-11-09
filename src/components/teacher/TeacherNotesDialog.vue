@@ -12,7 +12,13 @@
           <!-- Dialog Header -->
           <div class="notes-dialog-header">
             <div class="notes-dialog-profile">
-              <img :src="avatarSrc(student.avatarUrl)" class="avatar-md" alt="Avatar" />
+              <img
+                :src="avatarSrc(student.avatarUrl)"
+                class="avatar-md"
+                alt="Avatar"
+                referrerpolicy="no-referrer"
+                @error="useFallbackAvatar"
+              />
               <div>
                 <h3 id="notes-dialog-title" aria-level="2">
                   {{ student.realName || student.username }}
@@ -170,7 +176,7 @@ import { vDialog } from '@/directives/dialog'
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useI18nHelper } from '@/composables/useI18nHelper'
-import { avatarSrc } from '@/utils/avatar'
+import { avatarSrc, useFallbackAvatar } from '@/utils/avatar'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import { useToast } from '@/composables/useToast'

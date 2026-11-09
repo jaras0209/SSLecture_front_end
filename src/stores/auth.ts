@@ -16,7 +16,7 @@ export { CHURCHES, DEFAULT_RESET_PASSWORD } from '@/types/auth'
 // 引入型別供 store 內部使用
 import type { UserRole, User, InviteCode, Gender, LoginMethod } from '@/types/auth'
 import { DEFAULT_RESET_PASSWORD, DEFAULT_CHURCH, GENDERED_ROLES } from '@/types/auth'
-import { defaultAvatarUrl } from '@/utils/avatar'
+import { defaultAvatarUrl, isAllowedAvatarUrl } from '@/utils/avatar'
 import {
   normalizeUsername,
   normalizeEmail,
@@ -557,6 +557,10 @@ export const useAuthStore = defineStore('auth', () => {
     const dbUser = usersDb.value[username]
     if (!dbUser) {
       return { success: false, message: t('stores.auth.accountNotFoundShort') }
+    }
+    // Check everything before changing anything
+    if (patch.avatarUrl !== undefined && !isAllowedAvatarUrl(patch.avatarUrl)) {
+      return { success: false, message: t('profile.avatarUrlInvalid') }
     }
     if (patch.email !== undefined) {
       const email = normalizeEmail(patch.email)

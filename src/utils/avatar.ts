@@ -37,6 +37,46 @@ const API_PREFIX = 'https://api.dicebear.com/7.x/'
 export const AVATAR_PLACEHOLDER =
   'data:image/svg+xml;charset=utf-8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"/%3E'
 
+/**
+ * 頭像圖片載入失敗、或網址不被接受時顯示的中性頭像（灰色人形，內嵌、不需下載）
+ */
+export const AVATAR_FALLBACK =
+  'data:image/svg+xml;charset=utf-8,' +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">' +
+      '<rect width="64" height="64" fill="#e2e8f0"/>' +
+      '<circle cx="32" cy="25" r="11" fill="#94a3b8"/>' +
+      '<path d="M12 58c2-12 10-18 20-18s18 6 20 18z" fill="#94a3b8"/></svg>'
+  )
+
+/** Longest avatar address accepted */
+export const AVATAR_URL_MAX = 2048
+
+/**
+ * Whether `url` may be used as an avatar. Everyone who sees the avatar loads it, so only
+ * https addresses: no http (which a secure page blocks anyway), data:, javascript: or other
+ * schemes. ('' means the default avatar.)
+ */
+export function isAllowedAvatarUrl(url: string): boolean {
+  if (url === '') return true
+  if (url.length > AVATAR_URL_MAX) return false
+  try {
+    return new URL(url).protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
+/**
+ * For an avatar <img>'s error event: show the fallback instead of a broken image (a link
+ * that no longer works, or isn't an image). Use with referrerpolicy="no-referrer", so the
+ * image's server isn't told which page of ours it was shown on.
+ */
+export function useFallbackAvatar(event: Event): void {
+  const img = event.target as HTMLImageElement
+  if (img.src !== AVATAR_FALLBACK) img.src = AVATAR_FALLBACK
+}
+
 /** 頭像代號網址（與原本的 DiceBear API 網址相同，可直接存入 avatarUrl） */
 export function dicebearAvatarUrl(style: AvatarStyleId, seed: string): string {
   return `${API_PREFIX}${style}/svg?seed=${seed}`
@@ -93,7 +133,8 @@ export function avatarSrc(url: string | undefined): string | undefined {
   if (cached) return cached
 
   const parsed = parseDicebearUrl(url)
-  if (!parsed) return url
+  // Something saved before addresses were checked: don't load it
+  if (!parsed) return isAllowedAvatarUrl(url) ? url : AVATAR_FALLBACK
 
   // Track the version so the calling render re-runs once the style has loaded
   void loadVersion.value

@@ -18,6 +18,8 @@
               :src="avatarSrc(authStore.currentUser?.avatarUrl)"
               alt="avatar"
               class="teacher-avatar-sm"
+              referrerpolicy="no-referrer"
+              @error="useFallbackAvatar"
             />
             <span class="teacher-role-badge">{{ teacherRoleBadge }}</span>
           </div>
@@ -230,7 +232,7 @@ const TeacherStudentDrawer = defineAsyncComponent(
 import type { Lecturer } from '@/stores/courses'
 import type { BookingSession } from '@/stores/bookings'
 import { DEFAULT_CHURCH } from '@/types/auth'
-import { avatarSrc } from '@/utils/avatar'
+import { avatarSrc, useFallbackAvatar } from '@/utils/avatar'
 import { canLecture, lecturerIdsOf } from '@/utils/scope'
 import { useMyLectures } from '@/composables/useMyLectures'
 

@@ -23,6 +23,8 @@
                 :src="avatarSrc(draftAvatarUrl)"
                 :alt="$t('profile.avatarAlt')"
                 class="pd-avatar-img"
+                referrerpolicy="no-referrer"
+                @error="useFallbackAvatar"
               />
               <div class="pd-role-badge" :title="roleLabel">{{ roleBadge }}</div>
             </div>
@@ -52,9 +54,14 @@
                   class="form-input form-input-sm"
                   :aria-label="$t('profile.avatarUrl')"
                   :placeholder="$t('profile.avatarUrl')"
+                  :aria-invalid="customUrlInvalid"
+                  :aria-describedby="customUrlInvalid ? 'pd-avatar-url-error' : undefined"
                   @input="applyCustomUrl"
                 />
               </div>
+              <p v-if="customUrlInvalid" id="pd-avatar-url-error" class="pd-url-error">
+                {{ $t('profile.avatarUrlInvalid') }}
+              </p>
             </div>
           </div>
 
@@ -179,7 +186,14 @@ import { useI18n } from 'vue-i18n'
 import { useI18nHelper } from '@/composables/useI18nHelper'
 import { useAuthStore } from '@/stores/auth'
 import PasswordChangeForm from '@/components/shared/PasswordChangeForm.vue'
-import { avatarSrc, defaultAvatarUrl, dicebearAvatarUrl, type AvatarStyleId } from '@/utils/avatar'
+import {
+  avatarSrc,
+  defaultAvatarUrl,
+  dicebearAvatarUrl,
+  type AvatarStyleId,
+  isAllowedAvatarUrl,
+  useFallbackAvatar
+} from '@/utils/avatar'
 
 const props = defineProps<{ modelValue: boolean }>()
 const emit = defineEmits<{ (e: 'update:modelValue', val: boolean): void }>()
@@ -257,10 +271,17 @@ function applyPresetStyle(styleId: AvatarStyleId) {
   draftAvatarUrl.value = dicebearAvatarUrl(styleId, seed.value)
 }
 
+/** The address typed isn't one an avatar may use (only https) */
+const customUrlInvalid = computed(() => {
+  const url = customAvatarUrl.value.trim()
+  return url !== '' && !isAllowedAvatarUrl(url)
+})
+
 function applyCustomUrl() {
-  if (customAvatarUrl.value.trim()) {
+  const url = customAvatarUrl.value.trim()
+  if (url && isAllowedAvatarUrl(url)) {
     selectedStyle.value = ''
-    draftAvatarUrl.value = customAvatarUrl.value.trim()
+    draftAvatarUrl.value = url
   }
 }
 
@@ -428,6 +449,12 @@ function close() {
 .pd-preset-btn.active {
   border-color: var(--primary);
   background: rgba(99, 102, 241, 0.1);
+}
+
+.pd-url-error {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+  color: #b91c1c;
 }
 
 .pd-custom-url-row {

@@ -17,6 +17,8 @@
             :src="avatarSrc(authStore.currentUser?.avatarUrl)"
             alt="avatar"
             class="admin-avatar-sm"
+            referrerpolicy="no-referrer"
+            @error="useFallbackAvatar"
           />
           <span class="admin-role-badge">👑</span>
         </div>
@@ -61,7 +63,7 @@ import AdminChurchOverview from '@/components/admin/AdminChurchOverview.vue'
 import AdminTeachingStats from '@/components/admin/AdminTeachingStats.vue'
 import AdminInviteCodes from '@/components/admin/AdminInviteCodes.vue'
 import ChurchBookings from '@/components/shared/ChurchBookings.vue'
-import { avatarSrc } from '@/utils/avatar'
+import { avatarSrc, useFallbackAvatar } from '@/utils/avatar'
 
 const { tDateTime } = useI18nHelper()
 

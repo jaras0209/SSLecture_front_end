@@ -776,6 +776,7 @@
     "avatarAlt": "目前頭像",
     "chooseStyle": "選擇頭像風格",
     "avatarUrl": "或貼上自訂圖片網址（URL）",
+    "avatarUrlInvalid": "頭像網址需以 https:// 開頭",
     "nickname": "暱稱",
     "nicknamePlaceholder": "留空則顯示帳號名稱",
     "charCount": "{n}/20 字元",

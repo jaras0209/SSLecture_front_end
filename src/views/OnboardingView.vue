@@ -8,6 +8,8 @@
           :src="avatarSrc(authStore.currentUser!.avatarUrl)"
           :alt="$t('onboarding.avatarAlt')"
           class="user-avatar"
+          referrerpolicy="no-referrer"
+          @error="useFallbackAvatar"
         />
         <div v-else class="user-avatar-placeholder">👤</div>
 
@@ -119,7 +121,7 @@ import { useToast } from '@/composables/useToast'
 import { useI18nHelper } from '@/composables/useI18nHelper'
 import type { InviteCode } from '@/stores/auth'
 import { homeRouteFor } from '@/router/homeRoute'
-import { avatarSrc } from '@/utils/avatar'
+import { avatarSrc, useFallbackAvatar } from '@/utils/avatar'
 import ChildPicker from '@/components/auth/ChildPicker.vue'
 
 const router = useRouter()
