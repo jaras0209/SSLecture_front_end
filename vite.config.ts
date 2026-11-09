@@ -1,6 +1,7 @@
 import { fileURLToPath, URL } from 'node:url'
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv, type Plugin } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import { contentSecurityPolicy } from './src/utils/csp'
 
 /** The npm package a module belongs to (e.g. 'vue', '@vue/runtime-core'), if any */
 function packageOf(id: string): string | undefined {
@@ -8,10 +9,31 @@ function packageOf(id: string): string | undefined {
   return m?.[1].replace('\\', '/')
 }
 
+/**
+ * Put the Content-Security-Policy into the built index.html (see src/utils/csp.ts). Build only:
+ * the dev server's hot reload needs inline scripts the policy would block.
+ */
+function contentSecurityPolicyMeta(apiBaseUrl: string | undefined): Plugin {
+  return {
+    name: 'content-security-policy',
+    apply: 'build',
+    transformIndexHtml: () => [
+      {
+        tag: 'meta',
+        attrs: {
+          'http-equiv': 'Content-Security-Policy',
+          content: contentSecurityPolicy(apiBaseUrl)
+        },
+        injectTo: 'head-prepend'
+      }
+    ]
+  }
+}
+
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   base: '/SSLecture_front_end/',
-  plugins: [vue()],
+  plugins: [vue(), contentSecurityPolicyMeta(loadEnv(mode, process.cwd()).VITE_API_BASE_URL)],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
@@ -65,4 +87,4 @@ export default defineConfig({
       }
     }
   }
-})
+}))
