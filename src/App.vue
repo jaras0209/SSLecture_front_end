@@ -86,6 +86,14 @@
       </nav>
 
       <!-- The browser refused to save: say so, rather than let the change vanish on reload -->
+      <!-- About to be signed out for being idle (utils/session.ts) -->
+      <div v-if="minutesLeft !== null" class="session-warning no-print" role="alert">
+        <p>{{ $t('session.expiringSoon', { n: minutesLeft }) }}</p>
+        <button type="button" class="btn btn-primary btn-sm" @click="stayActive">
+          {{ $t('session.stay') }}
+        </button>
+      </div>
+
       <div v-if="storageWriteFailed" class="storage-warning no-print" role="alert">
         <p>
           <strong>{{ $t('storage.writeFailedTitle') }}</strong>
@@ -159,7 +167,7 @@ const coursesStore = useCoursesStore()
 const { t } = useI18n()
 
 // Sign out after 2 hours idle (30 days when remembered); see utils/session.ts
-useSessionTimeout()
+const { minutesLeft, stayActive } = useSessionTimeout()
 
 const mobileMenuOpen = ref(false)
 const showPasswordModal = ref(false)
@@ -239,6 +247,7 @@ function getRoleLabel(role?: string) {
   z-index: 100;
 }
 
+.session-warning,
 .storage-warning {
   display: flex;
   align-items: center;
@@ -257,6 +266,13 @@ function getRoleLabel(role?: string) {
   font-size: 0.9rem;
 }
 
+.session-warning {
+  background: #e0f2fe;
+  border-color: #38bdf8;
+  color: #075985;
+}
+
+.session-warning p,
 .storage-warning p {
   margin: 0;
   flex: 1 1 20rem;

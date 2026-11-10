@@ -214,6 +214,52 @@ describe('App', () => {
       expect(auth.isAuthenticated).toBe(true)
     })
 
+    it('warns 5 minutes before, and "keep me signed in" starts the count again', async () => {
+      vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] })
+      vi.setSystemTime(new Date('2026-11-10T09:00:00Z'))
+      const { wrapper, auth } = await mountApp('student', () => beginSession(false))
+      const warning = () => wrapper.find('.session-warning')
+
+      vi.setSystemTime(new Date(Date.now() + 2 * HOUR - 6 * 60_000))
+      vi.advanceTimersByTime(15_000)
+      await flushPromises()
+      expect(warning().exists()).toBe(false) // 5¾ minutes left: not yet
+
+      vi.advanceTimersByTime(60_000)
+      await flushPromises()
+      expect(warning().attributes('role')).toBe('alert')
+      expect(warning().text()).toContain(t('session.expiringSoon', { n: 5 }))
+
+      await warning().find('button').trigger('click')
+      expect(warning().exists()).toBe(false)
+      vi.setSystemTime(new Date(Date.now() + 1.5 * HOUR))
+      vi.advanceTimersByTime(15_000)
+      expect(auth.isAuthenticated).toBe(true) // counted from the click
+    })
+
+    it('drops the warning when someone uses the site in another tab', async () => {
+      vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] })
+      vi.setSystemTime(new Date('2026-11-10T09:00:00Z'))
+      const { wrapper } = await mountApp('student', () => beginSession(false))
+      vi.setSystemTime(new Date(Date.now() + 2 * HOUR - 2 * 60_000))
+      vi.advanceTimersByTime(15_000)
+      await flushPromises()
+      expect(wrapper.find('.session-warning').exists()).toBe(true)
+
+      // the other tab records its activity in the shared session, and this tab hears it
+      const now = JSON.stringify({ remember: false, lastActiveAt: Date.now() })
+      localStorage.setItem('superstart_session', now)
+      window.dispatchEvent(
+        new StorageEvent('storage', {
+          key: 'superstart_session',
+          newValue: now,
+          storageArea: localStorage
+        })
+      )
+      await flushPromises()
+      expect(wrapper.find('.session-warning').exists()).toBe(false)
+    })
+
     it("doesn't let activity after the limit revive the sign-in", async () => {
       vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] })
       vi.setSystemTime(new Date('2026-11-10T09:00:00Z'))

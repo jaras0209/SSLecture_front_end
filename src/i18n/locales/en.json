@@ -912,5 +912,9 @@
     "writeFailedTitle": "Your changes weren't saved on this device.",
     "writeFailedBody": "The browser refused to store them (storage may be full, you may be in a private window, or site data may be blocked), so what you just changed will be lost when you reload or close the page. Note down anything important and check your browser settings.",
     "dismiss": "Got it"
+  },
+  "session": {
+    "expiringSoon": "You'll be signed out in {n} minute(s) without activity. Save anything you haven't saved yet.",
+    "stay": "Keep me signed in"
   }
 }

@@ -91,6 +91,12 @@ export function sessionLimit(meta: SessionMeta): number {
   return meta.remember ? REMEMBERED_LIMIT_MS : IDLE_LIMIT_MS
 }
 
+/** How long until the session runs out (0 if it has), or null with no session */
+export function sessionTimeLeft(now = Date.now()): number | null {
+  const meta = sessionMeta()
+  return meta ? Math.max(0, sessionLimit(meta) - (now - meta.lastActiveAt)) : null
+}
+
 /** Whether the session has gone unused for too long */
 export function sessionExpired(now = Date.now()): boolean {
   const meta = sessionMeta()

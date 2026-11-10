@@ -4,6 +4,7 @@ import {
   endSession,
   sessionMeta,
   sessionExpired,
+  sessionTimeLeft,
   touchSession,
   settleSessionOnStart,
   noteSignOutReason,
@@ -55,6 +56,14 @@ describe('session timing', () => {
     touchSession(T0 + 90 * MIN)
     expect(sessionMeta()?.lastActiveAt).toBe(T0 + 90 * MIN)
     expect(sessionExpired(T0 + 90 * MIN + IDLE_LIMIT_MS)).toBe(false)
+  })
+
+  it('says how long is left', () => {
+    beginSession(false, T0)
+    expect(sessionTimeLeft(T0 + 10 * MIN)).toBe(IDLE_LIMIT_MS - 10 * MIN)
+    expect(sessionTimeLeft(T0 + 3 * IDLE_LIMIT_MS)).toBe(0)
+    endSession()
+    expect(sessionTimeLeft(T0)).toBeNull()
   })
 
   it('has nothing to time once signed out', () => {
