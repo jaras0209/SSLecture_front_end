@@ -1,0 +1,38 @@
+# Dependabot：每週檢查套件與 GitHub Actions 的更新，自動開 PR（CI 會跑完整測試）。
+# 小版本與修補版本合成一個 PR，大版本各自一個 PR，方便逐一確認相容性。
+# 安全性更新不受下面的排程與分組限制，發現漏洞時會立即開 PR。
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '08:12'
+      timezone: Asia/Taipei
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+    ignore:
+      # TypeScript 7 要等 typescript-eslint 支援（目前 < 6.1 不支援）
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
+      # 大版本隨 Node.js 新版推出，與我們使用的 Node 版本無關；換 Node 版本時再一起升級
+      - dependency-name: '@types/node'
+        update-types: [version-update:semver-major]
+    commit-message:
+      prefix: deps
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '08:12'
+      timezone: Asia/Taipei
+    groups:
+      actions:
+        patterns: ['*']
+    commit-message:
+      prefix: ci
