@@ -23,8 +23,12 @@ export const IDLE_LIMIT_MS = 2 * 60 * 60 * 1000
 export const REMEMBERED_LIMIT_MS = 30 * 24 * 60 * 60 * 1000
 /** Activity is recorded at most this often (it is written to localStorage) */
 const TOUCH_EVERY_MS = 30 * 1000
-/** How long a new tab waits for another open tab of the site to answer */
-export const TAB_REPLY_WAIT_MS = 150
+/**
+ * How long a new tab waits for another open tab of the site to answer. Generous, since a busy
+ * tab answers late and a missed answer signs out wrongly; it only delays a new tab when the
+ * sign-in isn't remembered.
+ */
+export const TAB_REPLY_WAIT_MS = 500
 
 export type SignOutReason = 'idle'
 
