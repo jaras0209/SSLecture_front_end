@@ -3,7 +3,7 @@ import { flushPromises } from '@vue/test-utils'
 import AdminDataBackup from '@/components/admin/AdminDataBackup.vue'
 import { useAuthStore } from '@/stores/auth'
 import { resolveConfirm, useToastProvider } from '@/composables/useToast'
-import { createBackup } from '@/utils/backup'
+import { createBackup, lastBackupAt } from '@/utils/backup'
 import { takeSignOutReason } from '@/utils/session'
 import { mountPrepared, t } from '@/__tests__/helpers'
 
@@ -54,6 +54,22 @@ describe('AdminDataBackup', () => {
     expect(Object.keys(backup.data.superstart_users_db)).toContain('admin')
     await flushPromises()
     expect(useToastProvider().toasts.value.at(-1)?.text).toBe(t('admin.backup.exported'))
+  })
+
+  it('says when this computer last made a backup', async () => {
+    const { wrapper } = mountAsAdmin()
+    const last = () => wrapper.find('.backup-last')
+    expect(last().text()).toBe(t('admin.backup.neverExported'))
+    expect(last().classes()).toContain('overdue')
+
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:backup')
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+    await wrapper.find('#btn-export-backup').trigger('click')
+    expect(last().text()).toContain('今天')
+    expect(last().classes()).not.toContain('overdue')
+    expect(lastBackupAt()).not.toBeNull()
+    expect(wrapper.emitted('exported')).toHaveLength(1)
   })
 
   it('says why a file can’t be restored, and changes nothing', async () => {

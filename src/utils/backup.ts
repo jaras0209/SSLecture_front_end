@@ -45,6 +45,39 @@ export interface Backup {
 /** Why a file can't be restored */
 export type BackupProblem = 'notJson' | 'notBackup' | 'newerVersion' | 'badData'
 
+// ── Reminding to back up ──────────────────────────────────────────────────────
+// A backup only helps if it is recent. When this computer last exported one is kept on this
+// computer (not in the backup: it is about the device, like the sign-in).
+
+const LAST_BACKUP_KEY = 'superstart_last_backup_at'
+/** Remind the admin when the last backup is older than this, or there was none */
+export const BACKUP_REMIND_AFTER_MS = 7 * 24 * 60 * 60 * 1000
+
+/** When this computer last exported (or was restored from) a backup, if ever */
+export function lastBackupAt(): number | null {
+  try {
+    const value = Number(localStorage.getItem(LAST_BACKUP_KEY))
+    return Number.isFinite(value) && value > 0 ? value : null
+  } catch {
+    return null
+  }
+}
+
+/** Remember that the data as of `at` is in a backup */
+export function noteBackup(at: number): void {
+  try {
+    localStorage.setItem(LAST_BACKUP_KEY, String(at))
+  } catch {
+    /* storage refused: the save warning covers it */
+  }
+}
+
+/** Whether it is time to remind the admin to back up */
+export function backupOverdue(now = Date.now()): boolean {
+  const last = lastBackupAt()
+  return last === null || now - last > BACKUP_REMIND_AFTER_MS
+}
+
 /**
  * Everything the stores hold. They are written out first, defaults included: data that was
  * never changed was never written, and the backup reads what is written.
@@ -118,6 +151,8 @@ export function restoreBackup(backup: Backup): boolean {
       if (value === undefined) localStorage.removeItem(key)
       else localStorage.setItem(key, JSON.stringify(value))
     }
+    // The data is now as it was when that backup was made
+    noteBackup(Date.parse(backup.exportedAt) || Date.now())
     return true
   } catch {
     for (const [key, raw] of before) {

@@ -743,6 +743,14 @@
         "newerVersion": "This backup comes from a newer version of the system. Update the site before restoring it.",
         "badData": "The backup is incomplete or damaged and can't be restored.",
         "notSaved": "The browser refused to save (storage may be full). Nothing was restored; the current data is unchanged."
+      },
+      "lastExported": "Last backup exported on this computer: {date} ({ago})",
+      "neverExported": "No backup has been exported on this computer yet.",
+      "remind": {
+        "never": "No backup has been exported on this computer yet. The data lives only in this browser; export one now.",
+        "stale": "It's been {days} days since the last backup. Export one regularly so nothing is lost.",
+        "goto": "Go to backup",
+        "later": "Remind me later"
       }
     }
   },

@@ -38,6 +38,19 @@
       </div>
     </header>
 
+    <!-- Remind to back up: the data lives only in this browser (utils/backup.ts) -->
+    <div v-if="backupReminder" class="backup-reminder glass-panel" role="status">
+      <p>💾 {{ backupReminder }}</p>
+      <div class="backup-reminder-actions">
+        <button type="button" class="btn btn-primary btn-sm" @click="goToBackup">
+          {{ $t('admin.backup.remind.goto') }}
+        </button>
+        <button type="button" class="btn btn-outline btn-sm" @click="remindLater">
+          {{ $t('admin.backup.remind.later') }}
+        </button>
+      </div>
+    </div>
+
     <!-- Profile Dialog -->
     <ProfileDialog v-model="showProfileDialog" />
 
@@ -50,12 +63,13 @@
     <ChurchBookings />
     <AdminTeachingStats />
     <AdminInviteCodes />
-    <AdminDataBackup @restored="reloadWithRestoredData" />
+    <AdminDataBackup @restored="reloadWithRestoredData" @exported="checkBackup" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, defineAsyncComponent } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useI18nHelper } from '@/composables/useI18nHelper'
 import { useAuthStore } from '@/stores/auth'
 import AdminCreateUserPanel from '@/components/admin/AdminCreateUserPanel.vue'
@@ -64,9 +78,11 @@ import AdminChurchOverview from '@/components/admin/AdminChurchOverview.vue'
 import AdminTeachingStats from '@/components/admin/AdminTeachingStats.vue'
 import AdminInviteCodes from '@/components/admin/AdminInviteCodes.vue'
 import AdminDataBackup from '@/components/admin/AdminDataBackup.vue'
+import { backupOverdue, lastBackupAt } from '@/utils/backup'
 import ChurchBookings from '@/components/shared/ChurchBookings.vue'
 import { avatarSrc, useFallbackAvatar } from '@/utils/avatar'
 
+const { t } = useI18n()
 const { tDateTime } = useI18nHelper()
 
 // 大型 Dialog 元件：按需載入
@@ -81,6 +97,47 @@ const adminDisplayName = computed(() => {
   return u?.displayName || u?.username || ''
 })
 
+// ── Backup reminder ──
+/** "Remind me later" lasts until the browser closes */
+const REMIND_LATER_KEY = 'superstart_backup_remind_later'
+const DAY = 24 * 60 * 60 * 1000
+
+const backupDue = ref(false)
+function checkBackup() {
+  let later = false
+  try {
+    later = sessionStorage.getItem(REMIND_LATER_KEY) === '1'
+  } catch {
+    /* no sessionStorage: remind */
+  }
+  backupDue.value = !later && backupOverdue()
+}
+checkBackup()
+
+const backupReminder = computed(() => {
+  if (!backupDue.value) return ''
+  const last = lastBackupAt()
+  return last === null
+    ? t('admin.backup.remind.never')
+    : t('admin.backup.remind.stale', { days: Math.floor((Date.now() - last) / DAY) })
+})
+
+function remindLater() {
+  try {
+    sessionStorage.setItem(REMIND_LATER_KEY, '1')
+  } catch {
+    /* it just shows again next time */
+  }
+  backupDue.value = false
+}
+
+/** Bring the backup section into view, with the keyboard focus on the export button */
+function goToBackup() {
+  const button = document.getElementById('btn-export-backup')
+  button?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  button?.focus({ preventScroll: true })
+}
+
 /** After a restore the stores still hold the old data in memory: start the app afresh */
 function reloadWithRestoredData() {
   window.location.reload()
@@ -88,6 +145,30 @@ function reloadWithRestoredData() {
 </script>
 
 <style scoped>
+.backup-reminder {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem;
+  border-left: 4px solid #f59e0b;
+}
+
+.backup-reminder p {
+  margin: 0;
+  flex: 1 1 18rem;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.backup-reminder-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .dashboard-header {
   padding: 2rem;
   margin-bottom: 2rem;

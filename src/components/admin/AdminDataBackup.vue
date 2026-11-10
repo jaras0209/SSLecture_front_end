@@ -5,6 +5,10 @@
       <p class="section-desc">{{ $t('admin.backup.desc') }}</p>
     </div>
 
+    <p class="backup-last" :class="{ overdue }">
+      {{ lastExport }}
+    </p>
+
     <p class="backup-caution">⚠️ {{ $t('admin.backup.caution') }}</p>
 
     <div class="backup-actions">
@@ -37,7 +41,7 @@
  * 還原會取代這台電腦上的所有資料，所以先說明檔案內容並請管理員確認；
  * 還原後登出並重新載入，讓畫面讀取還原後的資料。
  */
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useI18nHelper } from '@/composables/useI18nHelper'
 import { useToast } from '@/composables/useToast'
@@ -47,7 +51,10 @@ import { useBookingsStore } from '@/stores/bookings'
 import {
   accountCount,
   backupFileName,
+  BACKUP_REMIND_AFTER_MS,
   createBackup,
+  lastBackupAt,
+  noteBackup,
   parseBackup,
   restoreBackup
 } from '@/utils/backup'
@@ -56,14 +63,30 @@ import { noteSignOutReason } from '@/utils/session'
 const emit = defineEmits<{
   /** Restored: the page must reload to read the restored data (App does it) */
   restored: []
+  /** A backup was downloaded */
+  exported: []
 }>()
 
 const { t } = useI18n()
-const { tDateTime } = useI18nHelper()
+const { tDateTime, tDaysAgo } = useI18nHelper()
 const { toast, confirm } = useToast()
 const authStore = useAuthStore()
 
 const problem = ref('')
+
+/** When this computer last made a backup, and how that reads */
+const lastBackup = ref(lastBackupAt())
+const overdue = computed(
+  () => lastBackup.value === null || Date.now() - lastBackup.value > BACKUP_REMIND_AFTER_MS
+)
+const lastExport = computed(() =>
+  lastBackup.value === null
+    ? t('admin.backup.neverExported')
+    : t('admin.backup.lastExported', {
+        date: tDateTime(new Date(lastBackup.value).toISOString()),
+        ago: tDaysAgo(lastBackup.value)
+      })
+)
 const fileInput = ref<HTMLInputElement | null>(null)
 
 function exportAll() {
@@ -82,6 +105,9 @@ function exportAll() {
   link.click()
   link.remove()
   setTimeout(() => URL.revokeObjectURL(url), 0)
+  noteBackup(now.getTime())
+  lastBackup.value = now.getTime()
+  emit('exported')
   toast(t('admin.backup.exported'), 'info')
 }
 
@@ -137,6 +163,17 @@ async function importFile() {
   font-size: 1.1rem;
   font-weight: 700;
   margin-bottom: 0.25rem;
+}
+
+.backup-last {
+  margin: 0 0 0.6rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.backup-last.overdue {
+  color: #b45309;
 }
 
 .backup-caution {

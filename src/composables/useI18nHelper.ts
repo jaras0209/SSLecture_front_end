@@ -99,7 +99,21 @@ export function useI18nHelper() {
     return new Intl.ListFormat(locale.value, { type: 'conjunction' }).format(items)
   }
 
+  /**
+   * How many days ago a moment was, in the current language (calendar days).
+   * @example tDaysAgo(yesterday) → '昨天' (zh-TW) / 'yesterday' (en)
+   */
+  function tDaysAgo(at: number, now = Date.now()): string {
+    const day = (ms: number) => {
+      const d = new Date(ms)
+      return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86_400_000
+    }
+    const days = Math.max(0, Math.round(day(now) - day(at)))
+    return new Intl.RelativeTimeFormat(locale.value, { numeric: 'auto' }).format(-days, 'day')
+  }
+
   return {
+    tDaysAgo,
     tList,
     tDynamic,
     tRole,

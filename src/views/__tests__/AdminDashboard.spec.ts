@@ -4,6 +4,7 @@ import AdminDashboard from '@/views/AdminDashboard.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import { mountPrepared, t } from '@/__tests__/helpers'
+import { noteBackup } from '@/utils/backup'
 
 const CHURCH = '愛與話語'
 const OTHER = '主大明'
@@ -33,6 +34,56 @@ const statsRows = (wrapper: Wrapper) =>
 describe('AdminDashboard', () => {
   afterEach(() => {
     document.body.innerHTML = ''
+  })
+
+  describe('reminding to back up', () => {
+    const DAY = 24 * 60 * 60 * 1000
+    afterEach(() => {
+      sessionStorage.clear()
+      vi.restoreAllMocks()
+    })
+
+    it('reminds when this computer never made a backup', () => {
+      const { wrapper } = mountAdmin()
+      const reminder = wrapper.find('.backup-reminder')
+      expect(reminder.attributes('role')).toBe('status')
+      expect(reminder.text()).toContain(t('admin.backup.remind.never'))
+    })
+
+    it('says how old the last backup is once it is over a week', () => {
+      const { wrapper } = mountAdmin(() => noteBackup(Date.now() - 10 * DAY))
+      expect(wrapper.find('.backup-reminder').text()).toContain(
+        t('admin.backup.remind.stale', { days: 10 })
+      )
+    })
+
+    it('stays quiet within a week of the last backup', () => {
+      const { wrapper } = mountAdmin(() => noteBackup(Date.now() - 2 * DAY))
+      expect(wrapper.find('.backup-reminder').exists()).toBe(false)
+    })
+
+    it('can wait until the browser is next opened', async () => {
+      const { wrapper } = mountAdmin()
+      await wrapper.findAll('.backup-reminder button')[1].trigger('click')
+      expect(wrapper.find('.backup-reminder').exists()).toBe(false)
+      wrapper.unmount()
+      expect(mountAdmin().wrapper.find('.backup-reminder').exists()).toBe(false)
+    })
+
+    it('takes the admin to the export button, and goes away once a backup is made', async () => {
+      const { wrapper } = mountAdmin()
+      const scroll = vi.fn()
+      Element.prototype.scrollIntoView = scroll // happy-dom has none
+      await wrapper.findAll('.backup-reminder button')[0].trigger('click')
+      expect(scroll).toHaveBeenCalled()
+      expect(document.activeElement?.id).toBe('btn-export-backup')
+
+      vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:backup')
+      vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+      vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+      await wrapper.find('#btn-export-backup').trigger('click')
+      expect(wrapper.find('.backup-reminder').exists()).toBe(false)
+    })
   })
 
   it('greets the admin, shows their last sign-in and opens the profile', async () => {

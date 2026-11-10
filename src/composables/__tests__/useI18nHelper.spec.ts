@@ -96,4 +96,15 @@ describe('useI18nHelper()', () => {
     expect(tList(['Mom', 'Dad'])).toBe('Mom and Dad')
     expect(tList(['A', 'B', 'C'])).toBe('A, B, and C')
   })
+
+  it('says how many days ago something was, by calendar day', async () => {
+    const { tDaysAgo } = withSetup(() => useI18nHelper())
+    const now = new Date(2026, 10, 10, 9, 0).getTime()
+    expect(tDaysAgo(new Date(2026, 10, 10, 1, 0).getTime(), now)).toBe('今天')
+    expect(tDaysAgo(new Date(2026, 10, 9, 23, 59).getTime(), now)).toBe('昨天')
+    expect(tDaysAgo(new Date(2026, 10, 1, 12, 0).getTime(), now)).toBe('9 天前')
+    await setLocale('en')
+    expect(tDaysAgo(new Date(2026, 10, 9, 23, 59).getTime(), now)).toBe('yesterday')
+    expect(tDaysAgo(new Date(2026, 10, 7).getTime(), now)).toBe('3 days ago')
+  })
 })

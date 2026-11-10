@@ -4,6 +4,9 @@ import {
   BACKUP_KEYS,
   BACKUP_VERSION,
   accountCount,
+  backupOverdue,
+  lastBackupAt,
+  noteBackup,
   backupFileName,
   createBackup,
   parseBackup,
@@ -95,6 +98,32 @@ describe('backup', () => {
     vi.unstubAllGlobals()
     expect(get('superstart_users_db')).toEqual({ current: {} })
     expect(localStorage.getItem('superstart_progress_db')).toBeNull()
+  })
+
+  describe('reminding to back up', () => {
+    const DAY = 24 * 60 * 60 * 1000
+    const now = Date.UTC(2026, 10, 10)
+
+    it('reminds when there was never a backup, or it is over a week old', () => {
+      expect(lastBackupAt()).toBeNull()
+      expect(backupOverdue(now)).toBe(true)
+      noteBackup(now - 6 * DAY)
+      expect(backupOverdue(now)).toBe(false)
+      noteBackup(now - 8 * DAY)
+      expect(backupOverdue(now)).toBe(true)
+    })
+
+    it('is kept on this computer, not in the backup', () => {
+      noteBackup(now)
+      expect(Object.keys(createBackup().data)).not.toContain('superstart_last_backup_at')
+    })
+
+    it('counts a restore as a backup made when that backup was exported', () => {
+      set('superstart_users_db', users)
+      const backup = createBackup(new Date(now - 3 * DAY))
+      expect(restoreBackup(backup)).toBe(true)
+      expect(lastBackupAt()).toBe(now - 3 * DAY)
+    })
   })
 
   describe('reading a file', () => {
