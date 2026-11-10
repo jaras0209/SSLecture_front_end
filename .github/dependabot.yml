@@ -21,6 +21,10 @@ updates:
       # 大版本隨 Node.js 新版推出，與我們使用的 Node 版本無關；換 Node 版本時再一起升級
       - dependency-name: '@types/node'
         update-types: [version-update:semver-major]
+      # 頭像：核心與 8 個風格套件必須同一個大版本，Dependabot 只會單獨升核心（裝不起來）；
+      # 大版本也可能改變每個人現有頭像的樣子。要升時手動一起升，並比對升級前後的頭像
+      - dependency-name: '@dicebear/*'
+        update-types: [version-update:semver-major]
     commit-message:
       prefix: deps
 
