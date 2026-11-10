@@ -4,6 +4,7 @@ import { setActivePinia, createPinia } from 'pinia'
 import { useAuthStore } from '@/stores/auth'
 import { translate as t } from '@/i18n'
 import { flushPersistence } from '@/utils/persist'
+import { sessionMeta } from '@/utils/session'
 
 describe('useAuthStore', () => {
   beforeEach(() => {
@@ -51,6 +52,16 @@ describe('useAuthStore', () => {
       auth.logout()
       auth.usersDb.student.mustChangePassword = true
       expect(auth.login('student', '123456').message).toBe(t('stores.auth.loginMustChangePassword'))
+    })
+
+    it('times the sign-in, remembered only when asked, and stops on sign-out', () => {
+      const auth = useAuthStore()
+      auth.login('student', '123456')
+      expect(sessionMeta()?.remember).toBe(false)
+      auth.logout()
+      expect(sessionMeta()).toBeNull()
+      auth.login('student', '123456', true)
+      expect(sessionMeta()?.remember).toBe(true)
     })
 
     it('records lastLoginAt after login', () => {

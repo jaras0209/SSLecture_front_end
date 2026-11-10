@@ -2,6 +2,7 @@ import { describe, it, expect, afterEach, vi } from 'vitest'
 import LoginForm from '@/components/auth/LoginForm.vue'
 import { useAuthStore } from '@/stores/auth'
 import { mountWith, toastTexts, t } from '@/__tests__/helpers'
+import { sessionMeta } from '@/utils/session'
 
 const mountForm = (username = '', password = '') =>
   mountWith(LoginForm, { props: { username, password } })
@@ -36,6 +37,23 @@ describe('LoginForm', () => {
     expect(push).not.toHaveBeenCalled()
     vi.advanceTimersByTime(500)
     expect(push).toHaveBeenCalledWith('/')
+  })
+
+  it("doesn't remember the sign-in unless asked, and says what remembering means", async () => {
+    const { wrapper } = mountForm('student', '123456')
+    const box = wrapper.find<HTMLInputElement>('#login-remember')
+    expect(box.element.checked).toBe(false) // churches share computers
+    expect(box.attributes('aria-describedby')).toBe('login-remember-hint')
+    expect(wrapper.find('#login-remember-hint').text()).toBe(t('auth.login.rememberHint'))
+    await wrapper.find('form').trigger('submit')
+    expect(sessionMeta()?.remember).toBe(false)
+  })
+
+  it('remembers the sign-in when ticked', async () => {
+    const { wrapper } = mountForm('student', '123456')
+    await wrapper.find('#login-remember').setValue(true)
+    await wrapper.find('form').trigger('submit')
+    expect(sessionMeta()?.remember).toBe(true)
   })
 
   it('goes back to the page that sent them to sign in', async () => {

@@ -2,6 +2,7 @@ import { describe, it, expect, afterEach, vi } from 'vitest'
 import { DOMWrapper, flushPromises, mount } from '@vue/test-utils'
 import LoginView from '@/views/LoginView.vue'
 import { mountWith, setup, toastTexts, t } from '@/__tests__/helpers'
+import { noteSignOutReason } from '@/utils/session'
 
 const input = (wrapper: ReturnType<typeof mountWith>['wrapper'], id: string) =>
   wrapper.find<HTMLInputElement>(`#${id}`).element
@@ -76,6 +77,15 @@ describe('LoginView', () => {
     expect(wrapper.find('.login-error').attributes('role')).toBe('alert')
     // gone from the address (a reload won't show it again), but the redirect is kept
     expect(router.currentRoute.value.query).toEqual({ redirect: '/admin' })
+  })
+
+  it('says when they were signed out for being idle, once', () => {
+    noteSignOutReason('idle')
+    const { wrapper } = mountWith(LoginView)
+    const note = wrapper.find('.signed-out-note')
+    expect(note.text()).toContain(t('auth.login.signedOutIdle'))
+    expect(note.attributes('role')).toBe('status')
+    expect(mountWith(LoginView).wrapper.find('.signed-out-note').exists()).toBe(false)
   })
 
   it('shows no error on a normal visit', () => {

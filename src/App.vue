@@ -151,11 +151,15 @@ import LanguageSwitcher from '@/components/shared/LanguageSwitcher.vue'
 import { avatarSrc, useFallbackAvatar } from '@/utils/avatar'
 import { homeRouteFor } from '@/router/homeRoute'
 import { storageWriteFailed } from '@/utils/storage'
+import { useSessionTimeout } from '@/composables/useSessionTimeout'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
 const { t } = useI18n()
+
+// Sign out after 2 hours idle (30 days when remembered); see utils/session.ts
+useSessionTimeout()
 
 const mobileMenuOpen = ref(false)
 const showPasswordModal = ref(false)

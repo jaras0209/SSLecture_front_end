@@ -52,7 +52,10 @@
       "passwordPlaceholder": "請輸入密碼",
       "submit": "登入平台",
       "forgotPassword": "忘記密碼？",
-      "socialFailed": "Google / LINE 登入沒有完成，請再試一次，或改用帳號密碼登入。"
+      "socialFailed": "Google / LINE 登入沒有完成，請再試一次，或改用帳號密碼登入。",
+      "remember": "記住我",
+      "rememberHint": "在這台裝置上保持登入 30 天。共用的電腦請勿勾選；未勾選時，閒置 2 小時或關閉瀏覽器後會自動登出。",
+      "signedOutIdle": "因為閒置超過 2 小時，已自動登出，請重新登入。"
     },
     "register": {
       "inviteCode": "邀請碼",

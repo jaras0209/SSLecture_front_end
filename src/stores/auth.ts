@@ -17,6 +17,7 @@ export { CHURCHES, DEFAULT_RESET_PASSWORD } from '@/types/auth'
 import type { UserRole, User, InviteCode, Gender, LoginMethod } from '@/types/auth'
 import { DEFAULT_RESET_PASSWORD, DEFAULT_CHURCH, GENDERED_ROLES } from '@/types/auth'
 import { defaultAvatarUrl, isAllowedAvatarUrl } from '@/utils/avatar'
+import { beginSession, endSession } from '@/utils/session'
 import {
   normalizeUsername,
   normalizeEmail,
@@ -288,7 +289,16 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   // Actions
-  function login(identifier: string, passwordHash: string): { success: boolean; message: string } {
+  /**
+   * Sign in with a username or email and password. `remember` keeps the sign-in on this device
+   * for 30 days of no use; otherwise it ends after 2 hours idle or when the browser closes
+   * (utils/session.ts).
+   */
+  function login(
+    identifier: string,
+    passwordHash: string,
+    remember = false
+  ): { success: boolean; message: string } {
     const username = findUsername(identifier) ?? ''
     const user = usersDb.value[username]
     // The same answer for an unknown account and a wrong password, so trying names can't tell
@@ -321,6 +331,7 @@ export const useAuthStore = defineStore('auth', () => {
       lastLoginAt: now,
       mustChangePassword: user.mustChangePassword || undefined
     }
+    beginSession(remember)
     // An admin-set password must be replaced first; say so rather than just "signed in"
     const message = user.mustChangePassword
       ? t('stores.auth.loginMustChangePassword')
@@ -358,6 +369,7 @@ export const useAuthStore = defineStore('auth', () => {
       childUsernames: role === 'parent' ? childUsernames || [] : undefined,
       email: email || undefined
     }
+    beginSession(false)
     return { success: true, message: t('stores.auth.registerSuccess') }
   }
 
@@ -429,6 +441,8 @@ export const useAuthStore = defineStore('auth', () => {
       displayName: 'OAuth 測試使用者',
       avatarUrl: defaultAvatarUrl('oauth')
     }
+    // A social sign-in isn't remembered: it ends after 2 hours idle or when the browser closes
+    beginSession(false)
     return { success: true, needsOnboarding: true, message: 'ok' }
   }
 
@@ -504,6 +518,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   function logout() {
     currentUser.value = null
+    endSession()
   }
 
   function updatePassword(

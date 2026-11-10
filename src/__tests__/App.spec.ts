@@ -11,6 +11,7 @@ import type { UserRole } from '@/types/auth'
 import { refuseStorageWrites, t } from '@/__tests__/helpers'
 import { storageWriteFailed } from '@/utils/storage'
 import { flushPersistence } from '@/utils/persist'
+import { beginSession, takeSignOutReason } from '@/utils/session'
 
 // Apps share the real router, so each is unmounted after its test
 const mounted: { unmount(): void }[] = []
@@ -178,6 +179,52 @@ describe('App', () => {
       })
       const labels = wrapper.findAll('.action-btn').map((b) => b.text())
       expect(labels.some((l) => l.includes(t('nav.changePassword')))).toBe(false)
+    })
+  })
+
+  describe('signing out after being idle', () => {
+    const HOUR = 60 * 60 * 1000
+
+    it('signs out after 2 hours idle, and the login page says why', async () => {
+      vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] })
+      vi.setSystemTime(new Date('2026-11-10T09:00:00Z'))
+      const { auth } = await mountApp('student', () => beginSession(false))
+
+      vi.setSystemTime(new Date(Date.now() + 2 * HOUR - 60_000))
+      vi.advanceTimersByTime(60_000) // the minute check
+      expect(auth.isAuthenticated).toBe(true)
+
+      vi.setSystemTime(new Date(Date.now() + 2 * 60_000))
+      vi.advanceTimersByTime(60_000)
+      await flushPromises()
+      expect(auth.isAuthenticated).toBe(false)
+      expect(router.currentRoute.value.path).toBe('/login')
+      expect(takeSignOutReason()).toBe('idle')
+    })
+
+    it('counts any activity as use', async () => {
+      vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] })
+      vi.setSystemTime(new Date('2026-11-10T09:00:00Z'))
+      const { auth } = await mountApp('student', () => beginSession(false))
+
+      vi.setSystemTime(new Date(Date.now() + 1.5 * HOUR))
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }))
+      vi.setSystemTime(new Date(Date.now() + 1.5 * HOUR)) // 3 hours in, 1.5 since the last key
+      vi.advanceTimersByTime(60_000)
+      expect(auth.isAuthenticated).toBe(true)
+    })
+
+    it("doesn't let activity after the limit revive the sign-in", async () => {
+      vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] })
+      vi.setSystemTime(new Date('2026-11-10T09:00:00Z'))
+      const { auth } = await mountApp('student', () => beginSession(false))
+
+      // e.g. a laptop woken up hours later: the first click signs out rather than counts
+      vi.setSystemTime(new Date(Date.now() + 3 * HOUR))
+      window.dispatchEvent(new Event('pointerdown'))
+      await flushPromises()
+      expect(auth.isAuthenticated).toBe(false)
+      expect(router.currentRoute.value.path).toBe('/login')
     })
   })
 

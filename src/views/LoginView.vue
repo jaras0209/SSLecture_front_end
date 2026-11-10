@@ -10,6 +10,11 @@
         <p class="brand-tagline">{{ $t('auth.tagline') }}</p>
       </div>
 
+      <!-- Signed out after being idle too long (utils/session.ts) -->
+      <p v-if="signedOutNote" class="alert-box info signed-out-note" role="status">
+        🔒 {{ signedOutNote }}
+      </p>
+
       <!-- Social sign-in that failed sends people back here with ?error= -->
       <p v-if="signInError" class="alert-box error login-error" role="alert">
         ⚠️ {{ signInError }}
@@ -81,6 +86,7 @@ import LoginForm from '@/components/auth/LoginForm.vue'
 import RegisterForm from '@/components/auth/RegisterForm.vue'
 import SocialLoginButtons from '@/components/auth/SocialLoginButtons.vue'
 import ForgotPasswordModal from '@/components/auth/ForgotPasswordModal.vue'
+import { takeSignOutReason } from '@/utils/session'
 
 const { toast } = useToast()
 const { t } = useI18n()
@@ -100,6 +106,9 @@ if (route.query.error) {
   const { error: _error, ...rest } = route.query
   void router.replace({ query: rest })
 }
+
+/** Why this tab was signed out, if it was automatic (said once) */
+const signedOutNote = takeSignOutReason() === 'idle' ? t('auth.login.signedOutIdle') : ''
 
 const activeTab = ref<'login' | 'register'>('login')
 const showForgotModal = ref(false)

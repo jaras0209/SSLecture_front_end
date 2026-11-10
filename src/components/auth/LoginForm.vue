@@ -56,6 +56,20 @@
         </button>
       </div>
     </div>
+    <!-- Keep the sign-in on this device; otherwise it ends after 2 hours idle or when the
+         browser closes (utils/session.ts). Off by default: churches share computers. -->
+    <div class="remember-row">
+      <label class="remember-label" for="login-remember">
+        <input
+          id="login-remember"
+          v-model="remember"
+          type="checkbox"
+          aria-describedby="login-remember-hint"
+        />
+        {{ $t('auth.login.remember') }}
+      </label>
+      <p id="login-remember-hint" class="remember-hint">{{ $t('auth.login.rememberHint') }}</p>
+    </div>
     <button type="submit" class="btn btn-primary w-full">{{ $t('auth.login.submit') }}</button>
     <div class="forgot-pwd-row">
       <button type="button" class="forgot-pwd-link" @click="emit('forgot-password')">
@@ -88,13 +102,14 @@ const { toast } = useToast()
 const { t } = useI18n()
 
 const showLoginPwd = ref(false)
+const remember = ref(false)
 
 function handleLogin() {
   if (!username.value || !password.value) {
     toast(t('auth.validation.fillAll'), 'error')
     return
   }
-  const result = authStore.login(username.value, password.value)
+  const result = authStore.login(username.value, password.value, remember.value)
   if (result.success) {
     toast(result.message, 'success')
     // Back to the page they were sent here from, if they may open it; else their home
@@ -112,6 +127,33 @@ function handleLogin() {
 <style scoped src="./auth-shared.css"></style>
 
 <style scoped>
+/* Remember me */
+.remember-row {
+  margin: -0.25rem 0 1rem;
+}
+
+.remember-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.remember-label input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+}
+
+.remember-hint {
+  margin: 0.2rem 0 0 1.55rem;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
 /* Forgot Password */
 .forgot-pwd-row {
   text-align: center;

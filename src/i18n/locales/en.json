@@ -52,7 +52,10 @@
       "passwordPlaceholder": "Enter your password",
       "submit": "Sign In",
       "forgotPassword": "Forgot password?",
-      "socialFailed": "Signing in with Google / LINE did not complete. Please try again, or sign in with your username and password."
+      "socialFailed": "Signing in with Google / LINE did not complete. Please try again, or sign in with your username and password.",
+      "remember": "Remember me",
+      "rememberHint": "Stay signed in on this device for 30 days. Leave it unticked on a shared computer: you are then signed out after 2 hours idle or when the browser closes.",
+      "signedOutIdle": "You were signed out after 2 hours without activity. Please sign in again."
     },
     "register": {
       "inviteCode": "Invite Code",

@@ -3,13 +3,8 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 import i18n, { initLocale } from '@/i18n'
+import { settleSessionOnStart } from '@/utils/session'
 import '@/assets/styles/main.css'
-
-const app = createApp(App)
-
-app.use(createPinia())
-app.use(i18n) // i18n 必須在 router 之前注入，以便 store 可呼叫 i18n.global.t()
-app.use(router)
 
 /**
  * 錯誤回報的單一出口。
@@ -22,17 +17,6 @@ function reportError(source: string, error: unknown, context?: Record<string, un
 }
 
 /**
- * 全域錯誤捕獲
- * 攔截所有子元件未處理的 JavaScript 錯誤，避免白屏。
- */
-app.config.errorHandler = (err, instance, info) => {
-  reportError('GlobalErrorCapture', err, {
-    component: instance?.$options?.name ?? 'UnknownComponent',
-    info
-  })
-}
-
-/**
  * 未處理的 Promise rejection 捕獲
  * 例如：fetch 失敗未加 .catch()、async 函式內未處理的例外
  */
@@ -42,5 +26,31 @@ window.addEventListener('unhandledrejection', (event) => {
   event.preventDefault()
 })
 
-// Load the saved language (e.g. the English chunk) before the first render
-initLocale().finally(() => app.mount('#app'))
+function startApp() {
+  const app = createApp(App)
+
+  app.use(createPinia())
+  app.use(i18n) // i18n 必須在 router 之前注入，以便 store 可呼叫 i18n.global.t()
+  // Installing the router starts the first navigation, whose guard reads the sign-in
+  app.use(router)
+
+  /**
+   * 全域錯誤捕獲
+   * 攔截所有子元件未處理的 JavaScript 錯誤，避免白屏。
+   */
+  app.config.errorHandler = (err, instance, info) => {
+    reportError('GlobalErrorCapture', err, {
+      component: instance?.$options?.name ?? 'UnknownComponent',
+      info
+    })
+  }
+
+  app.mount('#app')
+}
+
+// First end a sign-in that ran out (idle too long, or the browser was closed), before the app
+// reads it; and load the saved language (e.g. the English chunk) before the first render
+Promise.all([
+  settleSessionOnStart().catch((err) => reportError('SessionCheck', err)),
+  initLocale()
+]).finally(startApp)

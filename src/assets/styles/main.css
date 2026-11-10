@@ -78,6 +78,10 @@
   background-color: #fee2e2;
   color: #991b1b;
 }
+.alert-box.info {
+  background-color: #e0f2fe;
+  color: #075985;
+}
 
 /* Password input eye button & strength indicator */
 .pwd-input-wrap {

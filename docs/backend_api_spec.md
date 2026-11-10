@@ -159,7 +159,8 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 ```json
 {
   "identifier": "student01",
-  "password": "123456"
+  "password": "123456",
+  "rememberMe": false // 選填，預設 false；見「記住我與閒置登出」
 }
 ```
 
@@ -1842,6 +1843,20 @@ Refresh Token 有效期：30 天（建議）
 3. 若收到 401 TOKEN_EXPIRED，自動呼叫 POST /auth/refresh 換發新 Token
 4. 若換發失敗（REFRESH_TOKEN_EXPIRED），清除 Token，導向登入頁
 ```
+
+#### 記住我與閒置登出
+
+教會常用共用的電腦或平板，所以登入狀態有期限（前端 `src/utils/session.ts`）：
+
+| | 未勾「記住我」（預設） | 勾選「記住我」 |
+|---|---|---|
+| 閒置多久登出 | 2 小時 | 30 天 |
+| 關閉瀏覽器後 | 需重新登入 | 仍保持登入 |
+
+- `POST /auth/login` 帶 `"rememberMe": true/false`；社群登入一律視為未勾選
+- 後端對應：未勾選時 Refresh Token 有效期 2 小時、每次換發時重新計算（閒置期限）；勾選時 30 天。
+  前端另會在閒置到期與瀏覽器重新開啟時自行登出，但**期限必須由後端執行**，前端的計時只是讓畫面即時反映
+- 前端以 `localStorage` 保存登入（各分頁共用），以 `sessionStorage` 與 `BroadcastChannel` 判斷瀏覽器是否關閉過
 
 #### 帳號變更時結束既有的登入
 
