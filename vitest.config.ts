@@ -13,10 +13,6 @@ export default defineConfig({
   },
   test: {
     environment: 'happy-dom',
-    // Each test file still gets its own fresh context, but the happy-dom environment is set up
-    // once per worker rather than once per file (it took about half the run). Forks, not
-    // threads: some tests switch process.env.TZ, which worker threads don't pick up.
-    pool: 'vmForks',
     globals: true,
     coverage: {
       provider: 'v8',
