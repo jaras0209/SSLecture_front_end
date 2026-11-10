@@ -55,7 +55,8 @@
       "socialFailed": "Signing in with Google / LINE did not complete. Please try again, or sign in with your username and password.",
       "remember": "Remember me",
       "rememberHint": "Stay signed in on this device for 30 days. Leave it unticked on a shared computer: you are then signed out after 2 hours idle or when the browser closes.",
-      "signedOutIdle": "You were signed out after 2 hours without activity. Please sign in again."
+      "signedOutIdle": "You were signed out after 2 hours without activity. Please sign in again.",
+      "signedOutRestored": "Data restored from the backup. Please sign in again."
     },
     "register": {
       "inviteCode": "Invite Code",
@@ -726,6 +727,23 @@
       "cancelReasonDeleted": "The mentor teacher's account was removed",
       "cancelReasonRoleChanged": "The mentor teacher no longer has this role",
       "summary": "Also cleaned up: {mentors} care assignments removed, {lecturers} lecturers unlinked, {bookings} upcoming bookings cancelled"
+    },
+    "backup": {
+      "title": "Data backup",
+      "desc": "All data is currently kept only in this computer's browser: clearing browser data, or moving to another computer or browser, loses all of it. Export a backup regularly; you can restore from it when needed.",
+      "caution": "The backup holds every account's details (passwords included) and students' notes. Keep it safe and don't send it to anyone who doesn't need it.",
+      "export": "Export all data",
+      "import": "Restore from a backup…",
+      "importHint": "Restoring replaces all current data on this computer with the backup, and everyone signs in again.",
+      "exported": "Backup downloaded. Keep it somewhere safe.",
+      "confirmRestore": "Replace all current data on this computer with this backup (exported {date}, {n} accounts)? The current data will be overwritten and cannot be recovered; everyone will need to sign in again.",
+      "problem": {
+        "notJson": "This file can't be read. Choose a backup file (.json) exported from here.",
+        "notBackup": "This isn't a backup exported from this system.",
+        "newerVersion": "This backup comes from a newer version of the system. Update the site before restoring it.",
+        "badData": "The backup is incomplete or damaged and can't be restored.",
+        "notSaved": "The browser refused to save (storage may be full). Nothing was restored; the current data is unchanged."
+      }
     }
   },
   "roleLabel": {

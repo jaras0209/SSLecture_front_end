@@ -107,8 +107,14 @@ if (route.query.error) {
   void router.replace({ query: rest })
 }
 
-/** Why this tab was signed out, if it was automatic (said once) */
-const signedOutNote = takeSignOutReason() === 'idle' ? t('auth.login.signedOutIdle') : ''
+/** Why this tab was signed out, if it wasn't by choice (said once) */
+const signOutReason = takeSignOutReason()
+const signedOutNote =
+  signOutReason === 'idle'
+    ? t('auth.login.signedOutIdle')
+    : signOutReason === 'restored'
+      ? t('auth.login.signedOutRestored')
+      : ''
 
 const activeTab = ref<'login' | 'register'>('login')
 const showForgotModal = ref(false)

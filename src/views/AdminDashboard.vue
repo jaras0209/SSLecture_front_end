@@ -50,6 +50,7 @@
     <ChurchBookings />
     <AdminTeachingStats />
     <AdminInviteCodes />
+    <AdminDataBackup @restored="reloadWithRestoredData" />
   </div>
 </template>
 
@@ -62,6 +63,7 @@ import AdminUserTable from '@/components/admin/AdminUserTable.vue'
 import AdminChurchOverview from '@/components/admin/AdminChurchOverview.vue'
 import AdminTeachingStats from '@/components/admin/AdminTeachingStats.vue'
 import AdminInviteCodes from '@/components/admin/AdminInviteCodes.vue'
+import AdminDataBackup from '@/components/admin/AdminDataBackup.vue'
 import ChurchBookings from '@/components/shared/ChurchBookings.vue'
 import { avatarSrc, useFallbackAvatar } from '@/utils/avatar'
 
@@ -78,6 +80,11 @@ const adminDisplayName = computed(() => {
   const u = authStore.currentUser
   return u?.displayName || u?.username || ''
 })
+
+/** After a restore the stores still hold the old data in memory: start the app afresh */
+function reloadWithRestoredData() {
+  window.location.reload()
+}
 </script>
 
 <style scoped>

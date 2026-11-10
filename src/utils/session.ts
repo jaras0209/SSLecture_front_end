@@ -30,7 +30,8 @@ const TOUCH_EVERY_MS = 30 * 1000
  */
 export const TAB_REPLY_WAIT_MS = 500
 
-export type SignOutReason = 'idle'
+/** idle: unused too long; restored: an admin restored all data from a backup */
+export type SignOutReason = 'idle' | 'restored'
 
 export interface SessionMeta {
   remember: boolean

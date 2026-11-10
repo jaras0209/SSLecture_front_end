@@ -24,6 +24,19 @@ export const PERSIST_DELAY_MS = 300
 /** key → 立即寫入該 key 的函式（僅包含尚未寫入的項目）；回傳是否寫入成功 */
 const pendingWrites = new Map<string, () => boolean>()
 
+/** key → 立即寫入該 key 的函式（所有以 persistToStorage 保存的資料） */
+const allWrites = new Map<string, () => boolean>()
+
+/**
+ * 立即寫入所有保存的資料，包括從未改過、所以從未寫入過的預設值（例如備份前：
+ * 備份讀的是 localStorage）。回傳是否全部寫入成功。
+ */
+export function saveAllPersisted(): boolean {
+  let ok = true
+  for (const write of [...allWrites.values()]) ok = write() && ok
+  return ok
+}
+
 /** 立即寫入所有尚未寫入的資料；回傳是否全部寫入成功（沒有待寫入的也算成功）。 */
 export function flushPersistence(): boolean {
   let ok = true
@@ -53,6 +66,7 @@ export function persistToStorage<T>(source: Ref<T>, key: string, delay = PERSIST
     pendingWrites.delete(key)
     return safeSet(key, source.value)
   }
+  allWrites.set(key, write)
 
   watch(
     source,
