@@ -1,12 +1,12 @@
 # TODO：後端串接待辦清單
 
 > **建立時間**：2026-08-12
-> **最後更新**：2026-10-31（加入可見範圍規則、性別、家長綁定、我的授課、帳號清理、社群帳號、錯誤碼）
+> **最後更新**：2026-11-11（加入登入期限與失效、嘗試次數限制、密碼規則、個人資料與主題 API、CORS、資料搬移）
 > **目的**：追蹤前端 Mock 實作中，待後端 Spring Boot 就緒後需實作或替換的所有項目
 > **參考文件**：
-> - [`docs/backend_api_spec.md`](./docs/backend_api_spec.md)（v1.6.0：API、可見範圍規則、錯誤碼、第 13 節 Store → API 對照）
-> - [`docs/database_schema.md`](./docs/database_schema.md)（v1.7.0：資料表、5.10–5.13 設計決策）
-> - [`docs/oauth2_social_login_spec.md`](./docs/oauth2_social_login_spec.md)（社群登入流程）
+> - [`docs/backend_api_spec.md`](./docs/backend_api_spec.md)（v1.8.0：API、可見範圍規則、嘗試次數限制、登入期限、CORS、錯誤碼、第 13 節 Store → API 對照）
+> - [`docs/database_schema.md`](./docs/database_schema.md)（v1.8.0：資料表、5.10–5.15 設計決策、第 9 節資料搬移）
+> - [`docs/oauth2_social_login_spec.md`](./docs/oauth2_social_login_spec.md)（v1.1.0：社群登入流程、8.5 社群帳號規則）
 
 ---
 
@@ -55,14 +55,28 @@
   - [ ] 教師管理的預約中看不到的學員只回傳 `hiddenAttendeeCount`，不回姓名
 - [ ] **寫入檢查**：指派輔導教師須通過 `canMentor`（否則 `403 STUDENT_NOT_VISIBLE`）；講師只能改 `attendanceStatus`
   且需時間已確認（否則 `409 BOOKING_NOT_CONFIRMED`）；只有同教會牧者或 admin 能設定性別、綁定家長
-- [ ] **邀請碼**在後端驗證與作廢（前端 `validateInviteCode` / `consumeInviteCode` 只是 mock）
+- [ ] **邀請碼**在後端驗證與作廢（前端 `validateInviteCode` / `consumeInviteCode` 只是 mock）；
+  以密碼學安全的亂數產生 8 碼（格式見 API 規格 `POST /admin/invite-codes`，前端 `randomCode()`）
 - [ ] 正式環境把 `VITE_DEMO_MODE` 設為 `false`，並移除 `auth.ts` 內建的示範帳號（密碼皆為 123456）
+- [ ] **嘗試次數限制**：登入、邀請碼、忘記密碼、重設密碼、修改密碼、`POST /auth/exchange`，依帳號與來源 IP 各算一份，
+  超過回 `429 TOO_MANY_REQUESTS` 並帶 `Retry-After`（API 規格〈嘗試次數限制〉，資料庫 2.22 `auth_attempts` 或 Redis）
+- [ ] **不洩漏帳號是否存在**：登入時帳號不存在與密碼錯誤一律 `401 INVALID_CREDENTIALS`；忘記密碼一律回相同訊息
+- [ ] **帳號變更時結束既有的登入**：停用、改角色、重設或修改密碼時遞增 `users.token_version`，每次請求以資料庫為準
+  檢查狀態與角色（API 規格〈帳號變更時結束既有的登入〉、資料庫 5.15）
+- [ ] **登入期限**：未勾「記住我」閒置 2 小時、勾選 30 天，換發時順延；社群登入一律不記住（API 規格〈記住我與閒置登出〉）
+- [ ] **密碼規則**：至少 6 字元並符合「8 字元以上、大小寫、數字、符號」任兩項，否則 `400 WEAK_PASSWORD`（前端 `passwordChecks()`）
+- [ ] **社群帳號不可設定或重設密碼**（`POST /auth/reset-password`、`PUT /admin/users/:username`）
+- [ ] **已停用帳號的名稱不可重新使用**（`409 USERNAME_TAKEN`）：歷史資料掛在該名稱下
+- [ ] **頭像網址只接受 `https://`**（`PATCH /auth/me`、資料庫 CHECK）：其他網址可被用來追蹤誰看了名冊
 
 ---
 
 ## 資料庫 Migration（後端工程師負責）
 
-- [ ] 依 `docs/database_schema.md` v1.7.0：
+- [ ] 依 `docs/database_schema.md` v1.8.0（第 6 節 SQL 已在 PostgreSQL 16 實測可建立 22 張表）：
+  - [ ] `users` 新增 `token_version INTEGER NOT NULL DEFAULT 0`；`avatar_url` 改為 `VARCHAR(2048)` 並 CHECK `https://`
+  - [ ] `refresh_tokens` 新增 `remember_me`、`token_version`（2.13）
+  - [ ] 新增 `auth_attempts`（2.22），或改用 Redis 計數
   - [ ] `users` 新增 `gender user_gender NULL`（只用於 student / teacher）
   - [ ] `users.password_hash` 改為可為 NULL（社群登入帳號沒有密碼）
   - [ ] 新增 `parent_children`，並把 `student_assignments.parent_id` 搬過去後刪除該欄（遷移 SQL 見 2.19）
@@ -76,7 +90,7 @@
     ADD COLUMN email          VARCHAR(255) UNIQUE,
     ADD COLUMN email_verified BOOLEAN NOT NULL DEFAULT FALSE;
   ```
-- [x] 更新 `docs/database_schema.md` Section 2、Section 6 DDL、Section 8 ERD（已含 social_accounts，目前 v1.7.0）
+- [x] 更新 `docs/database_schema.md` Section 2、Section 6 DDL、Section 8 ERD（已含 social_accounts，目前 v1.8.0）
 
 ---
 
@@ -124,6 +138,13 @@
 - [ ] 新回覆提醒：`coursesWithUnreadFeedback()` / `markFeedbackSeen()` 改用 `GET /progress/:username/feedback/unread`、
       `POST /progress/:username/:courseId/feedback/seen`（新表 `course_feedback_reads`，見 2.21）
 - [ ] 家長看孩子的預約：`StudentBookingsSummary` 改用 `GET /bookings/sessions?studentUsername=`（後端檢查家長綁定）
+- [ ] 個人資料：`authStore.updateProfile()` 改用 `PATCH /auth/me`
+- [ ] 專題主題：`addTheme()` / `updateTheme()` / `deleteTheme()` 改用 `/themes`（處理 `409 THEME_EXISTS`）
+- [ ] 管理員：`adminResetPassword()` 改用 `PUT /admin/users/:username`；`deleteAccount()` 改用 `DELETE /admin/users/:username`，
+  後端會保留帳號名稱，前端可移除 `retiredUsernames`
+- [ ] 登入：`authStore.login()` 把「記住我」送成 `rememberMe`；前端 `src/utils/session.ts` 的閒置計時與提醒保留（讓畫面即時反映），
+  但以後端的 `401` 為準，Token 換發失敗就回登入頁
+- [ ] `GET /auth/me` 回傳的 `mustChangePassword`、`loginMethod`、`childUsernames` 取代前端從 `usersDb` 讀取的部分
 - [x] 錯誤訊息：`src/utils/api.ts` 依 `error.code` 顯示目前語系的訊息（`api.codes.*`，`VALIDATION_ERROR` 沿用後端訊息）；
   `src/i18n/__tests__/apiCodes.spec.ts` 確保 API 規格第 12 節的每個錯誤碼都有中英文訊息
 
@@ -140,12 +161,16 @@
 - [ ] 寄信重設密碼：`POST /auth/password/forgot`、`POST /auth/password/reset`；之後把「忘記密碼」對話框改為輸入帳號或信箱寄送連結，
       並逐步取消「重設為固定預設密碼 123456」
 - [ ] **社群帳號只在雙方信箱都已驗證時自動合併**（`docs/oauth2_social_login_spec.md` 3.3、7.1），防止帳號預先劫持
-- [ ] 登入失敗次數限制（同帳號 / 同 IP），避免暴力猜密碼
+- [ ] 嘗試次數限制：見上方〈上線前必須由後端處理〉；前端已會依 `Retry-After` 顯示「請 N 分鐘後再試」（`src/utils/api.ts`）
 
 ### 既有資料搬遷
 
-- [ ] 決定是否要把示範站 localStorage 的資料（`superstart_*` 鍵）匯入後端；若要，需寫一次性匯入腳本，
-  密碼一律重設（不要匯入明文密碼）
+- [ ] 決定是否要把示範站的資料搬進後端。若要：請管理員在前端「資料備份」匯出備份檔（JSON），
+  依 `docs/database_schema.md` 第 9 節的對照寫一次性匯入腳本：
+  - [ ] 密碼在備份檔中是明文：雜湊後存入並設 `must_change_password = TRUE`（空字串＝社群帳號，存 NULL）
+  - [ ] 前端 ID 換成 UUID 並保留對照；牆上時間以 `Asia/Taipei` 解讀；中文講師稱謂換成代碼；非 https 頭像存 NULL
+  - [ ] 整個匯入放在同一個交易，完成後比對筆數；搬完後刪除備份檔（含密碼與學員心得）
+- [ ] 後端上線後，管理員頁面的「資料備份」改為後端的匯出功能或移除（`AdminDataBackup.vue`、`src/utils/backup.ts`）
 
 ### loginWithThirdParty（已完成）
 
@@ -191,14 +216,22 @@
 - [ ] 刪除教師：其指派解除、講師連結解除、未進行的預約取消並附原因；已完成的預約與統計保留
 - [ ] 教師與牧者互換角色：講師連結保留
 - [ ] 家長只看得到綁定的孩子；解除綁定後立即看不到
+- [ ] 未勾「記住我」：閒置超過 2 小時後換發失敗、回到登入頁；勾選後隔天仍保持登入
+- [ ] 改角色或停用帳號：該使用者已開著的頁面下一次請求即失效（`401` / `403 ACCOUNT_DISABLED`）
+- [ ] 連續輸錯密碼：第 6 次回 `429`，前端顯示「請 N 分鐘後再試」；不存在的帳號同樣計數、同樣回應
+- [ ] 刪除帳號後以同名註冊：`409 USERNAME_TAKEN`
+- [ ] 管理員替社群帳號設定密碼：`400 VALIDATION_ERROR`
+- [ ] 個人資料填 `http://` 頭像：`400 VALIDATION_ERROR`
+- [ ] 從 GitHub Pages 呼叫 API：CORS 預檢通過、前端讀得到 `Retry-After`
 
 ---
 
 ## 文件更新
 
-- [x] docs/database_schema.md：social_accounts 表、ERD（目前 v1.7.0，另含 gender、parent_children、5.10–5.13）
-- [x] docs/backend_api_spec.md：可見範圍規則、性別、家長綁定、我的授課、帳號清理、錯誤碼（v1.6.0）
-- [x] README.md：更新目錄結構、i18n/測試/Lint 說明、登入方式與後端部署需求（環境變數清單）
+- [x] docs/database_schema.md：v1.8.0（token_version、refresh_tokens 期限、auth_attempts、5.15、第 9 節資料搬移）
+- [x] docs/backend_api_spec.md：v1.8.0（PATCH /auth/me、/themes、嘗試次數限制、登入期限、CORS、補齊資料模型與對照表）
+- [x] docs/oauth2_social_login_spec.md：v1.1.0（前端現況、家長綁定、社群帳號規則）
+- [x] README.md：功能、各角色、登入期限、環境變數、部署（CSP、CORS）、資料備份
 
 ---
 
@@ -206,7 +239,9 @@
 
 - [ ] HTML5 路由下，伺服器需配置 fallback（所有非 API 路徑返回 index.html）
   - Nginx 範例：try_files $uri $uri/ /index.html;
-- [ ] 確認生產環境 CORS 設定（application.yml 的 allowed-origins）
+- [ ] 確認生產環境 CORS 設定（application.yml 的 allowed-origins；需允許的標頭見 API 規格〈跨網域（CORS）〉）
+- [ ] API 網址確定後設定 `VITE_API_BASE_URL` 並重新建置前端：前端的 CSP 只允許連線到這個網址
+- [ ] 若改由自己的伺服器提供前端：加上 `Content-Security-Policy` 回應標頭（含 `frame-ancestors 'none'`，見 `src/utils/csp.ts`）
 - [ ] 確認 HTTPS（LINE OAuth 要求 HTTPS）
 
 ---
