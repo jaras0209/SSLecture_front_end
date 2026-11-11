@@ -1,11 +1,18 @@
 # SSLecture OAuth2 社群登入設計規格
 
-> **文件版本**：v1.0.0
-> **最後更新**：2026-08-12
+> **文件版本**：v1.1.0
+> **最後更新**：2026-11-11
 > **適用後端**：Spring Boot 3.x（Spring Security 6.x OAuth2 Client）
 > **適用前端**：Vue 3 + TypeScript + Pinia
 
 ---
+
+> **v1.1.0 異動摘要**
+> - 第 1.1 節改寫為前端**目前**的實作：mock 對話框已移除，前端已完成導向、回調與 onboarding 頁面，只等後端
+> - 第 6 節標明哪些已在前端完成，以實際檔案為準
+> - Onboarding 加上家長綁定孩子（`childUsernames`），帳號名稱依帳號規則
+> - 新增 8.5 社群帳號的規則：保有一筆 `users` 資料、沒有密碼、不可由管理員設定密碼、登入不會被「記住」
+> - 8.4 補上帳號變更時讓既有登入失效（`token_version`）；`POST /auth/exchange` 列入嘗試次數限制
 
 ## 目錄
 
@@ -24,32 +31,21 @@
 
 ## 1. 設計概述
 
-### 1.1 目前前端實作的問題
+### 1.1 前端目前的實作
 
-目前 `auth.ts` 的 `loginWithThirdParty()` 是**純模擬**實作（行 177-204）：
+前端已依本文件完成社群登入的畫面與流程，**只差後端**；目前以 mock 代替後端的兩個呼叫：
 
-```typescript
-// 目前實作（auth.ts L177-204）—— 僅為 mock，不做任何實際 OAuth2 流程
-async function loginWithThirdParty(method: 'google' | 'line', ...) {
-  isAuthenticating.value = true
-  await new Promise(resolve => setTimeout(resolve, 1500)) // 假延遲
-  const username = `GoogleSS學員_${randomSuffix}`        // 假帳號
-  currentUser.value = { username, role: customRole, ... } // 直接設定，無驗證
-  isAuthenticating.value = false
-}
-```
+| 步驟 | 前端檔案 | 狀態 |
+|------|----------|------|
+| 按下 Google / LINE，導向 `${VITE_API_BASE_URL}/oauth2/authorization/{google\|line}` | `src/components/auth/SocialLoginButtons.vue` | ✅ 完成 |
+| 後端導回 `/login/callback?code=...`，以短效 code 換 Token | `src/views/LoginCallback.vue` → `authStore.exchangeOAuthCode()` | ⏳ 換 Token 為 mock |
+| 換發失敗 → 回登入頁並說明（`/login?error=oauth_failed`） | `LoginCallback.vue`、`LoginView.vue` | ✅ 完成 |
+| 首次登入：選教會、帳號名稱、邀請碼；家長選擇要綁定的孩子 | `src/views/OnboardingView.vue`、`ChildPicker.vue` → `authStore.completeProfile()` | ⏳ 送出為 mock |
+| 完成後建立一筆沒有密碼的帳號資料（牧者、管理員看得到） | `stores/auth.ts` 內的 `saveSocialAccount()` | ✅ 完成（後端改由 `users` 表） |
 
-`LoginView.vue` 中的 Google / LINE 按鈕（行 230-246）點擊後，
-會開啟一個 4 步驟的模擬 Modal（role-select → church-select → student-bind → processing），
-最終呼叫上述 mock 函式。
-
-**缺失**：
-- ❌ 沒有實際的 OAuth2 Authorization Code Flow
-- ❌ 沒有向 Google/LINE 發起任何 HTTP 請求
-- ❌ 角色由前端任意指定（安全漏洞）
-- ❌ 沒有 state / CSRF 防護
-- ❌ 沒有帳號首次登入的教會選擇流程（onboarding）
-- ❌ 每次登入會產生不同的亂數 username，無法重複登入同一帳號
+- mock 的 `exchangeOAuthCode()` 會建立 `oauth_<時間>` 的臨時使用者並要求 onboarding；接上後端後，依 `auth.ts` 中
+  已寫好、被註解的 `fetch` 區塊替換即可（見 6.4）
+- 舊版的 `loginWithThirdParty()` 與四步驟模擬對話框已移除
 
 ### 1.2 設計目標
 
@@ -109,8 +105,9 @@ OAuth 認證成功
       v
 前端導向 /onboarding 頁面
   |- 選擇所屬教會（必填）
-  |- 設定 username（可選，預設用 displayName）
-  `- 輸入邀請碼（可選，升級角色用）
+  |- 設定 username（可選；小寫、3–30 字元、英數字與 . _ -，不可與現有或已停用的帳號重複）
+  |- 輸入邀請碼（可選，升級角色用；格式 SS-TCH-K7M2QX9D）
+  `- 邀請碼為家長時：選擇要綁定的孩子（childUsernames，至少一位，限所選教會的學員）
       |
       v
 PUT /auth/complete-profile
@@ -457,7 +454,11 @@ ALTER TABLE users
 
 ## 6. 前端 Vue 3 整合規格
 
-### 6.1 修改 LoginView.vue（行 230-246 的按鈕邏輯）
+> **狀態**：本節的前端部分**都已完成**（見 1.1），以下程式碼是當初的設計範例；實際程式以這些檔案為準：
+> `SocialLoginButtons.vue`（6.1）、`LoginCallback.vue`（6.2）、`OnboardingView.vue`（6.3）、`stores/auth.ts`（6.4）、
+> `router/index.ts`（6.6）。接上後端時只需替換 6.4 的兩個 mock。
+
+### 6.1 社群登入按鈕（已完成：`SocialLoginButtons.vue`）
 
 移除 mock Modal，改為直接導向後端啟動端點：
 
@@ -535,7 +536,7 @@ onMounted(async () => {
 </template>
 ```
 
-### 6.3 新增 OnboardingView.vue（/onboarding）
+### 6.3 OnboardingView.vue（/onboarding，已完成）
 
 首次社群登入後，引導使用者選擇教會並可選填邀請碼：
 
@@ -550,7 +551,9 @@ async function completeOnboarding() {
   await authStore.completeProfile({
     churchId: selectedChurchId.value,
     username: customUsername.value || undefined,
-    inviteCode: inviteCode.value || undefined
+    inviteCode: inviteCode.value || undefined,
+    // 家長：要綁定的孩子（實際實作以 ChildPicker 選擇）
+    childUsernames: selectedChildren.value
   })
   router.push(getRoleRedirectPath(authStore.currentUser?.role))
 }
@@ -702,6 +705,21 @@ Refresh Token：
 
 `users.is_active = false` 時，JWT 過濾器拒絕所有請求，返回 `403 ACCOUNT_DISABLED`。
 
+停用、改角色時遞增 `users.token_version`，讓該帳號已登入的工作階段立即失效；JWT 過濾器每次請求都以資料庫為準
+檢查帳號狀態、角色與版本（見 `backend_api_spec.md`「帳號變更時結束既有的登入」、資料庫文件 5.15）。
+
+### 8.5 社群帳號的規則
+
+- **保有一筆 `users` 資料**：完成 onboarding 後，牧者與管理員才能在名冊看到並設定性別、指派教師、綁定家長；
+  `password_hash` 為 NULL、`login_method` 為 `google` / `line`
+- **沒有密碼**：不能以帳號密碼登入（`401 USE_SOCIAL_LOGIN`）；前端不顯示「修改密碼」
+- **管理員不可設定或重設其密碼**（`POST /auth/reset-password`、`PUT /admin/users/:username` 回 `400 VALIDATION_ERROR`）：
+  給它一組管理員知道的密碼，等於讓知道的人能以帳號密碼登入並占用該帳號
+- **登入不會被「記住」**：Refresh Token 一律 `remember_me = FALSE`，閒置 2 小時失效；前端在關閉瀏覽器後也會登出
+  （見 `backend_api_spec.md`「記住我與閒置登出」）
+- **帳號名稱**：與一般帳號相同的規則；已停用帳號的名稱不可使用
+- `POST /auth/exchange` 列入嘗試次數限制（同一 IP 每 15 分鐘 20 次）
+
 ---
 
 ## 9. 第三方平台設定清單
@@ -796,9 +814,14 @@ Refresh Token：
 {
   "churchId": "uuid-church-001",
   "username": "wangxiaoming",
-  "inviteCode": "SS-TCH-K7M2QX9D"
+  "inviteCode": "SS-PAR-W4HN8RTC",
+  "childUsernames": ["student01"]
 }
 ```
+
+- `username`：選填；規則同一般帳號（小寫、3–30 字元、英數字與 `. _ -`），不可與現有或已停用的帳號重複
+- `childUsernames`：只在邀請碼為家長時使用，至少一位，且須為所選教會的學員（否則 `400 VALIDATION_ERROR`）
+- 邀請碼錯誤列入嘗試次數限制（`429 TOO_MANY_REQUESTS`）
 
 **Response**：
 ```json

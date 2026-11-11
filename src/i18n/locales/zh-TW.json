@@ -889,7 +889,8 @@
       "EMAIL_TAKEN": "這個信箱已被其他帳號使用",
       "PASSWORD_CHANGE_REQUIRED": "請先設定新密碼",
       "WEAK_PASSWORD": "密碼太弱：需至少 6 個字元，並符合以下任兩項：8 個字元以上、大小寫字母混合、數字、符號",
-      "TOO_MANY_REQUESTS": "嘗試次數過多，請稍後再試"
+      "TOO_MANY_REQUESTS": "嘗試次數過多，請稍後再試",
+      "THEME_EXISTS": "這個教會已經有同名的主題"
     }
   },
   "a11y": {

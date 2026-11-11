@@ -889,7 +889,8 @@
       "EMAIL_TAKEN": "That email is already used by another account",
       "PASSWORD_CHANGE_REQUIRED": "Please set a new password first",
       "WEAK_PASSWORD": "Password is too weak: use at least 6 characters and any two of: 8 or more characters, upper and lower case letters, a number, a symbol",
-      "TOO_MANY_REQUESTS": "Too many attempts. Please try again later"
+      "TOO_MANY_REQUESTS": "Too many attempts. Please try again later",
+      "THEME_EXISTS": "This church already has a theme with that name"
     }
   },
   "a11y": {

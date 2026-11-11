@@ -29,7 +29,7 @@ export interface BookingSession {
   // 講師
   lecturerId: string
   lecturerName: string
-  lecturerTitle: string // 牧師/傳道/長老等
+  lecturerTitle: string // 稱謂代碼，如 pastor（src/utils/lecturerTitle.ts）
 
   // 發起教師
   teacherUsername: string

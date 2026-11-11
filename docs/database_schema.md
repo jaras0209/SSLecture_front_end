@@ -1,7 +1,7 @@
 # SSLecture 後端資料庫設計文件
 
-> **文件版本**：v1.7.0  
-> **最後更新**：2026-10-30  
+> **文件版本**：v1.8.0  
+> **最後更新**：2026-11-11  
 > **資料來源**：分析前端 `src/stores/auth.ts`、`src/stores/courses.ts`、`src/stores/bookings.ts`、localStorage 資料結構  
 > **建議資料庫**：PostgreSQL（主要）/ MySQL（可選）  
 > **ORM 建議**：Prisma（Node.js）/ SQLAlchemy（Python）
@@ -32,19 +32,21 @@
    - [social_accounts（社群帳號綁定）](#218-social_accounts-社群帳號綁定)
    - [parent_children（家長綁定）](#219-parent_children-家長綁定) ⭐ NEW
    - [course_feedback（心得回覆）](#220-course_feedback-心得回覆) ⭐ NEW
-   - [course_feedback_reads（回覆已讀）](#221-course_feedback_reads-回覆已讀) ⭐ NEW
+   - [course_feedback_reads（回覆已讀）](#221-course_feedback_reads-回覆已讀)
+   - [auth_attempts（嘗試次數）](#222-auth_attempts-嘗試次數) ⭐ NEW
 3. [索引設計](#3-索引設計)
 4. [資料關聯一覽](#4-資料關聯一覽)
 5. [設計決策與說明](#5-設計決策與說明)
 6. [SQL 建表語句（PostgreSQL）](#6-sql-建表語句postgresql)
 7. [種子資料（Seed Data）](#7-種子資料seed-data)
 8. [Mermaid ERD 關聯圖](#8-mermaid-erd-關聯圖)
+9. [從前端備份搬移資料](#9-從前端備份搬移資料) ⭐ NEW
 
 ---
 
 ## 1. 資料庫設計總覽
 
-共 21 張表，依用途分組（`─<` 表示一對多，`>─<` 表示多對多；完整欄位與關聯見 [第 8 節 ERD](#8-mermaid-erd-關聯圖)，
+共 22 張表，依用途分組（`─<` 表示一對多，`>─<` 表示多對多；完整欄位與關聯見 [第 8 節 ERD](#8-mermaid-erd-關聯圖)，
 外鍵清單見[第 4 節](#4-資料關聯一覽)）：
 
 ```
@@ -53,6 +55,7 @@
                      ├─< refresh_tokens       JWT Refresh Token
                      └─< page_restrictions    頁面存取限制
   churches ─< invite_codes >─ users           邀請碼（建立者 / 使用者）
+  auth_attempts                               登入等的失敗次數（無外鍵，見 2.22）
 
 關懷
   users ─< student_assignments                學員 → 輔導教師、分區牧者
@@ -77,6 +80,17 @@
 統計
   users（教師）─< teaching_stats              年度教學人次
 ```
+
+> **v1.8.0 異動摘要**（帳號安全與登入期限）
+> - `users` 新增 `token_version`：停用、改角色、重設或修改密碼時遞增，讓既有的登入失效（見 [5.15](#515-登入期限與失效)）
+> - `users.avatar_url` 改為 `VARCHAR(2048)` 並只接受 `https://`（與前端 `isAllowedAvatarUrl()` 一致；
+>   別人的頭像會在每位看到的人的瀏覽器載入，其他網址可被用來追蹤誰看了名冊）
+> - `refresh_tokens` 新增 `remember_me` 與 `token_version`：未勾「記住我」閒置 2 小時失效、勾選 30 天；
+>   撤銷時機不只登出（見 2.13、5.15）
+> - 新增 `auth_attempts`：登入、邀請碼、忘記密碼等的失敗次數，用於嘗試次數限制（見 2.22）
+> - 軟刪除帳號的 `username` 不可重新使用（見 2.1）；`lecturers.title` 改存稱謂代碼（見 2.4）；
+>   邀請碼隨機部分改為 8 碼（見 2.17）
+> - 新增[第 9 節](#9-從前端備份搬移資料)：如何把前端匯出的備份檔搬進資料庫
 
 > **v1.7.0 異動摘要**
 > - `users` 新增 `gender`（教師、學員依性別分開管理，見 [5.10](#510-性別分開管理與可見範圍)）
@@ -117,8 +131,9 @@
 | `email_verified` | `BOOLEAN` | NOT NULL, DEFAULT FALSE | 信箱是否已驗證；社群帳號自動合併的前提 ⭐ |
 | `must_change_password` | `BOOLEAN` | NOT NULL, DEFAULT FALSE | 管理員建立帳號或重設密碼後為 TRUE，使用者改密碼後清除 ⭐ |
 | `gender` | `ENUM` | NULL | `male` / `female`；只用於 `student`、`teacher`，由牧者或管理員設定 ⭐ |
-| `avatar_url` | `VARCHAR(512)` | NULL | 頭像圖片 URL |
+| `avatar_url` | `VARCHAR(2048)` | NULL, CHECK `https://` | 頭像圖片 URL；只接受 `https://`（前端 `isAllowedAvatarUrl()`） ⭐ |
 | `login_method` | `ENUM` | NOT NULL, DEFAULT 'credentials' | `credentials` / `google` / `line` |
+| `token_version` | `INTEGER` | NOT NULL, DEFAULT 0 | 停用、改角色、重設或修改密碼時遞增；版本不符的 Token 失效（見 5.15） ⭐ |
 | `is_active` | `BOOLEAN` | NOT NULL, DEFAULT TRUE | 帳號是否啟用（FALSE = 軟刪除） |
 | `last_login_at` | `TIMESTAMPTZ` | NULL | 最後登入時間 |
 | `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
@@ -131,7 +146,9 @@
 - `real_name` 僅用於管理端（教師/牧者/管理員）顯示，不對學員公開
 - `is_active = FALSE` 為軟刪除，歷史資料保留；軟刪除時須一併做 [5.12](#512-刪除帳號或變更角色時的清理) 的清理
 - 軟刪除的帳號列仍在，`username` 的唯一限制照常生效：歷史資料掛在這個名稱下，同名的新帳號會看到前一位的資料，所以名稱不可重新使用
-- 建議加上 `token_version INTEGER NOT NULL DEFAULT 0`：停用、改角色、重設或修改密碼時遞增，讓既有的登入失效（見 API 規格「帳號變更時結束既有的登入」）
+- `token_version`：停用、改角色、重設或修改密碼時遞增，讓既有的登入立即失效（見 [5.15](#515-登入期限與失效)）
+- `avatar_url` 只接受 `https://`：頭像會在每位看到的人的瀏覽器載入，`http://` 或其他網址可被用來追蹤誰在何時看了名冊；
+  前端也會在載入時不帶來源頁面（`referrerpolicy="no-referrer"`），失效時改顯示預設頭像
 - 社群登入（Google / LINE）的使用者同樣是 `users` 的一筆資料，`password_hash` 為 NULL；
   完成 onboarding（填入教會）後，牧者與管理員才能在名冊看到並設定性別、指派教師、綁定家長
 - `gender` 只對 `student`、`teacher` 有意義（前端 `GENDERED_ROLES`）；NULL 表示尚未設定，
@@ -392,10 +409,19 @@
 | `id` | `UUID` | PK, NOT NULL | 唯一識別碼 |
 | `user_id` | `UUID` | FK → users.id, NOT NULL | 所屬使用者 |
 | `token_hash` | `VARCHAR(255)` | UNIQUE, NOT NULL | Refresh Token 的 SHA256 雜湊值 |
-| `expires_at` | `TIMESTAMPTZ` | NOT NULL | Token 過期時間 |
-| `is_revoked` | `BOOLEAN` | NOT NULL, DEFAULT FALSE | 是否已被撤銷（登出時設為 TRUE） |
+| `remember_me` | `BOOLEAN` | NOT NULL, DEFAULT FALSE | 登入時是否勾選「記住我」（社群登入一律 FALSE） ⭐ |
+| `token_version` | `INTEGER` | NOT NULL | 簽發時的 `users.token_version`；不符即失效 ⭐ |
+| `expires_at` | `TIMESTAMPTZ` | NOT NULL | 失效時間；每次換發時順延（見設計說明） |
+| `is_revoked` | `BOOLEAN` | NOT NULL, DEFAULT FALSE | 是否已被撤銷（見設計說明） |
 | `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
 | `last_used_at` | `TIMESTAMPTZ` | NULL | 最後使用時間 |
+
+**設計說明**：
+- 期限是**閒置**期限，每次換發時順延：`remember_me = FALSE` 為 `last_used_at + 2 小時`，`TRUE` 為 `+ 30 天`
+  （與前端 `src/utils/session.ts` 一致）。前端在閒置到期與瀏覽器重新開啟時也會自行登出，但期限以這裡為準
+- 撤銷時機：登出（只撤銷這一個）；帳號停用、改角色、管理員重設密碼（撤銷該帳號全部）；
+  使用者自己改密碼（撤銷該帳號其他的，保留目前這個）。也可以不逐筆撤銷，改為遞增 `users.token_version`
+- 換發時重新讀取帳號：`users.is_active = FALSE` 或 `token_version` 不符就拒絕
 
 ---
 
@@ -649,6 +675,40 @@ GROUP BY f.course_id;
 
 ---
 
+### 2.22 `auth_attempts` 嘗試次數
+
+> **對應**：API 規格「嘗試次數限制」（`429 TOO_MANY_REQUESTS`）
+> **新增於**：v1.8.0
+
+| 欄位名 | 資料型別 | 限制 | 說明 |
+|--------|----------|------|------|
+| `id` | `BIGSERIAL` | PK | 流水號 |
+| `action` | `ENUM` | NOT NULL | `login` / `invite_code` / `password_forgot` / `password_reset` / `password_change` / `oauth_exchange` |
+| `subject` | `VARCHAR(255)` | NULL | 嘗試的帳號或信箱（小寫）；不知道是誰時為 NULL |
+| `ip` | `INET` | NOT NULL | 來源 IP |
+| `succeeded` | `BOOLEAN` | NOT NULL | 是否成功 |
+| `attempted_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 時間 |
+
+**設計說明**：
+- 以「帳號」與「來源 IP」各算一份失敗次數，例如同一帳號 15 分鐘內登入失敗 5 次就鎖 15 分鐘（各項上限見 API 規格）
+- `subject` 不設外鍵：不存在的帳號也要計數，否則鎖或不鎖就透露了帳號是否存在
+- 成功後該帳號的計數歸零（只需比較最後一次成功之後的失敗）
+- 只需保留最近 24 小時，定期刪除舊資料；流量大時可改用 Redis 等快取（以 `action:subject`、`action:ip` 為鍵、設定過期時間），就不需要這張表
+- 被鎖的事件建議另行記錄，讓管理員看得到有人在試
+
+```sql
+-- 帳號 :subject 最近 15 分鐘、最後一次成功之後的登入失敗次數
+SELECT COUNT(*) FROM auth_attempts
+WHERE action = 'login' AND subject = :subject AND NOT succeeded
+  AND attempted_at > NOW() - INTERVAL '15 minutes'
+  AND attempted_at > COALESCE((SELECT MAX(attempted_at) FROM auth_attempts
+                               WHERE action = 'login' AND subject = :subject AND succeeded), '-infinity');
+```
+
+**SQL DDL**：見[第 6 節](#6-sql-建表語句postgresql)。
+
+---
+
 ## 3. 索引設計
 
 ```sql
@@ -706,6 +766,10 @@ CREATE INDEX idx_invite_codes_created_by ON invite_codes(created_by);
 CREATE INDEX idx_invite_codes_used_by    ON invite_codes(used_by);
 CREATE INDEX idx_invite_codes_expires_at ON invite_codes(expires_at);
 CREATE INDEX idx_invite_codes_church     ON invite_codes(church_id);
+
+-- auth_attempts 表（嘗試次數限制，見 2.22）⭐
+CREATE INDEX idx_auth_attempts_subject ON auth_attempts(action, subject, attempted_at);
+CREATE INDEX idx_auth_attempts_ip      ON auth_attempts(action, ip, attempted_at);
 ```
 
 ---
@@ -786,6 +850,8 @@ CREATE INDEX idx_invite_codes_church     ON invite_codes(church_id);
 |-----------|------------|
 | `shining_faith_checklists.shining_project_id` | `CASCADE`：一起刪除 |
 | `shining_lectures.shining_project_id` | `CASCADE`：一起刪除 |
+
+`auth_attempts` 沒有外鍵：`subject` 是嘗試的帳號名稱或信箱，不存在的帳號也要計數（見 2.22）。
 
 ---
 
@@ -935,6 +1001,8 @@ ORDER BY COALESCE(bs.confirmed_at, bs.proposed_at);
   `ON DELETE RESTRICT`（實體刪除帳號前須先處理，正常流程只會軟刪除）
 - 取消原因讓學員看得到為什麼預約取消（「輔導教師帳號已刪除」或「輔導教師已不再擔任此身分」）
 - 選回同一個角色不做任何事
+- 刪除帳號或改角色時遞增 `users.token_version`，讓該帳號已登入的工作階段立即失效（見 5.15）
+- 帳號名稱不可重新使用：軟刪除的列仍在，`username` 的唯一限制照常生效（前端以 `retiredUsernames` 做同樣的事）
 
 ### 5.13 牧者與管理員的預約總覽
 
@@ -968,6 +1036,24 @@ SELECT to_char(proposed_at AT TIME ZONE 'Asia/Taipei', 'YYYY-MM-DD"T"HH24:MI') A
 - 不可把牆上時間當成 UTC（會差 8 小時），也不要依伺服器所在時區解讀（雲端主機多半是 UTC）
 - 目前所有教會都在台灣，所以固定 `Asia/Taipei`；若未來有其他時區的教會，再在 `churches` 加 `time_zone` 欄位
 - 前端相關工具：`src/utils/datetime.ts`（`toLocalDateTimeInput()` 產生牆上時間、`nowIso()` 產生系統時間戳記）
+
+### 5.15 登入期限與失效
+
+教會常用共用的電腦或平板，所以登入有期限，且帳號一有變更就讓既有的登入失效：
+
+| 情況 | 做法 |
+|------|------|
+| 未勾「記住我」（預設；社群登入一律如此） | `refresh_tokens.expires_at = last_used_at + 2 小時`，每次換發順延 |
+| 勾選「記住我」 | `expires_at = last_used_at + 30 天`，每次換發順延 |
+| 登出 | 撤銷這一個 Refresh Token |
+| 帳號停用、改角色、管理員重設密碼 | `users.token_version + 1`：該帳號所有 Token 都失效 |
+| 使用者自己改密碼 | 撤銷該帳號其他的 Refresh Token，保留目前這個 |
+
+- Access Token 帶著簽發時的 `token_version`；每次請求都以資料庫為準檢查帳號是否啟用、角色與版本，
+  不能只信 Token 裡記載的角色（否則被降級或停用的人在 Token 到期前仍以原本身分操作）
+- 前端的對應：`src/utils/session.ts`（閒置計時、關閉瀏覽器後登出、到期前 5 分鐘提醒）；
+  前端只是讓畫面即時反映，期限必須由後端執行
+- API 端的規則見 `backend_api_spec.md`「記住我與閒置登出」「帳號變更時結束既有的登入」
 
 ---
 
@@ -1010,8 +1096,10 @@ CREATE TABLE users (
   email                VARCHAR(255),           -- 選填，小寫儲存
   email_verified       BOOLEAN NOT NULL DEFAULT FALSE,
   must_change_password BOOLEAN NOT NULL DEFAULT FALSE,
-  avatar_url    VARCHAR(512),
+  avatar_url    VARCHAR(2048)
+                CHECK (avatar_url ~ '^https://'),  -- 只接受 https（見 2.1）
   login_method  login_method NOT NULL DEFAULT 'credentials',
+  token_version INTEGER      NOT NULL DEFAULT 0,   -- 遞增即讓既有登入失效（見 5.15）
   is_active     BOOLEAN      NOT NULL DEFAULT TRUE,
   last_login_at TIMESTAMPTZ,
   created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
@@ -1196,7 +1284,9 @@ CREATE TABLE refresh_tokens (
   id           UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id      UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   token_hash   VARCHAR(255) NOT NULL UNIQUE,
-  expires_at   TIMESTAMPTZ NOT NULL,
+  remember_me  BOOLEAN     NOT NULL DEFAULT FALSE,
+  token_version INTEGER    NOT NULL,             -- 簽發時的 users.token_version
+  expires_at   TIMESTAMPTZ NOT NULL,             -- 閒置期限，換發時順延（見 2.13）
   is_revoked   BOOLEAN     NOT NULL DEFAULT FALSE,
   created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   last_used_at TIMESTAMPTZ
@@ -1349,6 +1439,25 @@ CREATE TABLE course_feedback_reads (
   seen_up_to TIMESTAMPTZ NOT NULL,
   PRIMARY KEY (student_id, course_id)
 );
+
+-- ═══════════════════════════════════════════════════
+--  21. auth_attempts（嘗試次數，見 2.22）
+-- ═══════════════════════════════════════════════════
+CREATE TYPE auth_action AS ENUM (
+  'login', 'invite_code', 'password_forgot', 'password_reset', 'password_change', 'oauth_exchange'
+);
+
+CREATE TABLE auth_attempts (
+  id           BIGSERIAL    PRIMARY KEY,
+  action       auth_action  NOT NULL,
+  subject      VARCHAR(255),                     -- 帳號或信箱（小寫），不設外鍵（見 2.22）
+  ip           INET         NOT NULL,
+  succeeded    BOOLEAN      NOT NULL,
+  attempted_at TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_auth_attempts_subject ON auth_attempts(action, subject, attempted_at);
+CREATE INDEX idx_auth_attempts_ip      ON auth_attempts(action, ip, attempted_at);
 ```
 
 ---
@@ -1466,8 +1575,9 @@ erDiagram
     VARCHAR     email            "選填，UNIQUE(lower)"
     BOOLEAN     email_verified   "DEFAULT FALSE"
     BOOLEAN     must_change_password "DEFAULT FALSE"
-    VARCHAR     avatar_url
+    VARCHAR     avatar_url       "https only"
     login_method login_method    "ENUM, DEFAULT credentials"
+    INTEGER     token_version    "DEFAULT 0"
     BOOLEAN     is_active        "DEFAULT TRUE"
     TIMESTAMPTZ last_login_at
     TIMESTAMPTZ created_at
@@ -1619,10 +1729,21 @@ erDiagram
     UUID        id           PK
     UUID        user_id      FK "-> users.id CASCADE"
     VARCHAR     token_hash   UK "UNIQUE"
+    BOOLEAN     remember_me     "DEFAULT FALSE"
+    INTEGER     token_version
     TIMESTAMPTZ expires_at
     BOOLEAN     is_revoked      "DEFAULT FALSE"
     TIMESTAMPTZ created_at
     TIMESTAMPTZ last_used_at
+  }
+
+  auth_attempts {
+    BIGSERIAL   id           PK
+    auth_action action          "ENUM login/invite_code/..."
+    VARCHAR     subject         "帳號或信箱，無外鍵"
+    INET        ip
+    BOOLEAN     succeeded
+    TIMESTAMPTZ attempted_at
   }
 
   %% ════════════════════════════════════
@@ -1772,6 +1893,58 @@ erDiagram
 > - PK = Primary Key， FK = Foreign Key， UK = Unique Key
 > - `CASCADE`：父表刪除時連帶刪除
 > - `SET NULL`：父表刪除時將欄位置為 NULL（保留子表紀錄）
+
+---
+
+## 9. 從前端備份搬移資料
+
+後端上線前，資料都存在前端（瀏覽器的 localStorage）。管理員頁面的「資料備份」可以把全部資料匯出成一個
+JSON 檔（前端 `src/utils/backup.ts`），上線時用它把既有資料搬進資料庫。
+
+**檔案格式**：
+
+```json
+{
+  "app": "sslecture",
+  "version": 1,
+  "exportedAt": "2026-11-10T01:30:00.000Z",
+  "data": { "superstart_users_db": { ... }, "superstart_progress_db": { ... } }
+}
+```
+
+`data` 的每一項對應到資料表如下（沒有的項目表示那部分沒有資料）：
+
+| `data` 的鍵 | 形狀 | 搬到 |
+|-------------|------|------|
+| `superstart_users_db` | `{ username: { passwordHash, role, church, displayName, realName, email, gender, avatarUrl, loginMethod, mustChangePassword, childUsernames, lastLoginAt } }` | `users`；`church` 名稱 → `churches.id`；`childUsernames` → `parent_children` |
+| `superstart_retired_usernames` | `string[]` | `users`（`is_active = FALSE` 的佔位帳號，讓名稱保持被占用） |
+| `superstart_invite_codes` | `{ code: InviteCode }` | `invite_codes`（`createdBy`、`usedBy` 帳號 → `users.id`） |
+| `superstart_student_teacher_db` | `{ student: { teacher?, pastor? } }` | `student_assignments` |
+| `superstart_restrictions_db` | `{ username: string[] }` | `page_restrictions` |
+| `superstart_progress_db` | `{ student: { courseId: { sessions: ListenSession[] } } }` | `listen_sessions`（每個 session 一筆） |
+| `superstart_feedback_db` | `{ student: { courseId: CourseFeedback[] } }` | `course_feedback`（`author` → `users.id`） |
+| `superstart_feedback_seen_db` | `{ student: { courseId: ISO 時間 } }` | `course_feedback_reads.seen_up_to` |
+| `superstart_shining_project_db` | `{ username: ShiningProject }` | `shining_projects`、`shining_faith_checklists`、`shining_lectures` |
+| `superstart_character_themes_db`、`superstart_coming_of_age_themes_db` | `{ church: string[] }` | `themes`（依順序填 `sort_order`） |
+| `superstart_lecturers_db` | `Lecturer[]` | `lecturers`、`lecturer_courses`（`linkedUsername` → `linked_user_id`） |
+| `superstart_teaching_stats_db` | `{ "username_year": TeachingStats }` | `teaching_stats` |
+| `superstart_booking_sessions_db` | `{ id: BookingSession }` | `booking_sessions` |
+| `superstart_booking_attendees_db` | `{ id: BookingAttendee }` | `booking_attendees` |
+
+**搬移時注意**：
+
+- **密碼**：前端模擬階段的 `passwordHash` 其實是**明碼**。搬移時須以 bcrypt 雜湊後存入，並建議設
+  `must_change_password = TRUE`，請大家第一次登入後換掉（這些密碼曾以明碼存在瀏覽器與備份檔裡）；
+  空字串表示社群帳號，存 NULL
+- **識別碼**：前端的 ID（如講師 `l1`、預約 `sess_…`、回覆 `fb_…`）不是 UUID。搬移時產生新的 UUID，
+  並在同一次搬移中保留「舊 ID → 新 UUID」的對照，用來接上預約與講師、出席與預約等關聯
+- **時間**：系統時間戳記（`createdAt`、`lastLoginAt` 等）是 ISO 8601（UTC），直接存入；學員填的牆上時間
+  （`listenedAt`、`proposedAt`、`confirmedAt`）沒有時區，依 [5.14](#514-時間與時區) 以 `Asia/Taipei` 解讀
+- **講師稱謂**：早期資料可能還是中文（「牧師」），依 2.4 的對照表換成代碼；前端讀取時也會換
+- **頭像**：不是 `https://` 的頭像網址存 NULL（2.1 的 CHECK 會拒絕），顯示時改用預設頭像
+- **順序**：依外鍵先後搬（`churches` → `users` → `courses`、`lecturers` → 其餘），整個搬移放在同一個交易，
+  失敗就全部不算；搬完後比對各項筆數與備份檔一致
+- 備份檔含所有帳號的密碼與學員心得，搬完後請妥善刪除
 
 ---
 

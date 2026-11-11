@@ -1,7 +1,7 @@
 # SSLecture 後端 API 規格文件
 
-> **文件版本**：v1.7.0
-> **最後更新**：2026-10-30
+> **文件版本**：v1.8.0
+> **最後更新**：2026-11-11
 > **前端版本**：Vue 3 + TypeScript（目前以 localStorage 模擬，待串接）
 > **目標後端技術**：Spring Boot 3.x + Spring Security 6.x（OAuth2 Client + JWT）
 
@@ -22,6 +22,20 @@
 11. [資料模型定義](#11-資料模型定義)
 12. [錯誤碼一覽](#12-錯誤碼一覽)
 13. [前端串接遷移指南](#13-前端串接遷移指南)
+
+> **v1.8.0 異動摘要**（帳號安全、登入期限、補齊端點）
+> - 新增 `PATCH /auth/me`：使用者修改自己的暱稱、姓名、頭像（只接受 `https://`）、信箱
+> - 新增專題主題 `GET` / `POST` / `PUT` / `DELETE /themes`（前端早已可管理，原本只有「建議新增」）
+> - `GET /auth/me` 補齊 `email`、`mustChangePassword`、`loginMethod`、`realName`、`childUsernames`、`lastLoginAt`
+> - 新增[密碼規則](#密碼規則)與 `400 WEAK_PASSWORD`；登入時帳號不存在與密碼錯誤一律回 `INVALID_CREDENTIALS`
+> - 新增[嘗試次數限制](#嘗試次數限制)與 `429 TOO_MANY_REQUESTS`（含 `Retry-After`）
+> - 新增[記住我與閒置登出](#記住我與閒置登出)（`rememberMe`）與[帳號變更時結束既有的登入](#帳號變更時結束既有的登入)
+> - 新增[跨網域（CORS）](#跨網域cors)：前端與 API 不同網域時的設定
+> - 社群帳號不可設定或重設密碼（`POST /auth/reset-password`、`PUT /admin/users/:username`）
+> - 刪除（停用）帳號後名稱不可重新使用；邀請碼隨機部分改為 8 碼（[格式](#post-admininvite-codes--new)）
+> - 講師稱謂改為代碼（`pastor`、`preacher`…），由前端依語言翻譯
+> - 第 11 節補上預約、出席、邀請碼、心得回覆、閃耀計畫、主題的資料模型；第 13 節對照表補齊，
+>   並說明如何以前端匯出的備份檔搬移既有資料
 
 > **v1.7.0 異動摘要**（帳號與信箱）
 > - 帳號規則：小寫、3–30 字元、只用英數字與 `. _ -`，比對不分大小寫（前端 `src/utils/account.ts`）
@@ -132,6 +146,26 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 - 不讓回應洩漏帳號是否存在：登入時帳號不存在與密碼錯誤都回 `401 INVALID_CREDENTIALS`（前端模擬登入也一樣），
   忘記密碼不論帳號是否存在都回相同的成功訊息；被鎖的帳號與不存在的帳號同樣回 429。
 - 記錄被鎖的事件，讓管理員看得到有人在試。
+
+### 跨網域（CORS）
+
+前端部署在 GitHub Pages（`https://jaras0209.github.io/SSLecture_front_end/`），API 在另一個網域，
+瀏覽器會先送預檢請求（`OPTIONS`），後端須允許：
+
+| 項目 | 設定 |
+|------|------|
+| `Access-Control-Allow-Origin` | 前端的來源（正式：`https://jaras0209.github.io`；開發：`http://localhost:5173`）；**不可用 `*`** |
+| `Access-Control-Allow-Methods` | `GET, POST, PUT, PATCH, DELETE, OPTIONS` |
+| `Access-Control-Allow-Headers` | `Authorization, Content-Type` |
+| `Access-Control-Expose-Headers` | `Retry-After`（前端用來顯示「請 N 分鐘後再試」） |
+| `Access-Control-Max-Age` | 例如 `600`，減少預檢次數 |
+
+- Token 以 `Authorization` 標頭傳送，不用 Cookie，所以不需要 `Access-Control-Allow-Credentials`
+- 社群登入完成後，後端導回前端的 `/SSLecture_front_end/login/callback?code=...`（見 OAuth 文件）
+- 前端的內容安全政策（CSP）只允許連線到 `VITE_API_BASE_URL` 的來源（`src/utils/csp.ts`）：
+  API 網址改變時須更新該環境變數並重新建置前端，否則請求會被瀏覽器擋下
+- 之後若改由自己的伺服器提供前端，請另加 `Content-Security-Policy` 回應標頭並包含 `frame-ancestors 'none'`
+  （`<meta>` 版本的 CSP 無法設定此項）
 
 ### 分頁格式（列表類 API）
 ```json
@@ -331,12 +365,51 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
     "role": "student",
     "church": "愛與話語",
     "displayName": "王小明",
+    "realName": "王小明",
+    "email": "ming@example.com",
     "gender": "male",
     "avatarUrl": "https://...",
+    "loginMethod": "credentials",
+    "mustChangePassword": false,
+    "childUsernames": null,
+    "lastLoginAt": "2026-11-10T01:30:00Z",
     "createdAt": "2025-01-01T00:00:00Z"
   }
 }
 ```
+
+- `mustChangePassword` 為 `true` 時前端只顯示「請先設定新密碼」頁（其他 API 也會回 `403 PASSWORD_CHANGE_REQUIRED`）
+- `childUsernames` 只用於 `parent`，其他角色為 `null`；`loginMethod` 為 `google` / `line` 時沒有密碼，前端不顯示「修改密碼」
+
+---
+
+### `PATCH /auth/me` ⭐ NEW
+**說明**：修改自己的個人資料（前端個人資料視窗，`authStore.updateProfile()`）
+
+**權限**：需登入
+
+**Request Body**（欄位均選填，只傳要改的）：
+```json
+{
+  "displayName": "小明",
+  "realName": "王小明",
+  "avatarUrl": "https://api.dicebear.com/7.x/fun-emoji/svg?seed=ming",
+  "email": "ming@example.com"
+}
+```
+
+**規則**（全部檢查通過才寫入，不會只存一部分）：
+- `displayName`、`realName`：去掉前後空白；空字串表示清除
+- `avatarUrl`：只接受 `https://`、最長 2048 字元；空字串表示改回預設頭像。頭像會在每位看到的人的瀏覽器載入，
+  其他網址可被用來追蹤誰在何時看了名冊（前端 `isAllowedAvatarUrl()`）
+- `email`：同 `POST /auth/register` 的信箱規則（選填、小寫、不可與其他帳號重複）；空字串表示清除
+- 角色、教會、性別、帳號名稱不能在這裡改（由管理員或牧者處理）
+
+**Response**：更新後的使用者，格式同 `GET /auth/me`
+
+**錯誤**：
+- `400 VALIDATION_ERROR`：頭像網址不是 `https://` 或太長、信箱格式不符（訊息指出哪個欄位）
+- `409 EMAIL_TAKEN`：信箱已被其他帳號使用
 
 ---
 
@@ -510,7 +583,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
     "coverColor": "...",
     "duration": 180,
     "lecturers": [
-      { "id": "l1", "name": "張牧師", "title": "牧師" }
+      { "id": "l1", "name": "張牧師", "title": "pastor" }
     ]
   }
 }
@@ -742,7 +815,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
       {
         "id": "l1",
         "name": "張牧師",
-        "title": "牧師",
+        "title": "pastor",
         "church": "愛與話語",
         "courseIds": ["bible-01", "bible-02"],
         "linkedUsername": "teacher01"
@@ -757,13 +830,13 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 ### `POST /lecturers`
 **說明**：新增講師
 
-**權限**：`admin`，或具權限的 `teacher`
+**權限**：該教會的 `teacher`、`pastor`；`admin` 可管理任何教會（前端「設定」分頁）
 
 **Request Body**：
 ```json
 {
   "name": "林長老",
-  "title": "長老",
+  "title": "elder",
   "church": "愛與話語",
   "courseIds": ["lecture-01", "lecture-02"],
   "linkedUsername": "teacher02"
@@ -774,20 +847,22 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 | 欄位 | 型別 | 必填 | 說明 |
 |------|------|------|------|
 | `name` | string | 是 | 講師顯示名稱 |
-| `title` | string | 是 | 牧師 / 傳道 / 長老 / 辔導 / 老師 |
+| `title` | string | 是 | 稱謂代碼：`lecturer`（講師）、`pastor`（牧師）、`preacher`（傳道人）、`elder`（長老）、`pastor_wife`（師母）、`counselor`（輔導）、`guest`（特約講師）；畫面由前端依語言翻譯 |
 | `church` | string | 是 | 所屬教會 |
 | `courseIds` | string[] | 是 | 可講授課程 ID 清單 |
 | `linkedUsername` | string? | 否 | 連結已登入教師帳號（空則為自訂講師） |
 
 > [!NOTE]
-> `linkedUsername` 為空則為「自訂 / 外來講員」，不選用系統帳號文件；無則繼続現有值。
+> `linkedUsername` 為空表示「自訂／外來講員」，不連結系統帳號。`PUT` 時未傳此欄位則維持現有的連結。
+> 早期資料的 `title` 可能是中文（如「牧師」），讀取或搬移時請依上表換成代碼（前端 `src/utils/lecturerTitle.ts`）；
+> 認不得的稱謂原樣保留。
 
 ---
 
 ### `PUT /lecturers/:lecturerId`
 **說明**：完整更新講師資料
 
-**權限**：`admin`
+**權限**：同 `POST /lecturers`
 
 **Request Body**：同 POST
 
@@ -796,7 +871,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 ### `DELETE /lecturers/:lecturerId`
 **說明**：刪除講師
 
-**權限**：`admin`
+**權限**：同 `POST /lecturers`
 
 ---
 
@@ -1045,7 +1120,28 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 }
 ```
 
-> ⚠️ **注意**：`faithPhase2.courses30` 若後端計算學員已完成 30 門課，應自動設為 `true`，不受前端傳入值影響。
+> ⚠️ **注意**：學員完成**目前課程目錄中的所有課程**時，`faithPhase2.courses30` 視為已勾選（前端 `isShiningChecked()`、
+> `hasCompletedAllCourses()`），不受傳入值影響；此時前端的勾選框也會鎖定。未全部完成前，學員可以自己勾選
+> （例如在其他地方聽完的）。
+
+---
+
+### 專題主題 Themes ⭐ NEW
+
+各教會的「品格力」與「成年禮」專題講座主題（資料庫 `themes`，前端 `addTheme()` / `updateTheme()` / `deleteTheme()`），
+閃耀計畫的講座登記表依此列出。
+
+**權限**：讀取需登入；新增、修改、刪除為該教會的 `teacher`、`pastor`，`admin` 可管理任何教會
+
+| 方法 | 端點 | 說明 |
+|------|------|------|
+| `GET` | `/themes?church=愛與話語&type=character` | 依順序列出；`type` 為 `character` 或 `comingOfAge` |
+| `POST` | `/themes` | `{ "church": "愛與話語", "type": "character", "name": "品格力 - 謙卑" }`，加在最後 |
+| `PUT` | `/themes/:themeId` | `{ "name": "新名稱" }` 改名 |
+| `DELETE` | `/themes/:themeId` | 刪除（軟刪除 `is_active = FALSE`） |
+
+- 同一教會、同一類型的名稱不可重複（`409 THEME_EXISTS`）
+- 學員已登記的講座以主題**名稱**存放（`shining_lectures.theme_name`，見資料庫文件 5.3），改名或刪除主題不會改動已登記的內容
 
 ---
 
@@ -1108,6 +1204,12 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 預約的取消原因為「輔導教師已不再擔任此身分」。
 
 更改角色或重設密碼後，該帳號已登入的工作階段須失效，見[帳號變更時結束既有的登入](#帳號變更時結束既有的登入)。
+
+**設定密碼（`password`）時**：
+- 社群帳號（`loginMethod` 為 `google` / `line`、沒有密碼）不可設定：回 `400 VALIDATION_ERROR`。給它一組管理員知道的密碼，
+  等於讓知道的人能以帳號密碼登入並占用該帳號（同 `POST /auth/reset-password`）
+- 設定後 `mustChangePassword = true`，使用者下次登入須先換掉；不受[密碼規則](#密碼規則)限制，因為馬上就要換
+- 前端目前的「重設密碼」一律設為預設密碼（`DEFAULT_RESET_PASSWORD`），並以確認視窗告知管理員
 
 ---
 
@@ -1719,7 +1821,7 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 |------|------|------|
 | `id` | string | 唯一 ID |
 | `name` | string | 講師顯示名稱 |
-| `title` | string | 職稱（牧師/傳道/長老/輔導等） |
+| `title` | string | 稱謂代碼（`pastor`、`preacher`、`elder`…，見 `POST /lecturers`） |
 | `church` | string | 所屬教會 |
 | `courseIds` | string[] | 可授課的課程 ID 清單（用於篩選建議講師） |
 | `linkedUsername` | string? | 連結的教師或牧者帳號（FK → users.username）；空則為外來/自訂講師。連結後該帳號有「我的授課」 |
@@ -1731,6 +1833,73 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | `teacher` | string? | 輔導教師帳號（FK） |
 | `pastor` | string? | 分區牧者帳號（FK） |
 | `updatedAt` | ISO8601 | 最後更新時間 |
+
+### BookingSession（預約場次） ⭐
+| 欄位 | 型別 | 說明 |
+|------|------|------|
+| `id` | string | 唯一 ID |
+| `courseId` / `courseTitle` | string | 課程（名稱冗餘保存，課程改名或刪除後仍可顯示） |
+| `lecturerId` / `lecturerName` / `lecturerTitle` | string | 講師（同上冗餘保存；`lecturerTitle` 為稱謂代碼） |
+| `teacherUsername` | string | 安排預約的教師 |
+| `proposedAt` | 牆上時間 | 提議時間，如 `2026-06-25T14:00`（以 `Asia/Taipei` 解讀，見資料庫文件 5.14） |
+| `confirmedAt` | 牆上時間? | 確認後的時間 |
+| `durationMinutes` | number | 預計時長（分鐘） |
+| `status` | `pending` \| `confirmed` \| `completed` \| `cancelled` | 狀態 |
+| `cancelReason` | string? | 取消原因（學員看得到） |
+| `prep` | `{ scriptures: string[], readingNotes: string, materials: string }` | 預習內容 |
+| `teacherSessionNotes` | string | 完成後的整體備註 |
+| `church` | string | 教會 |
+| `isGroupSession` | boolean | 是否多人場次 |
+| `createdAt` / `updatedAt` | ISO8601 | 系統時間 |
+
+### BookingAttendee（場次學員） ⭐
+| 欄位 | 型別 | 說明 |
+|------|------|------|
+| `sessionId` | string | 所屬場次 |
+| `studentUsername` | string | 學員 |
+| `attendanceStatus` | `invited` \| `attended` \| `absent` | 出席狀態 |
+| `studentFeedback` | string | 學員心得（學員或教師代填） |
+| `teacherFeedback` | string | 教師對此學員的回饋 |
+| `feedbackAt` | ISO8601? | 回饋時間 |
+| `linkedListenSessionId` | string? | 連結的聽課紀錄（選填） |
+
+### InviteCode（邀請碼） ⭐
+| 欄位 | 型別 | 說明 |
+|------|------|------|
+| `code` | string | 如 `SS-TCH-K7M2QX9D`（格式見 `POST /admin/invite-codes`） |
+| `role` | 角色 | 以此碼註冊的角色 |
+| `church` | string? | 指定教會（`admin` 為空） |
+| `createdBy` | string | 產生的管理員 |
+| `createdAt` / `expiresAt` | ISO8601 | 產生與到期時間 |
+| `usedBy` / `usedAt` | string? / ISO8601? | 使用者與使用時間 |
+| `revoked` | boolean | 是否已作廢 |
+
+### CourseFeedback（心得回覆） ⭐
+| 欄位 | 型別 | 說明 |
+|------|------|------|
+| `id` | string | 唯一 ID |
+| `author` | string | 回覆的教師、牧者或管理員帳號 |
+| `message` | string | 內容 |
+| `createdAt` | ISO8601 | 時間；學員的「新回覆」依此與已讀時間比較 |
+
+### ShiningProject（閃耀計畫） ⭐
+| 欄位 | 型別 | 說明 |
+|------|------|------|
+| `name` / `birthday` / `church` / `schoolGrade` | string | 基本資料（學員自填） |
+| `faithPhase1` | `{ worship, prayer, independent, reply, share }` | 信仰指標第一階段（布林值） |
+| `faithPhase2` | `{ courses30, prayerLong, morningWorship, readBible, churchService }` | 第二階段；`courses30` 見 `PATCH /shining/:username` |
+| `advancedChallenges` | `{ wednesday, shareFaith, copySermon, morningProverb, custom }` | 進階挑戰 |
+| `customChallenge` | string | 自訂挑戰內容 |
+| `characterLectures` / `comingOfAgeTopics` | `{ [主題名稱]: { speaker, date } }` | 專題講座登記（依主題名稱，見「專題主題」） |
+
+### Theme（專題主題） ⭐
+| 欄位 | 型別 | 說明 |
+|------|------|------|
+| `id` | string | 唯一 ID |
+| `church` | string | 教會 |
+| `type` | `character` \| `comingOfAge` | 品格力或成年禮 |
+| `name` | string | 主題名稱 |
+| `sortOrder` | number | 顯示順序 |
 
 ---
 
@@ -1765,6 +1934,7 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | 404 | `STATS_NOT_FOUND` | 找不到此年度教學統計 |
 | 409 | `USERNAME_TAKEN` | 帳號名稱已被使用（不分大小寫） |
 | 409 | `EMAIL_TAKEN` | 信箱已被其他帳號使用 ⭐ |
+| 409 | `THEME_EXISTS` | 同一教會已有同名的專題主題 ⭐ |
 | 400 | `WEAK_PASSWORD` | 密碼不符合密碼規則（見 `POST /auth/register`） ⭐ |
 | 403 | `PASSWORD_CHANGE_REQUIRED` | 須先修改管理員設定的密碼 ⭐ |
 | 409 | `ATTENDEE_ALREADY_EXISTS` | 該學員已加入此場次 |
@@ -1792,6 +1962,13 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | `superstart_teaching_stats_db` | `GET /teaching-stats` / `PUT /teaching-stats/:username/:year` |
 | `superstart_booking_sessions_db` | `GET /bookings/sessions` / `POST /bookings/sessions` ⭐ |
 | `superstart_booking_attendees_db` | `GET /bookings/sessions/:id/attendees` / `PATCH /bookings/sessions/:id/attendees/:username` ⭐ |
+| `superstart_invite_codes` | `GET` / `POST /admin/invite-codes`、`DELETE /admin/invite-codes/:code` ⭐ |
+| `superstart_feedback_db` | `GET` / `POST /progress/:username/:courseId/feedback` ⭐ |
+| `superstart_feedback_seen_db` | `GET /progress/:username/feedback/unread`、`POST .../feedback/seen` ⭐ |
+| `superstart_retired_usernames` | 不需要 API：已停用的帳號列仍在，名稱的唯一限制照常生效 ⭐ |
+
+以下只屬於這台裝置，接上後端後仍留在瀏覽器（不對應 API）：`superstart_session`（登入期限計時）、
+`superstart_lang`（語言）、`superstart_last_backup_at`（上次備份時間）；`superstart_user` 改由 `GET /auth/me` 取得。
 
 ### Store 函式 → API 對照表
 
@@ -1830,6 +2007,26 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | `utils/scope.ts`（`canViewStudent` / `canViewAttendee` 等） | 後端每個學員相關 API 的授權過濾 ⭐ |
 | `bookingsStore.getUpcomingSessions()` | `GET /bookings/sessions?studentUsername=...&upcoming=true` ⭐ |
 | `bookingsStore.getPastSessions()` | `GET /bookings/sessions?studentUsername=...&past=true` ⭐ |
+| `authStore.login()` / `logout()` | `POST /auth/login`（含 `rememberMe`）/ `POST /auth/logout` ⭐ |
+| `authStore.register()` | `POST /auth/register` |
+| `authStore.exchangeOAuthCode()` / `completeProfile()` | `POST /auth/exchange` / `PUT /auth/complete-profile` |
+| `authStore.updateProfile()` | `PATCH /auth/me` ⭐ |
+| `authStore.updatePassword()` | `POST /auth/reset-password`（改自己的密碼） |
+| `authStore.adminResetPassword()` | `PUT /admin/users/:username`（`password`）⭐ |
+| `authStore.createAccount()` | `POST /admin/users` |
+| `authStore.deleteAccount()` | `DELETE /admin/users/:username` ⭐ |
+| `authStore.generateInviteCode()` / `revokeInviteCode()` | `POST /admin/invite-codes` / `DELETE /admin/invite-codes/:code` |
+| `authStore.consumeInviteCode()` | 由 `POST /auth/register`、`PUT /auth/complete-profile` 在後端處理 |
+| `authStore.unbindChildEverywhere()`、`coursesStore.releaseStudent()` / `releaseCaretaker()` / `unlinkLecturerAccount()` | 由 `DELETE` / `PUT /admin/users/:username` 在後端處理（同 `releaseRole()`） |
+| `coursesStore.updateShiningChecklist()` / `updateShiningCustomChallenge()` / `updateShiningLecture()` | `PATCH /shining/:username`（只傳變更的欄位） |
+| `coursesStore.addTheme()` / `updateTheme()` / `deleteTheme()` | `POST` / `PUT` / `DELETE /themes` ⭐ |
+| `bookingsStore.updateSessionProp()` | 依欄位對應 `PATCH /bookings/sessions/:id/status` 或 `/prep` |
+
+### 搬移既有資料 ⭐
+
+後端上線時，請管理員在前端「資料備份」匯出一份備份檔（JSON），依資料庫文件
+[第 9 節「從前端備份搬移資料」](./database_schema.md#9-從前端備份搬移資料) 搬進資料庫。重點：
+密碼在前端是明碼，搬移時須雜湊並要求大家換密碼；前端的 ID 須換成 UUID 並保留對照；牆上時間以 `Asia/Taipei` 解讀。
 
 ### Token 管理策略
 
