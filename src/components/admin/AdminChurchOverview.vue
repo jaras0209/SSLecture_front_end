@@ -181,7 +181,7 @@ function getChurchTeacherList(church: string): string[] {
 .church-card-name {
   margin: 0;
   font-size: 0.95rem;
-  font-weight: 800;
+  font-weight: 700;
   color: #1e293b;
 }
 
@@ -202,7 +202,7 @@ function getChurchTeacherList(church: string): string[] {
 
 .church-stat-val {
   font-size: 1.6rem;
-  font-weight: 800;
+  font-weight: 700;
   color: #4f46e5;
   line-height: 1;
 }

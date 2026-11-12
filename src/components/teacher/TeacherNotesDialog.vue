@@ -263,7 +263,7 @@ function onSendFeedback(courseId: string) {
 .notes-dialog-profile h3 {
   margin: 0 0 0.25rem 0;
   font-size: 1.15rem;
-  font-weight: 800;
+  font-weight: 700;
   color: #1e293b;
 }
 
@@ -634,7 +634,7 @@ function onSendFeedback(courseId: string) {
 :where(body:has(.teacher-dashboard)) .notes-dialog-profile h3 {
   margin: 0 0 0.25rem 0;
   font-size: 1.15rem;
-  font-weight: 800;
+  font-weight: 700;
   color: #1e293b;
 }
 </style>

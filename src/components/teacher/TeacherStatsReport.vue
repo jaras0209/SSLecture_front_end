@@ -325,7 +325,7 @@ function handleSaveStats() {
 
 .stats-total-num {
   font-size: 1.5rem;
-  font-weight: 800;
+  font-weight: 700;
   background: linear-gradient(135deg, var(--primary), var(--secondary));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

@@ -37,7 +37,7 @@ function goHome() {
 }
 .notfound-code {
   font-size: 5rem;
-  font-weight: 900;
+  font-weight: 700;
   background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

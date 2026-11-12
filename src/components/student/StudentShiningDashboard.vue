@@ -465,7 +465,7 @@ function triggerPrint() {
   content: '✓';
   position: absolute;
   color: white;
-  font-weight: 800;
+  font-weight: 700;
   font-size: 0.75rem;
   left: 4px;
   top: -1px;

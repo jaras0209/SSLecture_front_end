@@ -1,13 +1,9 @@
-/* Self-hosted fonts (bundled from @fontsource; same weights as the former Google Fonts link) */
+/* Self-hosted fonts (bundled from @fontsource). Only these four weights exist, so use 400–700 in styles:
+   a heavier weight renders as 700 anyway. Chinese text uses the system font. */
 @import '@fontsource/quicksand/400.css';
 @import '@fontsource/quicksand/500.css';
 @import '@fontsource/quicksand/600.css';
 @import '@fontsource/quicksand/700.css';
-@import '@fontsource/outfit/300.css';
-@import '@fontsource/outfit/400.css';
-@import '@fontsource/outfit/500.css';
-@import '@fontsource/outfit/600.css';
-@import '@fontsource/outfit/700.css';
 
 /*
  * App shell and shared component styles (formerly the global <style> block in App.vue).
@@ -276,8 +272,7 @@
   --text-muted: #556377; /* between Slate 500 and 600: meets WCAG AA on the tinted panels */
 
   /* Typography */
-  --font-family:
-    'Quicksand', 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family: 'Quicksand', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
   /* Effects */
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.02);

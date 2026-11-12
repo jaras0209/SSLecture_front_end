@@ -247,7 +247,7 @@ const assignedParent = computed(() => tList(authStore.parentsOf(username.value))
   }
   :where(body:has(.student-dashboard, .teacher-dashboard)) .print-banner-logo {
     font-size: 2.2rem;
-    font-weight: 800;
+    font-weight: 700;
     letter-spacing: 2px;
   }
   :where(body:has(.student-dashboard, .teacher-dashboard)) .print-banner-sub {
@@ -278,7 +278,7 @@ const assignedParent = computed(() => tList(authStore.parentsOf(username.value))
   }
   :where(body:has(.student-dashboard, .teacher-dashboard)) .print-box-title {
     font-size: 1rem;
-    font-weight: 800;
+    font-weight: 700;
     border-bottom: 1px solid #eee;
     padding-bottom: 5px;
     margin-bottom: 10px;

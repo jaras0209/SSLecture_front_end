@@ -1,0 +1,38 @@
+name: Set up Playwright
+description: >
+  Installs Chromium for the end-to-end tests. The browser is cached between runs; the system
+  packages it needs come from Ubuntu's mirrors, which sometimes fail to resolve, so that step retries.
+
+runs:
+  using: composite
+  steps:
+    - name: Read Playwright version
+      id: version
+      shell: bash
+      run: echo "version=$(npx playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+    - name: Cache Playwright browser
+      id: cache
+      uses: actions/cache@v6
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-${{ runner.os }}-${{ steps.version.outputs.version }}
+
+    - name: Install Playwright browser
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: npx playwright install chromium
+
+    # Not cached: these are apt packages (fonts and libraries) installed into the runner itself
+    - name: Install system dependencies
+      shell: bash
+      run: |
+        for attempt in 1 2 3; do
+          npx playwright install-deps chromium && exit 0
+          if [ "$attempt" -lt 3 ]; then
+            echo "::warning::Installing system dependencies failed (attempt $attempt of 3); retrying in $((attempt * 60)) s"
+            sleep $((attempt * 60))
+          fi
+        done
+        echo "::error::Could not install system dependencies after 3 attempts"
+        exit 1

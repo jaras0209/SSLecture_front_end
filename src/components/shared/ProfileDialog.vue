@@ -347,7 +347,7 @@ function close() {
 
 .pd-title {
   font-size: 1.2rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--text-primary);
 }
 

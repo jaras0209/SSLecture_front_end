@@ -41,8 +41,8 @@ jobs:
       - name: Type check and build
         run: npm run build
 
-      - name: Install Playwright browser
-        run: npx playwright install --with-deps chromium
+      - name: Set up Playwright
+        uses: ./.github/actions/setup-playwright
 
       - name: End-to-end tests
         run: npm run test:e2e
