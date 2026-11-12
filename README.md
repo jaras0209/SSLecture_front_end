@@ -29,7 +29,7 @@ SSLecture 是一個基於 **Vue 3 + TypeScript + Vite** 技術棧開發的現代
 *   **多語系架構**：Vue I18n 11（Composition API 模式，`zh-TW` / `en` 雙語系；`en` 語系檔按需載入）
 *   **路由管理**：Vue Router 5（HTML5 History 模式，內建角色與頁面限制導航守衛、平滑捲動）
 *   **字型**：Quicksand 由 `@fontsource` 隨專案打包，不向 Google Fonts 發出請求
-*   **測試**：Vitest 5 + Happy DOM + Vue Test Utils（62 個測試檔案、595 項測試，含四個主要頁面、composable 與表單元件測試，以及以本機 HTTP 伺服器驗證 `api.ts` 的整合測試）；Playwright 端對端測試（56 項，含以 axe 檢查 WCAG 2.1 AA 無障礙與鍵盤操作，以及內容安全政策）
+*   **測試**：Vitest 5 + Happy DOM + Vue Test Utils（66 個測試檔案、606 項測試，含四個主要頁面、composable 與表單元件測試，以及以本機 HTTP 伺服器驗證 `api.ts` 的整合測試）；Playwright 端對端測試（56 項，含以 axe 檢查 WCAG 2.1 AA 無障礙與鍵盤操作，以及內容安全政策）
 *   **程式碼品質**：TypeScript 6.0（Strict 嚴格模式，以 vue-tsc 3 檢查）、ESLint 10、Prettier 3
 *   **樣式設計**：Vanilla CSS（響應式排版，適配行動端、桌面端與 `@media print` 列印模式）
 
@@ -192,7 +192,7 @@ npm run dev
 
 ### 3. 單元測試與覆蓋率
 
-本專案使用 Vitest 進行測試（涵蓋各 store、`router` 導航守衛、頁面與元件、composable、工具函式與語系檔，共 595 項測試）。
+本專案使用 Vitest 進行測試（涵蓋各 store、`router` 導航守衛、頁面與元件、composable、工具函式與語系檔，共 606 項測試）。
 
 ```bash
 # 單次執行所有測試
@@ -209,7 +209,7 @@ npm run test:coverage
 npm run test:e2e
 ```
 
-**最低覆蓋率**：`vitest.config.ts` 的 `thresholds` 設定了語句 92%、分支 85%、函式 86%、行數 93%，
+**最低覆蓋率**：`vitest.config.ts` 的 `thresholds` 設定了語句 93%、分支 86%、函式 87%、行數 93.5%，
 低於任一項 CI 就會失敗。新增功能時請一併寫測試；覆蓋率上升後可以把門檻調高，但不要調低。
 報告會產生在 `coverage/`（瀏覽器開啟 `coverage/index.html` 可看到哪些行沒被測到）。
 

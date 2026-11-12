@@ -14,9 +14,10 @@
       class="lang-btn"
       :class="{ active: currentLocale === 'zh-TW' }"
       :aria-pressed="currentLocale === 'zh-TW'"
+      lang="zh-TW"
       @click="handleSelect('zh-TW')"
     >
-      🌐 繁中
+      <span aria-hidden="true">🌐</span> 繁中
     </button>
 
     <!-- EN option -->
@@ -25,6 +26,7 @@
       class="lang-btn"
       :class="{ active: currentLocale === 'en' }"
       :aria-pressed="currentLocale === 'en'"
+      lang="en"
       @click="handleSelect('en')"
     >
       EN
@@ -41,11 +43,11 @@ import type { SupportedLocale } from '@/i18n'
 const { locale } = useI18n({ useScope: 'global' })
 const currentLocale = computed(() => locale.value as SupportedLocale)
 
+// Each button names its own language (and carries its lang, so screen readers pronounce it
+// right); pressing the one already chosen keeps it — it's a pair of choices, not a toggle
 function handleSelect(lang: SupportedLocale) {
-  // 若點擊目前已啟用的語系按鈕，亦自動切換至另一語系，支援單擊切換習慣
-  const nextLang: SupportedLocale =
-    lang === currentLocale.value ? (currentLocale.value === 'zh-TW' ? 'en' : 'zh-TW') : lang
-  void setLocale(nextLang)
+  if (lang === currentLocale.value) return
+  void setLocale(lang)
 }
 </script>
 

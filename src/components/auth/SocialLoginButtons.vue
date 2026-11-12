@@ -12,7 +12,7 @@
       :disabled="isRedirecting"
       @click="loginWithGoogle"
     >
-      <img :src="googleIcon" alt="Google" class="social-icon" />
+      <img :src="googleIcon" alt="" class="social-icon" />
       {{
         isRedirecting && redirectTarget === 'google'
           ? $t('auth.social.connecting')
@@ -25,7 +25,7 @@
       :disabled="isRedirecting"
       @click="loginWithLine"
     >
-      <img :src="lineIcon" alt="LINE" class="social-icon" />
+      <img :src="lineIcon" alt="" class="social-icon" />
       {{
         isRedirecting && redirectTarget === 'line'
           ? $t('auth.social.connecting')
@@ -36,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 import googleIcon from '@/assets/icons/google.svg'
 import lineIcon from '@/assets/icons/line.svg'
 
@@ -56,6 +56,16 @@ function loginWithLine() {
   redirectTarget.value = 'line'
   window.location.href = `${import.meta.env.VITE_API_BASE_URL}/oauth2/authorization/line`
 }
+
+// Coming back with the browser's Back button restores this page as it was left — buttons
+// disabled and "connecting" — so re-enable them, or they stay stuck until a reload
+function onPageShow(event: PageTransitionEvent) {
+  if (!event.persisted) return
+  isRedirecting.value = false
+  redirectTarget.value = null
+}
+onMounted(() => window.addEventListener('pageshow', onPageShow))
+onBeforeUnmount(() => window.removeEventListener('pageshow', onPageShow))
 </script>
 
 <style scoped>
