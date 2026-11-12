@@ -192,7 +192,7 @@ npm run dev
 
 ### 3. 單元測試與覆蓋率
 
-本專案使用 Vitest 進行測試（涵蓋 `auth`、`courses`、`bookings` stores、`router` 導航守衛、語系檔編譯檢查，以及 `storage`、`datetime`、`id`、`avatar`、`persist`、`api` 工具函式，共 192 項測試）：
+本專案使用 Vitest 進行測試（涵蓋各 store、`router` 導航守衛、頁面與元件、composable、工具函式與語系檔，共 595 項測試）。
 
 ```bash
 # 單次執行所有測試
@@ -201,13 +201,17 @@ npm run test
 # 監聽模式執行測試
 npm run test:watch
 
-# 產生測試覆蓋率報告
+# 產生測試覆蓋率報告，並檢查最低覆蓋率（CI 與部署流程執行的就是這個）
 npm run test:coverage
 
 # 端對端測試（Playwright：自動 build、啟動 vite preview 後以 Chromium 執行）
 # 第一次使用前先安裝瀏覽器：npx playwright install chromium
 npm run test:e2e
 ```
+
+**最低覆蓋率**：`vitest.config.ts` 的 `thresholds` 設定了語句 92%、分支 85%、函式 86%、行數 93%，
+低於任一項 CI 就會失敗。新增功能時請一併寫測試；覆蓋率上升後可以把門檻調高，但不要調低。
+報告會產生在 `coverage/`（瀏覽器開啟 `coverage/index.html` 可看到哪些行沒被測到）。
 
 E2E 測試涵蓋各角色登入與路由權限、登入／註冊表單、邀請碼註冊、語系切換、學員聽課紀錄與閃耀計畫、教師新增講師、管理員建立帳號與邀請碼，以及頭像與圖示皆在本機產生（不連外部圖片網站）；另有多分頁同步測試（資料、語系、登入／登出在分頁間同步）。CI 與部署流程都會執行，失敗時會上傳 Playwright trace 供除錯。
 
