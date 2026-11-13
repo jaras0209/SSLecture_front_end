@@ -34,3 +34,49 @@ test.describe('accessibility', () => {
     expect(await violations(page)).toEqual([])
   })
 })
+
+test.describe('page titles', () => {
+  test('each page names itself in the browser title, in the current language', async ({
+    page,
+    openWith
+  }) => {
+    await openWith('login')
+    await expect(page).toHaveTitle('登入 - Shining Star')
+    await page.getByRole('button', { name: 'EN', exact: true }).click()
+    await expect(page).toHaveTitle('Sign In - Shining Star')
+
+    await openWith('student', { superstart_user: users.student })
+    await expect(page).toHaveTitle('學習與檢視 - Shining Star')
+    await openWith('no-such-page')
+    await expect(page).toHaveTitle('找不到頁面 - Shining Star')
+  })
+})
+
+test.describe('motion', () => {
+  /** The navbar's pulsing dot: how many times it plays, and whether it is still running */
+  async function dot(page: import('@playwright/test').Page) {
+    return page.locator('.navbar-logo-dot').evaluate((el) => ({
+      iterations: getComputedStyle(el).animationIterationCount,
+      running: el.getAnimations().some((a) => a.playState === 'running')
+    }))
+  }
+
+  test('decorative animations play a few times, then stop', async ({ page, openWith }) => {
+    await openWith('student', { superstart_user: users.student })
+    expect((await dot(page)).iterations).toBe('3')
+    await expect.poll(async () => (await dot(page)).running, { timeout: 8000 }).toBe(false)
+  })
+
+  test('nothing moves when the system asks to reduce motion', async ({ page, openWith }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await openWith('student', { superstart_user: users.student })
+    await expect.poll(async () => (await dot(page)).running).toBe(false)
+    const durations = await page.evaluate(() =>
+      [...document.querySelectorAll('.btn, .navbar-link, .glass-panel')].map(
+        (el) => getComputedStyle(el).transitionDuration
+      )
+    )
+    expect(durations.length).toBeGreaterThan(0)
+    expect(durations.every((d) => d.split(',').every((s) => parseFloat(s) < 0.001))).toBe(true)
+  })
+})

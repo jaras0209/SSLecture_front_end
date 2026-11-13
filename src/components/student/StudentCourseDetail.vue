@@ -459,7 +459,7 @@ function cancelEditSession() {
 .empty-emoji {
   font-size: 4rem;
   margin-bottom: 1.5rem;
-  animation: float-pulse 3s infinite ease-in-out;
+  animation: float-pulse 3s 2 ease-in-out; /* twice, then still */
 }
 
 /* ── Section subtitle ── */

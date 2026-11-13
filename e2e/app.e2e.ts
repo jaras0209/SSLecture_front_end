@@ -663,8 +663,13 @@ test.describe('assets', () => {
 
   test('fonts are self-hosted', async ({ page, openWith, externalHosts }) => {
     await openWith('login')
-    await page.evaluate(() => document.fonts.ready)
-    expect(await page.evaluate(() => document.fonts.check('600 16px Quicksand'))).toBe(true)
+    // Ask for the weight outright: document.fonts.ready can resolve before the page has
+    // requested it, and check() is only true once it has loaded
+    const loaded = await page.evaluate(async () => {
+      const faces = await document.fonts.load('600 16px Quicksand')
+      return faces.length > 0 && document.fonts.check('600 16px Quicksand')
+    })
+    expect(loaded).toBe(true)
     expect([...externalHosts].filter((h) => /fonts\.(googleapis|gstatic)/.test(h))).toEqual([])
   })
 })

@@ -28,6 +28,18 @@
     "closeMenu": "Close menu",
     "langLabel": "Language"
   },
+  "pageTitle": {
+    "app": "Course Learning & Care Matching",
+    "login": "Sign In",
+    "callback": "Completing Sign In",
+    "onboarding": "Finish Signing Up",
+    "student": "Learning & Review",
+    "teacher": "Care & Review",
+    "admin": "SS Central Console",
+    "changePassword": "Change Password",
+    "unauthorized": "Access Denied",
+    "notFound": "Page Not Found"
+  },
   "passwordModal": {
     "title": "🔒 Change Password",
     "oldPassword": "Current Password",

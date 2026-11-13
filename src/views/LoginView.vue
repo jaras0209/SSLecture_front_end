@@ -167,7 +167,7 @@ function fillDemo(role: string) {
   font-size: 2.5rem;
   display: inline-block;
   margin-bottom: 0.5rem;
-  animation: spin-pulse 3s infinite linear;
+  animation: spin-pulse 3s 2 linear; /* twice, then still */
 }
 
 .brand-title {

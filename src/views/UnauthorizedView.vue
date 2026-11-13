@@ -56,7 +56,7 @@ function handleLogout() {
 .emoji-illustration {
   font-size: 5rem;
   margin-bottom: 1.5rem;
-  animation: bounce 2s infinite;
+  animation: bounce 2s 3; /* a few times, then still */
 }
 
 .title {

@@ -28,6 +28,18 @@
     "closeMenu": "關閉選單",
     "langLabel": "語言"
   },
+  "pageTitle": {
+    "app": "課程學習與關懷配對管理系統",
+    "login": "登入",
+    "callback": "正在完成登入",
+    "onboarding": "完成註冊",
+    "student": "學習與檢視",
+    "teacher": "關懷與審查",
+    "admin": "SS中央控制台",
+    "changePassword": "修改密碼",
+    "unauthorized": "沒有權限",
+    "notFound": "找不到頁面"
+  },
   "passwordModal": {
     "title": "🔒 修改密碼",
     "oldPassword": "目前密碼",

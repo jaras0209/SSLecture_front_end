@@ -506,7 +506,7 @@ h6 {
   background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
   border-radius: var(--radius-full);
   display: inline-block;
-  animation: pulse 2s infinite;
+  animation: pulse 2s 3; /* a few times, then still: endless motion can't be stopped */
 }
 
 .navbar-menu {
@@ -802,5 +802,22 @@ h6 {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
+  }
+}
+
+/*
+ * "Reduce motion" (a system setting, for people whom movement makes dizzy or distracts):
+ * animations and transitions finish at once and scrolling jumps instead of gliding.
+ * 0.01ms rather than 0, so code waiting for an animation or transition to end still hears it.
+ * Mark an indicator that must keep moving to mean anything (a loading spinner) .motion-essential.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *:not(.motion-essential),
+  *:not(.motion-essential)::before,
+  *:not(.motion-essential)::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

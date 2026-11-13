@@ -9,7 +9,7 @@ SSLecture 是一個基於 **Vue 3 + TypeScript + Vite** 技術棧開發的現代
 本系統旨在協助教會或教育機構管理學員的聖經課程學習進度，並搭建「學員 - 輔導教師 - 分區牧者 - 關懷家長」的多元關懷網路，結合了以下特色：
 *   **多角色權限控制**：五種角色（管理員、牧者、教師、學員、家長）各司其職，擁有專屬的控制面板。
 *   **雙語系即時切換（i18n）**：完整支援繁體中文（`zh-TW`）與英文（`en`），包含介面、驗證訊息與列印報表模板，並自動記憶語系偏好。
-*   **精美現代視覺與無障礙體驗**：採用漸層色調、玻璃擬態（Glassmorphism）、ARIA 無障礙標籤與響應式排版。
+*   **精美現代視覺與無障礙體驗**：採用漸層色調、玻璃擬態（Glassmorphism）、ARIA 無障礙標籤與響應式排版；每頁有自己的瀏覽器標題，並遵循系統的「減少動態效果」設定。
 *   **閃耀計畫檢核與列印匯出**：學員專屬的信仰與生活挑戰追蹤系統，支援專屬列印排版與 PDF 匯出。
 *   **課程預約、配對與年度申報**：支援一對一／團體預約、出席與心得回饋追蹤、牧者關懷配對管理，以及教師年度教學人次統計申報。
 *   **男女分開管理**：以教會為單位，教師只看得到同性別的學員，牧者以上看得到整體狀況；性別由牧者設定。預約由學員的輔導教師安排，牧者在分區教會總覽可看到全教會的預約，管理員可看所有教會的預約；連結到教師或牧者帳號的講師在「我的授課」看得到自己授課的全部學員並記錄出席，課程結束後尚未記錄的會在分頁上提醒。規則集中在 `src/utils/scope.ts`，說明見 [`docs/database_schema.md`](./docs/database_schema.md) 5.10–5.13 與 [`docs/backend_api_spec.md`](./docs/backend_api_spec.md)〈可見範圍規則〉。
@@ -29,7 +29,7 @@ SSLecture 是一個基於 **Vue 3 + TypeScript + Vite** 技術棧開發的現代
 *   **多語系架構**：Vue I18n 11（Composition API 模式，`zh-TW` / `en` 雙語系；`en` 語系檔按需載入）
 *   **路由管理**：Vue Router 5（HTML5 History 模式，內建角色與頁面限制導航守衛、平滑捲動）
 *   **字型**：Quicksand 由 `@fontsource` 隨專案打包，不向 Google Fonts 發出請求
-*   **測試**：Vitest 5 + Happy DOM + Vue Test Utils（66 個測試檔案、606 項測試，含四個主要頁面、composable 與表單元件測試，以及以本機 HTTP 伺服器驗證 `api.ts` 的整合測試）；Playwright 端對端測試（56 項，含以 axe 檢查 WCAG 2.1 AA 無障礙與鍵盤操作，以及內容安全政策）
+*   **測試**：Vitest 5 + Happy DOM + Vue Test Utils（69 個測試檔案、619 項測試，含四個主要頁面、composable 與表單元件測試，以及以本機 HTTP 伺服器驗證 `api.ts` 的整合測試）；Playwright 端對端測試（59 項，含以 axe 檢查 WCAG 2.1 AA 無障礙與鍵盤操作，以及內容安全政策）
 *   **程式碼品質**：TypeScript 6.0（Strict 嚴格模式，以 vue-tsc 3 檢查）、ESLint 10、Prettier 3
 *   **樣式設計**：Vanilla CSS（響應式排版，適配行動端、桌面端與 `@media print` 列印模式）
 
@@ -192,7 +192,7 @@ npm run dev
 
 ### 3. 單元測試與覆蓋率
 
-本專案使用 Vitest 進行測試（涵蓋各 store、`router` 導航守衛、頁面與元件、composable、工具函式與語系檔，共 606 項測試）。
+本專案使用 Vitest 進行測試（涵蓋各 store、`router` 導航守衛、頁面與元件、composable、工具函式與語系檔，共 619 項測試）。
 
 ```bash
 # 單次執行所有測試

@@ -3,6 +3,7 @@ import type { RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 import { homeRouteFor } from '@/router/homeRoute'
+import { scrollMotion } from '@/utils/motion'
 
 const routes: RouteRecordRaw[] = [
   {
@@ -66,9 +67,38 @@ const routes: RouteRecordRaw[] = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
-  // Scroll to top on every route navigation
-  scrollBehavior: () => ({ top: 0, behavior: 'smooth' })
+  scrollBehavior: (to, from, savedPosition) => pageScroll(to.path, from.path, savedPosition)
 })
+
+/**
+ * Where to scroll after a navigation: Back / Forward return to where the user was; a new page
+ * starts at the top; staying on the same page (only the query or hash changed) doesn't jump
+ */
+export function pageScroll(
+  toPath: string,
+  fromPath: string,
+  savedPosition: { left: number; top: number } | null
+) {
+  if (savedPosition) return tallEnoughFor(savedPosition.top).then(() => savedPosition)
+  if (toPath === fromPath) return false
+  return { top: 0, behavior: scrollMotion() }
+}
+
+/**
+ * Resolve once the page is tall enough to scroll to `top` (parts of it are still rendering
+ * when Back brings it up, so restoring at once would stop short), or after `timeoutMs`
+ */
+export function tallEnoughFor(top: number, timeoutMs = 1000): Promise<void> {
+  const start = performance.now()
+  return new Promise((resolve) => {
+    const check = () => {
+      const room = document.documentElement.scrollHeight - window.innerHeight
+      if (room >= top || performance.now() - start >= timeoutMs) resolve()
+      else requestAnimationFrame(check)
+    }
+    check()
+  })
+}
 
 // Navigation Guard
 router.beforeEach((to, _from) => {

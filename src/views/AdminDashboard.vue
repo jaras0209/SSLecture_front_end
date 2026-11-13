@@ -81,6 +81,7 @@ import AdminDataBackup from '@/components/admin/AdminDataBackup.vue'
 import { backupOverdue, lastBackupAt } from '@/utils/backup'
 import ChurchBookings from '@/components/shared/ChurchBookings.vue'
 import { avatarSrc, useFallbackAvatar } from '@/utils/avatar'
+import { scrollMotion } from '@/utils/motion'
 
 const { t } = useI18n()
 const { tDateTime } = useI18nHelper()
@@ -134,7 +135,7 @@ function remindLater() {
 /** Bring the backup section into view, with the keyboard focus on the export button */
 function goToBackup() {
   const button = document.getElementById('btn-export-backup')
-  button?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  button?.scrollIntoView({ behavior: scrollMotion(), block: 'center' })
   button?.focus({ preventScroll: true })
 }
 

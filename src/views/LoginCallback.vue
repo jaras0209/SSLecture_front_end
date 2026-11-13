@@ -3,7 +3,7 @@
     <div class="glass-panel callback-card text-center">
       <!-- Loading 狀態 -->
       <div v-if="status === 'loading'" class="callback-loading">
-        <div class="spinner-ring"></div>
+        <div class="spinner-ring motion-essential"></div>
         <h1 class="callback-title page-title">{{ $t('callback.loadingTitle') }}</h1>
         <p class="callback-desc">{{ $t('callback.loadingDesc') }}</p>
       </div>
