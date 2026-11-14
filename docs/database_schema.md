@@ -1,10 +1,13 @@
 # SSLecture 後端資料庫設計文件
 
-> **文件版本**：v1.8.0  
-> **最後更新**：2026-11-11  
+> **文件版本**：v1.8.1  
+> **最後更新**：2026-11-14  
 > **資料來源**：分析前端 `src/stores/auth.ts`、`src/stores/courses.ts`、`src/stores/bookings.ts`、localStorage 資料結構  
-> **建議資料庫**：PostgreSQL（主要）/ MySQL（可選）  
-> **ORM 建議**：Prisma（Node.js）/ SQLAlchemy（Python）
+> **資料庫**：PostgreSQL 16 以上（第 6 節的 SQL 已實測可建立全部 22 張表）。不支援 MySQL：
+> 用到了 PostgreSQL 專有的 `CREATE TYPE ... AS ENUM`、`INET`、`TIMESTAMPTZ`、正規表示式 `~` 等  
+> **後端存取**：Spring Boot 3（見 [API 規格](./backend_api_spec.md)）建議以 Spring Data JPA（Hibernate）存取，
+> 以 Flyway 管理建表與日後的結構變更  
+> **相關文件**：[文件導覽](./README.md)・[API 規格](./backend_api_spec.md)・[社群登入](./oauth2_social_login_spec.md)・各版本異動見文末[版本紀錄](#版本紀錄)
 
 ---
 
@@ -26,21 +29,23 @@
    - [page_restrictions（頁面存取限制）](#212-page_restrictions-頁面存取限制)
    - [refresh_tokens（Token 管理）](#213-refresh_tokens-jwt-token-管理)
    - [teaching_stats（年度教學統計）](#214-teaching_stats-年度教學統計)
-   - [booking_sessions（預約場次）](#215-booking_sessions-預約場次) ⭐ NEW
-   - [booking_attendees（場次學員）](#216-booking_attendees-場次學員) ⭐ NEW
-   - [invite_codes（邀請碼）](#217-invite_codes-邀請碼) ⭐
+   - [booking_sessions（預約場次）](#215-booking_sessions-預約場次)
+   - [booking_attendees（場次學員）](#216-booking_attendees-場次學員)
+   - [invite_codes（邀請碼）](#217-invite_codes-邀請碼)
    - [social_accounts（社群帳號綁定）](#218-social_accounts-社群帳號綁定)
-   - [parent_children（家長綁定）](#219-parent_children-家長綁定) ⭐ NEW
-   - [course_feedback（心得回覆）](#220-course_feedback-心得回覆) ⭐ NEW
+   - [parent_children（家長綁定）](#219-parent_children-家長綁定)
+   - [course_feedback（心得回覆）](#220-course_feedback-心得回覆)
    - [course_feedback_reads（回覆已讀）](#221-course_feedback_reads-回覆已讀)
-   - [auth_attempts（嘗試次數）](#222-auth_attempts-嘗試次數) ⭐ NEW
+   - [auth_attempts（嘗試次數）](#222-auth_attempts-嘗試次數)
 3. [索引設計](#3-索引設計)
 4. [資料關聯一覽](#4-資料關聯一覽)
 5. [設計決策與說明](#5-設計決策與說明)
 6. [SQL 建表語句（PostgreSQL）](#6-sql-建表語句postgresql)
 7. [種子資料（Seed Data）](#7-種子資料seed-data)
 8. [Mermaid ERD 關聯圖](#8-mermaid-erd-關聯圖)
-9. [從前端備份搬移資料](#9-從前端備份搬移資料) ⭐ NEW
+9. [從前端備份搬移資料](#9-從前端備份搬移資料)
+
+附錄：[版本紀錄](#版本紀錄)
 
 ---
 
@@ -81,35 +86,6 @@
   users（教師）─< teaching_stats              年度教學人次
 ```
 
-> **v1.8.0 異動摘要**（帳號安全與登入期限）
-> - `users` 新增 `token_version`：停用、改角色、重設或修改密碼時遞增，讓既有的登入失效（見 [5.15](#515-登入期限與失效)）
-> - `users.avatar_url` 改為 `VARCHAR(2048)` 並只接受 `https://`（與前端 `isAllowedAvatarUrl()` 一致；
->   別人的頭像會在每位看到的人的瀏覽器載入，其他網址可被用來追蹤誰看了名冊）
-> - `refresh_tokens` 新增 `remember_me` 與 `token_version`：未勾「記住我」閒置 2 小時失效、勾選 30 天；
->   撤銷時機不只登出（見 2.13、5.15）
-> - 新增 `auth_attempts`：登入、邀請碼、忘記密碼等的失敗次數，用於嘗試次數限制（見 2.22）
-> - 軟刪除帳號的 `username` 不可重新使用（見 2.1）；`lecturers.title` 改存稱謂代碼（見 2.4）；
->   邀請碼隨機部分改為 8 碼（見 2.17）
-> - 新增[第 9 節](#9-從前端備份搬移資料)：如何把前端匯出的備份檔搬進資料庫
-
-> **v1.7.0 異動摘要**
-> - `users` 新增 `gender`（教師、學員依性別分開管理，見 [5.10](#510-性別分開管理與可見範圍)）
-> - 家長綁定改由新表 `parent_children` 記錄（一位家長可綁多位孩子、一位孩子可有多位家長），
->   `student_assignments` 移除 `parent_id`，只記錄教師與牧者
-> - `booking_sessions.teacher_id` 改為 `ON DELETE RESTRICT`，帳號一律軟刪除，預約紀錄保留為歷史
-> - 新增設計說明：講師例外（[5.11](#511-講師在自己授課的預約中看得到全部學員)）、
->   刪除帳號或變更角色時的清理（[5.12](#512-刪除帳號或變更角色時的清理)）、牧者與管理員的預約總覽（[5.13](#513-牧者與管理員的預約總覽)）；
->   講師可連結教師或牧者帳號
-> - 修正：第 6 節補齊所有表的建表語句（原本 5 張散在 2.14–2.18）；預約表的 `lecturer_id`、
->   `linked_listen_session_id` 改為 `UUID`、`course_id` 改為 `VARCHAR(20)`，與被參照的欄位同型別（原本建表會失敗）
-> - 出席紀錄、教學統計、聽課紀錄的學員／教師外鍵改為 `ON DELETE RESTRICT`，與「保留為歷史」一致；
->   移除 `booking_attendees.student_username` 冗餘欄位；種子資料補上性別與家長綁定
-> - 新增 `course_feedback`：教師、牧者、管理員對學員課程心得的回覆（見 2.20）。前端舊版的回覆只顯示「已儲存」、實際沒有保存
-> - `users` 新增 `email`（選填、不可重複）、`email_verified`、`must_change_password`；`username` 加格式檢查
-> - 整理：`booking_sessions.id` 改為 UUID；`booking_attendees` 改以 `(session_id, student_id)` 為主鍵、移除拼接字串 `id`；
->   新增時間與時區規則（[5.14](#514-時間與時區)）；總覽圖與關聯一覽改寫為涵蓋全部表；2.14–2.20 移回第 2 節
-> - `users.password_hash` 改為可為 NULL：社群登入建立的帳號沒有密碼（見 2.1）
-
 ---
 
 ## 2. 資料表詳細設計
@@ -121,19 +97,19 @@
 | 欄位名 | 資料型別 | 限制 | 說明 |
 |--------|----------|------|------|
 | `id` | `UUID` | PK, NOT NULL | 系統唯一識別碼 |
-| `username` | `VARCHAR(30)` | UNIQUE, NOT NULL, CHECK | 帳號：小寫、3–30 字元、只用英數字與 `. _ -`；系統內永不變的識別碼 ⭐ |
-| `password_hash` | `VARCHAR(255)` | NULL | bcrypt 雜湊密碼；NULL = 只用 Google / LINE 登入，不能以密碼登入 ⭐ |
+| `username` | `VARCHAR(30)` | UNIQUE, NOT NULL, CHECK | 帳號：小寫、3–30 字元、只用英數字與 `. _ -`；系統內永不變的識別碼 |
+| `password_hash` | `VARCHAR(255)` | NULL | bcrypt 雜湊密碼；NULL = 只用 Google / LINE 登入，不能以密碼登入 |
 | `role` | `ENUM` | NOT NULL | `student` / `teacher` / `pastor` / `parent` / `admin` |
 | `church_id` | `UUID` | FK → churches.id, NULL | 所屬教會（admin 為 NULL） |
 | `display_name` | `VARCHAR(100)` | NULL | 暱稱（公開顯示） |
 | `real_name` | `VARCHAR(100)` | NULL | 真實姓名（管理端顯示，不對學員公開） |
-| `email` | `VARCHAR(255)` | NULL, UNIQUE（小寫） | 選填，可用來登入；孩子常沒有信箱所以可為空 ⭐ |
-| `email_verified` | `BOOLEAN` | NOT NULL, DEFAULT FALSE | 信箱是否已驗證；社群帳號自動合併的前提 ⭐ |
-| `must_change_password` | `BOOLEAN` | NOT NULL, DEFAULT FALSE | 管理員建立帳號或重設密碼後為 TRUE，使用者改密碼後清除 ⭐ |
-| `gender` | `ENUM` | NULL | `male` / `female`；只用於 `student`、`teacher`，由牧者或管理員設定 ⭐ |
-| `avatar_url` | `VARCHAR(2048)` | NULL, CHECK `https://` | 頭像圖片 URL；只接受 `https://`（前端 `isAllowedAvatarUrl()`） ⭐ |
+| `email` | `VARCHAR(255)` | NULL, UNIQUE（小寫） | 選填，可用來登入；孩子常沒有信箱所以可為空 |
+| `email_verified` | `BOOLEAN` | NOT NULL, DEFAULT FALSE | 信箱是否已驗證；社群帳號自動合併的前提 |
+| `must_change_password` | `BOOLEAN` | NOT NULL, DEFAULT FALSE | 管理員建立帳號或重設密碼後為 TRUE，使用者改密碼後清除 |
+| `gender` | `ENUM` | NULL | `male` / `female`；只用於 `student`、`teacher`，由牧者或管理員設定 |
+| `avatar_url` | `VARCHAR(2048)` | NULL, CHECK `https://` | 頭像圖片 URL；只接受 `https://`（前端 `isAllowedAvatarUrl()`） |
 | `login_method` | `ENUM` | NOT NULL, DEFAULT 'credentials' | `credentials` / `google` / `line` |
-| `token_version` | `INTEGER` | NOT NULL, DEFAULT 0 | 停用、改角色、重設或修改密碼時遞增；版本不符的 Token 失效（見 5.15） ⭐ |
+| `token_version` | `INTEGER` | NOT NULL, DEFAULT 0 | 停用、改角色、重設或修改密碼時遞增；版本不符的 Token 失效（見 5.15） |
 | `is_active` | `BOOLEAN` | NOT NULL, DEFAULT TRUE | 帳號是否啟用（FALSE = 軟刪除） |
 | `last_login_at` | `TIMESTAMPTZ` | NULL | 最後登入時間 |
 | `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
@@ -409,8 +385,8 @@
 | `id` | `UUID` | PK, NOT NULL | 唯一識別碼 |
 | `user_id` | `UUID` | FK → users.id, NOT NULL | 所屬使用者 |
 | `token_hash` | `VARCHAR(255)` | UNIQUE, NOT NULL | Refresh Token 的 SHA256 雜湊值 |
-| `remember_me` | `BOOLEAN` | NOT NULL, DEFAULT FALSE | 登入時是否勾選「記住我」（社群登入一律 FALSE） ⭐ |
-| `token_version` | `INTEGER` | NOT NULL | 簽發時的 `users.token_version`；不符即失效 ⭐ |
+| `remember_me` | `BOOLEAN` | NOT NULL, DEFAULT FALSE | 登入時是否勾選「記住我」（社群登入一律 FALSE） |
+| `token_version` | `INTEGER` | NOT NULL | 簽發時的 `users.token_version`；不符即失效 |
 | `expires_at` | `TIMESTAMPTZ` | NOT NULL | 失效時間；每次換發時順延（見設計說明） |
 | `is_revoked` | `BOOLEAN` | NOT NULL, DEFAULT FALSE | 是否已被撤銷（見設計說明） |
 | `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
@@ -727,7 +703,7 @@ CREATE INDEX idx_listen_sessions_listened_at    ON listen_sessions(listened_at D
 CREATE INDEX idx_student_assignments_teacher ON student_assignments(teacher_id);
 CREATE INDEX idx_student_assignments_pastor  ON student_assignments(pastor_id);
 
--- parent_children 表 ⭐
+-- parent_children 表
 CREATE INDEX idx_parent_children_student ON parent_children(student_id);
 
 -- shining_faith_checklists 表
@@ -750,24 +726,24 @@ CREATE INDEX idx_refresh_tokens_expires_at ON refresh_tokens(expires_at);
 CREATE INDEX idx_teaching_stats_year    ON teaching_stats(year);
 CREATE INDEX idx_teaching_stats_teacher ON teaching_stats(teacher_id);
 
--- booking_sessions 表 ⭐
+-- booking_sessions 表
 CREATE INDEX idx_booking_sessions_teacher  ON booking_sessions(teacher_id);
 CREATE INDEX idx_booking_sessions_lecturer ON booking_sessions(lecturer_id);  -- 「我的授課」查詢
 CREATE INDEX idx_booking_sessions_church   ON booking_sessions(church_id);
 CREATE INDEX idx_booking_sessions_status   ON booking_sessions(status);
 CREATE INDEX idx_booking_sessions_proposed ON booking_sessions(proposed_at DESC);
 
--- booking_attendees 表 ⭐
+-- booking_attendees 表
 CREATE INDEX idx_booking_attendees_student ON booking_attendees(student_id);
 CREATE INDEX idx_booking_attendees_status  ON booking_attendees(attendance_status);
 
--- invite_codes 表 ⭐
+-- invite_codes 表
 CREATE INDEX idx_invite_codes_created_by ON invite_codes(created_by);
 CREATE INDEX idx_invite_codes_used_by    ON invite_codes(used_by);
 CREATE INDEX idx_invite_codes_expires_at ON invite_codes(expires_at);
 CREATE INDEX idx_invite_codes_church     ON invite_codes(church_id);
 
--- auth_attempts 表（嘗試次數限制，見 2.22）⭐
+-- auth_attempts 表（嘗試次數限制，見 2.22）
 CREATE INDEX idx_auth_attempts_subject ON auth_attempts(action, subject, attempted_at);
 CREATE INDEX idx_auth_attempts_ip      ON auth_attempts(action, ip, attempted_at);
 ```
@@ -914,7 +890,7 @@ WHERE student_id = $1
   （見 2.1），不再需要冗餘欄位與 trigger
 - API 回應需要帳號或姓名時，由 `student_id` JOIN `users` 取得；`(session_id, student_id)` 已有唯一索引，查詢成本低
 
-### 5.8 `invite_codes` 的外鍵行為設計說明 ⭐
+### 5.8 `invite_codes` 的外鍵行為設計說明
 
 | 欄位 | ON DELETE 行為 | 理由 |
 |------|----------------|------|
@@ -1185,7 +1161,7 @@ CREATE TABLE student_assignments (
 CREATE INDEX idx_student_assignments_teacher ON student_assignments(teacher_id);
 CREATE INDEX idx_student_assignments_pastor  ON student_assignments(pastor_id);
 
--- parent_children（家長綁定，多對多）⭐ v1.7.0
+-- parent_children（家長綁定，多對多）
 CREATE TABLE parent_children (
   parent_id  UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   student_id UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -1948,4 +1924,47 @@ JSON 檔（前端 `src/utils/backup.ts`），上線時用它把既有資料搬�
 
 ---
 
-*本文件由前端分析自動生成，後端工程師可直接參考此 SQL 進行資料庫建置。如有結構調整需求，請同步更新 `backend_api_spec.md` 文件。*
+## 版本紀錄
+
+### v1.8.1（2026-11-14）整理文件
+
+- 修正文件開頭：資料庫只支援 PostgreSQL（SQL 用到 PostgreSQL 專有語法），存取建議改為與後端一致的
+  Spring Data JPA 與 Flyway（原本寫 Prisma / SQLAlchemy，與 Spring Boot 後端不符）
+- 各版本的異動摘要從文件開頭移到這裡；移除標示新增項目的 ⭐ / NEW 記號
+- 文件開頭加上相關文件連結；新增 [`docs/README.md`](./README.md) 文件導覽
+
+### v1.8.0（2026-11-11）帳號安全與登入期限
+
+- `users` 新增 `token_version`：停用、改角色、重設或修改密碼時遞增，讓既有的登入失效（見 [5.15](#515-登入期限與失效)）
+- `users.avatar_url` 改為 `VARCHAR(2048)` 並只接受 `https://`（與前端 `isAllowedAvatarUrl()` 一致；
+  別人的頭像會在每位看到的人的瀏覽器載入，其他網址可被用來追蹤誰看了名冊）
+- `refresh_tokens` 新增 `remember_me` 與 `token_version`：未勾「記住我」閒置 2 小時失效、勾選 30 天；
+  撤銷時機不只登出（見 2.13、5.15）
+- 新增 `auth_attempts`：登入、邀請碼、忘記密碼等的失敗次數，用於嘗試次數限制（見 2.22）
+- 軟刪除帳號的 `username` 不可重新使用（見 2.1）；`lecturers.title` 改存稱謂代碼（見 2.4）；
+  邀請碼隨機部分改為 8 碼（見 2.17）
+- 新增[第 9 節](#9-從前端備份搬移資料)：如何把前端匯出的備份檔搬進資料庫
+
+### v1.7.0（2026-10-30）
+
+- `users` 新增 `gender`（教師、學員依性別分開管理，見 [5.10](#510-性別分開管理與可見範圍)）
+- 家長綁定改由新表 `parent_children` 記錄（一位家長可綁多位孩子、一位孩子可有多位家長），
+  `student_assignments` 移除 `parent_id`，只記錄教師與牧者
+- `booking_sessions.teacher_id` 改為 `ON DELETE RESTRICT`，帳號一律軟刪除，預約紀錄保留為歷史
+- 新增設計說明：講師例外（[5.11](#511-講師在自己授課的預約中看得到全部學員)）、
+  刪除帳號或變更角色時的清理（[5.12](#512-刪除帳號或變更角色時的清理)）、牧者與管理員的預約總覽（[5.13](#513-牧者與管理員的預約總覽)）；
+  講師可連結教師或牧者帳號
+- 修正：第 6 節補齊所有表的建表語句（原本 5 張散在 2.14–2.18）；預約表的 `lecturer_id`、
+  `linked_listen_session_id` 改為 `UUID`、`course_id` 改為 `VARCHAR(20)`，與被參照的欄位同型別（原本建表會失敗）
+- 出席紀錄、教學統計、聽課紀錄的學員／教師外鍵改為 `ON DELETE RESTRICT`，與「保留為歷史」一致；
+  移除 `booking_attendees.student_username` 冗餘欄位；種子資料補上性別與家長綁定
+- 新增 `course_feedback`：教師、牧者、管理員對學員課程心得的回覆（見 2.20）。前端舊版的回覆只顯示「已儲存」、實際沒有保存
+- `users` 新增 `email`（選填、不可重複）、`email_verified`、`must_change_password`；`username` 加格式檢查
+- 整理：`booking_sessions.id` 改為 UUID；`booking_attendees` 改以 `(session_id, student_id)` 為主鍵、移除拼接字串 `id`；
+  新增時間與時區規則（[5.14](#514-時間與時區)）；總覽圖與關聯一覽改寫為涵蓋全部表；2.14–2.20 移回第 2 節
+- `users.password_hash` 改為可為 NULL：社群登入建立的帳號沒有密碼（見 2.1）
+
+---
+
+*本文件由前端團隊依前端資料結構整理維護，後端工程師可直接以第 6 節的 SQL 建置資料庫。結構調整時，請同步更新本文件
+（版本號、〈版本紀錄〉）與 [`backend_api_spec.md`](./backend_api_spec.md)。*

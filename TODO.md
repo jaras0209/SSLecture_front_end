@@ -1,12 +1,12 @@
 # TODO：後端串接待辦清單
 
 > **建立時間**：2026-08-12
-> **最後更新**：2026-11-11（加入登入期限與失效、嘗試次數限制、密碼規則、個人資料與主題 API、CORS、資料搬移）
+> **最後更新**：2026-11-14（文件整理：新增文件導覽、各文件改版為 v1.8.1 / v1.8.1 / v1.1.1）
 > **目的**：追蹤前端 Mock 實作中，待後端 Spring Boot 就緒後需實作或替換的所有項目
-> **參考文件**：
-> - [`docs/backend_api_spec.md`](./docs/backend_api_spec.md)（v1.8.0：API、可見範圍規則、嘗試次數限制、登入期限、CORS、錯誤碼、第 13 節 Store → API 對照）
-> - [`docs/database_schema.md`](./docs/database_schema.md)（v1.8.0：資料表、5.10–5.15 設計決策、第 9 節資料搬移）
-> - [`docs/oauth2_social_login_spec.md`](./docs/oauth2_social_login_spec.md)（v1.1.0：社群登入流程、8.5 社群帳號規則）
+> **參考文件**（從哪裡讀起見 [`docs/README.md`](./docs/README.md) 文件導覽）：
+> - [`docs/backend_api_spec.md`](./docs/backend_api_spec.md)（v1.8.1：API、可見範圍規則、嘗試次數限制、登入期限、CORS、錯誤碼、第 13 節 Store → API 對照）
+> - [`docs/database_schema.md`](./docs/database_schema.md)（v1.8.1：資料表、5.10–5.15 設計決策、第 9 節資料搬移）
+> - [`docs/oauth2_social_login_spec.md`](./docs/oauth2_social_login_spec.md)（v1.1.1：社群登入流程、8.5 社群帳號規則）
 
 ---
 
@@ -232,6 +232,9 @@
 - [x] docs/backend_api_spec.md：v1.8.0（PATCH /auth/me、/themes、嘗試次數限制、登入期限、CORS、補齊資料模型與對照表）
 - [x] docs/oauth2_social_login_spec.md：v1.1.0（前端現況、家長綁定、社群帳號規則）
 - [x] README.md：功能、各角色、登入期限、環境變數、部署（CSP、CORS）、資料備份
+- [x] 文件整理（v1.8.1 / v1.8.1 / v1.1.1）：新增 `docs/README.md` 文件導覽；異動摘要移到各文件文末〈版本紀錄〉；
+  資料庫文件改為只支援 PostgreSQL、存取建議改為 Spring Data JPA 與 Flyway；API 規格的前端串接步驟改寫為現況；
+  README 加上線上示範、文件一覽，目錄結構依現況重寫；文件中的連結由 `src/__tests__/docs.spec.ts` 檢查
 
 ---
 

@@ -1,9 +1,10 @@
 # SSLecture 後端 API 規格文件
 
-> **文件版本**：v1.8.0
-> **最後更新**：2026-11-11
+> **文件版本**：v1.8.1
+> **最後更新**：2026-11-14
 > **前端版本**：Vue 3 + TypeScript（目前以 localStorage 模擬，待串接）
 > **目標後端技術**：Spring Boot 3.x + Spring Security 6.x（OAuth2 Client + JWT）
+> **相關文件**：[文件導覽](./README.md)・[資料庫設計](./database_schema.md)・[社群登入](./oauth2_social_login_spec.md)・各版本異動見文末[版本紀錄](#版本紀錄)
 
 ---
 
@@ -18,38 +19,12 @@
 7. [閃耀計畫 Shining Project](#7-閃耀計畫-shining-project)
 8. [管理員 Admin](#8-管理員-admin)
 9. [年度教學統計 Teaching Stats](#9-年度教學統計-teaching-stats)
-10. [聽課預約 Booking System](#10-聽課預約-booking-system) ⭐
+10. [聽課預約 Booking System](#10-聽課預約-booking-system)
 11. [資料模型定義](#11-資料模型定義)
 12. [錯誤碼一覽](#12-錯誤碼一覽)
 13. [前端串接遷移指南](#13-前端串接遷移指南)
 
-> **v1.8.0 異動摘要**（帳號安全、登入期限、補齊端點）
-> - 新增 `PATCH /auth/me`：使用者修改自己的暱稱、姓名、頭像（只接受 `https://`）、信箱
-> - 新增專題主題 `GET` / `POST` / `PUT` / `DELETE /themes`（前端早已可管理，原本只有「建議新增」）
-> - `GET /auth/me` 補齊 `email`、`mustChangePassword`、`loginMethod`、`realName`、`childUsernames`、`lastLoginAt`
-> - 新增[密碼規則](#密碼規則)與 `400 WEAK_PASSWORD`；登入時帳號不存在與密碼錯誤一律回 `INVALID_CREDENTIALS`
-> - 新增[嘗試次數限制](#嘗試次數限制)與 `429 TOO_MANY_REQUESTS`（含 `Retry-After`）
-> - 新增[記住我與閒置登出](#記住我與閒置登出)（`rememberMe`）與[帳號變更時結束既有的登入](#帳號變更時結束既有的登入)
-> - 新增[跨網域（CORS）](#跨網域cors)：前端與 API 不同網域時的設定
-> - 社群帳號不可設定或重設密碼（`POST /auth/reset-password`、`PUT /admin/users/:username`）
-> - 刪除（停用）帳號後名稱不可重新使用；邀請碼隨機部分改為 8 碼（[格式](#post-admininvite-codes--new)）
-> - 講師稱謂改為代碼（`pastor`、`preacher`…），由前端依語言翻譯
-> - 第 11 節補上預約、出席、邀請碼、心得回覆、閃耀計畫、主題的資料模型；第 13 節對照表補齊，
->   並說明如何以前端匯出的備份檔搬移既有資料
-
-> **v1.7.0 異動摘要**（帳號與信箱）
-> - 帳號規則：小寫、3–30 字元、只用英數字與 `. _ -`，比對不分大小寫（前端 `src/utils/account.ts`）
-> - 信箱選填、不可重複，可用來登入：`POST /auth/login` 的 `identifier` 可填帳號或信箱
-> - 管理員建立帳號或重設密碼後 `mustChangePassword = true`，使用者須先改密碼才能使用其他 API
-> - 新增心得回覆：`GET` / `POST /progress/:username/:courseId/feedback`
-> - 規劃中（需後端）：信箱驗證、寄信重設密碼、社群帳號只在雙方信箱都已驗證時自動合併，見[帳號與信箱](#帳號與信箱規劃)
-
-> **v1.6.0 異動摘要**
-> - 新增[可見範圍規則](#可見範圍規則誰看得到誰)：教師與學員依性別分開管理，牧者以上看整體，以教會為單位；講師在自己授課的預約中看得到全部學員
-> - `User` 新增 `gender`；新增 `PUT /users/:username/gender`
-> - 家長綁定改為獨立的 `/parents/:parentUsername/children`，`/assignments` 不再有 `parent`
-> - `DELETE /admin/users/:username` 與更改角色時，會清理仍指向該帳號的指派、講師連結與預約
-> - 預約新增 `GET /bookings/sessions?lecturerUsername=`（我的授課）；講師可更新出席狀態
+附錄：[版本紀錄](#版本紀錄)
 
 > **OAuth2 社群登入詳細設計**：請參閱 [`docs/oauth2_social_login_spec.md`](./oauth2_social_login_spec.md)，
 > 內含 Google / LINE 完整流程、Spring Boot SecurityConfig、前端 LoginCallback、onboarding 流程等。
@@ -226,12 +201,12 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 **錯誤**：
 - `401 INVALID_CREDENTIALS`：帳號或密碼錯誤（帳號不存在也回這個，不透露帳號是否存在）
 - `429 TOO_MANY_REQUESTS`：失敗太多次，暫時鎖住（見[嘗試次數限制](#嘗試次數限制)）
-- `401 USE_SOCIAL_LOGIN`：此帳號沒有密碼，只能用 Google / LINE 登入 ⭐
+- `401 USE_SOCIAL_LOGIN`：此帳號沒有密碼，只能用 Google / LINE 登入
 - `403 ACCOUNT_DISABLED`：帳號被停用
 
 ---
 
-### `POST /auth/register` ⭐ NEW
+### `POST /auth/register`
 **說明**：註冊新帳號。若有提供邀請碼（`inviteCode`），系統將驗證該邀請碼，並依邀請碼綁定的角色及教會配發權限。若未提供邀請碼，則強制註冊為一般學員（`student`），且必須指定所屬教會。
 
 **權限**：公開
@@ -289,7 +264,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 
 ---
 
-### `POST /auth/reset-password` ⭐ NEW
+### `POST /auth/reset-password`
 **說明**：修改密碼。
 
 **權限**：需登入（修改自己的密碼）或 Admin（重設他人密碼）
@@ -383,7 +358,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 
 ---
 
-### `PATCH /auth/me` ⭐ NEW
+### `PATCH /auth/me`
 **說明**：修改自己的個人資料（前端個人資料視窗，`authStore.updateProfile()`）
 
 **權限**：需登入
@@ -413,7 +388,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 
 ---
 
-### OAuth2 社群登入端點（Spring Boot 自動提供）⭐ NEW
+### OAuth2 社群登入端點（Spring Boot 自動提供）
 
 > 完整設計請見 [`docs/oauth2_social_login_spec.md`](./oauth2_social_login_spec.md)
 
@@ -424,7 +399,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 | `GET /login/oauth2/code/google` | Google 授權碼回調（Spring 自動處理）| Google 伺服器 |
 | `GET /login/oauth2/code/line` | LINE 授權碼回調（Spring 自動處理）| LINE 伺服器 |
 
-### `POST /auth/exchange` ⭐ NEW
+### `POST /auth/exchange`
 **說明**：OAuth2 成功後，前端用短效一次性 code（60 秒）換取 JWT
 
 **權限**：公開
@@ -460,7 +435,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 
 ---
 
-### `PUT /auth/complete-profile` ⭐ NEW
+### `PUT /auth/complete-profile`
 **說明**：首次社群登入後補充所屬教會、username、邀請碼
 
 **權限**：需 JWT（onboarding 狀態下呼叫）
@@ -501,7 +476,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 
 ---
 
-### `GET /auth/social-accounts` ⭐ NEW
+### `GET /auth/social-accounts`
 **說明**：取得目前使用者已綁定的社群帳號列表
 
 **權限**：需 JWT
@@ -519,7 +494,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 
 ---
 
-### `DELETE /auth/social-accounts/{provider}` ⭐ NEW
+### `DELETE /auth/social-accounts/{provider}`
 **說明**：解除社群帳號綁定（至少須保留一種登入方式）
 
 **權限**：需 JWT
@@ -745,7 +720,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 
 ---
 
-### `GET /progress/:username/:courseId/feedback` ⭐
+### `GET /progress/:username/:courseId/feedback`
 **說明**：取得對學員某課程心得的回覆（依時間由舊到新）
 
 **權限**：學員本人；看得到這位學員的教師、牧者、家長（見[可見範圍規則](#可見範圍規則誰看得到誰)）；`admin`
@@ -762,7 +737,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 
 ---
 
-### `POST /progress/:username/:courseId/feedback` ⭐
+### `POST /progress/:username/:courseId/feedback`
 **說明**：回覆學員某課程的心得（只新增、不修改）
 
 **權限**：看得到這位學員的 `teacher`、同教會 `pastor`、`admin`；家長與學員不能回覆（`403 FORBIDDEN`）
@@ -775,7 +750,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 
 對應前端 `coursesStore.getFeedback()` / `addFeedback()`；資料表見 `docs/database_schema.md` 2.20。
 
-### `GET /progress/:username/feedback/unread` ⭐
+### `GET /progress/:username/feedback/unread`
 **說明**：學員有新回覆的課程與則數（前端在課程卡片與「課程」分頁上顯示提醒）
 
 **權限**：學員本人
@@ -784,7 +759,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 { "success": true, "data": { "bible-01": 2, "lecture-03": 1 } }
 ```
 
-### `POST /progress/:username/:courseId/feedback/seen` ⭐
+### `POST /progress/:username/:courseId/feedback/seen`
 **說明**：學員打開課程即視為已讀該課程的回覆；記錄的時間為已讀到的最新一則回覆的 `createdAt`
 
 **權限**：學員本人（家長、教師查看不會改變學員的已讀狀態）
@@ -1126,7 +1101,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 
 ---
 
-### 專題主題 Themes ⭐ NEW
+### 專題主題 Themes
 
 各教會的「品格力」與「成年禮」專題講座主題（資料庫 `themes`，前端 `addTheme()` / `updateTheme()` / `deleteTheme()`），
 閃耀計畫的講座登記表依此列出。
@@ -1300,7 +1275,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 
 ---
 
-### `GET /admin/invite-codes` ⭐ NEW
+### `GET /admin/invite-codes`
 **說明**：取得系統中所有的邀請碼清單
 
 **權限**：`admin`
@@ -1327,7 +1302,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 
 ---
 
-### `POST /admin/invite-codes` ⭐ NEW
+### `POST /admin/invite-codes`
 **說明**：產生一組新邀請碼
 
 **權限**：`admin`
@@ -1360,7 +1335,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 
 ---
 
-### `DELETE /admin/invite-codes/:code` ⭐ NEW
+### `DELETE /admin/invite-codes/:code`
 **說明**：作廢一組尚未被使用的邀請碼
 
 **權限**：`admin`
@@ -1522,7 +1497,7 @@ GET /bookings/sessions?teacherUsername={username}&status={status}
 | 查詢參數 | 型別 | 必填 | 說明 |
 |----------|------|------|------|
 | `teacherUsername` | string | 否 | 篩選特定教師建立的場次 |
-| `lecturerUsername` | string | 否 | 篩選此帳號擔任講師的場次（透過 `Lecturer.linkedUsername`，即「我的授課」）⭐ |
+| `lecturerUsername` | string | 否 | 篩選此帳號擔任講師的場次（透過 `Lecturer.linkedUsername`，即「我的授課」） |
 | `church` | string | 否 | 依教會篩選；`pastor` 只能查自己的教會（「教會預約總覽」，唯讀） |
 | `status` | string | 否 | `pending \| confirmed \| completed \| cancelled` |
 
@@ -1558,7 +1533,7 @@ GET /bookings/sessions?teacherUsername={username}&status={status}
 }
 ```
 
-#### 取得我擔任講師的預約場次 ⭐
+#### 取得我擔任講師的預約場次
 ```
 GET /bookings/sessions?lecturerUsername={username}&includeAttendees=true
 ```
@@ -1783,11 +1758,11 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | `displayName` | string? | 暱稱（公開顯示） |
 | `realName` | string? | 真實姓名（管理端顯示，不對其他學員公開） |
 | `loginMethod` | `credentials` \| `google` \| `line` | 首次登入方式；社群帳號沒有密碼 |
-| `email` | string? | 選填，可用來登入；小寫儲存，不可重複 ⭐ |
+| `email` | string? | 選填，可用來登入；小寫儲存，不可重複 |
 | `emailVerified` | boolean | 信箱是否已驗證（規劃中，見[帳號與信箱](#帳號與信箱規劃)） |
-| `mustChangePassword` | boolean | 管理員設定的密碼，須在下次登入時更換 ⭐ |
-| `gender` | `male` \| `female` \| null | 性別，只用於 `student`、`teacher`；null = 未設定 ⭐ |
-| `childUsernames` | string[]? | 只用於 `parent`：綁定的孩子（後端對應 `parent_children` 表） ⭐ |
+| `mustChangePassword` | boolean | 管理員設定的密碼，須在下次登入時更換 |
+| `gender` | `male` \| `female` \| null | 性別，只用於 `student`、`teacher`；null = 未設定 |
+| `childUsernames` | string[]? | 只用於 `parent`：綁定的孩子（後端對應 `parent_children` 表） |
 | `avatarUrl` | string? | 頭像 URL |
 | `isActive` | boolean | 是否啟用（false = 軟刪除） |
 | `lastLoginAt` | ISO8601? | 最後登入時間 |
@@ -1834,7 +1809,7 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | `pastor` | string? | 分區牧者帳號（FK） |
 | `updatedAt` | ISO8601 | 最後更新時間 |
 
-### BookingSession（預約場次） ⭐
+### BookingSession（預約場次）
 | 欄位 | 型別 | 說明 |
 |------|------|------|
 | `id` | string | 唯一 ID |
@@ -1852,7 +1827,7 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | `isGroupSession` | boolean | 是否多人場次 |
 | `createdAt` / `updatedAt` | ISO8601 | 系統時間 |
 
-### BookingAttendee（場次學員） ⭐
+### BookingAttendee（場次學員）
 | 欄位 | 型別 | 說明 |
 |------|------|------|
 | `sessionId` | string | 所屬場次 |
@@ -1863,7 +1838,7 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | `feedbackAt` | ISO8601? | 回饋時間 |
 | `linkedListenSessionId` | string? | 連結的聽課紀錄（選填） |
 
-### InviteCode（邀請碼） ⭐
+### InviteCode（邀請碼）
 | 欄位 | 型別 | 說明 |
 |------|------|------|
 | `code` | string | 如 `SS-TCH-K7M2QX9D`（格式見 `POST /admin/invite-codes`） |
@@ -1874,7 +1849,7 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | `usedBy` / `usedAt` | string? / ISO8601? | 使用者與使用時間 |
 | `revoked` | boolean | 是否已作廢 |
 
-### CourseFeedback（心得回覆） ⭐
+### CourseFeedback（心得回覆）
 | 欄位 | 型別 | 說明 |
 |------|------|------|
 | `id` | string | 唯一 ID |
@@ -1882,7 +1857,7 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | `message` | string | 內容 |
 | `createdAt` | ISO8601 | 時間；學員的「新回覆」依此與已讀時間比較 |
 
-### ShiningProject（閃耀計畫） ⭐
+### ShiningProject（閃耀計畫）
 | 欄位 | 型別 | 說明 |
 |------|------|------|
 | `name` / `birthday` / `church` / `schoolGrade` | string | 基本資料（學員自填） |
@@ -1892,7 +1867,7 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | `customChallenge` | string | 自訂挑戰內容 |
 | `characterLectures` / `comingOfAgeTopics` | `{ [主題名稱]: { speaker, date } }` | 專題講座登記（依主題名稱，見「專題主題」） |
 
-### Theme（專題主題） ⭐
+### Theme（專題主題）
 | 欄位 | 型別 | 說明 |
 |------|------|------|
 | `id` | string | 唯一 ID |
@@ -1913,17 +1888,17 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | HTTP 狀態碼 | 錯誤碼 | 中文說明 |
 |-------------|--------|---------|
 | 400 | `VALIDATION_ERROR` | 請求參數格式錯誤或驗證失敗 |
-| 429 | `TOO_MANY_REQUESTS` | 嘗試次數過多，暫時鎖住；`Retry-After` 標頭為需等待的秒數（見[嘗試次數限制](#嘗試次數限制)） ⭐ |
+| 429 | `TOO_MANY_REQUESTS` | 嘗試次數過多，暫時鎖住；`Retry-After` 標頭為需等待的秒數（見[嘗試次數限制](#嘗試次數限制)） |
 | 400 | `INVALID_DATE_FORMAT` | 日期時間格式不正確 |
 | 400 | `INVALID_STATUS_TRANSITION` | 場次狀態流轉不合法（如已完成場次不可再確認） |
 | 401 | `UNAUTHORIZED` | 未提供 Token 或 Token 無效 |
 | 401 | `INVALID_CREDENTIALS` | 帳號或密碼錯誤 |
-| 401 | `USE_SOCIAL_LOGIN` | 帳號沒有密碼，請用 Google / LINE 登入 ⭐ |
+| 401 | `USE_SOCIAL_LOGIN` | 帳號沒有密碼，請用 Google / LINE 登入 |
 | 401 | `TOKEN_EXPIRED` | Access Token 已過期，請呼叫 /auth/refresh |
 | 401 | `REFRESH_TOKEN_EXPIRED` | Refresh Token 已過期，需重新登入 |
 | 403 | `FORBIDDEN` | 有登入但無權限執行此操作 |
-| 403 | `STUDENT_NOT_VISIBLE` | 依可見範圍規則看不到此學員（如指派異性學員給教師） ⭐ |
-| 409 | `BOOKING_NOT_CONFIRMED` | 場次時間尚未確認，講師還不能記錄出席 ⭐ |
+| 403 | `STUDENT_NOT_VISIBLE` | 依可見範圍規則看不到此學員（如指派異性學員給教師） |
+| 409 | `BOOKING_NOT_CONFIRMED` | 場次時間尚未確認，講師還不能記錄出席 |
 | 403 | `ACCOUNT_DISABLED` | 帳號已被停用（isActive = false） |
 | 404 | `USER_NOT_FOUND` | 找不到此使用者 |
 | 404 | `COURSE_NOT_FOUND` | 找不到此課程 |
@@ -1933,10 +1908,10 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | 404 | `LECTURER_NOT_FOUND` | 找不到此講師 |
 | 404 | `STATS_NOT_FOUND` | 找不到此年度教學統計 |
 | 409 | `USERNAME_TAKEN` | 帳號名稱已被使用（不分大小寫） |
-| 409 | `EMAIL_TAKEN` | 信箱已被其他帳號使用 ⭐ |
-| 409 | `THEME_EXISTS` | 同一教會已有同名的專題主題 ⭐ |
-| 400 | `WEAK_PASSWORD` | 密碼不符合密碼規則（見 `POST /auth/register`） ⭐ |
-| 403 | `PASSWORD_CHANGE_REQUIRED` | 須先修改管理員設定的密碼 ⭐ |
+| 409 | `EMAIL_TAKEN` | 信箱已被其他帳號使用 |
+| 409 | `THEME_EXISTS` | 同一教會已有同名的專題主題 |
+| 400 | `WEAK_PASSWORD` | 密碼不符合密碼規則（見 `POST /auth/register`） |
+| 403 | `PASSWORD_CHANGE_REQUIRED` | 須先修改管理員設定的密碼 |
 | 409 | `ATTENDEE_ALREADY_EXISTS` | 該學員已加入此場次 |
 | 500 | `INTERNAL_ERROR` | 伺服器內部錯誤 |
 
@@ -1960,12 +1935,12 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | `superstart_character_themes_db` | 建議新增：`GET /themes?type=character&church=...` |
 | `superstart_coming_of_age_themes_db` | 建議新增：`GET /themes?type=comingOfAge&church=...` |
 | `superstart_teaching_stats_db` | `GET /teaching-stats` / `PUT /teaching-stats/:username/:year` |
-| `superstart_booking_sessions_db` | `GET /bookings/sessions` / `POST /bookings/sessions` ⭐ |
-| `superstart_booking_attendees_db` | `GET /bookings/sessions/:id/attendees` / `PATCH /bookings/sessions/:id/attendees/:username` ⭐ |
-| `superstart_invite_codes` | `GET` / `POST /admin/invite-codes`、`DELETE /admin/invite-codes/:code` ⭐ |
-| `superstart_feedback_db` | `GET` / `POST /progress/:username/:courseId/feedback` ⭐ |
-| `superstart_feedback_seen_db` | `GET /progress/:username/feedback/unread`、`POST .../feedback/seen` ⭐ |
-| `superstart_retired_usernames` | 不需要 API：已停用的帳號列仍在，名稱的唯一限制照常生效 ⭐ |
+| `superstart_booking_sessions_db` | `GET /bookings/sessions` / `POST /bookings/sessions` |
+| `superstart_booking_attendees_db` | `GET /bookings/sessions/:id/attendees` / `PATCH /bookings/sessions/:id/attendees/:username` |
+| `superstart_invite_codes` | `GET` / `POST /admin/invite-codes`、`DELETE /admin/invite-codes/:code` |
+| `superstart_feedback_db` | `GET` / `POST /progress/:username/:courseId/feedback` |
+| `superstart_feedback_seen_db` | `GET /progress/:username/feedback/unread`、`POST .../feedback/seen` |
+| `superstart_retired_usernames` | 不需要 API：已停用的帳號列仍在，名稱的唯一限制照常生效 |
 
 以下只屬於這台裝置，接上後端後仍留在瀏覽器（不對應 API）：`superstart_session`（登入期限計時）、
 `superstart_lang`（語言）、`superstart_last_backup_at`（上次備份時間）；`superstart_user` 改由 `GET /auth/me` 取得。
@@ -1988,41 +1963,41 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | `saveTeachingStats()` | `PUT /teaching-stats/:username/:year` |
 | `getTeachingStats()` | `GET /teaching-stats?teacherUsername=...&year=...` |
 | `getAllTeachingStats()` | `GET /teaching-stats/summary?year=...` |
-| `bookingsStore.createSession()` | `POST /bookings/sessions` ⭐ |
-| `bookingsStore.updateSessionStatus()` | `PATCH /bookings/sessions/:id/status` ⭐ |
-| `bookingsStore.updatePrep()` | `PATCH /bookings/sessions/:id/prep` ⭐ |
-| `bookingsStore.completeSession()` | `POST /bookings/sessions/:id/complete` ⭐ |
-| `bookingsStore.updateAttendee()` | `PATCH /bookings/sessions/:id/attendees/:username` ⭐ |
-| `bookingsStore.addAttendeeToSession()` | `POST /bookings/sessions/:id/attendees` ⭐ |
-| `bookingsStore.deleteSession()` | `DELETE /bookings/sessions/:id` ⭐ |
-| `bookingsStore.getSessionsByTeacher()` | `GET /bookings/sessions?teacherUsername=...` ⭐ |
-| `bookingsStore.getSessionsByLecturers()` | `GET /bookings/sessions?lecturerUsername=...` ⭐ |
-| `coursesStore.getFeedback()` / `addFeedback()` | `GET` / `POST /progress/:username/:courseId/feedback` ⭐ |
-| `coursesStore.coursesWithUnreadFeedback()` / `markFeedbackSeen()` | `GET /progress/:username/feedback/unread` / `POST .../feedback/seen` ⭐ |
-| `bookingsStore.cancelOpenSessionsOf()` | 由 `DELETE /admin/users/:username` 在後端處理 ⭐ |
-| `authStore.setGender()` | `PUT /users/:username/gender` ⭐ |
-| `authStore.bindChild()` / `unbindChild()` | `PUT` / `DELETE /parents/:parentUsername/children/:studentUsername` ⭐ |
-| `authStore.parentsOf()` / `childrenOf()` | `GET /students/:studentUsername/parents` / `GET /parents/:parentUsername/children` ⭐ |
-| `useAccountCleanup().releaseRole()` | `DELETE /admin/users/:username`、`PUT /admin/users/:username`（改角色）在後端處理 ⭐ |
-| `utils/scope.ts`（`canViewStudent` / `canViewAttendee` 等） | 後端每個學員相關 API 的授權過濾 ⭐ |
-| `bookingsStore.getUpcomingSessions()` | `GET /bookings/sessions?studentUsername=...&upcoming=true` ⭐ |
-| `bookingsStore.getPastSessions()` | `GET /bookings/sessions?studentUsername=...&past=true` ⭐ |
-| `authStore.login()` / `logout()` | `POST /auth/login`（含 `rememberMe`）/ `POST /auth/logout` ⭐ |
+| `bookingsStore.createSession()` | `POST /bookings/sessions` |
+| `bookingsStore.updateSessionStatus()` | `PATCH /bookings/sessions/:id/status` |
+| `bookingsStore.updatePrep()` | `PATCH /bookings/sessions/:id/prep` |
+| `bookingsStore.completeSession()` | `POST /bookings/sessions/:id/complete` |
+| `bookingsStore.updateAttendee()` | `PATCH /bookings/sessions/:id/attendees/:username` |
+| `bookingsStore.addAttendeeToSession()` | `POST /bookings/sessions/:id/attendees` |
+| `bookingsStore.deleteSession()` | `DELETE /bookings/sessions/:id` |
+| `bookingsStore.getSessionsByTeacher()` | `GET /bookings/sessions?teacherUsername=...` |
+| `bookingsStore.getSessionsByLecturers()` | `GET /bookings/sessions?lecturerUsername=...` |
+| `coursesStore.getFeedback()` / `addFeedback()` | `GET` / `POST /progress/:username/:courseId/feedback` |
+| `coursesStore.coursesWithUnreadFeedback()` / `markFeedbackSeen()` | `GET /progress/:username/feedback/unread` / `POST .../feedback/seen` |
+| `bookingsStore.cancelOpenSessionsOf()` | 由 `DELETE /admin/users/:username` 在後端處理 |
+| `authStore.setGender()` | `PUT /users/:username/gender` |
+| `authStore.bindChild()` / `unbindChild()` | `PUT` / `DELETE /parents/:parentUsername/children/:studentUsername` |
+| `authStore.parentsOf()` / `childrenOf()` | `GET /students/:studentUsername/parents` / `GET /parents/:parentUsername/children` |
+| `useAccountCleanup().releaseRole()` | `DELETE /admin/users/:username`、`PUT /admin/users/:username`（改角色）在後端處理 |
+| `utils/scope.ts`（`canViewStudent` / `canViewAttendee` 等） | 後端每個學員相關 API 的授權過濾 |
+| `bookingsStore.getUpcomingSessions()` | `GET /bookings/sessions?studentUsername=...&upcoming=true` |
+| `bookingsStore.getPastSessions()` | `GET /bookings/sessions?studentUsername=...&past=true` |
+| `authStore.login()` / `logout()` | `POST /auth/login`（含 `rememberMe`）/ `POST /auth/logout` |
 | `authStore.register()` | `POST /auth/register` |
 | `authStore.exchangeOAuthCode()` / `completeProfile()` | `POST /auth/exchange` / `PUT /auth/complete-profile` |
-| `authStore.updateProfile()` | `PATCH /auth/me` ⭐ |
+| `authStore.updateProfile()` | `PATCH /auth/me` |
 | `authStore.updatePassword()` | `POST /auth/reset-password`（改自己的密碼） |
-| `authStore.adminResetPassword()` | `PUT /admin/users/:username`（`password`）⭐ |
+| `authStore.adminResetPassword()` | `PUT /admin/users/:username`（`password`） |
 | `authStore.createAccount()` | `POST /admin/users` |
-| `authStore.deleteAccount()` | `DELETE /admin/users/:username` ⭐ |
+| `authStore.deleteAccount()` | `DELETE /admin/users/:username` |
 | `authStore.generateInviteCode()` / `revokeInviteCode()` | `POST /admin/invite-codes` / `DELETE /admin/invite-codes/:code` |
 | `authStore.consumeInviteCode()` | 由 `POST /auth/register`、`PUT /auth/complete-profile` 在後端處理 |
 | `authStore.unbindChildEverywhere()`、`coursesStore.releaseStudent()` / `releaseCaretaker()` / `unlinkLecturerAccount()` | 由 `DELETE` / `PUT /admin/users/:username` 在後端處理（同 `releaseRole()`） |
 | `coursesStore.updateShiningChecklist()` / `updateShiningCustomChallenge()` / `updateShiningLecture()` | `PATCH /shining/:username`（只傳變更的欄位） |
-| `coursesStore.addTheme()` / `updateTheme()` / `deleteTheme()` | `POST` / `PUT` / `DELETE /themes` ⭐ |
+| `coursesStore.addTheme()` / `updateTheme()` / `deleteTheme()` | `POST` / `PUT` / `DELETE /themes` |
 | `bookingsStore.updateSessionProp()` | 依欄位對應 `PATCH /bookings/sessions/:id/status` 或 `/prep` |
 
-### 搬移既有資料 ⭐
+### 搬移既有資料
 
 後端上線時，請管理員在前端「資料備份」匯出一份備份檔（JSON），依資料庫文件
 [第 9 節「從前端備份搬移資料」](./database_schema.md#9-從前端備份搬移資料) 搬進資料庫。重點：
@@ -2068,14 +2043,63 @@ Refresh Token 有效期：30 天（建議）
      版本不符即視為失效；這也讓 `POST /auth/refresh` 不會換發出帶舊角色的 Token。
 3. `POST /auth/refresh` 換發時同樣重新讀取帳號狀態與角色。
 
-### 建議前端修改步驟
+### 前端串接步驟
 
-1. **安裝 axios**：`npm install axios`
-2. **建立 `src/api/client.ts`**：封裝 axios instance，設定 Base URL 與 Token 攔截器
-3. **逐步替換各 Store**：將 `localStorage.getItem / setItem` 改為 `await api.get/post` 呼叫
-4. **預約系統優先級**：`bookings.ts` 已完全獨立，可優先串接 `/bookings/*` 路徑
-5. **錯誤處理**：在 axios response 攔截器統一處理 401/403 錯誤，顯示提示訊息
+前端已有呼叫 API 的共用工具 `src/utils/api.ts`（以 `fetch` 實作，不需另裝 axios）：
+`apiGet` / `apiPost` / `apiPut` / `apiPatch` / `apiDelete` 會自動帶上 Access Token、遇到 `401` 時換發一次再重試、
+15 秒逾時、可取消，並把第 12 節的錯誤碼依目前語系翻譯成 `ApiError`（`429` 會依 `Retry-After` 顯示等待時間）。
+
+1. **設定 API 網址**：在 `.env.production` 設定 `VITE_API_BASE_URL` 並**重新建置**（網站的 CSP 只允許連線到這個網址）；
+   正式環境同時把 `VITE_DEMO_MODE` 設為 `false`
+2. **啟用 Token 換發**：取消 `src/utils/api.ts` 中 `refreshToken()` 已寫好、被註解的 `fetch` 區塊
+3. **登入與社群登入**：替換 `src/stores/auth.ts` 中標示 `TODO（後端就緒後）` 的 mock（`login()`、`exchangeOAuthCode()`、`completeProfile()`）
+4. **逐步替換各 Store**：依上方兩張對照表，把讀寫 `localStorage` 的地方改為呼叫 `apiGet` / `apiPost` 等；
+   `bookings.ts` 與其他 store 無相依，可先串接 `/bookings/*`
+5. **權限以後端為準**：前端的可見範圍（`src/utils/scope.ts`）、登入期限（`src/utils/session.ts`）只是讓畫面即時反映，
+   後端回 `401` / `403` 時以後端為準
+6. **搬移既有資料**：依上方〈搬移既有資料〉與資料庫文件第 9 節
 
 ---
 
-*本文件由前端團隊維護。如後端有欄位或邏輯調整，請同步更新此文件並通知前後端雙方確認後再上線。*
+## 版本紀錄
+
+### v1.8.1（2026-11-14）整理文件
+
+- 各版本的異動摘要從文件開頭移到這裡；移除標示新增項目的 ⭐ / NEW 記號（各版本新增了什麼以這裡為準）
+- 第 13 節〈前端串接步驟〉改寫為目前的實作：前端已有 `src/utils/api.ts`（`fetch`），不需另裝 axios
+- 文件開頭加上相關文件連結；新增 [`docs/README.md`](./README.md) 文件導覽
+
+### v1.8.0（2026-11-11）帳號安全、登入期限、補齊端點
+
+- 新增 `PATCH /auth/me`：使用者修改自己的暱稱、姓名、頭像（只接受 `https://`）、信箱
+- 新增專題主題 `GET` / `POST` / `PUT` / `DELETE /themes`（前端早已可管理，原本只有「建議新增」）
+- `GET /auth/me` 補齊 `email`、`mustChangePassword`、`loginMethod`、`realName`、`childUsernames`、`lastLoginAt`
+- 新增[密碼規則](#密碼規則)與 `400 WEAK_PASSWORD`；登入時帳號不存在與密碼錯誤一律回 `INVALID_CREDENTIALS`
+- 新增[嘗試次數限制](#嘗試次數限制)與 `429 TOO_MANY_REQUESTS`（含 `Retry-After`）
+- 新增[記住我與閒置登出](#記住我與閒置登出)（`rememberMe`）與[帳號變更時結束既有的登入](#帳號變更時結束既有的登入)
+- 新增[跨網域（CORS）](#跨網域cors)：前端與 API 不同網域時的設定
+- 社群帳號不可設定或重設密碼（`POST /auth/reset-password`、`PUT /admin/users/:username`）
+- 刪除（停用）帳號後名稱不可重新使用；邀請碼隨機部分改為 8 碼（[格式](#post-admininvite-codes)）
+- 講師稱謂改為代碼（`pastor`、`preacher`…），由前端依語言翻譯
+- 第 11 節補上預約、出席、邀請碼、心得回覆、閃耀計畫、主題的資料模型；第 13 節對照表補齊，
+  並說明如何以前端匯出的備份檔搬移既有資料
+
+### v1.7.0（2026-11-02）帳號與信箱
+
+- 帳號規則：小寫、3–30 字元、只用英數字與 `. _ -`，比對不分大小寫（前端 `src/utils/account.ts`）
+- 信箱選填、不可重複，可用來登入：`POST /auth/login` 的 `identifier` 可填帳號或信箱
+- 管理員建立帳號或重設密碼後 `mustChangePassword = true`，使用者須先改密碼才能使用其他 API
+- 新增心得回覆：`GET` / `POST /progress/:username/:courseId/feedback`
+- 規劃中（需後端）：信箱驗證、寄信重設密碼、社群帳號只在雙方信箱都已驗證時自動合併，見[帳號與信箱](#帳號與信箱規劃)
+
+### v1.6.0（2026-10-30）
+
+- 新增[可見範圍規則](#可見範圍規則誰看得到誰)：教師與學員依性別分開管理，牧者以上看整體，以教會為單位；講師在自己授課的預約中看得到全部學員
+- `User` 新增 `gender`；新增 `PUT /users/:username/gender`
+- 家長綁定改為獨立的 `/parents/:parentUsername/children`，`/assignments` 不再有 `parent`
+- `DELETE /admin/users/:username` 與更改角色時，會清理仍指向該帳號的指派、講師連結與預約
+- 預約新增 `GET /bookings/sessions?lecturerUsername=`（我的授課）；講師可更新出席狀態
+
+---
+
+*本文件由前端團隊依前端實作整理維護。前端或後端調整欄位、規則時，請同步更新本文件（版本號、〈版本紀錄〉），並通知前後端雙方確認後再上線。*

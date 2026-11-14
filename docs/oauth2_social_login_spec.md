@@ -1,18 +1,12 @@
 # SSLecture OAuth2 社群登入設計規格
 
-> **文件版本**：v1.1.0
-> **最後更新**：2026-11-11
+> **文件版本**：v1.1.1
+> **最後更新**：2026-11-14
 > **適用後端**：Spring Boot 3.x（Spring Security 6.x OAuth2 Client）
 > **適用前端**：Vue 3 + TypeScript + Pinia
+> **相關文件**：[文件導覽](./README.md)・[API 規格](./backend_api_spec.md)・[資料庫設計](./database_schema.md)・各版本異動見文末[版本紀錄](#版本紀錄)
 
 ---
-
-> **v1.1.0 異動摘要**
-> - 第 1.1 節改寫為前端**目前**的實作：mock 對話框已移除，前端已完成導向、回調與 onboarding 頁面，只等後端
-> - 第 6 節標明哪些已在前端完成，以實際檔案為準
-> - Onboarding 加上家長綁定孩子（`childUsernames`），帳號名稱依帳號規則
-> - 新增 8.5 社群帳號的規則：保有一筆 `users` 資料、沒有密碼、不可由管理員設定密碼、登入不會被「記住」
-> - 8.4 補上帳號變更時讓既有登入失效（`token_version`）；`POST /auth/exchange` 列入嘗試次數限制
 
 ## 目錄
 
@@ -26,6 +20,8 @@
 8. [安全性設計](#8-安全性設計)
 9. [第三方平台設定清單](#9-第三方平台設定清單)
 10. [API 端點定義](#10-api-端點定義)
+
+附錄：[資料庫異動摘要](#附錄資料庫異動摘要)・[版本紀錄](#版本紀錄)
 
 ---
 
@@ -768,7 +764,7 @@ Refresh Token：
 
 ### 自定義 API 端點（需手動實作）
 
-#### `POST /auth/exchange` ⭐ NEW
+#### `POST /auth/exchange`
 **說明**：使用短效一次性 code 換取 JWT
 
 **權限**：公開
@@ -804,7 +800,7 @@ Refresh Token：
 
 ---
 
-#### `PUT /auth/complete-profile` ⭐ NEW
+#### `PUT /auth/complete-profile`
 **說明**：首次社群登入後補充資料（教會、username、邀請碼）
 
 **權限**：需 JWT
@@ -845,7 +841,7 @@ Refresh Token：
 
 ---
 
-#### `GET /auth/social-accounts` ⭐ NEW
+#### `GET /auth/social-accounts`
 **說明**：取得目前登入使用者已綁定的社群帳號列表
 
 **權限**：需 JWT
@@ -863,7 +859,7 @@ Refresh Token：
 
 ---
 
-#### `DELETE /auth/social-accounts/{provider}` ⭐ NEW
+#### `DELETE /auth/social-accounts/{provider}`
 **說明**：解除特定社群帳號綁定
 
 **權限**：需 JWT
@@ -884,4 +880,25 @@ Refresh Token：
 
 ---
 
-*本文件由系統分析自動生成。後端工程師實作前，請確認已完成第 9 章的第三方平台設定，並正確配置環境變數。*
+## 版本紀錄
+
+### v1.1.1（2026-11-14）整理文件
+
+- 異動摘要從文件開頭移到這裡；移除標示新增項目的 ⭐ / NEW 記號
+- 文件開頭加上相關文件連結；新增 [`docs/README.md`](./README.md) 文件導覽
+
+### v1.1.0（2026-11-11）
+
+- 第 1.1 節改寫為前端**目前**的實作：mock 對話框已移除，前端已完成導向、回調與 onboarding 頁面，只等後端
+- 第 6 節標明哪些已在前端完成，以實際檔案為準
+- Onboarding 加上家長綁定孩子（`childUsernames`），帳號名稱依帳號規則
+- 新增 8.5 社群帳號的規則：保有一筆 `users` 資料、沒有密碼、不可由管理員設定密碼、登入不會被「記住」
+- 8.4 補上帳號變更時讓既有登入失效（`token_version`）；`POST /auth/exchange` 列入嘗試次數限制
+
+### v1.0.0（2026-08-12）
+
+- 初版：Google / LINE 登入流程、Spring Boot 設定、前端整合規格、資料庫異動
+
+---
+
+*本文件由前端團隊依前端實作整理維護。後端工程師實作前，請先完成第 9 章的第三方平台設定，並正確配置環境變數。*

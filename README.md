@@ -2,6 +2,12 @@
 
 SSLecture 是一個基於 **Vue 3 + TypeScript + Vite** 技術棧開發的現代化課程學習與輔導配對管理系統原型。目前前端採用 **Pinia** 全狀態管理配合 **LocalStorage** 持久化，後端將串接 **Spring Boot** 實現完整 OAuth2 JWT 架構。
 
+- **線上示範**：<https://jaras0209.github.io/SSLecture_front_end/>（`main` 分支每次更新後自動部署；資料只存在您的瀏覽器裡，可用下方〈登入方式〉的測試帳號登入）
+- **後端開發文件**：見 [`docs/README.md`](./docs/README.md)（API 規格、資料庫設計、社群登入）與上線前待辦 [`TODO.md`](./TODO.md)
+
+**目錄**：[專案背景與特色](#-專案背景與特色)・[技術棧](#️-技術棧說明)・[文件](#-文件)・[目錄結構](#-專案目錄結構)・[登入方式](#-登入方式)・
+[快速上手](#-快速上手與環境設定)・[後端部署需求](#️-後端部署需求)・[資料持久化、備份與重設](#-資料持久化備份與重設)
+
 ---
 
 ## 📖 專案背景與特色
@@ -12,7 +18,8 @@ SSLecture 是一個基於 **Vue 3 + TypeScript + Vite** 技術棧開發的現代
 *   **精美現代視覺與無障礙體驗**：採用漸層色調、玻璃擬態（Glassmorphism）、ARIA 無障礙標籤與響應式排版；每頁有自己的瀏覽器標題，並遵循系統的「減少動態效果」設定。
 *   **閃耀計畫檢核與列印匯出**：學員專屬的信仰與生活挑戰追蹤系統，支援專屬列印排版與 PDF 匯出。
 *   **課程預約、配對與年度申報**：支援一對一／團體預約、出席與心得回饋追蹤、牧者關懷配對管理，以及教師年度教學人次統計申報。
-*   **男女分開管理**：以教會為單位，教師只看得到同性別的學員，牧者以上看得到整體狀況；性別由牧者設定。預約由學員的輔導教師安排，牧者在分區教會總覽可看到全教會的預約，管理員可看所有教會的預約；連結到教師或牧者帳號的講師在「我的授課」看得到自己授課的全部學員並記錄出席，課程結束後尚未記錄的會在分頁上提醒。規則集中在 `src/utils/scope.ts`，說明見 [`docs/database_schema.md`](./docs/database_schema.md) 5.10–5.13 與 [`docs/backend_api_spec.md`](./docs/backend_api_spec.md)〈可見範圍規則〉。
+*   **男女分開管理**：以教會為單位，教師只看得到同性別的學員，牧者以上看得到整體狀況；性別由牧者設定。規則集中在 `src/utils/scope.ts`，說明見 [`docs/backend_api_spec.md`](./docs/backend_api_spec.md#可見範圍規則誰看得到誰)〈可見範圍規則〉與 [`docs/database_schema.md`](./docs/database_schema.md#510-性別分開管理與可見範圍) 5.10–5.13。
+*   **預約與我的授課**：預約由學員的輔導教師安排；牧者在分區教會總覽看得到全教會的預約，管理員看得到所有教會的預約。連結到教師或牧者帳號的講師在「我的授課」看得到自己授課的全部學員並記錄出席，課程結束後尚未記錄的會在分頁上提醒。
 *   **帳號清理**：管理員刪除帳號或變更角色時，自動解除仍指向該帳號的關懷指派、家長綁定與講師連結，並取消其尚未進行的預約（保留歷史紀錄）；已刪除帳號的名稱不能再被註冊，以免新使用者看到前一位的資料。
 *   **心得回覆**：教師、牧者與管理員可以回覆學員的聽課心得，學員在課程卡片上看到新回覆提醒。
 *   **共用裝置的登入期限**：未勾「記住我」時，閒置 2 小時或關閉瀏覽器後自動登出，到期前 5 分鐘提醒；勾選後在這台裝置上保持登入 30 天（見下方〈登入期限〉）。
@@ -27,11 +34,27 @@ SSLecture 是一個基於 **Vue 3 + TypeScript + Vite** 技術棧開發的現代
 *   **建置工具**：Vite 8（Rolldown 打包；`vue-vendor`、`i18n`、`vendor` 以 `codeSplitting` 群組拆成獨立 chunk）
 *   **狀態管理**：Pinia 4（模組化設計：`auth` 權限模組、`courses` 課程與進度模組、`bookings` 預約與出席模組）
 *   **多語系架構**：Vue I18n 11（Composition API 模式，`zh-TW` / `en` 雙語系；`en` 語系檔按需載入）
-*   **路由管理**：Vue Router 5（HTML5 History 模式，內建角色與頁面限制導航守衛、平滑捲動）
+*   **路由管理**：Vue Router 5（HTML5 History 模式，內建角色與頁面限制導航守衛；按上一頁時回到原本的捲動位置）
 *   **字型**：Quicksand 由 `@fontsource` 隨專案打包，不向 Google Fonts 發出請求
-*   **測試**：Vitest 5 + Happy DOM + Vue Test Utils（69 個測試檔案、619 項測試，含四個主要頁面、composable 與表單元件測試，以及以本機 HTTP 伺服器驗證 `api.ts` 的整合測試）；Playwright 端對端測試（59 項，含以 axe 檢查 WCAG 2.1 AA 無障礙與鍵盤操作，以及內容安全政策）
+*   **測試**：Vitest 5 + Happy DOM + Vue Test Utils（70 個測試檔案、632 項測試，含四個主要頁面、composable 與表單元件測試，以及以本機 HTTP 伺服器驗證 `api.ts` 的整合測試）；Playwright 端對端測試（59 項，含以 axe 檢查 WCAG 2.1 AA 無障礙與鍵盤操作，以及內容安全政策）
 *   **程式碼品質**：TypeScript 6.0（Strict 嚴格模式，以 vue-tsc 3 檢查）、ESLint 10、Prettier 3
 *   **樣式設計**：Vanilla CSS（響應式排版，適配行動端、桌面端與 `@media print` 列印模式）
+*   **CI／部署**：GitHub Actions（`.github/workflows/`）。分支推送時跑 CI；`main` 更新時再跑一次全部檢查並部署到 GitHub Pages。
+    檢查項目：套件漏洞、ESLint、Prettier、單元測試與最低覆蓋率、型別檢查與建置、端對端測試
+
+---
+
+## 📚 文件
+
+| 文件 | 內容 |
+| :--- | :--- |
+| [`docs/README.md`](./docs/README.md) | **文件導覽**：各文件給誰看、建議閱讀順序、依主題查找、文件維護方式 |
+| [`docs/backend_api_spec.md`](./docs/backend_api_spec.md) | 後端 API 規格：所有端點、可見範圍規則、嘗試次數限制、登入期限、CORS、錯誤碼、前端串接步驟 |
+| [`docs/database_schema.md`](./docs/database_schema.md) | 資料庫設計：22 張表、設計決策、PostgreSQL 建表 SQL、ERD、從前端備份搬移資料 |
+| [`docs/oauth2_social_login_spec.md`](./docs/oauth2_social_login_spec.md) | Google / LINE 社群登入的流程、後端設定與前端整合 |
+| [`TODO.md`](./TODO.md) | 後端上線前的待辦清單 |
+
+文件中的連結、章節錨點與檔案路徑由 `npm test` 檢查（`src/__tests__/docs.spec.ts`），改標題或搬檔案時會提醒您一併更新。
 
 ---
 
@@ -39,78 +62,42 @@ SSLecture 是一個基於 **Vue 3 + TypeScript + Vite** 技術棧開發的現代
 
 ```text
 SSLecture/
+├── .github/
+│   ├── workflows/          # ci.yml（分支推送時檢查）、deploy.yml（main：檢查後部署到 GitHub Pages）
+│   ├── actions/            # setup-playwright：安裝並快取 E2E 用的 Chromium
+│   └── dependabot.yml      # 每週檢查套件與 Actions 更新
+├── docs/                   # 後端開發文件（見上方〈文件〉）
+├── e2e/                    # Playwright 端對端測試（*.e2e.ts，對正式 build 執行；fixtures.ts 為共用的測試帳號與工具）
 ├── public/                 # 靜態資源
-├── docs/                   # 開發文件
-│   ├── backend_api_spec.md          # 後端 API 規格（v1.5.0）
-│   ├── database_schema.md           # 資料庫設計文件（PostgreSQL DDL + ERD）
-│   └── oauth2_social_login_spec.md  # OAuth2 Google/LINE 登入架構設計
-├── e2e/                    # Playwright 端對端測試（*.e2e.ts，對正式 build 執行）
 ├── src/
-│   ├── assets/             # 圖片、樣式等靜態資源
-│   │   └── styles/main.css # 全域 CSS（變數、玻璃擬態、通用工具類、列印基礎樣式）
+│   ├── assets/             # 圖示與全域樣式（styles/main.css：CSS 變數、玻璃擬態、工具類、列印、減少動態效果）
 │   ├── components/         # 可複用元件
-│   │   ├── admin/          # 管理員後台區塊（新增使用者、使用者列表、教會概況、年度教學統計、邀請碼管理）
-│   │   ├── auth/           # 登入頁元件（登入表單、註冊表單、社群登入按鈕、忘記密碼 Modal）
-│   │   ├── shared/         # 全域共用元件（AppToast、LanguageSwitcher、ProfileDialog、PasswordChangeForm、PasswordStrengthMeter、GenderSelect、ChurchBookings、StudentBookingsSummary）
-│   │   ├── student/        # 學員專屬子元件（課程卡片、詳情、預約清單、回饋 Modal、閃耀計畫面板與列印版）
-│   │   └── teacher/        # 教師/牧者專屬子元件（學員清單、進度抽屜、筆記對話框、預約面板與建立／完成預約對話框、我的授課（講師）、牧者總覽與教會預約總覽、年度申報、講師與主題設定、講師新增/編輯 Modal）
-│   ├── composables/        # 可複用邏輯（Composition API）
-│   │   ├── useI18nHelper.ts        # 動態 i18n Key、角色與狀態翻譯輔助函式
-│   │   ├── usePasswordStrength.ts  # 密碼強度計算與多語系提示
-│   │   ├── useStudentList.ts       # 學員清單過濾、搜尋與進度統計邏輯
-│   │   └── useToast.ts             # 全域 Toast 通知與 Confirm 確認框系統
-│   ├── i18n/               # 多語系設定與語言包
-│   │   ├── index.ts        # Vue I18n 實例與 setLocale 切換函式
-│   │   └── locales/        # 語系 JSON 檔（zh-TW.json、en.json）
-│   ├── mocks/              # 開發期預設資料（後端就緒後可替換）
-│   │   └── courses.ts      # 30 堂課程預設清單產生器（buildMockCourses）
-│   ├── router/
-│   │   ├── index.ts        # 路由配置與導航守衛（lazy loading、角色與頁面權限守衛）
-│   │   └── __tests__/      # 路由導航守衛單元測試（router.spec.ts）
-│   ├── stores/             # Pinia 狀態管理
-│   │   ├── auth.ts         # 使用者驗證、邀請碼管理與 OAuth2 actions
-│   │   ├── courses.ts      # 課程、學習進度、閃耀計畫、講師與關懷配對關係
-│   │   ├── bookings.ts     # 課程預約、出席紀錄與雙向心得回饋
-│   │   └── __tests__/      # Store 單元測試（auth / courses / bookings.spec.ts）
-│   ├── types/              # TypeScript 型別集中管理
-│   │   ├── auth.ts         # User、UserRole、InviteCode 等
-│   │   ├── courses.ts      # Course、ListenSession、ShiningProject、Lecturer 等
-│   │   ├── bookings.ts     # BookingSession、AttendeeEntry 等
-│   │   ├── student.ts      # StudentProgressSummary 等學員進度摘要型別
-│   │   └── index.ts        # 統一 barrel export
-│   ├── utils/
-│   │   ├── storage.ts      # localStorage 安全讀寫包裝工具（safeGet / safeSet）
-│   │   ├── api.ts          # 集中式 API fetch wrapper（JWT 注入、401 refresh、逾時／取消、i18n 錯誤訊息）
-│   │   ├── datetime.ts     # 本地時間 / ISO 時間戳記轉換與依語系顯示
-│   │   ├── id.ts           # 不會碰撞的隨機 ID 產生器
-│   │   ├── avatar.ts       # 在瀏覽器內產生 DiceBear 頭像（按需載入各風格）
-│   │   ├── persist.ts      # store 狀態延遲合併寫入 localStorage，並與其他分頁同步
-│   │   ├── scope.ts        # 誰看得到誰：教會、性別分開管理、家長綁定與講師例外
-│   │   └── __tests__/      # 工具函式單元與整合測試（storage / datetime / id / avatar / persist / api）
-│   ├── views/              # 各角色的控制面板主頁面
-│   │   ├── AdminDashboard.vue      # 系統管理員後台（帳號權限、邀請碼、年度統計總覽）
-│   │   ├── LoginView.vue           # 登入與註冊介面（含邀請碼驗證、Google/LINE 登入、快速測試帳號）
-│   │   ├── LoginCallback.vue       # OAuth2 回調頁（換取 JWT、錯誤處理）
-│   │   ├── NotFoundView.vue        # 404 找不到頁面
-│   │   ├── OnboardingView.vue      # 首次社群登入補充資料頁
-│   │   ├── StudentDashboard.vue    # 學員個人學習面板 & 閃耀計畫
-│   │   ├── TeacherDashboard.vue    # 輔導教師 / 分區牧者 / 家長共用控制面板
-│   │   └── UnauthorizedView.vue    # 未授權提示頁
-│   ├── App.vue             # 根元件（頂部導覽列、語系切換器、Toast、個人資料與密碼修改 Modal）
-│   ├── main.ts             # 專案入口（Pinia、Router、i18n 掛載與全域錯誤捕獲）
-│   └── vite-env.d.ts       # Vite 環境變數型別宣告
-├── .env.example            # 環境變數範本（複製為 .env.development 使用）
-├── .env.development        # 開發環境變數（VITE_API_BASE_URL 等）
-├── .env.production         # 生產環境變數
+│   │   ├── admin/          # 管理員：新增使用者、使用者列表、教會概況、年度教學統計、邀請碼、資料備份
+│   │   ├── auth/           # 登入頁：登入／註冊表單、社群登入按鈕、選擇孩子、忘記密碼
+│   │   ├── shared/         # 共用：Toast、語言切換、個人資料、修改密碼、密碼強度、性別、教會預約總覽、學員預約摘要
+│   │   ├── student/        # 學員：課程卡片與詳情、預約清單、心得、閃耀計畫與列印版
+│   │   └── teacher/        # 教師／牧者／家長：學員清單與進度、筆記、預約、我的授課、牧者總覽、年度申報、講師與主題設定
+│   ├── composables/        # 可複用邏輯（useSessionTimeout 自動登出、usePageTitle 頁面標題、useStudentList、useToast…）
+│   ├── directives/         # v-dialog：對話框的焦點管理與 Esc 關閉
+│   ├── i18n/               # Vue I18n 設定與語系檔（locales/zh-TW.json、en.json）
+│   ├── mocks/              # 開發期預設資料（30 堂課程），後端就緒後替換
+│   ├── router/             # 路由、導航守衛、捲動位置（index.ts）與各角色首頁（homeRoute.ts）
+│   ├── stores/             # Pinia：auth（帳號、邀請碼、登入）、courses（課程、進度、閃耀計畫、講師、配對）、bookings（預約、出席）
+│   ├── types/              # TypeScript 型別
+│   ├── utils/              # 工具：api（呼叫後端）、scope（誰看得到誰）、session（登入期限）、backup（備份還原）、
+│   │                       #       persist／storage（localStorage）、csp、account、datetime、avatar、motion…
+│   ├── views/              # 各頁面：登入、社群登入回調、首次登入補資料、改密碼、學員／教師／管理員主頁、404、無權限
+│   ├── App.vue             # 根元件（導覽列、語言切換、Toast、個人資料與密碼 Modal、自動登出提醒）
+│   └── main.ts             # 入口（Pinia、Router、i18n、登入狀態檢查）
+│   # 各資料夾的 __tests__/ 為該處的單元測試（Vitest）
+├── .env.example            # 環境變數範本（另有 .env.development、.env.production）
+├── index.html
+├── package.json            # 套件與指令（npm run dev / test / test:coverage / test:e2e / lint / build）
 ├── playwright.config.ts    # Playwright 設定（自動 build 並以 vite preview 啟動）
-├── eslint.config.js        # ESLint Flat Config 配置
-├── .prettierrc             # Prettier 格式化配置
-├── TODO.md                 # 後端串接待辦清單
-├── index.html              # HTML 模板入口
-├── package.json            # 依賴套件與指令腳本
-├── tsconfig.json           # TypeScript 配置
-├── vitest.config.ts        # Vitest 測試配置（含 coverage）
-└── vite.config.ts          # Vite 建置配置（含 vendor / i18n chunk splitting）
+├── vite.config.ts          # Vite 建置設定（chunk 拆分、建置時寫入 CSP）
+├── vitest.config.ts        # Vitest 設定（含最低覆蓋率）
+├── eslint.config.js、.prettierrc.json、tsconfig*.json
+└── TODO.md                 # 後端上線前待辦清單
 ```
 
 ---
@@ -192,7 +179,7 @@ npm run dev
 
 ### 3. 單元測試與覆蓋率
 
-本專案使用 Vitest 進行測試（涵蓋各 store、`router` 導航守衛、頁面與元件、composable、工具函式與語系檔，共 619 項測試）。
+本專案使用 Vitest 進行測試（涵蓋各 store、`router` 導航守衛、頁面與元件、composable、工具函式、語系檔與文件連結，共 632 項測試）。
 
 ```bash
 # 單次執行所有測試
@@ -213,7 +200,7 @@ npm run test:e2e
 低於任一項 CI 就會失敗。新增功能時請一併寫測試；覆蓋率上升後可以把門檻調高，但不要調低。
 報告會產生在 `coverage/`（瀏覽器開啟 `coverage/index.html` 可看到哪些行沒被測到）。
 
-E2E 測試涵蓋各角色登入與路由權限、登入／註冊表單、邀請碼註冊、語系切換、學員聽課紀錄與閃耀計畫、教師新增講師、管理員建立帳號與邀請碼，以及頭像與圖示皆在本機產生（不連外部圖片網站）；另有多分頁同步測試（資料、語系、登入／登出在分頁間同步）。CI 與部署流程都會執行，失敗時會上傳 Playwright trace 供除錯。
+E2E 測試涵蓋各角色登入與路由權限、登入／註冊表單、邀請碼註冊、語系切換、學員聽課紀錄與閃耀計畫、教師新增講師、管理員建立帳號與邀請碼，以及頭像與圖示皆在本機產生（不連外部圖片網站）；另有多分頁同步（資料、語系、登入／登出在分頁間同步）、自動登出、資料備份與還原、無障礙（axe、鍵盤操作、頁面標題、減少動態效果）與內容安全政策的測試。CI 與部署流程都會執行，失敗時會上傳 Playwright trace 供除錯。
 
 ### 4. 程式碼檢查與格式化
 
