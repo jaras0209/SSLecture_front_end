@@ -129,12 +129,14 @@
                 }}</span>
               </div>
               <div v-if="session.prep.readingNotes" class="prep-section mt-1">
-                <strong>{{ $t('teacher.booking.prepNotes') }}</strong
-                >{{ session.prep.readingNotes }}
+                <strong>{{ $t('teacher.booking.prepNotes') }}</strong>{{
+                  session.prep.readingNotes
+                }}
               </div>
               <div v-if="session.prep.materials" class="prep-section mt-1">
-                <strong>{{ $t('teacher.booking.prepMaterials') }}</strong
-                >{{ session.prep.materials }}
+                <strong>{{ $t('teacher.booking.prepMaterials') }}</strong>{{
+                  session.prep.materials
+                }}
               </div>
             </div>
           </div>
@@ -143,15 +145,15 @@
             v-if="session.status === 'completed' && session.teacherSessionNotes"
             class="booking-completed-notes mt-2"
           >
-            <strong>{{ $t('teacher.booking.sessionNotes') }}</strong
-            >{{ session.teacherSessionNotes }}
+            <strong>{{ $t('teacher.booking.sessionNotes') }}</strong>{{
+              session.teacherSessionNotes
+            }}
           </div>
           <div
             v-if="session.status === 'cancelled' && session.cancelReason"
             class="booking-cancel-reason mt-2"
           >
-            <strong>{{ $t('teacher.booking.cancelReason') }}</strong
-            >{{ session.cancelReason }}
+            <strong>{{ $t('teacher.booking.cancelReason') }}</strong>{{ session.cancelReason }}
           </div>
         </div>
 

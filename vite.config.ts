@@ -1,7 +1,7 @@
 import { fileURLToPath, URL } from 'node:url'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import { contentSecurityPolicy } from './src/utils/csp'
+import { contentSecurityPolicy } from './src/utils/csp.ts'
 
 /** The npm package a module belongs to (e.g. 'vue', '@vue/runtime-core'), if any */
 function packageOf(id: string): string | undefined {
