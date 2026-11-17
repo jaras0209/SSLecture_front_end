@@ -4,7 +4,7 @@
 > **最後更新**：2026-11-14（文件整理：新增文件導覽、各文件改版為 v1.8.1 / v1.8.1 / v1.1.1）
 > **目的**：追蹤前端 Mock 實作中，待後端 Spring Boot 就緒後需實作或替換的所有項目
 > **參考文件**（從哪裡讀起見 [`docs/README.md`](./docs/README.md) 文件導覽）：
-> - [`docs/backend_api_spec.md`](./docs/backend_api_spec.md)（v1.8.1：API、可見範圍規則、嘗試次數限制、登入期限、CORS、錯誤碼、第 13 節 Store → API 對照）
+> - [`docs/backend_api_spec.md`](./docs/backend_api_spec.md)（v1.9.0：API、可見範圍規則、嘗試次數限制、登入期限、CORS、錯誤碼、第 13 節 Store → API 對照）
 > - [`docs/database_schema.md`](./docs/database_schema.md)（v1.8.1：資料表、5.10–5.15 設計決策、第 9 節資料搬移）
 > - [`docs/oauth2_social_login_spec.md`](./docs/oauth2_social_login_spec.md)（v1.1.1：社群登入流程、8.5 社群帳號規則）
 
@@ -159,7 +159,7 @@
 - [ ] 註冊與管理員建立帳號：套用帳號規則，`409 USERNAME_TAKEN` / `409 EMAIL_TAKEN`
 - [ ] 信箱驗證：`POST /auth/email/verify-request`、`POST /auth/email/verify`（更換信箱時重設為未驗證）
 - [ ] 寄信重設密碼：`POST /auth/password/forgot`、`POST /auth/password/reset`；之後把「忘記密碼」對話框改為輸入帳號或信箱寄送連結，
-      並逐步取消「重設為固定預設密碼 123456」
+      （前端的管理員重設密碼已改為每次產生隨機臨時密碼，不再使用固定的 123456）
 - [ ] **社群帳號只在雙方信箱都已驗證時自動合併**（`docs/oauth2_social_login_spec.md` 3.3、7.1），防止帳號預先劫持
 - [ ] 嘗試次數限制：見上方〈上線前必須由後端處理〉；前端已會依 `Retry-After` 顯示「請 N 分鐘後再試」（`src/utils/api.ts`）
 

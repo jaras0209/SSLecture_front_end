@@ -122,16 +122,50 @@
         </tbody>
       </table>
     </div>
+
+    <!-- The new temporary password: stays up until the admin has passed it on -->
+    <div v-if="resetResult" class="modal-overlay" @click.self="resetResult = null">
+      <div
+        v-dialog="() => (resetResult = null)"
+        class="modal-card reset-result"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="reset-result-title"
+        aria-describedby="reset-result-desc"
+      >
+        <h3 id="reset-result-title" aria-level="2">
+          {{ $t('admin.userList.resetDialog.title', { username: resetResult.username }) }}
+        </h3>
+        <p id="reset-result-desc" class="text-sm text-muted">
+          {{ $t('admin.userList.resetDialog.desc') }}
+        </p>
+        <p class="form-label mt-4" id="reset-result-label">
+          {{ $t('admin.userList.resetDialog.label') }}
+        </p>
+        <output class="temp-password" aria-labelledby="reset-result-label">{{
+          resetResult.password
+        }}</output>
+        <div class="reset-result-actions mt-4">
+          <button type="button" class="btn btn-outline" @click="copyTempPassword">
+            📋 {{ $t('admin.userList.resetDialog.copy') }}
+          </button>
+          <button type="button" class="btn btn-primary" autofocus @click="resetResult = null">
+            {{ $t('admin.userList.resetDialog.done') }}
+          </button>
+        </div>
+      </div>
+    </div>
   </section>
 </template>
 
 <script setup lang="ts">
 import { useAccountCleanup, type ReleaseSummary } from '@/composables/useAccountCleanup'
 import GenderSelect from '@/components/shared/GenderSelect.vue'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+import { vDialog } from '@/directives/dialog'
 import { useI18n } from 'vue-i18n'
 import { useToast } from '@/composables/useToast'
-import { useAuthStore, DEFAULT_RESET_PASSWORD } from '@/stores/auth'
+import { useAuthStore } from '@/stores/auth'
 import type { UserRole } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
 
@@ -195,17 +229,29 @@ async function deleteUser(username: string) {
   }
 }
 
+/** The account whose password was just reset, and its temporary password (shown once) */
+const resetResult = ref<{ username: string; password: string } | null>(null)
+
 async function resetUserPassword(username: string) {
-  const ok = await confirm(
-    t('admin.userList.resetPwdConfirm', { username, pwd: DEFAULT_RESET_PASSWORD })
-  )
+  const ok = await confirm(t('admin.userList.resetPwdConfirm', { username }))
   if (!ok) return
   const result = authStore.adminResetPassword(username)
-  if (result.success) {
-    toast(t('admin.userList.resetPwdSuccess', { username, pwd: DEFAULT_RESET_PASSWORD }), 'success')
+  if (result.success && result.password) {
+    resetResult.value = { username, password: result.password }
   } else {
     toast(result.message, 'error')
   }
+}
+
+function copyTempPassword() {
+  if (!resetResult.value) return
+  // No clipboard (an older browser, or a page not served over HTTPS): it stays on screen
+  const write =
+    navigator.clipboard?.writeText(resetResult.value.password) ??
+    Promise.reject(new Error('no clipboard'))
+  write
+    .then(() => toast(t('admin.userList.resetDialog.copied'), 'info'))
+    .catch(() => toast(t('admin.userList.resetDialog.copyFallback'), 'info'))
 }
 
 function getAvatarClass(role: UserRole) {
@@ -218,6 +264,31 @@ function getAvatarClass(role: UserRole) {
 <style scoped src="./admin-shared.css"></style>
 
 <style scoped>
+.reset-result h3 {
+  margin: 0 0 0.5rem;
+}
+
+/* Large, monospaced and selectable in one go, to read out or copy by hand */
+.temp-password {
+  display: block;
+  padding: 0.75rem 1rem;
+  border: 1px dashed var(--primary);
+  border-radius: var(--radius-sm);
+  background: #eff6ff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 1.5rem;
+  letter-spacing: 0.12em;
+  text-align: center;
+  user-select: all;
+}
+
+.reset-result-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
 .admin-main {
   background: white;
   padding: 2rem;

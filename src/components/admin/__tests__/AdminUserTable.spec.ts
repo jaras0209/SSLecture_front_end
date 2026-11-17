@@ -1,11 +1,12 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { flushPromises } from '@vue/test-utils'
 import AdminUserTable from '@/components/admin/AdminUserTable.vue'
-import { useAuthStore, DEFAULT_RESET_PASSWORD } from '@/stores/auth'
+import { useAuthStore } from '@/stores/auth'
 import { resolveConfirm } from '@/composables/useToast'
 import { useCoursesStore } from '@/stores/courses'
 import { useBookingsStore } from '@/stores/bookings'
 import { mountWith, toastTexts, t } from '@/__tests__/helpers'
+import { passwordChecks } from '@/composables/usePasswordStrength'
 
 function mountAsAdmin() {
   const result = mountWith(AdminUserTable)
@@ -150,11 +151,49 @@ describe('AdminUserTable', () => {
     await reset.trigger('click')
     resolveConfirm(true)
     await flushPromises()
-    expect(auth.usersDb.teacher.passwordHash).toBe(DEFAULT_RESET_PASSWORD)
+    // A new random temporary password, shown to the admin until they close the dialog
+    const temp = auth.usersDb.teacher.passwordHash
+    expect(temp).toMatch(/^[A-HJ-NP-Za-km-np-z2-9]{10}$/)
+    expect(passwordChecks(temp!).filter((c) => !c.required && c.ok).length).toBeGreaterThan(1)
     expect(auth.usersDb.teacher.mustChangePassword).toBe(true)
-    expect(toastTexts().at(-1)).toBe(
-      t('admin.userList.resetPwdSuccess', { username: 'teacher', pwd: DEFAULT_RESET_PASSWORD })
+    const dialog = wrapper.find('[role="dialog"]')
+    expect(dialog.find('h3').text()).toBe(
+      t('admin.userList.resetDialog.title', { username: 'teacher' })
     )
+    expect(dialog.find('.temp-password').text()).toBe(temp)
+    await dialog.findAll('button').at(-1)!.trigger('click')
+    expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
+
+    // Each reset gives a different password: there is no shared default to guess
+    await reset.trigger('click')
+    resolveConfirm(true)
+    await flushPromises()
+    expect(auth.usersDb.teacher.passwordHash).not.toBe(temp)
+    expect(auth.login('teacher', '123456').success).toBe(false)
+  })
+
+  it('copies the temporary password, or leaves it on screen to copy by hand', async () => {
+    const { wrapper, auth } = mountAsAdmin()
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } })
+    try {
+      await row(wrapper, 'teacher').find('.reset-pwd-btn').trigger('click')
+      resolveConfirm(true)
+      await flushPromises()
+      const copy = wrapper.find('[role="dialog"]').findAll('button').at(0)!
+      await copy.trigger('click')
+      await flushPromises()
+      expect(writeText).toHaveBeenCalledWith(auth.usersDb.teacher.passwordHash)
+      expect(toastTexts().at(-1)).toBe(t('admin.userList.resetDialog.copied'))
+
+      writeText.mockRejectedValue(new Error('denied'))
+      await copy.trigger('click')
+      await flushPromises()
+      expect(toastTexts().at(-1)).toBe(t('admin.userList.resetDialog.copyFallback'))
+      expect(wrapper.find('.temp-password').text()).toBe(auth.usersDb.teacher.passwordHash)
+    } finally {
+      vi.unstubAllGlobals()
+    }
   })
 
   it('gives a Google / LINE account no password: it has none to reset', async () => {
@@ -171,10 +210,10 @@ describe('AdminUserTable', () => {
     expect(reset.attributes('title')).toBe(
       t('admin.userList.noPasswordToReset', { method: 'Google' })
     )
-    // and the store refuses too, so the known default can't be used to sign in as them
+    // and the store refuses too: a password set by an admin would let them sign in as the owner
     expect(auth.adminResetPassword('amy').success).toBe(false)
     expect(auth.usersDb.amy.passwordHash).toBe('')
-    expect(auth.login('amy', DEFAULT_RESET_PASSWORD).success).toBe(false)
+    expect(auth.login('amy', '123456').success).toBe(false)
   })
 
   it('keeps an account when deleting is cancelled, and clears its page limits when deleted', async () => {

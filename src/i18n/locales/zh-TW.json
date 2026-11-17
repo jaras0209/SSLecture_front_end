@@ -655,9 +655,17 @@
       "me": "（你）",
       "deleteConfirm": "確定要刪除使用者 {username} 嗎？此動作無法復原！",
       "deletedToast": "使用者 {username} 已刪除",
-      "resetPwdConfirm": "確定將「{username}」的密碼重設為預設密碼（{pwd}）？",
-      "resetPwdSuccess": "✅ {username} 密碼已重設為「{pwd}」",
-      "signsInWith": "以 {method} 登入"
+      "resetPwdConfirm": "確定要重設「{username}」的密碼嗎？系統會產生一組臨時密碼，對方用它登入後須立即設定新密碼。",
+      "signsInWith": "以 {method} 登入",
+      "resetDialog": {
+        "title": "已重設「{username}」的密碼",
+        "desc": "請把這組臨時密碼轉告本人，對方用它登入後須立即設定新密碼。關閉後就無法再看到這組密碼。",
+        "label": "臨時密碼",
+        "copy": "複製",
+        "copied": "已複製臨時密碼",
+        "copyFallback": "無法自動複製，請手動選取上方的密碼。",
+        "done": "完成"
+      }
     },
     "roles": {
       "student": "SS學員（SS）",
@@ -786,7 +794,7 @@
       "accountNotFoundShort": "找不到此帳號。",
       "wrongOldPassword": "原密碼錯誤，請再試一次。",
       "passwordChanged": "密碼修改成功！",
-      "passwordReset": "帳號 {username} 的密碼已重設為預設值。",
+      "passwordReset": "帳號 {username} 的密碼已重設為臨時密碼。",
       "noPasswordToReset": "{username} 以 Google／LINE 登入，沒有密碼可以重設",
       "profileUpdated": "個人資料已更新！",
       "inviteNotFound": "找不到此邀請碼。",

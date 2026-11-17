@@ -636,6 +636,32 @@ test.describe('admin', () => {
     expect(code).toMatch(/^SS-TCH-[A-HJ-NP-Z2-9]{8}$/)
     await expect(page.locator('.invite-table')).toContainText(code)
   })
+  test('resets a password to a temporary one that the owner must replace', async ({
+    page,
+    openWith
+  }) => {
+    await openWith('admin', { superstart_user: users.admin })
+    await page.getByRole('button', { name: '重設 teacher 的密碼', exact: true }).click()
+    await page.getByRole('button', { name: '確認', exact: true }).click()
+
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toContainText('teacher')
+    const temp = (await dialog.locator('.temp-password').innerText()).trim()
+    expect(temp).toMatch(/^[A-HJ-NP-Za-km-np-z2-9]{10}$/)
+    await expect(dialog.getByRole('button', { name: '完成' })).toBeFocused()
+    await dialog.getByRole('button', { name: '完成' }).click()
+    await expect(dialog).toBeHidden()
+
+    await page.getByRole('button', { name: /登出/ }).click()
+    await page.fill('#login-username', 'teacher')
+    await page.fill('#login-password', '123456') // the old shared default no longer works
+    await page.click('form.auth-form button[type=submit]')
+    await expect(page.getByText('帳號或密碼錯誤')).toBeVisible()
+    await expect(page).toHaveURL(/\/login$/)
+    await page.fill('#login-password', temp)
+    await page.click('form.auth-form button[type=submit]')
+    await expect(page).toHaveURL(/\/change-password$/)
+  })
 })
 
 test.describe('assets', () => {

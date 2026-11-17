@@ -3,7 +3,7 @@ import { ref, computed, watch, nextTick } from 'vue'
 import { safeGet, safeSet, safeRemove, onStorageChange } from '@/utils/storage'
 import { persistToStorage } from '@/utils/persist'
 import { nowIso, normalizeLegacyDateTime } from '@/utils/datetime'
-import { randomCode } from '@/utils/id'
+import { randomCode, randomPassword } from '@/utils/id'
 import { translate as t } from '@/i18n'
 
 // 後端就緒後，在 exchangeOAuthCode / completeProfile 中：
@@ -11,11 +11,11 @@ import { translate as t } from '@/i18n'
 
 // 型別定義集中至 src/types/auth.ts—從這裡 re-export 保持向下相容
 export type { UserRole, LoginMethod, User, InviteCode, Church } from '@/types/auth'
-export { CHURCHES, DEFAULT_RESET_PASSWORD } from '@/types/auth'
+export { CHURCHES } from '@/types/auth'
 
 // 引入型別供 store 內部使用
 import type { UserRole, User, InviteCode, Gender, LoginMethod } from '@/types/auth'
-import { DEFAULT_RESET_PASSWORD, DEFAULT_CHURCH, GENDERED_ROLES } from '@/types/auth'
+import { DEFAULT_CHURCH, GENDERED_ROLES } from '@/types/auth'
 import { defaultAvatarUrl, isAllowedAvatarUrl } from '@/utils/avatar'
 import { beginSession, endSession } from '@/utils/session'
 import {
@@ -545,7 +545,15 @@ export const useAuthStore = defineStore('auth', () => {
    * Admin-only: reset any user's password to the default value.
    * In production this would trigger an email with a reset link instead.
    */
-  function adminResetPassword(username: string): { success: boolean; message: string } {
+  /**
+   * Give an account a new random temporary password, returned for the admin to pass on. Not a
+   * fixed default: anyone who knew it could sign in before the owner and take the account.
+   */
+  function adminResetPassword(username: string): {
+    success: boolean
+    message: string
+    password?: string
+  } {
     const user = usersDb.value[username]
     if (!user) {
       return { success: false, message: t('stores.auth.accountNotFoundShort') }
@@ -555,10 +563,11 @@ export const useAuthStore = defineStore('auth', () => {
       // anyone who knows it sign in with a password and take the account over.
       return { success: false, message: t('stores.auth.noPasswordToReset', { username }) }
     }
-    user.passwordHash = DEFAULT_RESET_PASSWORD
-    // The default password is known to others: it must be replaced at the next sign-in
+    const password = randomPassword()
+    user.passwordHash = password
+    // The admin knows it too: it must be replaced at the next sign-in
     user.mustChangePassword = true
-    return { success: true, message: t('stores.auth.passwordReset', { username }) }
+    return { success: true, message: t('stores.auth.passwordReset', { username }), password }
   }
 
   /**

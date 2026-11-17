@@ -74,3 +74,23 @@ describe('form fields have names', () => {
     expect(unnamed).toEqual([])
   })
 })
+
+describe('password fields tell the browser what they are for', () => {
+  // current-password: let password managers fill it in; new-password: let them suggest a
+  // strong one, and never fill in the signed-in user's own (e.g. when an admin creates an account)
+  it('every password field has autocomplete="current-password" or "new-password"', () => {
+    const unmarked: string[] = []
+    let found = 0
+    for (const { file, template } of templates) {
+      for (const m of template.matchAll(tag('input'))) {
+        const attrs = m[2]!
+        if (!/(^|\s)(type="password"|:type="[^"]*'password')/.test(attrs)) continue
+        found++
+        if (!/(^|\s):?autocomplete="[^"]*(current-password|new-password)/.test(attrs))
+          unmarked.push(`${file}:${lineOf(template, m.index)}`)
+      }
+    }
+    expect(found).toBeGreaterThanOrEqual(4)
+    expect(unmarked).toEqual([])
+  })
+})

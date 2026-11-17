@@ -1,7 +1,7 @@
 # SSLecture 後端 API 規格文件
 
-> **文件版本**：v1.8.1
-> **最後更新**：2026-11-14
+> **文件版本**：v1.9.0
+> **最後更新**：2026-11-17
 > **前端版本**：Vue 3 + TypeScript（目前以 localStorage 模擬，待串接）
 > **目標後端技術**：Spring Boot 3.x + Spring Security 6.x（OAuth2 Client + JWT）
 > **相關文件**：[文件導覽](./README.md)・[資料庫設計](./database_schema.md)・[社群登入](./oauth2_social_login_spec.md)・各版本異動見文末[版本紀錄](#版本紀錄)
@@ -284,7 +284,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 ```
 
 - Admin 重設他人密碼時，該帳號設為 `mustChangePassword = true`；使用者自己改密碼成功後清除
-- 以 Google／LINE 登入、沒有密碼的帳號不可重設（`400 VALIDATION_ERROR`）：給它一組已知的預設密碼，
+- 以 Google／LINE 登入、沒有密碼的帳號不可重設（`400 VALIDATION_ERROR`）：給它一組管理員知道的密碼，
   等於讓知道這組密碼的人能用帳號密碼登入並占用該帳號（前端 `authStore.adminResetPassword()` 也會拒絕）
 - 修改自己的密碼時，`newPassword` 須符合[密碼規則](#密碼規則)（否則 `400 WEAK_PASSWORD`），且不可與目前密碼相同
 
@@ -1184,7 +1184,9 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 - 社群帳號（`loginMethod` 為 `google` / `line`、沒有密碼）不可設定：回 `400 VALIDATION_ERROR`。給它一組管理員知道的密碼，
   等於讓知道的人能以帳號密碼登入並占用該帳號（同 `POST /auth/reset-password`）
 - 設定後 `mustChangePassword = true`，使用者下次登入須先換掉；不受[密碼規則](#密碼規則)限制，因為馬上就要換
-- 前端目前的「重設密碼」一律設為預設密碼（`DEFAULT_RESET_PASSWORD`），並以確認視窗告知管理員
+- **不可使用固定的預設密碼**：知道它的人能在本人之前登入、改成自己的密碼而占用帳號。前端的「重設密碼」每次以
+  `randomPassword()`（`src/utils/id.ts`，10 字元、含大小寫與數字、去掉易混淆字元）產生隨機臨時密碼，透過 `password` 送出，
+  並只在對話框中顯示這一次供管理員轉告本人；後端只存雜湊，不在任何回應或紀錄中保留明碼
 
 ---
 
@@ -2062,6 +2064,10 @@ Refresh Token 有效期：30 天（建議）
 ---
 
 ## 版本紀錄
+
+### v1.9.0（2026-11-17）管理員重設密碼
+
+- `PUT /admin/users/:username` 設定密碼時不可使用固定的預設密碼；說明前端改為每次產生隨機臨時密碼（原本一律重設為 `123456`）
 
 ### v1.8.1（2026-11-14）整理文件
 

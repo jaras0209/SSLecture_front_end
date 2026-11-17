@@ -19,6 +19,7 @@
           id="login-password"
           v-model="password"
           :type="showLoginPwd ? 'text' : 'password'"
+          autocomplete="current-password"
           class="form-input"
           :placeholder="$t('auth.login.passwordPlaceholder')"
           required

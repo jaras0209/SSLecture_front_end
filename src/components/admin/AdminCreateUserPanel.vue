@@ -10,6 +10,7 @@
           id="new-username"
           v-model="newUser.username"
           type="text"
+          autocomplete="off"
           class="form-input"
           :placeholder="$t('admin.createUser.usernamePlaceholder')"
           required
@@ -24,6 +25,7 @@
           id="new-email"
           v-model="newUser.email"
           type="email"
+          autocomplete="off"
           class="form-input"
           :placeholder="$t('account.emailPlaceholder')"
         />
@@ -34,6 +36,7 @@
           id="new-password"
           v-model="newUser.password"
           type="password"
+          autocomplete="new-password"
           class="form-input"
           :placeholder="$t('admin.createUser.passwordPlaceholder')"
           aria-describedby="new-password-note"

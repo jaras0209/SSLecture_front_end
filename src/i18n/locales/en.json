@@ -655,9 +655,17 @@
       "me": "(You)",
       "deleteConfirm": "Are you sure you want to delete user {username}? This cannot be undone!",
       "deletedToast": "User {username} has been deleted",
-      "resetPwdConfirm": "Reset {username}'s password to the default ({pwd})?",
-      "resetPwdSuccess": "✅ {username}'s password has been reset to \"{pwd}\"",
-      "signsInWith": "Signs in with {method}"
+      "resetPwdConfirm": "Reset {username}'s password? A temporary password will be created; they must set a new one as soon as they sign in with it.",
+      "signsInWith": "Signs in with {method}",
+      "resetDialog": {
+        "title": "{username}'s password has been reset",
+        "desc": "Pass this temporary password on to them. They must set a new password as soon as they sign in with it. It won't be shown again once you close this.",
+        "label": "Temporary password",
+        "copy": "Copy",
+        "copied": "Temporary password copied",
+        "copyFallback": "Couldn't copy automatically. Select the password above and copy it.",
+        "done": "Done"
+      }
     },
     "roles": {
       "student": "SS Student (SS)",
@@ -786,7 +794,7 @@
       "accountNotFoundShort": "Account not found.",
       "wrongOldPassword": "Incorrect current password. Please try again.",
       "passwordChanged": "Password changed successfully!",
-      "passwordReset": "Password for {username} has been reset to the default.",
+      "passwordReset": "{username}'s password has been reset to a temporary password.",
       "noPasswordToReset": "{username} signs in with Google / LINE and has no password to reset",
       "profileUpdated": "Profile updated successfully!",
       "inviteNotFound": "Invite code not found.",

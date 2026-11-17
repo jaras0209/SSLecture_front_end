@@ -84,6 +84,7 @@
           id="reg-password"
           v-model="registerForm.password"
           :type="showRegPwd ? 'text' : 'password'"
+          autocomplete="new-password"
           class="form-input"
           :placeholder="$t('auth.register.passwordPlaceholder')"
           required
