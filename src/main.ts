@@ -4,6 +4,7 @@ import App from './App.vue'
 import router from './router'
 import i18n, { initLocale } from '@/i18n'
 import { settleSessionOnStart } from '@/utils/session'
+import { recoverFromStaleFile } from '@/utils/appUpdate'
 import '@/assets/styles/main.css'
 
 /**
@@ -21,6 +22,8 @@ function reportError(source: string, error: unknown, context?: Record<string, un
  * 例如：fetch 失敗未加 .catch()、async 函式內未處理的例外
  */
 window.addEventListener('unhandledrejection', (event) => {
+  // e.g. the English messages or an avatar style couldn't be downloaded after a site update
+  recoverFromStaleFile(event.reason)
   reportError('UnhandledPromiseRejection', event.reason)
   // 已由 reportError 記錄，避免瀏覽器再輸出一次相同的 "Uncaught (in promise)" 訊息
   event.preventDefault()
@@ -33,12 +36,18 @@ function startApp() {
   app.use(i18n) // i18n 必須在 router 之前注入，以便 store 可呼叫 i18n.global.t()
   // Installing the router starts the first navigation, whose guard reads the sign-in
   app.use(router)
+  // A page's code couldn't be downloaded (the site was updated since this tab opened):
+  // reload into that page, which brings the new version
+  router.onError((err, to) => {
+    if (!recoverFromStaleFile(err, router.resolve(to).href)) reportError('Navigation', err)
+  })
 
   /**
    * 全域錯誤捕獲
    * 攔截所有子元件未處理的 JavaScript 錯誤，避免白屏。
    */
   app.config.errorHandler = (err, instance, info) => {
+    recoverFromStaleFile(err) // e.g. a dialog's code couldn't be downloaded after a site update
     reportError('GlobalErrorCapture', err, {
       component: instance?.$options?.name ?? 'UnknownComponent',
       info

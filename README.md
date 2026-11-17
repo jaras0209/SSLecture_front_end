@@ -24,6 +24,7 @@ SSLecture 是一個基於 **Vue 3 + TypeScript + Vite** 技術棧開發的現代
 *   **心得回覆**：教師、牧者與管理員可以回覆學員的聽課心得，學員在課程卡片上看到新回覆提醒。
 *   **共用裝置的登入期限**：未勾「記住我」時，閒置 2 小時或關閉瀏覽器後自動登出，到期前 5 分鐘提醒；勾選後在這台裝置上保持登入 30 天（見下方〈登入期限〉）。
 *   **資料備份與還原**：後端完成前資料只存在瀏覽器裡，管理員可匯出全部資料為檔案、從檔案還原，超過 7 天未備份會提醒；瀏覽器拒絕儲存時畫面會立即警告（見下方〈資料持久化、備份與重設〉）。
+*   **網站更新後不卡住**：每次部署後檔案會換名，部署前就開著的分頁換頁時會自動重新載入成新版；其他功能載入失敗時顯示「重新載入」提示，不會按了沒反應（`src/utils/appUpdate.ts`）。
 *   **安全性設計**：網站設有內容安全政策（CSP），只執行自身的程式；頭像只接受 `https://` 網址且載入時不帶來源頁面；邀請碼 8 碼隨機字元；密碼規則與嘗試次數限制已寫入 API 規格供後端實作。
 
 ---
@@ -36,7 +37,7 @@ SSLecture 是一個基於 **Vue 3 + TypeScript + Vite** 技術棧開發的現代
 *   **多語系架構**：Vue I18n 11（Composition API 模式，`zh-TW` / `en` 雙語系；`en` 語系檔按需載入）
 *   **路由管理**：Vue Router 5（HTML5 History 模式，內建角色與頁面限制導航守衛；按上一頁時回到原本的捲動位置）
 *   **字型**：Quicksand 由 `@fontsource` 隨專案打包，不向 Google Fonts 發出請求
-*   **測試**：Vitest 5 + Happy DOM + Vue Test Utils（70 個測試檔案、632 項測試，含四個主要頁面、composable 與表單元件測試，以及以本機 HTTP 伺服器驗證 `api.ts` 的整合測試）；Playwright 端對端測試（59 項，含以 axe 檢查 WCAG 2.1 AA 無障礙與鍵盤操作，以及內容安全政策）
+*   **測試**：Vitest 5 + Happy DOM + Vue Test Utils（71 個測試檔案、643 項測試，含四個主要頁面、composable 與表單元件測試，以及以本機 HTTP 伺服器驗證 `api.ts` 的整合測試）；Playwright 端對端測試（63 項，含以 axe 檢查 WCAG 2.1 AA 無障礙與鍵盤操作，以及內容安全政策）
 *   **程式碼品質**：TypeScript 6.0（Strict 嚴格模式，以 vue-tsc 3 檢查）、ESLint 10、Prettier 3
 *   **樣式設計**：Vanilla CSS（響應式排版，適配行動端、桌面端與 `@media print` 列印模式）
 *   **CI／部署**：GitHub Actions（`.github/workflows/`）。分支推送時跑 CI；`main` 更新時再跑一次全部檢查並部署到 GitHub Pages。
@@ -68,7 +69,7 @@ SSLecture/
 │   └── dependabot.yml      # 每週檢查套件與 Actions 更新
 ├── docs/                   # 後端開發文件（見上方〈文件〉）
 ├── e2e/                    # Playwright 端對端測試（*.e2e.ts，對正式 build 執行；fixtures.ts 為共用的測試帳號與工具）
-├── public/                 # 靜態資源
+├── public/                 # 直接複製到網站的檔案：分頁圖示 favicon.svg、手機主畫面圖示 apple-touch-icon.png
 ├── src/
 │   ├── assets/             # 圖示與全域樣式（styles/main.css：CSS 變數、玻璃擬態、工具類、列印、減少動態效果）
 │   ├── components/         # 可複用元件
@@ -85,7 +86,7 @@ SSLecture/
 │   ├── stores/             # Pinia：auth（帳號、邀請碼、登入）、courses（課程、進度、閃耀計畫、講師、配對）、bookings（預約、出席）
 │   ├── types/              # TypeScript 型別
 │   ├── utils/              # 工具：api（呼叫後端）、scope（誰看得到誰）、session（登入期限）、backup（備份還原）、
-│   │                       #       persist／storage（localStorage）、csp、account、datetime、avatar、motion…
+│   │                       #       persist／storage（localStorage）、appUpdate（網站更新後重新載入）、csp、account、datetime、avatar、motion…
 │   ├── views/              # 各頁面：登入、社群登入回調、首次登入補資料、改密碼、學員／教師／管理員主頁、404、無權限
 │   ├── App.vue             # 根元件（導覽列、語言切換、Toast、個人資料與密碼 Modal、自動登出提醒）
 │   └── main.ts             # 入口（Pinia、Router、i18n、登入狀態檢查）
@@ -179,7 +180,7 @@ npm run dev
 
 ### 3. 單元測試與覆蓋率
 
-本專案使用 Vitest 進行測試（涵蓋各 store、`router` 導航守衛、頁面與元件、composable、工具函式、語系檔與文件連結，共 632 項測試）。
+本專案使用 Vitest 進行測試（涵蓋各 store、`router` 導航守衛、頁面與元件、composable、工具函式、語系檔與文件連結，共 643 項測試）。
 
 ```bash
 # 單次執行所有測試
@@ -200,7 +201,7 @@ npm run test:e2e
 低於任一項 CI 就會失敗。新增功能時請一併寫測試；覆蓋率上升後可以把門檻調高，但不要調低。
 報告會產生在 `coverage/`（瀏覽器開啟 `coverage/index.html` 可看到哪些行沒被測到）。
 
-E2E 測試涵蓋各角色登入與路由權限、登入／註冊表單、邀請碼註冊、語系切換、學員聽課紀錄與閃耀計畫、教師新增講師、管理員建立帳號與邀請碼，以及頭像與圖示皆在本機產生（不連外部圖片網站）；另有多分頁同步（資料、語系、登入／登出在分頁間同步）、自動登出、資料備份與還原、無障礙（axe、鍵盤操作、頁面標題、減少動態效果）與內容安全政策的測試。CI 與部署流程都會執行，失敗時會上傳 Playwright trace 供除錯。
+E2E 測試涵蓋各角色登入與路由權限、登入／註冊表單、邀請碼註冊、語系切換、學員聽課紀錄與閃耀計畫、教師新增講師、管理員建立帳號與邀請碼，以及頭像與圖示皆在本機產生（不連外部圖片網站）；另有多分頁同步（資料、語系、登入／登出在分頁間同步）、自動登出、資料備份與還原、無障礙（axe、鍵盤操作、頁面標題、減少動態效果）、內容安全政策，以及網站更新後舊分頁仍能換頁的測試。CI 與部署流程都會執行，失敗時會上傳 Playwright trace 供除錯。
 
 ### 4. 程式碼檢查與格式化
 

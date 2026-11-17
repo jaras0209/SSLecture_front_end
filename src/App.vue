@@ -85,7 +85,6 @@
         </div>
       </nav>
 
-      <!-- The browser refused to save: say so, rather than let the change vanish on reload -->
       <!-- About to be signed out for being idle (utils/session.ts) -->
       <div v-if="minutesLeft !== null" class="session-warning no-print" role="alert">
         <p>{{ $t('session.expiringSoon', { n: minutesLeft }) }}</p>
@@ -94,6 +93,18 @@
         </button>
       </div>
 
+      <!-- Part of the app couldn't be downloaded, most likely because the site was updated -->
+      <div v-if="appUpdateNeeded" class="update-notice no-print" role="alert">
+        <p>
+          <strong>{{ $t('appUpdate.title') }}</strong>
+          {{ $t('appUpdate.body') }}
+        </p>
+        <button type="button" class="btn btn-primary btn-sm" @click="reloadApp">
+          {{ $t('appUpdate.reload') }}
+        </button>
+      </div>
+
+      <!-- The browser refused to save: say so, rather than let the change vanish on reload -->
       <div v-if="storageWriteFailed" class="storage-warning no-print" role="alert">
         <p>
           <strong>{{ $t('storage.writeFailedTitle') }}</strong>
@@ -159,6 +170,7 @@ import LanguageSwitcher from '@/components/shared/LanguageSwitcher.vue'
 import { avatarSrc, useFallbackAvatar } from '@/utils/avatar'
 import { homeRouteFor } from '@/router/homeRoute'
 import { storageWriteFailed } from '@/utils/storage'
+import { appUpdateNeeded, reloadApp } from '@/utils/appUpdate'
 import { useSessionTimeout } from '@/composables/useSessionTimeout'
 import { usePageTitle } from '@/composables/usePageTitle'
 
@@ -252,6 +264,7 @@ function getRoleLabel(role?: string) {
 }
 
 .session-warning,
+.update-notice,
 .storage-warning {
   display: flex;
   align-items: center;
@@ -270,13 +283,15 @@ function getRoleLabel(role?: string) {
   font-size: 0.9rem;
 }
 
-.session-warning {
+.session-warning,
+.update-notice {
   background: #e0f2fe;
   border-color: #38bdf8;
   color: #075985;
 }
 
 .session-warning p,
+.update-notice p,
 .storage-warning p {
   margin: 0;
   flex: 1 1 20rem;

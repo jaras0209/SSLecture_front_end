@@ -952,6 +952,11 @@
     "writeFailedBody": "The browser refused to store them (storage may be full, you may be in a private window, or site data may be blocked), so what you just changed will be lost when you reload or close the page. Note down anything important and check your browser settings.",
     "dismiss": "Got it"
   },
+  "appUpdate": {
+    "title": "Part of the page couldn't load.",
+    "body": "The site may have just been updated. Save or note down anything you're editing, then reload the page.",
+    "reload": "Reload"
+  },
   "session": {
     "expiringSoon": "You'll be signed out in {n} minute(s) without activity. Save anything you haven't saved yet.",
     "stay": "Keep me signed in"

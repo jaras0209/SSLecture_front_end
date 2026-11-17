@@ -661,6 +661,24 @@ test.describe('assets', () => {
     expect(imageHosts).toEqual([])
   })
 
+  test("the site's own icons load: browser tab and phone home screen", async ({
+    page,
+    openWith
+  }) => {
+    await openWith('login')
+    for (const [rel, type] of [
+      ['icon', 'image/svg+xml'],
+      ['apple-touch-icon', 'image/png']
+    ]) {
+      const href = await page.locator(`link[rel="${rel}"]`).getAttribute('href')
+      expect(href).not.toContain('vite')
+      const res = await page.request.get(new URL(href!, page.url()).href)
+      expect(res.status(), rel).toBe(200)
+      expect(res.headers()['content-type']).toContain(type)
+    }
+    await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#2563eb')
+  })
+
   test('fonts are self-hosted', async ({ page, openWith, externalHosts }) => {
     await openWith('login')
     // Ask for the weight outright: document.fonts.ready can resolve before the page has
