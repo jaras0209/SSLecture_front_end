@@ -1,0 +1,9 @@
+[
+  {
+    "id": "GHSA-fc5q-39xc-vjpf",
+    "package": "picomatch",
+    "reason": "ReDoS when matching crafted glob patterns. No fixed release yet (all versions <= 4.0.7, the latest, are affected). It comes in only through vue-router 5's file-based routing build plugin; none of it is in the built site, and the build only matches our own patterns. Remove once a fixed picomatch is released (Dependabot will open the update).",
+    "added": "2026-11-17",
+    "expires": "2026-12-17"
+  }
+]

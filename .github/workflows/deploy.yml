@@ -35,9 +35,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # 只檢查網站實際用到的套件（不含開發工具）；有高風險以上的已知漏洞就停下
+      # 只檢查網站實際用到的套件（不含開發工具）；有高風險以上的已知漏洞就停下。
+      # 尚無修正版、且確認不影響網站的個別漏洞列在 .github/audit-exceptions.json（附原因與到期日）
       - name: Check dependencies for known vulnerabilities
-        run: npm audit --omit=dev --audit-level=high
+        run: node scripts/audit.mjs
 
       - name: Lint
         run: npm run lint

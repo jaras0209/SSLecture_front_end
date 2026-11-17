@@ -240,6 +240,9 @@
 
 ## 部署注意事項
 
+- [ ] **picomatch 漏洞（GHSA-fc5q-39xc-vjpf）的暫時例外**：2026-11-17 公布時尚無修正版，只經由 vue-router 的建置外掛引入、
+  不在網站程式中，因此暫列 `.github/audit-exceptions.json`（2026-12-17 到期，到期後 CI 會再次失敗）。
+  修正版發布後 Dependabot 會開更新 PR，合併後刪除這筆例外
 - [ ] HTML5 路由下，伺服器需配置 fallback（所有非 API 路徑返回 index.html）
   - Nginx 範例：try_files $uri $uri/ /index.html;
 - [ ] 確認生產環境 CORS 設定（application.yml 的 allowed-origins；需允許的標頭見 API 規格〈跨網域（CORS）〉）

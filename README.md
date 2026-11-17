@@ -41,7 +41,8 @@ SSLecture 是一個基於 **Vue 3 + TypeScript + Vite** 技術棧開發的現代
 *   **程式碼品質**：TypeScript 6.0（Strict 嚴格模式，以 vue-tsc 3 檢查）、ESLint 10、Prettier 3
 *   **樣式設計**：Vanilla CSS（響應式排版，適配行動端、桌面端與 `@media print` 列印模式）
 *   **CI／部署**：GitHub Actions（`.github/workflows/`）。分支推送時跑 CI；`main` 更新時再跑一次全部檢查並部署到 GitHub Pages。
-    檢查項目：套件漏洞、ESLint、Prettier、單元測試與最低覆蓋率、型別檢查與建置、端對端測試
+    檢查項目：套件漏洞（`scripts/audit.mjs`；尚無修正版、確認不影響網站的個別漏洞可暫列 `.github/audit-exceptions.json`，附原因與到期日）、
+    ESLint、Prettier、單元測試與最低覆蓋率、型別檢查與建置、端對端測試
 
 ---
 
@@ -66,9 +67,11 @@ SSLecture/
 ├── .github/
 │   ├── workflows/          # ci.yml（分支推送時檢查）、deploy.yml（main：檢查後部署到 GitHub Pages）
 │   ├── actions/            # setup-playwright：安裝並快取 E2E 用的 Chromium
+│   ├── audit-exceptions.json # 暫時允許的套件漏洞（原因與到期日；過期後 CI 會再次失敗）
 │   └── dependabot.yml      # 每週檢查套件與 Actions 更新
 ├── docs/                   # 後端開發文件（見上方〈文件〉）
 ├── e2e/                    # Playwright 端對端測試（*.e2e.ts，對正式 build 執行；fixtures.ts 為共用的測試帳號與工具）
+├── scripts/audit.mjs       # CI 的套件漏洞檢查（npm audit，高風險以上即失敗，例外見上）
 ├── public/                 # 直接複製到網站的檔案：分頁圖示 favicon.svg、手機主畫面圖示 apple-touch-icon.png
 ├── src/
 │   ├── assets/             # 圖示與全域樣式（styles/main.css：CSS 變數、玻璃擬態、工具類、列印、減少動態效果）

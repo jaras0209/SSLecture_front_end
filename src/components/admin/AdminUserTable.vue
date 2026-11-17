@@ -139,7 +139,7 @@
         <p id="reset-result-desc" class="text-sm text-muted">
           {{ $t('admin.userList.resetDialog.desc') }}
         </p>
-        <p class="form-label mt-4" id="reset-result-label">
+        <p id="reset-result-label" class="form-label mt-4">
           {{ $t('admin.userList.resetDialog.label') }}
         </p>
         <output class="temp-password" aria-labelledby="reset-result-label">{{
