@@ -7,13 +7,22 @@ import type { Page } from '@playwright/test'
  * doing nothing.
  */
 
-/** Answer 404 for the built file whose name starts with `name`, the first `times` requests */
-async function removed(page: Page, name: string, times = Infinity) {
-  let left = times
-  await page.route(new RegExp(`/assets/${name}-[^/]+\\.js$`), (route) => {
-    if (left-- > 0) return route.fulfill({ status: 404, body: '' })
-    return route.continue()
-  })
+/**
+ * Answer 404 for the built file whose name starts with `name`, as after a deploy: for good, or
+ * (`untilReload`) until the page loads afresh, which stands for picking up the new version.
+ * Not "the first request only": opening a page also preloads its file, so the file is asked
+ * for more than once.
+ */
+async function removed(page: Page, name: string, { untilReload = false } = {}) {
+  let gone = true
+  if (untilReload) {
+    page.on('request', (request) => {
+      if (request.isNavigationRequest() && request.frame() === page.mainFrame()) gone = false
+    })
+  }
+  await page.route(new RegExp(`/assets/${name}-[^/]+\\.js$`), (route) =>
+    gone ? route.fulfill({ status: 404, body: '' }) : route.continue()
+  )
 }
 
 /** Mark this page load, to tell afterwards whether the page was reloaded */
@@ -26,7 +35,7 @@ test.describe('after the site is updated', () => {
     openWith
   }) => {
     await openWith('student', { superstart_user: users.student })
-    await removed(page, 'LoginView', 1) // the old file is gone; after a reload the new one loads
+    await removed(page, 'LoginView', { untilReload: true }) // a reload gets the new version
     await mark(page)
 
     await page.getByRole('button', { name: /登出/ }).click()
