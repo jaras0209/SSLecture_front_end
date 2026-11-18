@@ -80,7 +80,7 @@ describe('useAuthStore', () => {
       const courses = useCoursesStore()
       const courseId = courses.courses[0].id
       courses.addListenSession('student', courseId, {
-        lecturer: '',
+        lecturer: '張牧師',
         listenedAt: '2026-01-01T10:00',
         notes: '私人心得'
       })

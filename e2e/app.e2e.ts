@@ -226,6 +226,21 @@ test.describe('student', () => {
     await expect(page.locator('.course-card').first()).toContainText('已聽 1 次')
   })
 
+  test("won't record a lecture that hasn't happened yet", async ({ page, openWith }) => {
+    await openWith('student', { superstart_user: users.student })
+    await page.locator('.course-card').first().click()
+    await page.selectOption('#lecturer-select', { index: 1 })
+    await page.fill('#listened-time-input', '2099-01-01T10:00')
+    await page.fill('#notes-input', '預先登記')
+    await page.getByRole('button', { name: /記錄這次聽課/ }).click()
+
+    await expect(page.getByRole('alert')).toContainText('聽課時間不能是未來的時間')
+    await expect(page.locator('.timeline-item')).toHaveCount(0)
+    await expect(page.locator('#notes-input')).toHaveValue('預先登記') // nothing lost
+    const progress = await stored<Record<string, unknown> | null>(page, 'superstart_progress_db')
+    expect(progress?.student).toBeUndefined() // nothing saved
+  })
+
   test('Shining Project keeps unsaved input while ticking items, and saved info persists', async ({
     page,
     openWith

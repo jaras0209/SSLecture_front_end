@@ -99,11 +99,31 @@ describe('StudentShiningDashboard', () => {
     expect(project().customChallenge).toBe('每天背一節經文')
   })
 
+  it("won't save a birthday after today, and says why", async () => {
+    const { wrapper } = mountShining(() => {})
+    const birthday = wrapper.find('#shining-birthday')
+    expect(birthday.attributes('min')).toBe('1900-01-01')
+    expect(birthday.attributes('max')).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    await wrapper.find('#shining-name').setValue('小明')
+    await birthday.setValue('2099-01-01')
+    await wrapper.find('.text-right .btn-secondary').trigger('click')
+    expect(wrapper.find('[role="alert"]').text()).toBe(t('stores.courses.birthdayFuture'))
+    expect(useCoursesStore().getShiningProject('student').name).toBe('') // nothing saved
+
+    await birthday.setValue('2012-05-04')
+    await wrapper.find('.text-right .btn-secondary').trigger('click')
+    expect(wrapper.find('[role="alert"]').exists()).toBe(false)
+    expect(useCoursesStore().getShiningProject('student')).toMatchObject({
+      name: '小明',
+      birthday: '2012-05-04'
+    })
+  })
+
   it('counts the courses heard, and leaves "all 30" to be ticked by hand until then', async () => {
     const { wrapper } = mountShining(() => {
       const courses = useCoursesStore()
       courses.addListenSession('student', courses.courses[0].id, {
-        lecturer: '',
+        lecturer: '張牧師',
         listenedAt: '2026-03-01T19:30',
         notes: ''
       })
@@ -121,7 +141,7 @@ describe('StudentShiningDashboard', () => {
       const courses = useCoursesStore()
       courses.courses.forEach((c) =>
         courses.addListenSession('student', c.id, {
-          lecturer: '',
+          lecturer: '張牧師',
           listenedAt: '2026-03-01T19:30',
           notes: ''
         })

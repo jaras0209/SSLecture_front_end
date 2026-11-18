@@ -106,6 +106,8 @@
                         id="edit-session-time"
                         v-model="editSessionDraft.listenedAt"
                         type="datetime-local"
+                        :max="latestListenTime()"
+                        required
                         class="form-input form-input-sm datetime-input"
                       />
                     </div>
@@ -128,6 +130,9 @@
                         :max="MAX_LENGTH.sessionNotes"
                       />
                     </div>
+                    <p v-if="editError" class="alert-box error mb-2" role="alert">
+                      {{ editError }}
+                    </p>
                     <div class="edit-session-actions">
                       <button class="btn btn-primary btn-xs" @click="saveEditSession(session.id)">
                         💾 {{ $t('student.course.save') }}
@@ -194,6 +199,8 @@
                   id="review-listened-time"
                   v-model="listenedAt"
                   type="datetime-local"
+                  :max="latestListenTime()"
+                  required
                   class="form-input datetime-input"
                 />
               </div>
@@ -218,6 +225,7 @@
                 />
               </div>
 
+              <p v-if="listenError" class="alert-box error mt-3" role="alert">{{ listenError }}</p>
               <div class="save-row mt-3">
                 <button class="btn btn-secondary btn-sm" @click="saveNoteAndProgress">
                   💾 {{ $t('student.course.save') }}
@@ -251,6 +259,8 @@
               id="listened-time-input"
               v-model="listenedAt"
               type="datetime-local"
+              :max="latestListenTime()"
+              required
               class="form-input datetime-input"
             />
           </div>
@@ -271,6 +281,7 @@
             :max="MAX_LENGTH.sessionNotes"
           />
 
+          <p v-if="listenError" class="alert-box error mt-3" role="alert">{{ listenError }}</p>
           <div class="save-row mt-4">
             <button class="btn btn-secondary btn-sm" @click="saveNoteAndProgress">
               💾 {{ $t('student.course.recordSession') }}
@@ -290,6 +301,7 @@
 
 <script setup lang="ts">
 import { MAX_LENGTH } from '@/utils/limits'
+import { latestListenTime } from '@/utils/recordRules'
 import CharCount from '@/components/shared/CharCount.vue'
 import { ref, computed, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -320,6 +332,9 @@ const { tDateTime, tLecturerTitle, tLecturerLabel } = useI18nHelper()
 const selectedLecturer = ref('')
 const notesText = ref('')
 const listenedAt = ref(toLocalDateTimeInput())
+/** Why the last attempt to record / edit a session wasn't saved */
+const listenError = ref('')
+const editError = ref('')
 const showReviewPanel = ref(false)
 
 // Inline edit state
@@ -336,6 +351,8 @@ watch(
     listenedAt.value = toLocalDateTimeInput()
     showReviewPanel.value = false
     editingSessionId.value = null
+    listenError.value = ''
+    editError.value = ''
   }
 )
 
@@ -406,11 +423,14 @@ const editDraftUnlisted = computed(
 function saveNoteAndProgress() {
   if (!props.selectedCourse || !authStore.currentUser) return
 
-  coursesStore.addListenSession(authStore.currentUser.username, props.selectedCourse.id, {
-    lecturer: selectedLecturer.value,
-    listenedAt: listenedAt.value,
-    notes: notesText.value
-  })
+  const result = coursesStore.addListenSession(
+    authStore.currentUser.username,
+    props.selectedCourse.id,
+    { lecturer: selectedLecturer.value, listenedAt: listenedAt.value, notes: notesText.value }
+  )
+  // Not saved (no lecturer, no time, or a time in the future): say why, keep what was typed
+  listenError.value = result.success ? '' : result.message
+  if (!result.success) return
 
   selectedLecturer.value = ''
   notesText.value = ''
@@ -421,6 +441,7 @@ function saveNoteAndProgress() {
 }
 
 function startEditSession(session: ListenSession) {
+  editError.value = ''
   editingSessionId.value = session.id
   editSessionDraft.lecturer = session.lecturer
   editSessionDraft.listenedAt = session.listenedAt
@@ -429,7 +450,7 @@ function startEditSession(session: ListenSession) {
 
 function saveEditSession(sessionId: string) {
   if (!props.selectedCourse || !authStore.currentUser) return
-  coursesStore.updateListenSession(
+  const result = coursesStore.updateListenSession(
     authStore.currentUser.username,
     props.selectedCourse.id,
     sessionId,
@@ -439,11 +460,13 @@ function saveEditSession(sessionId: string) {
       notes: editSessionDraft.notes
     }
   )
-  editingSessionId.value = null
+  editError.value = result.success ? '' : result.message
+  if (result.success) editingSessionId.value = null
 }
 
 function cancelEditSession() {
   editingSessionId.value = null
+  editError.value = ''
 }
 </script>
 

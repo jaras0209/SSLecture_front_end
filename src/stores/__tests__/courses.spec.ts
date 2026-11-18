@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { nextTick } from 'vue'
+import { t } from '@/__tests__/helpers'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -9,6 +10,9 @@ function seedLocalStorage(key: string, value: unknown) {
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
+
+/** A listen session that passes the rules, for tests that don't care what it says */
+const LISTEN = { lecturer: '張牧師', listenedAt: '2026-10-01T10:00', notes: '' }
 
 describe('useCoursesStore', () => {
   beforeEach(() => {
@@ -302,7 +306,11 @@ describe('useCoursesStore', () => {
       const store = useCoursesStore()
       store.updateShiningCustomChallenge('student', 'x')
       store.courses.forEach((c) =>
-        store.addListenSession('student', c.id, { lecturer: '', listenedAt: '', notes: '' })
+        store.addListenSession('student', c.id, {
+          lecturer: '張牧師',
+          listenedAt: '2026-10-01T10:00',
+          notes: ''
+        })
       )
       expect(store.getShiningProject('student').faithPhase2.courses30).toBe(false)
       expect(store.isShiningChecked('student', 'faithPhase2', 'courses30')).toBe(true)
@@ -356,10 +364,18 @@ describe('useCoursesStore', () => {
       const store = useCoursesStore()
       const [last, ...rest] = store.courses
       rest.forEach((c) =>
-        store.addListenSession('student', c.id, { lecturer: '', listenedAt: '', notes: '' })
+        store.addListenSession('student', c.id, {
+          lecturer: '張牧師',
+          listenedAt: '2026-10-01T10:00',
+          notes: ''
+        })
       )
       expect(store.isShiningChecked('student', 'faithPhase2', 'courses30')).toBe(false)
-      store.addListenSession('student', last.id, { lecturer: '', listenedAt: '', notes: '' })
+      store.addListenSession('student', last.id, {
+        lecturer: '張牧師',
+        listenedAt: '2026-10-01T10:00',
+        notes: ''
+      })
       expect(store.isShiningChecked('student', 'faithPhase2', 'courses30')).toBe(true)
     })
 
@@ -470,14 +486,91 @@ describe('useCoursesStore', () => {
 
   // ── ids and timestamps ────────────────────────────────────────────────────
 
+  describe('records of things that already happened', () => {
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ['Date'] })
+      vi.setSystemTime(new Date(2026, 10, 18, 14, 30)) // local time
+    })
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it('saves a listen session only with a lecturer and a time that has passed', async () => {
+      const { useCoursesStore } = await import('@/stores/courses')
+      const store = useCoursesStore()
+      const add = (patch: object) =>
+        store.addListenSession('student', 'bible-01', { ...LISTEN, ...patch })
+
+      expect(add({ lecturer: '' })).toEqual({
+        success: false,
+        message: t('stores.courses.lecturerRequired')
+      })
+      expect(add({ listenedAt: '' }).message).toBe(t('stores.courses.listenedAtRequired'))
+      expect(add({ listenedAt: '2026-12-25T10:00' }).message).toBe(
+        t('stores.courses.listenedAtFuture')
+      )
+      // nothing was saved, so the course doesn't count as heard
+      expect(store.progressDb.student?.['bible-01']).toBeUndefined()
+
+      expect(add({ lecturer: ' 張牧師 ', listenedAt: '2026-11-18T15:00' }).success).toBe(true)
+      expect(store.progressDb.student!['bible-01']!.sessions[0]!.lecturer).toBe('張牧師')
+    })
+
+    it('applies the same rules when a session is edited', async () => {
+      const { useCoursesStore } = await import('@/stores/courses')
+      const store = useCoursesStore()
+      store.addListenSession('student', 'bible-01', LISTEN)
+      const id = store.progressDb.student!['bible-01']!.sessions[0]!.id
+
+      const future = store.updateListenSession('student', 'bible-01', id, {
+        listenedAt: '2027-01-01T10:00'
+      })
+      expect(future.message).toBe(t('stores.courses.listenedAtFuture'))
+      expect(store.progressDb.student!['bible-01']!.sessions[0]!.listenedAt).toBe(LISTEN.listenedAt)
+
+      expect(store.updateListenSession('student', 'bible-01', id, { notes: '補充' }).success).toBe(
+        true
+      )
+      expect(store.progressDb.student!['bible-01']!.sessions[0]!.notes).toBe('補充')
+      expect(store.updateListenSession('student', 'bible-01', 'nope', {}).message).toBe(
+        t('stores.courses.sessionNotFound')
+      )
+    })
+
+    it('keeps Shining Project dates in the past', async () => {
+      const { useCoursesStore } = await import('@/stores/courses')
+      const store = useCoursesStore()
+      const info = { name: '小明', birthday: '2026-12-01', church: '', schoolGrade: '' }
+      expect(store.updateShiningBasicInfo('student', info).message).toBe(
+        t('stores.courses.birthdayFuture')
+      )
+      expect(store.getShiningProject('student').name).toBe('')
+      expect(
+        store.updateShiningBasicInfo('student', { ...info, birthday: '2012-05-04' }).success
+      ).toBe(true)
+
+      expect(
+        store.updateShiningLecture('student', 'character', '自律', '王講師', '2026-11-19').message
+      ).toBe(t('stores.courses.lectureDateFuture'))
+      expect(store.getShiningProject('student').characterLectures['自律']).toBeUndefined()
+      expect(
+        store.updateShiningLecture('student', 'character', '自律', ' 王講師 ', '2026-11-18').success
+      ).toBe(true)
+      expect(store.getShiningProject('student').characterLectures['自律']).toEqual({
+        speaker: '王講師',
+        date: '2026-11-18'
+      })
+    })
+  })
+
   describe('ids and timestamps', () => {
     it('gives listen sessions unique ids and ISO createdAt within the same millisecond', async () => {
       vi.useFakeTimers()
       vi.setSystemTime(new Date('2026-10-28T06:00:00Z'))
       const { useCoursesStore } = await import('@/stores/courses')
       const store = useCoursesStore()
-      store.addListenSession('student', 'bible-01', { lecturer: '', listenedAt: '', notes: 'a' })
-      store.addListenSession('student', 'bible-01', { lecturer: '', listenedAt: '', notes: 'b' })
+      store.addListenSession('student', 'bible-01', { ...LISTEN, notes: 'a' })
+      store.addListenSession('student', 'bible-01', { ...LISTEN, notes: 'b' })
       const record = store.progressDb['student']['bible-01']
       vi.useRealTimers()
 

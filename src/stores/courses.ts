@@ -49,6 +49,29 @@ import type {
 } from '@/types/courses'
 import { DEFAULT_CHURCH } from '@/types/auth'
 import { normalizeLecturerTitle } from '@/utils/lecturerTitle'
+import { translate as t } from '@/i18n'
+import { MAX_LENGTH } from '@/utils/limits'
+import {
+  listenSessionProblem,
+  birthdayProblem,
+  lectureEntryProblem,
+  type RuleProblem
+} from '@/utils/recordRules'
+
+/** Outcome of a save that checks its input first */
+export interface SaveResult {
+  success: boolean
+  message: string
+}
+
+const refused = (problem: RuleProblem): SaveResult => ({
+  success: false,
+  message: t(`stores.courses.${problem}`, {
+    max: MAX_LENGTH.lecturerName,
+    notesMax: MAX_LENGTH.sessionNotes
+  })
+})
+const SAVED: SaveResult = { success: true, message: '' }
 
 export const useCoursesStore = defineStore('courses', () => {
   // Course catalog — dev seed data lives in src/mocks/courses.ts
@@ -376,14 +399,18 @@ export const useCoursesStore = defineStore('courses', () => {
   }
 
   /**
-   * Add a new listening session to a course record.
-   * Creates the record if it doesn't exist yet.
+   * Add a new listening session to a course record, creating the record if needed.
+   * Refused (nothing saved) without a lecturer or time, or with a time in the future:
+   * a lecture counts towards progress only once it has been heard (utils/recordRules.ts).
    */
   function addListenSession(
     username: string,
     courseId: string,
     session: Omit<ListenSession, 'id' | 'createdAt'>
-  ): void {
+  ): SaveResult {
+    const problem = listenSessionProblem(session)
+    if (problem) return refused(problem)
+    session = { ...session, lecturer: session.lecturer.trim() }
     if (!progressDb.value[username]) {
       progressDb.value[username] = {}
     }
@@ -414,6 +441,7 @@ export const useCoursesStore = defineStore('courses', () => {
         sessions: [newSession]
       }
     }
+    return SAVED
   }
 
   /**
@@ -425,18 +453,23 @@ export const useCoursesStore = defineStore('courses', () => {
     courseId: string,
     sessionId: string,
     patch: { listenedAt?: string; notes?: string; lecturer?: string }
-  ): boolean {
+  ): SaveResult {
     const record = progressDb.value[username]?.[courseId]
-    if (!record) return false
-    const session = record.sessions.find((s) => s.id === sessionId)
-    if (!session) return false
-    if (patch.listenedAt !== undefined) session.listenedAt = patch.listenedAt
-    if (patch.notes !== undefined) session.notes = patch.notes
-    if (patch.lecturer !== undefined) session.lecturer = patch.lecturer
+    const session = record?.sessions.find((s) => s.id === sessionId)
+    if (!record || !session) return { success: false, message: t('stores.courses.sessionNotFound') }
+    // The session as it would be after the change must follow the same rules as a new one
+    const next = {
+      lecturer: (patch.lecturer ?? session.lecturer).trim(),
+      listenedAt: patch.listenedAt ?? session.listenedAt,
+      notes: patch.notes ?? session.notes
+    }
+    const problem = listenSessionProblem(next)
+    if (problem) return refused(problem)
+    Object.assign(session, next)
     record.lastUpdated = nowIso()
     // Trigger reactivity
     progressDb.value = { ...progressDb.value }
-    return true
+    return SAVED
   }
 
   function getStudentProgress(username: string, courseId: string): ProgressRecord {
@@ -769,12 +802,15 @@ export const useCoursesStore = defineStore('courses', () => {
   function updateShiningBasicInfo(
     username: string,
     info: { name: string; birthday: string; church: string; schoolGrade: string }
-  ): void {
+  ): SaveResult {
+    const problem = birthdayProblem(info.birthday)
+    if (problem) return refused(problem)
     const project = ensureShiningProject(username)
     project.name = info.name
     project.birthday = info.birthday
     project.church = info.church
     project.schoolGrade = info.schoolGrade
+    return SAVED
   }
 
   function updateShiningChecklist(
@@ -801,13 +837,17 @@ export const useCoursesStore = defineStore('courses', () => {
     theme: string,
     speaker: string,
     date: string
-  ): void {
+  ): SaveResult {
+    const problem = lectureEntryProblem({ speaker, date })
+    if (problem) return refused(problem)
+    speaker = speaker.trim()
     const project = ensureShiningProject(username)
     if (type === 'character') {
       project.characterLectures[theme] = { speaker, date }
     } else {
       project.comingOfAgeTopics[theme] = { speaker, date }
     }
+    return SAVED
   }
 
   // Church-based query functions

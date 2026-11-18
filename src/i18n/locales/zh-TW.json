@@ -811,6 +811,21 @@
       "invalidStudent": "請先確認有效的學員身分後再執行此操作",
       "attendanceRecorded": "已成功記錄出席",
       "attendanceUpdated": "出席狀態更新成功"
+    },
+    "courses": {
+      "lecturerRequired": "請選擇授課講師。",
+      "lecturerTooLong": "講師名稱最多 {max} 字。",
+      "listenedAtRequired": "請填寫聽課時間。",
+      "listenedAtInvalid": "聽課時間的格式不正確。",
+      "listenedAtFuture": "聽課時間不能是未來的時間，請在聽完課後再登記。",
+      "notesTooLong": "心得最多 {notesMax} 字。",
+      "birthdayInvalid": "生日的格式不正確。",
+      "birthdayFuture": "生日不能晚於今天。",
+      "birthdayTooEarly": "生日不能早於 1900 年。",
+      "lectureDateInvalid": "上課日期的格式不正確。",
+      "lectureDateFuture": "上課日期不能晚於今天，請在上完課後再登記。",
+      "speakerTooLong": "講師名稱最多 {max} 字。",
+      "sessionNotFound": "找不到這筆聽課紀錄，可能已被刪除。"
     }
   },
   "booking": {

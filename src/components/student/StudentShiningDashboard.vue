@@ -41,6 +41,8 @@
                 id="shining-birthday"
                 v-model="basicInfo.birthday"
                 type="date"
+                :min="EARLIEST_BIRTHDAY"
+                :max="today()"
                 class="form-input-clean"
               />
             </div>
@@ -78,6 +80,9 @@
               </button>
               <span v-if="basicSaveMsg" class="save-alert-msg">{{ basicSaveMsg }}</span>
             </div>
+            <p v-if="basicSaveError" class="alert-box error mt-2" role="alert">
+              {{ basicSaveError }}
+            </p>
           </div>
         </div>
 
@@ -274,6 +279,7 @@
 </template>
 <script setup lang="ts">
 import { MAX_LENGTH } from '@/utils/limits'
+import { today, EARLIEST_BIRTHDAY } from '@/utils/recordRules'
 import { ref, reactive, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
@@ -308,6 +314,7 @@ const basicInfo = reactive({
 
 const customChallengeText = ref('')
 const basicSaveMsg = ref('')
+const basicSaveError = ref('')
 
 // Load the form only when the user changes — not whenever the project object does.
 // For a new student getShiningProject() returns an unsaved blank template until the
@@ -329,7 +336,10 @@ watch(
 
 function saveBasicInfo() {
   const username = authStore.currentUser?.username || ''
-  coursesStore.updateShiningBasicInfo(username, basicInfo)
+  const result = coursesStore.updateShiningBasicInfo(username, basicInfo)
+  // Not saved (e.g. a birthday in the future): say why, keep what was typed
+  basicSaveError.value = result.success ? '' : result.message
+  if (!result.success) return
   basicSaveMsg.value = t('student.shining.saveMsgSuccess')
   setTimeout(() => {
     basicSaveMsg.value = ''

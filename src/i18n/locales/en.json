@@ -811,6 +811,21 @@
       "invalidStudent": "Please verify a valid student identity before this action",
       "attendanceRecorded": "Attendance recorded successfully",
       "attendanceUpdated": "Attendance status updated successfully"
+    },
+    "courses": {
+      "lecturerRequired": "Choose the lecturer.",
+      "lecturerTooLong": "The lecturer name can be at most {max} characters.",
+      "listenedAtRequired": "Enter when you listened.",
+      "listenedAtInvalid": "The listening time is not a valid date and time.",
+      "listenedAtFuture": "The listening time can't be in the future. Record a lecture after you have heard it.",
+      "notesTooLong": "Notes can be at most {notesMax} characters.",
+      "birthdayInvalid": "The birthday is not a valid date.",
+      "birthdayFuture": "The birthday can't be after today.",
+      "birthdayTooEarly": "The birthday can't be before 1900.",
+      "lectureDateInvalid": "The lecture date is not a valid date.",
+      "lectureDateFuture": "The lecture date can't be after today. Record a lecture after it has taken place.",
+      "speakerTooLong": "The lecturer name can be at most {max} characters.",
+      "sessionNotFound": "This listening record wasn't found; it may have been deleted."
     }
   },
   "booking": {

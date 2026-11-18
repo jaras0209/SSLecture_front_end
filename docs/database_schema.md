@@ -1,6 +1,6 @@
 # SSLecture 後端資料庫設計文件
 
-> **文件版本**：v1.9.0  
+> **文件版本**：v1.10.0  
 > **最後更新**：2026-11-18  
 > **資料來源**：分析前端 `src/stores/auth.ts`、`src/stores/courses.ts`、`src/stores/bookings.ts`、localStorage 資料結構  
 > **資料庫**：PostgreSQL 16 以上（第 6 節的 SQL 已實測可建立全部 22 張表）。不支援 MySQL：
@@ -224,7 +224,7 @@
 | `student_id` | `UUID` | FK → users.id, NOT NULL, ON DELETE RESTRICT | 學員；帳號軟刪除，聽課紀錄保留 |
 | `course_id` | `VARCHAR(20)` | FK → courses.id, NOT NULL | 課程 |
 | `lecturer_name` | `VARCHAR(50)` | NOT NULL | 授課講師名稱（自由文字，來自 lecturers.name + title） |
-| `listened_at` | `TIMESTAMPTZ` | NOT NULL | 學員填報的聽課時間 |
+| `listened_at` | `TIMESTAMPTZ` | NOT NULL, CHECK | 學員填報的聽課時間；不可晚於寫入時間 1 小時以上（見 5.17） |
 | `notes` | `VARCHAR(2000)` | NULL | 學員心得（可為空） |
 | `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 系統建立時間（不可修改） |
 | `updated_at` | `TIMESTAMPTZ` | NULL | 最後修改時間（NULL 表示從未修改） |
@@ -270,7 +270,7 @@
 | `id` | `UUID` | PK, NOT NULL | 唯一識別碼 |
 | `student_id` | `UUID` | UNIQUE, FK → users.id, NOT NULL | 學員（一人一筆） |
 | `name` | `VARCHAR(50)` | NULL | 真實姓名 |
-| `birthday` | `DATE` | NULL | 生日 |
+| `birthday` | `DATE` | NULL, CHECK | 生日；介於 1900-01-01 與今天之間（見 5.17） |
 | `church_name` | `VARCHAR(100)` | NULL | 聚會教會（學員填報，可與 users.church_id 不同） |
 | `school_grade` | `VARCHAR(50)` | NULL | 學校年級（如「師大附中 高一」） |
 | `custom_challenge` | `VARCHAR(200)` | NULL | 自訂進階挑戰文字 |
@@ -329,7 +329,7 @@
 | `type` | `ENUM` | NOT NULL | `character`（品格力）/ `coming_of_age`（成年禮必修） |
 | `theme_name` | `VARCHAR(50)` | NOT NULL | 主題名稱（來自 themes 表，但儲存文字以保留歷史） |
 | `speaker_name` | `VARCHAR(50)` | NULL | 授課講師名稱（自由文字） |
-| `lecture_date` | `DATE` | NULL | 上課日期 |
+| `lecture_date` | `DATE` | NULL | 上課日期；不可晚於今天（API 檢查，見 5.17） |
 | `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
 | `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 最後更新時間 |
 
@@ -1044,6 +1044,22 @@ API 規格〈欄位長度上限〉）。這樣前端收下的內容，後端與�
 - 從 Google / LINE 帶入的暱稱可能超過 20 字，寫入 `users.display_name` 前截斷
 - 調整上限時，前端 `limits.ts`、API 規格與這裡的欄位一起改
 
+### 5.17 已發生事件的日期
+
+聽課紀錄、閃耀計畫的專題課日期與生日記錄的都是已經發生的事，不能是未來的日期：
+
+| 欄位 | 規則 | 由誰檢查 |
+|------|------|----------|
+| `listen_sessions.listened_at` | 必填，不可晚於寫入時間 1 小時以上（容許時鐘誤差、課程剛結束） | API；資料庫 `CHECK listened_not_in_future` |
+| `shining_lectures.lecture_date` | 選填，不可晚於今天 | API |
+| `shining_projects.birthday` | 選填，介於 1900-01-01 與今天之間 | API；資料庫 `CHECK`（只檢查下限） |
+
+- 聽課紀錄會計入學習進度（含閃耀計畫的「聽完全部課程」），未來的紀錄等於預先把沒上的課算成已完成
+- 資料庫的 `CHECK` 只能用不隨時間改變的運算，「今天」不能寫在 `CHECK` 裡，所以「不晚於今天」由 API 檢查；
+  聽課時間改與寫入時間（`COALESCE(updated_at, created_at)`）比較，修改紀錄時須同時更新 `updated_at`
+- 「今天」以 `Asia/Taipei` 判斷（見 [5.14](#514-時間與時區)）
+- 前端的對應：`src/utils/recordRules.ts`，日期欄位也不讓選未來的日期
+
 ---
 
 ## 6. SQL 建表語句（PostgreSQL）
@@ -1153,7 +1169,10 @@ CREATE TABLE listen_sessions (
   listened_at   TIMESTAMPTZ NOT NULL,
   notes         VARCHAR(2000),
   created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at    TIMESTAMPTZ
+  updated_at    TIMESTAMPTZ,
+  -- 聽課時間不可晚於寫入時間 1 小時以上（見 5.17）
+  CONSTRAINT listened_not_in_future
+    CHECK (listened_at - COALESCE(updated_at, created_at) <= INTERVAL '1 hour')
 );
 
 CREATE INDEX idx_listen_sessions_student        ON listen_sessions(student_id);
@@ -1191,7 +1210,7 @@ CREATE TABLE shining_projects (
   id               UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
   student_id       UUID        NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
   name             VARCHAR(50),
-  birthday         DATE,
+  birthday         DATE CHECK (birthday >= DATE '1900-01-01'), -- 不晚於今天由 API 檢查（見 5.17）
   church_name      VARCHAR(100),
   school_grade     VARCHAR(50),
   custom_challenge VARCHAR(200),
@@ -1940,6 +1959,11 @@ JSON 檔（前端 `src/utils/backup.ts`），上線時用它把既有資料搬�
 ---
 
 ## 版本紀錄
+
+### v1.10.0（2026-11-18）已發生事件的日期
+
+- 新增 [5.17](#517-已發生事件的日期)：聽課時間、專題課日期、生日不可是未來的日期
+- `listen_sessions` 新增 `CHECK listened_not_in_future`；`shining_projects.birthday` 新增不早於 1900-01-01 的 `CHECK`
 
 ### v1.9.0（2026-11-18）文字欄位長度
 

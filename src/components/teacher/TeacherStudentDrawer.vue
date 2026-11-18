@@ -189,6 +189,7 @@
                   <input
                     v-model="lectureForms[theme].date"
                     type="date"
+                    :max="today()"
                     class="form-input text-xs pt-1 pb-1"
                     :aria-label="$t('a11y.lectureDateFor', { theme })"
                   />
@@ -240,6 +241,7 @@
                   <input
                     v-model="lectureForms[theme].date"
                     type="date"
+                    :max="today()"
                     class="form-input text-xs pt-1 pb-1"
                     :aria-label="$t('a11y.lectureDateFor', { theme })"
                   />
@@ -296,6 +298,7 @@
 
 <script setup lang="ts">
 import { MAX_LENGTH } from '@/utils/limits'
+import { today } from '@/utils/recordRules'
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useToast } from '@/composables/useToast'
@@ -372,7 +375,11 @@ function initShiningForm(username: string) {
 function saveLectureRow(username: string, type: 'character' | 'comingOfAge', theme: string) {
   const row = lectureForms.value[theme]
   if (!row) return
-  coursesStore.updateShiningLecture(username, type, theme, row.speaker, row.date)
+  const result = coursesStore.updateShiningLecture(username, type, theme, row.speaker, row.date)
+  if (!result.success) {
+    toast(result.message, 'error') // e.g. a date in the future; the row keeps what was typed
+    return
+  }
   toast(`✓ ${theme} ${t('teacher.drawer.saveLectureBtn')}！`)
 }
 

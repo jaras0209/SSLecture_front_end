@@ -109,11 +109,55 @@ describe('StudentCourseDetail', () => {
     expect(items[0].find('.timeline-count').text()).toBe(t('student.course.sessionNo', { n: 2 }))
 
     await wrapper.find('.btn-review-toggle').trigger('click')
+    const lecturer = wrapper.find('#review-lecturer-select')
+    await lecturer.setValue(lecturer.findAll('option').at(1)!.element.value)
     await wrapper.find('#review-notes-input').setValue('第三次')
     await wrapper.find('.review-form .save-row button').trigger('click')
     expect(sessions(course).map((s) => s.notes)).toEqual(['第一次', '第二次', '第三次'])
     expect(wrapper.find('.review-form').exists()).toBe(false) // closed again
     expect(toastTexts().at(-1)).toBe(t('student.course.recorded'))
+  })
+
+  it("won't record a lecture without a lecturer or before it was heard, and says why", async () => {
+    const { wrapper, course } = mountDetail(() => {})
+    await open(wrapper, course)
+    const time = wrapper.find('#listened-time-input')
+    // the picker stops at an hour from now
+    expect(time.attributes('max')).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)
+    await wrapper.find('#notes-input').setValue('還沒上的課')
+    const record = () => wrapper.find('.save-row button').trigger('click')
+
+    await record()
+    expect(wrapper.find('[role="alert"]').text()).toBe(t('stores.courses.lecturerRequired'))
+
+    const lecturer = wrapper.find('#lecturer-select')
+    await lecturer.setValue(lecturer.findAll('option').at(1)!.element.value)
+    await time.setValue('2099-01-01T10:00')
+    await record()
+    expect(wrapper.find('[role="alert"]').text()).toBe(t('stores.courses.listenedAtFuture'))
+    expect(sessions(course)).toEqual([]) // nothing saved
+    expect((wrapper.find('#notes-input').element as HTMLTextAreaElement).value).toBe('還沒上的課')
+
+    await time.setValue('2026-03-01T19:30')
+    await record()
+    expect(sessions(course).map((s) => s.notes)).toEqual(['還沒上的課'])
+    expect(wrapper.find('[role="alert"]').exists()).toBe(false)
+  })
+
+  it('keeps an edit open with the reason when the change breaks the rules', async () => {
+    const { wrapper, course } = mountDetail(() => {
+      useCoursesStore().addListenSession('student', useCoursesStore().courses[0]!.id, listen)
+    })
+    await open(wrapper, course)
+    await wrapper.find('.timeline-item .btn-edit-session, .timeline-item button').trigger('click')
+    await wrapper.find('#edit-session-time').setValue('2099-01-01T10:00')
+    await wrapper.find('.edit-session-actions .btn-primary').trigger('click')
+    expect(wrapper.find('[role="alert"]').text()).toBe(t('stores.courses.listenedAtFuture'))
+    expect(wrapper.find('#edit-session-time').exists()).toBe(true) // still editing
+    expect(sessions(course)[0]!.listenedAt).toBe(listen.listenedAt)
+
+    await wrapper.find('.edit-session-actions .btn-ghost').trigger('click')
+    expect(wrapper.find('[role="alert"]').exists()).toBe(false)
   })
 
   it('shows a saved lecturer title in the current language', async () => {

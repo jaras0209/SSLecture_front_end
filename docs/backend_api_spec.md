@@ -1,6 +1,6 @@
 # SSLecture 後端 API 規格文件
 
-> **文件版本**：v1.10.0
+> **文件版本**：v1.11.0
 > **最後更新**：2026-11-18
 > **前端版本**：Vue 3 + TypeScript（目前以 localStorage 模擬，待串接）
 > **目標後端技術**：Spring Boot 3.x + Spring Security 6.x（OAuth2 Client + JWT）
@@ -729,7 +729,11 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 }
 ```
 
+**Validation 規則**：修改後的紀錄須符合與新增時相同的規則（講師必填、`listenedAt` 必填且不可晚於目前時間 + 1 小時、
+`notes` 最大 2000 字元），不符合時回 `400 VALIDATION_ERROR`，紀錄維持原樣
+
 **錯誤**：
+- `400 VALIDATION_ERROR`：修改後不符合上述規則
 - `404 SESSION_NOT_FOUND`：找不到此 Session
 - `403 FORBIDDEN`：無權限修改他人紀錄
 
@@ -1123,6 +1127,14 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
   }
 }
 ```
+
+**Validation 規則**（不符合時回 `400 VALIDATION_ERROR`，不做任何修改）：
+- `birthday`：選填，格式 `YYYY-MM-DD`，介於 `1900-01-01` 與今天之間
+- `characterLectures` / `comingOfAgeTopics` 的 `date`：選填，格式 `YYYY-MM-DD`，不可晚於今天（登記的是已上過的課）；
+  `speaker` 最多 50 字元
+- 「今天」以台北時間（`Asia/Taipei`）判斷，與其他牆上時間相同（見〈時間格式〉）
+
+前端在 `src/utils/recordRules.ts` 檢查同一套規則（聽課紀錄也是），日期欄位也不讓選未來的日期。
 
 > ⚠️ **注意**：學員完成**目前課程目錄中的所有課程**時，`faithPhase2.courses30` 視為已勾選（前端 `isShiningChecked()`、
 > `hasCompletedAllCourses()`），不受傳入值影響；此時前端的勾選框也會鎖定。未全部完成前，學員可以自己勾選
@@ -2093,6 +2105,12 @@ Refresh Token 有效期：30 天（建議）
 ---
 
 ## 版本紀錄
+
+### v1.11.0（2026-11-18）已發生事件的日期
+
+- `PATCH /progress/:username/:courseId/sessions/:sessionId` 寫明修改後須符合與新增相同的規則
+- `PATCH /shining/:username` 新增規則：生日介於 1900-01-01 與今天之間、專題課日期不可晚於今天
+- 前端在 `src/utils/recordRules.ts` 以同一套規則檢查（原本完全沒有檢查：沒有講師、沒有時間或未來的時間都能存）
 
 ### v1.10.0（2026-11-18）欄位長度上限
 
