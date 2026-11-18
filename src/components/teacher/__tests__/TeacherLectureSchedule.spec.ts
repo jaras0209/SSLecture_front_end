@@ -74,27 +74,32 @@ describe('TeacherLectureSchedule', () => {
     expect(text).toContain(t('teacher.lecture.bookedBy', { names: 'teacher、林老師' }))
   })
 
-  it('records attendance once the time is confirmed', async () => {
+  it('records attendance once the time is confirmed and the lecture has started', async () => {
     const ctx = mountAsLecturer()
     const pending = ctx.book('tf', ['girl'], '2099-03-01T10:00')
-    const confirmed = ctx.book('tf', ['girl'])
-    ctx.bookings.updateSessionStatus(confirmed.id, 'confirmed', {
-      confirmedAt: confirmed.proposedAt
-    })
+    const coming = ctx.book('tf', ['girl'], '2099-02-01T10:00')
+    ctx.bookings.updateSessionStatus(coming.id, 'confirmed', { confirmedAt: coming.proposedAt })
+    const held = ctx.book('tf', ['girl'], '2020-04-01T10:00')
+    ctx.bookings.updateSessionStatus(held.id, 'confirmed', { confirmedAt: held.proposedAt })
     await ctx.wrapper.vm.$nextTick()
 
-    const [first, second] = ctx.wrapper.findAll('.lecture-card')
-    // Upcoming lectures come soonest first; the pending one cannot be recorded yet
+    // Upcoming lectures come soonest first, then those held; only a held one can be recorded
+    const [first, second, third] = ctx.wrapper.findAll('.lecture-card')
     expect(first.text()).not.toContain(t('teacher.lecture.timePending'))
+    expect(first.findAll('button')).toHaveLength(0) // confirmed, but not started
     expect(second.text()).toContain(t('teacher.lecture.timePending'))
     expect(second.findAll('button')).toHaveLength(0)
 
-    await first.findAll('button')[1].trigger('click')
-    const attendee = ctx.bookings.getAttendeesForSession(confirmed.id)[0]
-    expect(attendee.attendanceStatus).toBe('absent')
+    await third.findAll('button')[1].trigger('click')
+    expect(ctx.bookings.getAttendeesForSession(held.id)[0].attendanceStatus).toBe('absent')
+    expect(ctx.bookings.getAttendeesForSession(coming.id)[0].attendanceStatus).toBe('invited')
     expect(ctx.bookings.getAttendeesForSession(pending.id)[0].attendanceStatus).toBe('invited')
-    expect(first.findAll('button')[1].attributes('aria-pressed')).toBe('true')
+    expect(third.findAll('button')[1].attributes('aria-pressed')).toBe('true')
     expect(toastTexts().at(-1)).toBe(t('teacher.lecture.recorded', { name: '陳姊妹' }))
+
+    // and the store refuses too, should a page try
+    const refused = ctx.bookings.recordAttendance(coming.id, 'girl', 'attended')
+    expect(refused).toEqual({ success: false, message: t('stores.bookings.notStarted') })
   })
 
   it('says so when there are no lectures', () => {

@@ -1,6 +1,6 @@
 # SSLecture 後端 API 規格文件
 
-> **文件版本**：v1.11.0
+> **文件版本**：v1.12.0
 > **最後更新**：2026-11-18
 > **前端版本**：Vue 3 + TypeScript（目前以 localStorage 模擬，待串接）
 > **目標後端技術**：Spring Boot 3.x + Spring Security 6.x（OAuth2 Client + JWT）
@@ -587,7 +587,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
     "coverColor": "...",
     "duration": 180,
     "lecturers": [
-      { "id": "l1", "name": "張牧師", "title": "pastor" }
+      { "id": "7d1e2c4a-90b3-4f6e-8a15-2c9b0e4d6f73", "name": "張牧師", "title": "pastor" }
     ]
   }
 }
@@ -647,11 +647,11 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
     "completed": true,
     "sessions": [
       {
-        "id": "session_1718467200000",
+        "id": "5e3a9c71-2f4b-4d8e-a6c0-9b1d7e2f4a58",
         "lecturer": "張牧師 牧師",
         "listenedAt": "2026-06-15T09:00",
         "notes": "這次收穫很多，了解了聖經時觀的含義。",
-        "createdAt": "2026/6/15 10:30:00",
+        "createdAt": "2026-06-15T02:30:00.000Z",
         "updatedAt": null
       }
     ]
@@ -686,7 +686,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 {
   "success": true,
   "data": {
-    "id": "session_1718467200000",
+    "id": "5e3a9c71-2f4b-4d8e-a6c0-9b1d7e2f4a58",
     "lecturer": "張牧師 牧師",
     "listenedAt": "2026-06-15T09:00",
     "notes": "這次收穫很多...",
@@ -719,7 +719,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 {
   "success": true,
   "data": {
-    "id": "session_1718467200000",
+    "id": "5e3a9c71-2f4b-4d8e-a6c0-9b1d7e2f4a58",
     "lecturer": "陳傳道 傳道",
     "listenedAt": "2026-06-14T14:00",
     "notes": "修改後的心得...",
@@ -763,7 +763,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 {
   "success": true,
   "data": [
-    { "id": "fb_01", "author": "teacher01", "authorName": "王老師", "message": "寫得很好，繼續加油", "createdAt": "2026-01-02T01:00:00Z" }
+    { "id": "e4b7d2a9-6c1f-4a3e-9d85-0f2c7b6e1a34", "author": "teacher01", "authorName": "王老師", "message": "寫得很好，繼續加油", "createdAt": "2026-01-02T01:00:00Z" }
   ]
 }
 ```
@@ -821,7 +821,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
   "data": {
     "items": [
       {
-        "id": "l1",
+        "id": "7d1e2c4a-90b3-4f6e-8a15-2c9b0e4d6f73",
         "name": "張牧師",
         "title": "pastor",
         "church": "愛與話語",
@@ -1532,6 +1532,13 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 > - 男、女教師可各自為自己的學員預約同一堂課（同講師、課程、時段），資料上是兩筆場次；
 >   「我的授課」畫面把它們合併成一堂課顯示
 
+> **時間規則**（前端 `src/utils/bookingRules.ts`；預約是安排**還沒上**的課，課上完之後才記錄發生了什麼）
+> - 建立預約的 `proposedAt`、確認時間的 `confirmedAt`：必填，須**晚於現在**，否則 `400 VALIDATION_ERROR`；不支援事後補登
+> - 只有 `pending` 的場次能確認時間，否則 `409 BOOKING_NOT_PENDING`
+> - 完成場次、記錄出席（`attendanceStatus`）：時間須已確認（否則 `409 BOOKING_NOT_CONFIRMED`），
+>   且已到開始時間（`confirmedAt`，否則 `409 BOOKING_NOT_STARTED`）；已完成的場次仍可更正出席
+> - 時間為牆上時間（台灣時間，見〈時間格式〉），範例中的 `createdAt` 等系統時間戳記為 UTC
+
 #### 取得教師的所有預約場次
 ```
 GET /bookings/sessions?teacherUsername={username}&status={status}
@@ -1551,14 +1558,14 @@ GET /bookings/sessions?teacherUsername={username}&status={status}
   "data": [
     {
       "id": "2b9c3f0e-5d1a-4c7e-9a52-6f1d3e8b7a40",
-      "courseId": "course_001",
-      "courseTitle": "信仰基礎課程",
-      "lecturerId": "lec_abc123",
+      "courseId": "bible-01",
+      "courseTitle": "聖經時觀",
+      "lecturerId": "7d1e2c4a-90b3-4f6e-8a15-2c9b0e4d6f73",
       "lecturerName": "王大明",
-      "lecturerTitle": "牧師",
+      "lecturerTitle": "pastor",
       "teacherUsername": "teacher_wang",
-      "proposedAt": "2026-07-15T14:00:00+08:00",
-      "confirmedAt": "2026-07-15T14:00:00+08:00",
+      "proposedAt": "2026-07-15T14:00",
+      "confirmedAt": "2026-07-15T14:00",
       "durationMinutes": 90,
       "status": "confirmed",
       "prep": {
@@ -1569,8 +1576,8 @@ GET /bookings/sessions?teacherUsername={username}&status={status}
       "teacherSessionNotes": "",
       "church": "愛與話語",
       "isGroupSession": true,
-      "createdAt": "2026-07-01T10:00:00+08:00",
-      "updatedAt": "2026-07-02T09:00:00+08:00"
+      "createdAt": "2026-07-01T02:00:00.000Z",
+      "updatedAt": "2026-07-02T01:00:00.000Z"
     }
   ]
 }
@@ -1611,12 +1618,12 @@ POST /bookings/sessions
 **Request Body**
 ```json
 {
-  "courseId": "course_001",
-  "courseTitle": "信仰基礎課程",
-  "lecturerId": "lec_abc123",
+  "courseId": "bible-01",
+  "courseTitle": "聖經時觀",
+  "lecturerId": "7d1e2c4a-90b3-4f6e-8a15-2c9b0e4d6f73",
   "lecturerName": "王大明",
-  "lecturerTitle": "牧師",
-  "proposedAt": "2026-07-15T14:00:00+08:00",
+  "lecturerTitle": "pastor",
+  "proposedAt": "2026-07-15T14:00",
   "durationMinutes": 90,
   "prep": {
     "scriptures": ["約翰福音 1:1-18"],
@@ -1627,6 +1634,8 @@ POST /bookings/sessions
   "church": "愛與話語"
 }
 ```
+
+**Validation 規則**：`proposedAt` 必填、須晚於現在（見上方〈時間規則〉）
 
 **回應**：同取得單一場次的結構，並自動建立對應的 `booking_attendees` 記錄。
 
@@ -1641,7 +1650,7 @@ PATCH /bookings/sessions/:sessionId/status
 ```json
 {
   "status": "confirmed",
-  "confirmedAt": "2026-07-15T14:00:00+08:00",
+  "confirmedAt": "2026-07-15T14:00",
   "cancelReason": ""
 }
 ```
@@ -1652,6 +1661,8 @@ PATCH /bookings/sessions/:sessionId/status
 | `confirmed` | 時間已確認 |
 | `completed` | 課程已完成，回饋已填寫 |
 | `cancelled` | 已取消（可附原因） |
+
+改為 `confirmed` 時：場次須為 `pending`（否則 `409 BOOKING_NOT_PENDING`），`confirmedAt` 必填且須晚於現在（否則 `400 VALIDATION_ERROR`）。
 
 ---
 
@@ -1682,6 +1693,10 @@ POST /bookings/sessions/:sessionId/complete
   "teacherSessionNotes": "整體場次順利，學員反應良好"
 }
 ```
+
+場次須為 `confirmed`（否則 `409 BOOKING_NOT_CONFIRMED`）且已到開始時間（否則 `409 BOOKING_NOT_STARTED`）。
+前端在同一個動作中先以下方的 `PATCH .../attendees/:studentUsername` 記錄每位學員的出席與回饋，再呼叫此端點
+（`bookingsStore.finishSession()`）；後端也可以讓此端點一併接收 `attendees`。
 
 ---
 
@@ -1717,10 +1732,10 @@ GET /bookings/sessions/:sessionId/attendees
       "attendanceStatus": "attended",
       "studentFeedback": "這次課程讓我對信仰有更深的認識",
       "teacherFeedback": "學員專注，表現積極",
-      "feedbackAt": "2026-07-15T16:00:00+08:00",
+      "feedbackAt": "2026-07-15T08:00:00.000Z",
       "linkedListenSessionId": null,
-      "createdAt": "2026-07-01T10:00:00+08:00",
-      "updatedAt": "2026-07-15T16:00:00+08:00"
+      "createdAt": "2026-07-01T02:00:00.000Z",
+      "updatedAt": "2026-07-15T08:00:00.000Z"
     }
   ]
 }
@@ -1749,8 +1764,9 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 
 **權限**：
 - 安排的教師：可更新看得到的學員的所有欄位
-- 該場次的講師（連結帳號）：只能更新 `attendanceStatus`，且場次須已確認時間（`status` 為
-  `confirmed` 或 `completed`），否則 `409 BOOKING_NOT_CONFIRMED`；可更新任何學員（不分性別）
+- 該場次的講師（連結帳號）：只能更新 `attendanceStatus`；可更新任何學員（不分性別）
+- 更新 `attendanceStatus` 時（教師或講師）：場次須已確認時間（`status` 為 `confirmed` 或 `completed`，
+  否則 `409 BOOKING_NOT_CONFIRMED`），且已到開始時間（否則 `409 BOOKING_NOT_STARTED`）
 - 學員：只能更新自己的 `studentFeedback`
 
 **Request Body**
@@ -1759,7 +1775,7 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
   "attendanceStatus": "attended",
   "teacherFeedback": "表現良好，繼續加油",
   "studentFeedback": "收穫很多，感謝老師",
-  "linkedListenSessionId": "listen_sess_xyz"
+  "linkedListenSessionId": "c0a8e2f4-1b6d-4e9a-b3c7-5f2d8a1e9b06"
 }
 ```
 
@@ -1941,7 +1957,9 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | 401 | `REFRESH_TOKEN_EXPIRED` | Refresh Token 已過期，需重新登入 |
 | 403 | `FORBIDDEN` | 有登入但無權限執行此操作 |
 | 403 | `STUDENT_NOT_VISIBLE` | 依可見範圍規則看不到此學員（如指派異性學員給教師） |
-| 409 | `BOOKING_NOT_CONFIRMED` | 場次時間尚未確認，講師還不能記錄出席 |
+| 409 | `BOOKING_NOT_CONFIRMED` | 場次時間尚未確認，還不能記錄出席或完成 |
+| 409 | `BOOKING_NOT_STARTED` | 課程還沒開始，還不能記錄出席或完成 |
+| 409 | `BOOKING_NOT_PENDING` | 場次已確認或已結束，不能再確認時間 |
 | 403 | `ACCOUNT_DISABLED` | 帳號已被停用（isActive = false） |
 | 404 | `USER_NOT_FOUND` | 找不到此使用者 |
 | 404 | `COURSE_NOT_FOUND` | 找不到此課程 |
@@ -2105,6 +2123,15 @@ Refresh Token 有效期：30 天（建議）
 ---
 
 ## 版本紀錄
+
+### v1.12.0（2026-11-18）預約的時間規則
+
+- 第 10 節新增〈時間規則〉：預約與確認的時間須晚於現在（不支援事後補登）；完成場次與記錄出席須在已確認、已開始之後
+- 新增錯誤碼 `409 BOOKING_NOT_STARTED`、`409 BOOKING_NOT_PENDING`
+- 修正第 10 節的範例：預約時間改為不帶時區的牆上時間（原本寫 `+08:00`，與〈時間格式〉矛盾）、系統時間戳記改為 UTC、
+  講師稱謂改為代碼（`pastor`）、課程與講師的識別碼改為實際格式
+- 其他章節的範例同樣修正：聽課紀錄、心得回覆、講師的 `id` 改為 UUID（原本是前端 mock 的 `session_…`、`fb_01`、`l1`），
+  一筆舊格式的 `createdAt`（`2026/6/15 10:30:00`）改為 UTC
 
 ### v1.11.0（2026-11-18）已發生事件的日期
 

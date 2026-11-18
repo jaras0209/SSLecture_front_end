@@ -27,7 +27,7 @@ SSLecture 是一個基於 **Vue 3 + TypeScript + Vite** 技術棧開發的現代
 *   **網站更新後不卡住**：每次部署後檔案會換名，部署前就開著的分頁換頁時會自動重新載入成新版；其他功能載入失敗時顯示「重新載入」提示，不會按了沒反應（`src/utils/appUpdate.ts`）。
 *   **安全性設計**：網站設有內容安全政策（CSP），只執行自身的程式；頭像只接受 `https://` 網址且載入時不帶來源頁面；邀請碼 8 碼隨機字元；管理員重設密碼時每次產生不同的隨機臨時密碼（不使用固定的預設密碼）；密碼規則與嘗試次數限制已寫入 API 規格供後端實作。
 *   **文字欄位長度上限**：每個輸入欄位都有長度上限，與 API、資料庫欄位一致（`src/utils/limits.ts`），長文字欄位顯示「已輸入 120／2000 字」；接上後端後，表單收下的內容一定存得進去。
-*   **不能登記未來的事**：聽課紀錄必須選講師、填時間，且時間不能是未來（最多容許 1 小時）；閃耀計畫的生日與專題課日期不能晚於今天。規則與 API、資料庫一致（`src/utils/recordRules.ts`）。
+*   **不能登記未來的事**：聽課紀錄必須選講師、填時間，且時間不能是未來（最多容許 1 小時）；閃耀計畫的生日與專題課日期不能晚於今天。預約則必須排在未來，課開始之後才能記錄出席與完成。規則與 API、資料庫一致（`src/utils/recordRules.ts`、`src/utils/bookingRules.ts`）。
 
 ---
 
@@ -39,7 +39,7 @@ SSLecture 是一個基於 **Vue 3 + TypeScript + Vite** 技術棧開發的現代
 *   **多語系架構**：Vue I18n 11（Composition API 模式，`zh-TW` / `en` 雙語系；`en` 語系檔按需載入）
 *   **路由管理**：Vue Router 5（HTML5 History 模式，內建角色與頁面限制導航守衛；按上一頁時回到原本的捲動位置）
 *   **字型**：Quicksand 由 `@fontsource` 隨專案打包，不向 Google Fonts 發出請求
-*   **測試**：Vitest 5 + Happy DOM + Vue Test Utils（73 個測試檔案、667 項測試，含四個主要頁面、composable 與表單元件測試，以及以本機 HTTP 伺服器驗證 `api.ts` 的整合測試）；Playwright 端對端測試（65 項，含以 axe 檢查 WCAG 2.1 AA 無障礙與鍵盤操作，以及內容安全政策）
+*   **測試**：Vitest 5 + Happy DOM + Vue Test Utils（74 個測試檔案、675 項測試，含四個主要頁面、composable 與表單元件測試，以及以本機 HTTP 伺服器驗證 `api.ts` 的整合測試）；Playwright 端對端測試（66 項，含以 axe 檢查 WCAG 2.1 AA 無障礙與鍵盤操作，以及內容安全政策）
 *   **程式碼品質**：TypeScript 6.0（Strict 嚴格模式，以 vue-tsc 3 檢查）、ESLint 10、Prettier 3
 *   **樣式設計**：Vanilla CSS（響應式排版，適配行動端、桌面端與 `@media print` 列印模式）
 *   **CI／部署**：GitHub Actions（`.github/workflows/`）。分支推送時跑 CI；`main` 更新時再跑一次全部檢查並部署到 GitHub Pages。
@@ -91,7 +91,7 @@ SSLecture/
 │   ├── stores/             # Pinia：auth（帳號、邀請碼、登入）、courses（課程、進度、閃耀計畫、講師、配對）、bookings（預約、出席）
 │   ├── types/              # TypeScript 型別
 │   ├── utils/              # 工具：api（呼叫後端）、scope（誰看得到誰）、session（登入期限）、backup（備份還原）、
-│   │                       #       persist／storage（localStorage）、appUpdate（網站更新後重新載入）、limits（各文字欄位的長度上限）、recordRules（聽課紀錄與日期的規則）、csp、account、datetime、avatar、motion…
+│   │                       #       persist／storage（localStorage）、appUpdate（網站更新後重新載入）、limits（各文字欄位的長度上限）、recordRules（聽課紀錄與日期的規則）、bookingRules（預約的時間規則）、csp、account、datetime、avatar、motion…
 │   ├── views/              # 各頁面：登入、社群登入回調、首次登入補資料、改密碼、學員／教師／管理員主頁、404、無權限
 │   ├── App.vue             # 根元件（導覽列、語言切換、Toast、個人資料與密碼 Modal、自動登出提醒）
 │   └── main.ts             # 入口（Pinia、Router、i18n、登入狀態檢查）
@@ -185,7 +185,7 @@ npm run dev
 
 ### 3. 單元測試與覆蓋率
 
-本專案使用 Vitest 進行測試（涵蓋各 store、`router` 導航守衛、頁面與元件、composable、工具函式、語系檔與文件連結，共 667 項測試）。
+本專案使用 Vitest 進行測試（涵蓋各 store、`router` 導航守衛、頁面與元件、composable、工具函式、語系檔與文件連結，共 675 項測試）。
 
 ```bash
 # 單次執行所有測試

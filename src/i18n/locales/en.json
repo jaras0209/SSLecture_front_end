@@ -601,7 +601,7 @@
       "past": "Past lectures",
       "timePending": "Time awaiting teacher confirmation",
       "bookedBy": "Booked by: {names}",
-      "recordLater": "Attendance can be recorded once the time is confirmed",
+      "recordLater": "Attendance can be recorded once the lecture has started",
       "attendanceFor": "Attendance of {name}",
       "recorded": "Recorded attendance for {name}",
       "dueBanner": "{n} finished lecture(s) still need attendance recorded",
@@ -810,7 +810,14 @@
       "cancelSuccess": "Booking cancelled successfully",
       "invalidStudent": "Please verify a valid student identity before this action",
       "attendanceRecorded": "Attendance recorded successfully",
-      "attendanceUpdated": "Attendance status updated successfully"
+      "attendanceUpdated": "Attendance status updated successfully",
+      "timeRequired": "Choose a time for the booking.",
+      "timeInvalid": "The booking time is not a valid date and time.",
+      "timePast": "The booking time must be later than now.",
+      "notPending": "This booking is already confirmed or over; its time can't be confirmed again.",
+      "notConfirmed": "Confirm the booking time before recording attendance or completing it.",
+      "notStarted": "The lecture hasn't started yet. Attendance and completion can be recorded once it has.",
+      "notFound": "This booking wasn't found; it may have been deleted."
     },
     "courses": {
       "lecturerRequired": "Choose the lecturer.",
@@ -907,7 +914,7 @@
       "REFRESH_TOKEN_EXPIRED": "Your session has expired. Please sign in again",
       "FORBIDDEN": "You don't have permission to do this",
       "STUDENT_NOT_VISIBLE": "You can't manage this student (different church or gender)",
-      "BOOKING_NOT_CONFIRMED": "The booking time isn't confirmed yet, so attendance can't be recorded",
+      "BOOKING_NOT_CONFIRMED": "The booking time isn't confirmed yet, so attendance can't be recorded and it can't be completed",
       "ACCOUNT_DISABLED": "This account has been disabled. Please contact an administrator",
       "USER_NOT_FOUND": "User not found",
       "COURSE_NOT_FOUND": "Course not found",
@@ -925,7 +932,9 @@
       "PASSWORD_CHANGE_REQUIRED": "Please set a new password first",
       "WEAK_PASSWORD": "Password is too weak: use at least 6 characters and any two of: 8 or more characters, upper and lower case letters, a number, a symbol",
       "TOO_MANY_REQUESTS": "Too many attempts. Please try again later",
-      "THEME_EXISTS": "This church already has a theme with that name"
+      "THEME_EXISTS": "This church already has a theme with that name",
+      "BOOKING_NOT_STARTED": "The lecture hasn't started yet. Attendance and completion can be recorded once it has",
+      "BOOKING_NOT_PENDING": "This booking is already confirmed or over; its time can't be confirmed again"
     }
   },
   "a11y": {

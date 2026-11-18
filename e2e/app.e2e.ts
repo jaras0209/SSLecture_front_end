@@ -441,7 +441,7 @@ test.describe('lecturer', () => {
     gender,
     realName
   })
-  const session = (id: string, teacherUsername: string) => ({
+  const session = (id: string, teacherUsername: string, time = '2099-01-10T10:00') => ({
     id,
     courseId: 'c1',
     courseTitle: '測試課程',
@@ -449,8 +449,8 @@ test.describe('lecturer', () => {
     lecturerName: '王講師',
     lecturerTitle: '牧師',
     teacherUsername,
-    proposedAt: '2099-01-10T10:00',
-    confirmedAt: '2099-01-10T10:00',
+    proposedAt: time,
+    confirmedAt: time,
     durationMinutes: 90,
     status: 'confirmed',
     prep: { scriptures: [], readingNotes: '', materials: '' },
@@ -471,7 +471,7 @@ test.describe('lecturer', () => {
     updatedAt: '2026-01-01T00:00:00.000Z'
   })
   /** A male and a female teacher each booked their student for one lecture by `lecturer` */
-  const seed = (lecturer: string) => ({
+  const seed = (lecturer: string, time?: string) => ({
     superstart_users_db: {
       teacher: account('teacher', 'male', '張老師'),
       pastor: account('pastor', undefined, '王牧師'),
@@ -482,15 +482,24 @@ test.describe('lecturer', () => {
     superstart_lecturers_db: [
       { id: 'L1', name: '王講師', title: '牧師', courseIds: [], church, linkedUsername: lecturer }
     ],
-    superstart_booking_sessions_db: { s1: session('s1', 'teacher'), s2: session('s2', 'tf') },
+    superstart_booking_sessions_db: {
+      s1: session('s1', 'teacher', time),
+      s2: session('s2', 'tf', time)
+    },
     superstart_booking_attendees_db: {
       att_s1_boy: attendee('s1', 'boy'),
       att_s2_girl: attendee('s2', 'girl')
     }
   })
 
-  test('sees every student of their lecture and records attendance', async ({ page, openWith }) => {
-    await openWith('teacher', { superstart_user: users.teacher, ...seed('teacher') })
+  test('sees every student of their lecture and records attendance once it has taken place', async ({
+    page,
+    openWith
+  }) => {
+    await openWith('teacher', {
+      superstart_user: users.teacher,
+      ...seed('teacher', '2020-05-01T10:00')
+    })
 
     await page.locator('#tab-lectures').click()
     const card = page.locator('.lecture-card')
@@ -507,6 +516,18 @@ test.describe('lecturer', () => {
       'superstart_booking_attendees_db'
     )
     expect(attendees.att_s2_girl.attendanceStatus).toBe('attended')
+  })
+
+  test("can't record attendance before the lecture has started", async ({ page, openWith }) => {
+    await openWith('teacher', { superstart_user: users.teacher, ...seed('teacher') }) // 2099
+    await page.locator('#tab-lectures').click()
+    const card = page.locator('.lecture-card')
+    await expect(card).toContainText('陳姊妹')
+    await expect(card.getByRole('button', { name: /已出席/ })).toHaveCount(0)
+    await expect(card.locator('.attendee-status').first()).toHaveAttribute(
+      'title',
+      '課程開始後即可記錄出席'
+    )
   })
 
   test('the tab shows how many finished lectures need attendance', async ({ page, openWith }) => {

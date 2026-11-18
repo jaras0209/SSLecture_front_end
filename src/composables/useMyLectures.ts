@@ -3,7 +3,7 @@
  * @description 我的授課：連結到講師資料的帳號（教師或牧者）擔任講師的預約。
  *
  * 不同教師（例如男、女教師各自為學員安排）在同一時段預約同一課程時，合併成一堂課；
- * 講師看得到全部學員（不分男女）。時間確認後可記錄出席，時間已過、仍有學員停在「已邀請」
+ * 講師看得到全部學員（不分男女）。時間確認且課程開始後可記錄出席，時間已過、仍有學員停在「已邀請」
  * 的課算作「待記錄」，用於分頁上的提醒數字。
  */
 import { computed, onScopeDispose, ref } from 'vue'
@@ -13,9 +13,10 @@ import { useBookingsStore } from '@/stores/bookings'
 import type { BookingAttendee, BookingSession } from '@/stores/bookings'
 import { lecturerIdsOf } from '@/utils/scope'
 import { toLocalDateTimeInput } from '@/utils/datetime'
+import { recordingProblem } from '@/utils/bookingRules'
 
 export interface LectureAttendee extends BookingAttendee {
-  /** Attendance can be recorded once the time is confirmed */
+  /** Attendance can be recorded once the time is confirmed and the lecture has started */
   canRecord: boolean
 }
 
@@ -58,7 +59,8 @@ export function useMyLectures() {
       const attendees = sessions.flatMap((s) =>
         bookingsStore
           .getAttendeesForSession(s.id)
-          .map((a) => ({ ...a, canRecord: s.status !== 'pending' }))
+          // Same rule as the store: confirmed (or done), and started — read `now` to update
+          .map((a) => ({ ...a, canRecord: now.value !== '' && !recordingProblem(s) }))
       )
       return {
         key,

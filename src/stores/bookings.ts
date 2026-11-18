@@ -5,6 +5,20 @@ import { normalizeLecturerTitle } from '@/utils/lecturerTitle'
 import { persistToStorage } from '@/utils/persist'
 import { toLocalDateTimeInput } from '@/utils/datetime'
 import { createId } from '@/utils/id'
+import { translate as t } from '@/i18n'
+import {
+  bookingTimeProblem,
+  completionProblem,
+  recordingProblem,
+  type BookingProblem
+} from '@/utils/bookingRules'
+import type { SaveResult } from '@/stores/courses'
+
+const refused = (problem: BookingProblem): SaveResult => ({
+  success: false,
+  message: t(`stores.bookings.${problem}`)
+})
+const SAVED: SaveResult = { success: true, message: '' }
 
 // 型別定義集中至 src/types/bookings.ts—從這裡 re-export 保持向下相容
 export type {
@@ -264,6 +278,67 @@ export const useBookingsStore = defineStore('bookings', () => {
 
   // ── Return ─────────────────────────────────────────────────────────────────
 
+  // ── Checked actions: what the pages use ─────────────────────────────────────
+  // The functions above store what they are given (loading existing data, tests); these check
+  // the rules first, as the API will (utils/bookingRules.ts), and save nothing when refused.
+
+  /** Propose a booking: its time must be still to come */
+  function proposeSession(
+    params: Parameters<typeof createSession>[0]
+  ): SaveResult & { session?: BookingSession } {
+    const problem = bookingTimeProblem(params.proposedAt)
+    if (problem) return refused(problem)
+    return { ...SAVED, session: createSession(params) }
+  }
+
+  /** Confirm a pending booking at a time still to come */
+  function confirmSession(sessionId: string, confirmedAt: string): SaveResult {
+    const session = sessionsDb.value[sessionId]
+    if (!session) return { success: false, message: t('stores.bookings.notFound') }
+    if (session.status !== 'pending') return refused('notPending')
+    const problem = bookingTimeProblem(confirmedAt)
+    if (problem) return refused(problem)
+    updateSessionStatus(sessionId, 'confirmed', { confirmedAt })
+    return SAVED
+  }
+
+  /**
+   * Mark a confirmed booking done, with each student's attendance and feedback: only once it
+   * has started, so nobody is recorded as attending a lecture that hasn't happened
+   */
+  function finishSession(
+    sessionId: string,
+    teacherNotes: string,
+    attendees: Record<
+      string,
+      Partial<Pick<BookingAttendee, 'attendanceStatus' | 'studentFeedback' | 'teacherFeedback'>>
+    >
+  ): SaveResult {
+    const session = sessionsDb.value[sessionId]
+    if (!session) return { success: false, message: t('stores.bookings.notFound') }
+    const problem = completionProblem(session)
+    if (problem) return refused(problem)
+    Object.entries(attendees).forEach(([username, data]) =>
+      updateAttendee(sessionId, username, { ...data })
+    )
+    completeSession(sessionId, teacherNotes)
+    return SAVED
+  }
+
+  /** A lecturer records one student's attendance: only once the lecture has started */
+  function recordAttendance(
+    sessionId: string,
+    studentUsername: string,
+    attendanceStatus: BookingAttendee['attendanceStatus']
+  ): SaveResult {
+    const session = sessionsDb.value[sessionId]
+    if (!session) return { success: false, message: t('stores.bookings.notFound') }
+    const problem = recordingProblem(session)
+    if (problem) return refused(problem)
+    updateAttendee(sessionId, studentUsername, { attendanceStatus })
+    return SAVED
+  }
+
   return {
     sessionsDb,
     attendeesDb,
@@ -282,6 +357,10 @@ export const useBookingsStore = defineStore('bookings', () => {
     completeSession,
     updateAttendee,
     addAttendeeToSession,
-    deleteSession
+    deleteSession,
+    proposeSession,
+    confirmSession,
+    finishSession,
+    recordAttendance
   }
 })

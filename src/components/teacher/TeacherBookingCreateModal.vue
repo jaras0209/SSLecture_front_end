@@ -47,6 +47,7 @@
               id="booking-time"
               v-model="form.proposedAt"
               type="datetime-local"
+              :min="nowLocal()"
               class="form-input"
             />
           </div>
@@ -128,6 +129,7 @@
           />
         </div>
 
+        <p v-if="submitError" class="alert-box error mt-3" role="alert">{{ submitError }}</p>
         <div class="modal-footer mt-4">
           <button class="btn btn-outline" @click="close()">
             {{ $t('common.cancel') }}
@@ -143,6 +145,7 @@
 
 <script setup lang="ts">
 import { MAX_LENGTH } from '@/utils/limits'
+import { nowLocal } from '@/utils/bookingRules'
 import CharCount from '@/components/shared/CharCount.vue'
 /**
  * 建立預約：選課程、講師、時間、學員與預習內容。只列出教師看得到的學員
@@ -181,12 +184,17 @@ const emptyForm = () => ({
   prep: { scriptures: [] as string[], readingNotes: '', materials: '' }
 })
 const form = ref(emptyForm())
+/** Why the booking couldn't be made (e.g. a time already past); the form stays as typed */
+const submitError = ref('')
 
 // A fresh form each time it opens
 watch(
   () => props.modelValue,
   (open) => {
-    if (open) form.value = emptyForm()
+    if (open) {
+      form.value = emptyForm()
+      submitError.value = ''
+    }
   }
 )
 
@@ -230,7 +238,7 @@ function submit() {
   if (!course || !lecturer) return
 
   const cleanScriptures = f.prep.scriptures.filter((s) => s.trim() !== '')
-  bookingsStore.createSession({
+  const result = bookingsStore.proposeSession({
     courseId: f.courseId,
     courseTitle: course.title,
     lecturerId: f.lecturerId,
@@ -243,6 +251,8 @@ function submit() {
     studentUsernames: f.studentUsernames,
     church: myChurch.value
   })
+  submitError.value = result.success ? '' : result.message
+  if (!result.success) return
   close()
   toast(t('teacher.booking.toastCreated'))
 }

@@ -51,6 +51,9 @@ afterEach(() => {
   document.body.innerHTML = ''
 })
 
+/** A time that has passed: a booking confirmed for it has taken place */
+const PAST = '2020-01-10T10:00'
+
 describe('TeacherBookingPanel', () => {
   it('validates and creates a booking with the chosen students', async () => {
     const ctx = mountAsTeacher()
@@ -85,6 +88,25 @@ describe('TeacherBookingPanel', () => {
     expect(toastTexts().at(-1)).toBe(t('teacher.booking.toastCreated'))
     expect($('#booking-create-title').exists()).toBe(false) // modal closed
     expect(ctx.wrapper.findAll('.booking-card')).toHaveLength(1)
+  })
+
+  it("won't book a time that has already passed, and keeps the form as filled in", async () => {
+    const ctx = mountAsTeacher()
+    await ctx.wrapper.find('#btn-create-booking').trigger('click')
+    await $('#booking-course-select').setValue(ctx.course.id)
+    await $('#booking-lecturer-select').setValue(ctx.lecturer.id)
+    await $$('.attendee-check-item input')[0].setValue(true)
+    expect($('#booking-time').attributes('min')).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)
+    await $('#booking-time').setValue(PAST)
+    await $('#btn-submit-booking').trigger('click')
+
+    expect($('[role="dialog"] [role="alert"]').text()).toBe(t('stores.bookings.timePast'))
+    expect(useBookingsStore().getSessionsByTeacher('teacher')).toHaveLength(0)
+    expect(($('#booking-course-select').element as HTMLSelectElement).value).toBe(ctx.course.id)
+
+    await $('#booking-time').setValue('2099-02-01T09:30')
+    await $('#btn-submit-booking').trigger('click')
+    expect(useBookingsStore().getSessionsByTeacher('teacher')).toHaveLength(1)
   })
 
   it('starts the booking form afresh each time it is opened', async () => {
@@ -144,8 +166,8 @@ describe('TeacherBookingPanel', () => {
     expect(card.text()).not.toContain('小美')
     expect(card.find('.hidden-attendees-note').text()).toBe(t('gender.hiddenAttendees', { n: 1 }))
 
-    // completing it records only the visible students; the hidden one is left as is
-    bookings.updateSessionStatus(session.id, 'confirmed', { confirmedAt: session.proposedAt })
+    // completing it (once it has taken place) records only the visible students
+    bookings.updateSessionStatus(session.id, 'confirmed', { confirmedAt: PAST })
     await ctx.wrapper.vm.$nextTick()
     await ctx.wrapper.find('.booking-card-actions .btn-primary').trigger('click')
     expect($$('.complete-attendee-card')).toHaveLength(2)
@@ -194,7 +216,7 @@ describe('TeacherBookingPanel', () => {
     const ctx = mountAsTeacher()
     const session = existingBooking(ctx)
     const bookings = useBookingsStore()
-    bookings.updateSessionStatus(session.id, 'confirmed', { confirmedAt: session.proposedAt })
+    bookings.updateSessionStatus(session.id, 'confirmed', { confirmedAt: PAST }) // it took place
     await ctx.wrapper.vm.$nextTick()
     await ctx.wrapper.find('.booking-card-actions .btn-primary').trigger('click')
 
@@ -214,6 +236,37 @@ describe('TeacherBookingPanel', () => {
         .map((a) => [a.studentUsername, a.attendanceStatus])
     )
     expect(statuses).toEqual({ student: 'attended', s2: 'absent' }) // invited defaults to attended
+  })
+
+  it("won't complete a booking before the lecture has started, and says why", async () => {
+    const ctx = mountAsTeacher()
+    const session = existingBooking(ctx) // 2099
+    const bookings = useBookingsStore()
+    bookings.updateSessionStatus(session.id, 'confirmed', { confirmedAt: session.proposedAt })
+    await ctx.wrapper.vm.$nextTick()
+    await ctx.wrapper.find('.booking-card-actions .btn-primary').trigger('click')
+    await $('#complete-session-notes').setValue('預先寫好')
+    await $('#btn-submit-complete').trigger('click')
+
+    expect($('[role="dialog"] [role="alert"]').text()).toBe(t('stores.bookings.notStarted'))
+    expect(bookings.sessionsDb[session.id]!.status).toBe('confirmed')
+    expect(bookings.getAttendeesForSession(session.id).map((a) => a.attendanceStatus)).toEqual([
+      'invited',
+      'invited'
+    ])
+    expect(($('#complete-session-notes').element as HTMLTextAreaElement).value).toBe('預先寫好')
+  })
+
+  it("won't confirm a time that has already passed", async () => {
+    const ctx = mountAsTeacher()
+    const session = existingBooking(ctx)
+    await ctx.wrapper.vm.$nextTick()
+    await ctx.wrapper.find('.booking-card-actions .btn-outline').trigger('click')
+    expect($('#confirm-time-input').attributes('min')).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)
+    await $('#confirm-time-input').setValue(PAST)
+    await $('#btn-submit-confirm').trigger('click')
+    expect($('[role="alert"]').text()).toBe(t('stores.bookings.timePast'))
+    expect(useBookingsStore().sessionsDb[session.id]!.status).toBe('pending')
   })
 
   it('cancels a booking with the trimmed reason', async () => {

@@ -112,7 +112,11 @@ const parts = computed(() => [
 const dueKeys = computed(() => new Set(awaitingAttendance.value.map((l) => l.key)))
 
 function record(row: LectureAttendee, status: AttendanceStatus) {
-  bookingsStore.updateAttendee(row.sessionId, row.studentUsername, { attendanceStatus: status })
+  const result = bookingsStore.recordAttendance(row.sessionId, row.studentUsername, status)
+  if (!result.success) {
+    toast(result.message, 'error')
+    return
+  }
   toast(
     t('teacher.lecture.recorded', { name: authStore.displayNameOf(row.studentUsername) }),
     'success'

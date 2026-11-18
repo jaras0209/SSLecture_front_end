@@ -196,9 +196,11 @@
               id="confirm-time-input"
               v-model="confirmForm.confirmedAt"
               type="datetime-local"
+              :min="nowLocal()"
               class="form-input"
             />
           </div>
+          <p v-if="confirmError" class="alert-box error mt-3" role="alert">{{ confirmError }}</p>
           <div class="modal-footer mt-4">
             <button class="btn btn-outline" @click="showConfirmBookingModal = false">
               {{ $t('common.cancel') }}
@@ -268,6 +270,7 @@
 </template>
 
 <script setup lang="ts">
+import { nowLocal } from '@/utils/bookingRules'
 import { MAX_LENGTH } from '@/utils/limits'
 import CharCount from '@/components/shared/CharCount.vue'
 import { vDialog } from '@/directives/dialog'
@@ -345,10 +348,12 @@ function openCreateBooking() {
 const showConfirmBookingModal = ref(false)
 const confirmingSessionId = ref('')
 const confirmForm = ref({ confirmedAt: '' })
+const confirmError = ref('')
 
 function openConfirmBooking(session: BookingSession) {
   confirmingSessionId.value = session.id
   confirmForm.value.confirmedAt = session.proposedAt
+  confirmError.value = ''
   showConfirmBookingModal.value = true
 }
 
@@ -357,9 +362,13 @@ function submitConfirmBooking() {
     toast(t('teacher.booking.toastEnterTime'), 'warning')
     return
   }
-  bookingsStore.updateSessionStatus(confirmingSessionId.value, 'confirmed', {
-    confirmedAt: confirmForm.value.confirmedAt
-  })
+  const result = bookingsStore.confirmSession(
+    confirmingSessionId.value,
+    confirmForm.value.confirmedAt
+  )
+  // e.g. the proposed time has passed meanwhile: say so and let another time be chosen
+  confirmError.value = result.success ? '' : result.message
+  if (!result.success) return
   showConfirmBookingModal.value = false
   toast(t('teacher.booking.toastTimeConfirmed'))
 }

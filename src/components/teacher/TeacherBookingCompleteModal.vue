@@ -133,6 +133,7 @@
             </div>
           </div>
         </div>
+        <p v-if="submitError" class="alert-box error mt-3" role="alert">{{ submitError }}</p>
         <div class="modal-footer mt-4">
           <button class="btn btn-outline" @click="close()">
             {{ $t('common.cancel') }}
@@ -181,6 +182,8 @@ type AttendeeForm = {
 
 const attendees = ref<BookingAttendee[]>([])
 const hiddenCount = ref(0)
+/** Why it couldn't be marked done (e.g. the lecture hasn't started); what was typed stays */
+const submitError = ref('')
 const completeForm = ref<{ teacherNotes: string; attendeeData: Record<string, AttendeeForm> }>({
   teacherNotes: '',
   attendeeData: {}
@@ -191,6 +194,7 @@ watch(
   () => [props.modelValue, props.session] as const,
   ([open, session]) => {
     if (!open || !session) return
+    submitError.value = ''
     const { shown, hidden } = attendeesOf(session.id)
     attendees.value = shown
     hiddenCount.value = hidden
@@ -223,11 +227,13 @@ function close() {
 
 function submit() {
   if (!props.session) return
-  const sessionId = props.session.id
-  Object.entries(completeForm.value.attendeeData).forEach(([username, data]) => {
-    bookingsStore.updateAttendee(sessionId, username, { ...data })
-  })
-  bookingsStore.completeSession(sessionId, completeForm.value.teacherNotes)
+  const result = bookingsStore.finishSession(
+    props.session.id,
+    completeForm.value.teacherNotes,
+    completeForm.value.attendeeData
+  )
+  submitError.value = result.success ? '' : result.message
+  if (!result.success) return
   close()
   toast(t('teacher.booking.toastFeedbackSaved'))
 }

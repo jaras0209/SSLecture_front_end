@@ -1,6 +1,6 @@
 # SSLecture 後端資料庫設計文件
 
-> **文件版本**：v1.10.0  
+> **文件版本**：v1.11.0  
 > **最後更新**：2026-11-18  
 > **資料來源**：分析前端 `src/stores/auth.ts`、`src/stores/courses.ts`、`src/stores/bookings.ts`、localStorage 資料結構  
 > **資料庫**：PostgreSQL 16 以上（第 6 節的 SQL 已實測可建立全部 22 張表）。不支援 MySQL：
@@ -1053,12 +1053,15 @@ API 規格〈欄位長度上限〉）。這樣前端收下的內容，後端與�
 | `listen_sessions.listened_at` | 必填，不可晚於寫入時間 1 小時以上（容許時鐘誤差、課程剛結束） | API；資料庫 `CHECK listened_not_in_future` |
 | `shining_lectures.lecture_date` | 選填，不可晚於今天 | API |
 | `shining_projects.birthday` | 選填，介於 1900-01-01 與今天之間 | API；資料庫 `CHECK`（只檢查下限） |
+| `booking_sessions.proposed_at` / `confirmed_at` | 預約、確認時須晚於現在（預約的是還沒上的課，不支援事後補登） | API；資料庫 `CHECK booking_proposed_ahead`（提議時間晚於建立時間） |
+| 完成場次、記錄 `booking_attendees.attendance_status` | 時間已確認且已到開始時間 | API；資料庫 `CHECK booking_completed_after_start`（完成時已過確認的時間） |
 
-- 聽課紀錄會計入學習進度（含閃耀計畫的「聽完全部課程」），未來的紀錄等於預先把沒上的課算成已完成
+- 聽課紀錄會計入學習進度（含閃耀計畫的「聽完全部課程」），未來的紀錄等於預先把沒上的課算成已完成；
+  預約則相反，安排的是未來的課，課上完之後才記錄出席與完成
 - 資料庫的 `CHECK` 只能用不隨時間改變的運算，「今天」不能寫在 `CHECK` 裡，所以「不晚於今天」由 API 檢查；
   聽課時間改與寫入時間（`COALESCE(updated_at, created_at)`）比較，修改紀錄時須同時更新 `updated_at`
 - 「今天」以 `Asia/Taipei` 判斷（見 [5.14](#514-時間與時區)）
-- 前端的對應：`src/utils/recordRules.ts`，日期欄位也不讓選未來的日期
+- 前端的對應：`src/utils/recordRules.ts`、`src/utils/bookingRules.ts`，日期欄位也不讓選不合規則的日期
 
 ---
 
@@ -1348,7 +1351,11 @@ CREATE TABLE booking_sessions (
   prep_reading_notes    VARCHAR(2000),
   prep_materials        VARCHAR(500),
   created_at            TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-  updated_at            TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+  updated_at            TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+  -- 預約的是還沒上的課；完成要等課開始之後（見 5.17）
+  CONSTRAINT booking_proposed_ahead CHECK (proposed_at > created_at),
+  CONSTRAINT booking_completed_after_start
+    CHECK (status <> 'completed' OR (confirmed_at IS NOT NULL AND confirmed_at <= updated_at))
 );
 
 CREATE INDEX idx_booking_sessions_teacher  ON booking_sessions(teacher_id);
@@ -1952,6 +1959,9 @@ JSON 檔（前端 `src/utils/backup.ts`），上線時用它把既有資料搬�
 - **頭像**：不是 `https://` 的頭像網址存 NULL（2.1 的 CHECK 會拒絕），顯示時改用預設頭像
 - **順序**：依外鍵先後搬（`churches` → `users` → `courses`、`lecturers` → 其餘），整個搬移放在同一個交易，
   失敗就全部不算；搬完後比對各項筆數與備份檔一致
+- **時間不合規則的預約與聽課紀錄**：前端加上檢查（2026-11-18）之前，可能存下提議時間早於建立時間的預約、
+  課還沒開始就完成的預約，或未來時間的聽課紀錄，直接寫入會被 [5.17](#517-已發生事件的日期) 的 `CHECK` 拒絕。
+  匯入前先列出這些資料請管理員確認；確實是誤植的請在前端修正或刪除後重新匯出
 - **超過長度上限的文字**：前端加上長度上限（2026-11-18）之前存下的資料可能比 [5.16](#516-文字欄位長度) 的上限長，
   直接寫入會被資料庫拒絕。匯入前先列出這些資料，請管理員在前端縮短後重新匯出；真的需要時才截斷，並記下截斷了哪些
 - 備份檔含所有帳號的密碼與學員心得，搬完後請妥善刪除
@@ -1959,6 +1969,12 @@ JSON 檔（前端 `src/utils/backup.ts`），上線時用它把既有資料搬�
 ---
 
 ## 版本紀錄
+
+### v1.11.0（2026-11-18）預約的時間
+
+- `booking_sessions` 新增 `CHECK booking_proposed_ahead`（提議時間晚於建立時間）與
+  `CHECK booking_completed_after_start`（完成時已過確認的時間）；5.17 補上預約的規則
+- 第 9 節補上時間不合規則的既有資料如何處理
 
 ### v1.10.0（2026-11-18）已發生事件的日期
 

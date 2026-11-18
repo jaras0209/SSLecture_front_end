@@ -601,7 +601,7 @@
       "past": "過去的授課",
       "timePending": "時間待教師確認",
       "bookedBy": "安排教師：{names}",
-      "recordLater": "時間確認後即可記錄出席",
+      "recordLater": "課程開始後即可記錄出席",
       "attendanceFor": "{name} 的出席",
       "recorded": "已記錄 {name} 的出席",
       "dueBanner": "有 {n} 堂已結束的課還沒記錄完出席",
@@ -810,7 +810,14 @@
       "cancelSuccess": "取消預約成功",
       "invalidStudent": "請先確認有效的學員身分後再執行此操作",
       "attendanceRecorded": "已成功記錄出席",
-      "attendanceUpdated": "出席狀態更新成功"
+      "attendanceUpdated": "出席狀態更新成功",
+      "timeRequired": "請選擇預約時間。",
+      "timeInvalid": "預約時間的格式不正確。",
+      "timePast": "預約時間必須在現在之後。",
+      "notPending": "這筆預約已確認或已結束，不能再確認時間。",
+      "notConfirmed": "預約確認時間後才能記錄出席與完成。",
+      "notStarted": "課程還沒開始，開始之後才能記錄出席與完成。",
+      "notFound": "找不到這筆預約，可能已被刪除。"
     },
     "courses": {
       "lecturerRequired": "請選擇授課講師。",
@@ -907,7 +914,7 @@
       "REFRESH_TOKEN_EXPIRED": "登入已過期，請重新登入",
       "FORBIDDEN": "您沒有權限執行此操作",
       "STUDENT_NOT_VISIBLE": "您無法管理這位學員（不同教會或性別不同）",
-      "BOOKING_NOT_CONFIRMED": "預約時間尚未確認，暫時不能記錄出席",
+      "BOOKING_NOT_CONFIRMED": "預約時間尚未確認，還不能記錄出席或完成",
       "ACCOUNT_DISABLED": "此帳號已停用，請聯絡管理員",
       "USER_NOT_FOUND": "找不到此使用者",
       "COURSE_NOT_FOUND": "找不到此課程",
@@ -925,7 +932,9 @@
       "PASSWORD_CHANGE_REQUIRED": "請先設定新密碼",
       "WEAK_PASSWORD": "密碼太弱：需至少 6 個字元，並符合以下任兩項：8 個字元以上、大小寫字母混合、數字、符號",
       "TOO_MANY_REQUESTS": "嘗試次數過多，請稍後再試",
-      "THEME_EXISTS": "這個教會已經有同名的主題"
+      "THEME_EXISTS": "這個教會已經有同名的主題",
+      "BOOKING_NOT_STARTED": "課程還沒開始，開始之後才能記錄出席與完成",
+      "BOOKING_NOT_PENDING": "這筆預約已確認或已結束，不能再確認時間"
     }
   },
   "a11y": {
