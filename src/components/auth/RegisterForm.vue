@@ -10,6 +10,7 @@
         <input
           id="reg-invite-code"
           v-model="inviteCodeInput"
+          :maxlength="MAX_LENGTH.inviteCode"
           type="text"
           class="form-input"
           :placeholder="$t('common.inviteCodePlaceholder')"
@@ -48,6 +49,7 @@
       <input
         id="reg-username"
         v-model="registerForm.username"
+        :maxlength="MAX_LENGTH.username"
         type="text"
         class="form-input"
         :placeholder="$t('auth.register.usernamePlaceholder')"
@@ -69,6 +71,7 @@
       <input
         id="reg-email"
         v-model="registerForm.email"
+        :maxlength="MAX_LENGTH.email"
         type="email"
         class="form-input"
         autocomplete="email"
@@ -83,6 +86,7 @@
         <input
           id="reg-password"
           v-model="registerForm.password"
+          :maxlength="MAX_LENGTH.newPassword"
           :type="showRegPwd ? 'text' : 'password'"
           autocomplete="new-password"
           class="form-input"
@@ -169,6 +173,7 @@
 </template>
 
 <script setup lang="ts">
+import { MAX_LENGTH } from '@/utils/limits'
 import { ref, reactive, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'

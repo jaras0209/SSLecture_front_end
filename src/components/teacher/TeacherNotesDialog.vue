@@ -150,6 +150,7 @@
                 <div v-if="record.notes && canSendFeedback" class="feedback-input-row">
                   <input
                     v-model="feedbackInputs[record.courseId]"
+                    :maxlength="MAX_LENGTH.feedbackReply"
                     type="text"
                     class="form-input"
                     :aria-label="
@@ -172,6 +173,7 @@
 </template>
 
 <script setup lang="ts">
+import { MAX_LENGTH } from '@/utils/limits'
 import { vDialog } from '@/directives/dialog'
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'

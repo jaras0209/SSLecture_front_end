@@ -26,6 +26,7 @@
               <input
                 id="shining-name"
                 v-model="basicInfo.name"
+                :maxlength="MAX_LENGTH.shiningName"
                 type="text"
                 class="form-input-clean"
                 :placeholder="$t('student.shining.fieldNamePlaceholder')"
@@ -51,6 +52,7 @@
               <input
                 id="shining-church"
                 v-model="basicInfo.church"
+                :maxlength="MAX_LENGTH.shiningChurch"
                 type="text"
                 class="form-input-clean"
                 :placeholder="$t('student.shining.fieldChurchPlaceholder')"
@@ -64,6 +66,7 @@
               <input
                 id="shining-school"
                 v-model="basicInfo.schoolGrade"
+                :maxlength="MAX_LENGTH.schoolGrade"
                 type="text"
                 class="form-input-clean"
                 :placeholder="$t('student.shining.fieldSchoolPlaceholder')"
@@ -148,6 +151,7 @@
               <span v-if="key === 'custom'" class="custom-challenge-wrap">
                 <input
                   v-model="customChallengeText"
+                  :maxlength="MAX_LENGTH.customChallenge"
                   type="text"
                   class="form-input-clean-custom"
                   :placeholder="$t('student.shining.customChallengePlaceholder')"
@@ -269,6 +273,7 @@
   <StudentShiningPrint />
 </template>
 <script setup lang="ts">
+import { MAX_LENGTH } from '@/utils/limits'
 import { ref, reactive, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'

@@ -1,6 +1,6 @@
 # SSLecture 文件導覽
 
-> **最後更新**：2026-11-17
+> **最後更新**：2026-11-18
 
 前端已先做好，資料暫存在瀏覽器裡；這裡的規格依前端的實作與資料結構整理，給接手實作 Spring Boot 後端的人。
 專案本身怎麼執行、測試、部署，見根目錄的 [`README.md`](../README.md)。
@@ -9,8 +9,8 @@
 
 | 文件 | 內容 | 給誰看 | 版本 |
 | :--- | :--- | :--- | :--- |
-| [`backend_api_spec.md`](./backend_api_spec.md) | 所有 API 的請求與回應、可見範圍規則、嘗試次數限制、登入期限、CORS、錯誤碼、資料模型、前端串接步驟 | 後端、串接 API 的前端 | v1.9.0 |
-| [`database_schema.md`](./database_schema.md) | 22 張資料表、索引、設計決策、PostgreSQL 建表 SQL、種子資料、ERD、從前端備份搬移資料 | 後端、資料庫管理 | v1.8.1 |
+| [`backend_api_spec.md`](./backend_api_spec.md) | 所有 API 的請求與回應、可見範圍規則、嘗試次數限制、登入期限、CORS、錯誤碼、資料模型、前端串接步驟 | 後端、串接 API 的前端 | v1.10.0 |
+| [`database_schema.md`](./database_schema.md) | 22 張資料表、索引、設計決策、PostgreSQL 建表 SQL、種子資料、ERD、從前端備份搬移資料 | 後端、資料庫管理 | v1.9.0 |
 | [`oauth2_social_login_spec.md`](./oauth2_social_login_spec.md) | Google / LINE 登入流程、Spring Security 設定、前端整合、帳號綁定、安全性、第三方平台設定 | 實作社群登入的後端 | v1.1.1 |
 | [`../TODO.md`](../TODO.md) | 後端上線前要完成的項目（安全性、資料表、各 store 改接 API、資料搬移、部署） | 專案負責人、後端 | — |
 
@@ -36,6 +36,7 @@
 | 登入期限、記住我、帳號變更後登出 | API〈[記住我與閒置登出](./backend_api_spec.md#記住我與閒置登出)〉、資料庫 [5.15](./database_schema.md#515-登入期限與失效) | `src/utils/session.ts` |
 | 帳號與密碼規則 | API〈[密碼規則](./backend_api_spec.md#密碼規則)〉、[`POST /auth/register`](./backend_api_spec.md#post-authregister) | `src/utils/account.ts`、`src/composables/usePasswordStrength.ts` |
 | 嘗試次數限制 | API〈[嘗試次數限制](./backend_api_spec.md#嘗試次數限制)〉、資料庫 [2.22](./database_schema.md#222-auth_attempts-嘗試次數) | `src/utils/api.ts`（顯示 `429` 的等待時間） |
+| 文字欄位長度上限 | API〈[欄位長度上限](./backend_api_spec.md#欄位長度上限)〉、資料庫 [5.16](./database_schema.md#516-文字欄位長度) | `src/utils/limits.ts` |
 | 錯誤碼與訊息 | API [第 12 節](./backend_api_spec.md#12-錯誤碼一覽) | `src/utils/api.ts`、語系檔的 `api.codes` |
 | 時間與時區 | API〈[時間格式](./backend_api_spec.md#時間格式)〉、資料庫 [5.14](./database_schema.md#514-時間與時區) | `src/utils/datetime.ts` |
 | 社群登入 | [`oauth2_social_login_spec.md`](./oauth2_social_login_spec.md) | `src/views/LoginCallback.vue`、`src/views/OnboardingView.vue`、`src/stores/auth.ts` |

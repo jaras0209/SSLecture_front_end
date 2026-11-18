@@ -1,7 +1,7 @@
 # SSLecture 後端資料庫設計文件
 
-> **文件版本**：v1.8.1  
-> **最後更新**：2026-11-14  
+> **文件版本**：v1.9.0  
+> **最後更新**：2026-11-18  
 > **資料來源**：分析前端 `src/stores/auth.ts`、`src/stores/courses.ts`、`src/stores/bookings.ts`、localStorage 資料結構  
 > **資料庫**：PostgreSQL 16 以上（第 6 節的 SQL 已實測可建立全部 22 張表）。不支援 MySQL：
 > 用到了 PostgreSQL 專有的 `CREATE TYPE ... AS ENUM`、`INET`、`TIMESTAMPTZ`、正規表示式 `~` 等  
@@ -101,8 +101,8 @@
 | `password_hash` | `VARCHAR(255)` | NULL | bcrypt 雜湊密碼；NULL = 只用 Google / LINE 登入，不能以密碼登入 |
 | `role` | `ENUM` | NOT NULL | `student` / `teacher` / `pastor` / `parent` / `admin` |
 | `church_id` | `UUID` | FK → churches.id, NULL | 所屬教會（admin 為 NULL） |
-| `display_name` | `VARCHAR(100)` | NULL | 暱稱（公開顯示） |
-| `real_name` | `VARCHAR(100)` | NULL | 真實姓名（管理端顯示，不對學員公開） |
+| `display_name` | `VARCHAR(20)` | NULL | 暱稱（公開顯示）；從 Google / LINE 帶入的名稱超過 20 字時截斷 |
+| `real_name` | `VARCHAR(50)` | NULL | 真實姓名（管理端顯示，不對學員公開） |
 | `email` | `VARCHAR(255)` | NULL, UNIQUE（小寫） | 選填，可用來登入；孩子常沒有信箱所以可為空 |
 | `email_verified` | `BOOLEAN` | NOT NULL, DEFAULT FALSE | 信箱是否已驗證；社群帳號自動合併的前提 |
 | `must_change_password` | `BOOLEAN` | NOT NULL, DEFAULT FALSE | 管理員建立帳號或重設密碼後為 TRUE，使用者改密碼後清除 |
@@ -178,7 +178,7 @@
 | 欄位名 | 資料型別 | 限制 | 說明 |
 |--------|----------|------|------|
 | `id` | `UUID` | PK, NOT NULL | 唯一識別碼 |
-| `name` | `VARCHAR(100)` | NOT NULL | 講師顯示名稱 |
+| `name` | `VARCHAR(50)` | NOT NULL | 講師顯示名稱 |
 | `title` | `VARCHAR(30)` | NOT NULL | 稱謂代碼：`lecturer`、`pastor`、`preacher`、`elder`、`pastor_wife`、`counselor`、`guest`；畫面依語言翻譯（見設計說明） |
 | `church_id` | `UUID` | FK → churches.id, NULL | 所屬教會（NULL 表示跨教會） |
 | `linked_user_id` | `UUID` | FK → users.id, NULL | 連結的教師或牧者帳號（NULL = 外來/自訂講師） |
@@ -223,9 +223,9 @@
 | `id` | `UUID` | PK, NOT NULL | 唯一識別碼 |
 | `student_id` | `UUID` | FK → users.id, NOT NULL, ON DELETE RESTRICT | 學員；帳號軟刪除，聽課紀錄保留 |
 | `course_id` | `VARCHAR(20)` | FK → courses.id, NOT NULL | 課程 |
-| `lecturer_name` | `VARCHAR(80)` | NOT NULL | 授課講師名稱（自由文字，來自 lecturers.name + title） |
+| `lecturer_name` | `VARCHAR(50)` | NOT NULL | 授課講師名稱（自由文字，來自 lecturers.name + title） |
 | `listened_at` | `TIMESTAMPTZ` | NOT NULL | 學員填報的聽課時間 |
-| `notes` | `TEXT` | NULL | 學員心得（可為空） |
+| `notes` | `VARCHAR(2000)` | NULL | 學員心得（可為空） |
 | `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 系統建立時間（不可修改） |
 | `updated_at` | `TIMESTAMPTZ` | NULL | 最後修改時間（NULL 表示從未修改） |
 
@@ -273,7 +273,7 @@
 | `birthday` | `DATE` | NULL | 生日 |
 | `church_name` | `VARCHAR(100)` | NULL | 聚會教會（學員填報，可與 users.church_id 不同） |
 | `school_grade` | `VARCHAR(50)` | NULL | 學校年級（如「師大附中 高一」） |
-| `custom_challenge` | `TEXT` | NULL | 自訂進階挑戰文字 |
+| `custom_challenge` | `VARCHAR(200)` | NULL | 自訂進階挑戰文字 |
 | `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
 | `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 最後更新時間 |
 
@@ -327,8 +327,8 @@
 | `id` | `UUID` | PK, NOT NULL | 唯一識別碼 |
 | `shining_project_id` | `UUID` | FK → shining_projects.id, NOT NULL | 所屬閃耀計畫 |
 | `type` | `ENUM` | NOT NULL | `character`（品格力）/ `coming_of_age`（成年禮必修） |
-| `theme_name` | `VARCHAR(100)` | NOT NULL | 主題名稱（來自 themes 表，但儲存文字以保留歷史） |
-| `speaker_name` | `VARCHAR(80)` | NULL | 授課講師名稱（自由文字） |
+| `theme_name` | `VARCHAR(50)` | NOT NULL | 主題名稱（來自 themes 表，但儲存文字以保留歷史） |
+| `speaker_name` | `VARCHAR(50)` | NULL | 授課講師名稱（自由文字） |
 | `lecture_date` | `DATE` | NULL | 上課日期 |
 | `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
 | `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 最後更新時間 |
@@ -347,7 +347,7 @@
 | `id` | `UUID` | PK, NOT NULL | 唯一識別碼 |
 | `church_id` | `UUID` | FK → churches.id, NOT NULL | 所屬教會 |
 | `type` | `ENUM` | NOT NULL | `character`（品格力）/ `coming_of_age`（成年禮） |
-| `name` | `VARCHAR(100)` | NOT NULL | 主題名稱（如「品格力 - 自律」） |
+| `name` | `VARCHAR(50)` | NOT NULL | 主題名稱（如「品格力 - 自律」） |
 | `sort_order` | `INTEGER` | NOT NULL, DEFAULT 0 | 顯示排序 |
 | `is_active` | `BOOLEAN` | NOT NULL, DEFAULT TRUE | 是否啟用 |
 | `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
@@ -440,18 +440,18 @@
 | `course_id` | `VARCHAR(20)` | FK → courses.id, NULL | 對應課程（與 courses.id 同型別） |
 | `course_title` | `VARCHAR(200)` | NOT NULL | 課程名稱（冗餘儲存，保留歷史） |
 | `lecturer_id` | `UUID` | FK → lecturers.id, NULL | 對應講師（連結帳號的講師可在「我的授課」看到此預約，見 5.11） |
-| `lecturer_name` | `VARCHAR(100)` | NOT NULL | 講師姓名（冗餘儲存） |
-| `lecturer_title` | `VARCHAR(50)` | NOT NULL, DEFAULT '' | 講師稱謂代碼（如 `pastor`，同 `lecturers.title`） |
+| `lecturer_name` | `VARCHAR(50)` | NOT NULL | 講師姓名（冗餘儲存） |
+| `lecturer_title` | `VARCHAR(30)` | NOT NULL, DEFAULT '' | 講師稱謂代碼（如 `pastor`，同 `lecturers.title`） |
 | `proposed_at` | `TIMESTAMPTZ` | NOT NULL | 教師提議的時間 |
 | `confirmed_at` | `TIMESTAMPTZ` | NULL | 最終確認的時間（雙方同意後填入） |
 | `duration_minutes` | `SMALLINT` | NULL, CHECK >= 1 | 預計課程時長（分鐘） |
 | `status` | `VARCHAR(20)` | NOT NULL, DEFAULT 'pending' | `pending / confirmed / completed / cancelled` |
-| `cancel_reason` | `TEXT` | NULL | 取消原因（status = cancelled 時填入） |
-| `teacher_session_notes` | `TEXT` | NULL | 教師整場備注（完成後填寫） |
+| `cancel_reason` | `VARCHAR(500)` | NULL | 取消原因（status = cancelled 時填入） |
+| `teacher_session_notes` | `VARCHAR(2000)` | NULL | 教師整場備注（完成後填寫） |
 | `is_group_session` | `BOOLEAN` | NOT NULL, DEFAULT FALSE | 是否為團體聽課 |
-| `prep_scriptures` | `TEXT[]` | NOT NULL, DEFAULT '{}' | 預習經文列表（PostgreSQL 陣列） |
-| `prep_reading_notes` | `TEXT` | NULL | 預習說明 |
-| `prep_materials` | `TEXT` | NULL | 補充材料說明 |
+| `prep_scriptures` | `VARCHAR(100)[]` | NOT NULL, DEFAULT '{}' | 預習經文列表（PostgreSQL 陣列，每段最多 100 字） |
+| `prep_reading_notes` | `VARCHAR(2000)` | NULL | 預習說明 |
+| `prep_materials` | `VARCHAR(500)` | NULL | 補充材料說明 |
 | `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
 | `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 最後更新時間 |
 
@@ -484,8 +484,8 @@ pending ──confirm──> confirmed ──complete──> completed
 | `session_id` | `UUID` | PK, FK → booking_sessions.id, NOT NULL | 所屬預約場次 |
 | `student_id` | `UUID` | PK, FK → users.id, NOT NULL, ON DELETE RESTRICT | 受邀學員；帳號軟刪除，出席紀錄保留 |
 | `attendance_status` | `VARCHAR(20)` | NOT NULL, DEFAULT 'invited' | `invited / attended / absent` |
-| `student_feedback` | `TEXT` | NULL | 學員課後心得（由學員自行填寫） |
-| `teacher_feedback` | `TEXT` | NULL | 教師對該學員的個別回饋 |
+| `student_feedback` | `VARCHAR(1000)` | NULL | 學員課後心得（由學員自行填寫） |
+| `teacher_feedback` | `VARCHAR(1000)` | NULL | 教師對該學員的個別回饋 |
 | `feedback_at` | `TIMESTAMPTZ` | NULL | 回饋最後更新時間 |
 | `linked_listen_session_id` | `UUID` | FK → listen_sessions.id, NULL | 手動連結至聽課進度紀錄 |
 | `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
@@ -607,7 +607,7 @@ ALTER TABLE student_assignments DROP COLUMN parent_id;
 | `student_id` | `UUID` | FK → users.id, NOT NULL, ON DELETE RESTRICT | 學員 |
 | `course_id` | `VARCHAR(20)` | FK → courses.id, NOT NULL | 課程 |
 | `author_id` | `UUID` | FK → users.id, NOT NULL, ON DELETE RESTRICT | 回覆者（教師、牧者或管理員） |
-| `message` | `TEXT` | NOT NULL，不可為空白 | 回覆內容 |
+| `message` | `VARCHAR(1000)` | NOT NULL，不可為空白 | 回覆內容 |
 | `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 回覆時間 |
 
 **設計說明**：
@@ -1031,6 +1031,19 @@ SELECT to_char(proposed_at AT TIME ZONE 'Asia/Taipei', 'YYYY-MM-DD"T"HH24:MI') A
   前端只是讓畫面即時反映，期限必須由後端執行
 - API 端的規則見 `backend_api_spec.md`「記住我與閒置登出」「帳號變更時結束既有的登入」
 
+### 5.16 文字欄位長度
+
+使用者輸入的文字欄位一律有上限，且**資料庫欄位大小 = API 上限 = 前端 `maxlength`**（前端 `src/utils/limits.ts`，
+API 規格〈欄位長度上限〉）。這樣前端收下的內容，後端與資料庫一定存得進去；反過來，太長的內容在輸入時就被擋住，
+不會到儲存時才失敗。
+
+- 長文字（心得、備註、預習說明）也用 `VARCHAR(n)` 而不是不限長度的 `TEXT`，讓資料庫同樣守住上限
+- PostgreSQL 的 `VARCHAR(n)` 以**字元**計算，中文與英文都算 1 個，與前端的計算一致
+- 同一個資料存在多張表時大小相同：講師名稱在 `lecturers.name`、`listen_sessions.lecturer_name`、
+  `booking_sessions.lecturer_name`、`shining_lectures.speaker_name` 都是 50；講師稱謂代碼都是 `VARCHAR(30)`
+- 從 Google / LINE 帶入的暱稱可能超過 20 字，寫入 `users.display_name` 前截斷
+- 調整上限時，前端 `limits.ts`、API 規格與這裡的欄位一起改
+
 ---
 
 ## 6. SQL 建表語句（PostgreSQL）
@@ -1066,8 +1079,8 @@ CREATE TABLE users (
   password_hash VARCHAR(255),                 -- NULL = 只用社群登入
   role          user_role    NOT NULL,
   church_id     UUID         REFERENCES churches(id) ON DELETE SET NULL,
-  display_name  VARCHAR(100),
-  real_name     VARCHAR(100),
+  display_name  VARCHAR(20),
+  real_name     VARCHAR(50),
   gender        user_gender,                 -- 只用於 student / teacher；NULL = 未設定
   email                VARCHAR(255),           -- 選填，小寫儲存
   email_verified       BOOLEAN NOT NULL DEFAULT FALSE,
@@ -1108,7 +1121,7 @@ CREATE TABLE courses (
 -- ═══════════════════════════════════════════════════
 CREATE TABLE lecturers (
   id              UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
-  name            VARCHAR(100) NOT NULL,
+  name            VARCHAR(50)  NOT NULL,
   title           VARCHAR(30)  NOT NULL,
   church_id       UUID         REFERENCES churches(id) ON DELETE SET NULL,
   linked_user_id  UUID         REFERENCES users(id) ON DELETE SET NULL,  -- NULL = 外來/自訂講師
@@ -1136,9 +1149,9 @@ CREATE TABLE listen_sessions (
   id            UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
   student_id    UUID        NOT NULL REFERENCES users(id) ON DELETE RESTRICT, -- 聽課紀錄保留為歷史
   course_id     VARCHAR(20) NOT NULL REFERENCES courses(id),
-  lecturer_name VARCHAR(80) NOT NULL,
+  lecturer_name VARCHAR(50) NOT NULL,
   listened_at   TIMESTAMPTZ NOT NULL,
-  notes         TEXT,
+  notes         VARCHAR(2000),
   created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at    TIMESTAMPTZ
 );
@@ -1181,7 +1194,7 @@ CREATE TABLE shining_projects (
   birthday         DATE,
   church_name      VARCHAR(100),
   school_grade     VARCHAR(50),
-  custom_challenge TEXT,
+  custom_challenge VARCHAR(200),
   created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -1212,8 +1225,8 @@ CREATE TABLE shining_lectures (
   id                  UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
   shining_project_id  UUID         NOT NULL REFERENCES shining_projects(id) ON DELETE CASCADE,
   type                lecture_type NOT NULL,
-  theme_name          VARCHAR(100) NOT NULL,
-  speaker_name        VARCHAR(80),
+  theme_name          VARCHAR(50)  NOT NULL,
+  speaker_name        VARCHAR(50),
   lecture_date        DATE,
   created_at          TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
   updated_at          TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
@@ -1231,7 +1244,7 @@ CREATE TABLE themes (
   id         UUID       PRIMARY KEY DEFAULT gen_random_uuid(),
   church_id  UUID       NOT NULL REFERENCES churches(id) ON DELETE CASCADE,
   type       theme_type NOT NULL,
-  name       VARCHAR(100) NOT NULL,
+  name       VARCHAR(50)  NOT NULL,
   sort_order INTEGER      NOT NULL DEFAULT 0,
   is_active  BOOLEAN      NOT NULL DEFAULT TRUE,
   created_at TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
@@ -1302,19 +1315,19 @@ CREATE TABLE booking_sessions (
   course_id             VARCHAR(20)  REFERENCES courses(id) ON DELETE SET NULL,
   course_title          VARCHAR(200) NOT NULL,
   lecturer_id           UUID         REFERENCES lecturers(id) ON DELETE SET NULL,
-  lecturer_name         VARCHAR(100) NOT NULL,
-  lecturer_title        VARCHAR(50)  NOT NULL DEFAULT '',
+  lecturer_name         VARCHAR(50)  NOT NULL,
+  lecturer_title        VARCHAR(30)  NOT NULL DEFAULT '',
   proposed_at           TIMESTAMPTZ  NOT NULL,
   confirmed_at          TIMESTAMPTZ,
   duration_minutes      SMALLINT     CHECK (duration_minutes >= 1),
   status                VARCHAR(20)  NOT NULL DEFAULT 'pending'
                           CHECK (status IN ('pending','confirmed','completed','cancelled')),
-  cancel_reason         TEXT,
-  teacher_session_notes TEXT,
+  cancel_reason         VARCHAR(500),
+  teacher_session_notes VARCHAR(2000),
   is_group_session      BOOLEAN      NOT NULL DEFAULT FALSE,
-  prep_scriptures       TEXT[]       NOT NULL DEFAULT '{}',
-  prep_reading_notes    TEXT,
-  prep_materials        TEXT,
+  prep_scriptures       VARCHAR(100)[] NOT NULL DEFAULT '{}',
+  prep_reading_notes    VARCHAR(2000),
+  prep_materials        VARCHAR(500),
   created_at            TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
   updated_at            TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
@@ -1333,8 +1346,8 @@ CREATE TABLE booking_attendees (
   student_id               UUID         NOT NULL REFERENCES users(id) ON DELETE RESTRICT, -- 出席紀錄保留為歷史
   attendance_status        VARCHAR(20)  NOT NULL DEFAULT 'invited'
                              CHECK (attendance_status IN ('invited','attended','absent')),
-  student_feedback         TEXT,
-  teacher_feedback         TEXT,
+  student_feedback         VARCHAR(1000),
+  teacher_feedback         VARCHAR(1000),
   feedback_at              TIMESTAMPTZ,
   linked_listen_session_id UUID         REFERENCES listen_sessions(id) ON DELETE SET NULL,
   created_at               TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
@@ -1400,7 +1413,7 @@ CREATE TABLE course_feedback (
   student_id UUID        NOT NULL REFERENCES users(id) ON DELETE RESTRICT,   -- 保留為歷史
   course_id  VARCHAR(20) NOT NULL REFERENCES courses(id),
   author_id  UUID        NOT NULL REFERENCES users(id) ON DELETE RESTRICT,   -- 教師、牧者或管理員
-  message    TEXT        NOT NULL CHECK (length(btrim(message)) > 0),
+  message    VARCHAR(1000) NOT NULL CHECK (length(btrim(message)) > 0),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -1602,7 +1615,7 @@ erDiagram
     VARCHAR     course_id     FK "-> courses.id"
     VARCHAR     lecturer_name    "自由文字（不用FK）"
     TIMESTAMPTZ listened_at      "NOT NULL"
-    TEXT        notes
+    VARCHAR        notes
     TIMESTAMPTZ created_at
     TIMESTAMPTZ updated_at
   }
@@ -1630,7 +1643,7 @@ erDiagram
     UUID        student_id FK "-> users.id RESTRICT"
     VARCHAR     course_id  FK "-> courses.id"
     UUID        author_id  FK "-> users.id RESTRICT"
-    TEXT        message       "NOT NULL"
+    VARCHAR        message       "NOT NULL"
     TIMESTAMPTZ created_at
   }
 
@@ -1651,7 +1664,7 @@ erDiagram
     DATE        birthday
     VARCHAR     church_name
     VARCHAR     school_grade
-    TEXT        custom_challenge
+    VARCHAR        custom_challenge
     TIMESTAMPTZ created_at
     TIMESTAMPTZ updated_at
   }
@@ -1756,12 +1769,12 @@ erDiagram
     TIMESTAMPTZ confirmed_at
     SMALLINT    duration_minutes
     VARCHAR     status                     "pending/confirmed/completed/cancelled"
-    TEXT        cancel_reason
-    TEXT        teacher_session_notes
+    VARCHAR        cancel_reason
+    VARCHAR        teacher_session_notes
     BOOLEAN     is_group_session            "DEFAULT FALSE"
-    TEXT_ARR    prep_scriptures
-    TEXT        prep_reading_notes
-    TEXT        prep_materials
+    VARCHAR_ARR prep_scriptures
+    VARCHAR     prep_reading_notes
+    VARCHAR     prep_materials
     TIMESTAMPTZ created_at
     TIMESTAMPTZ updated_at
   }
@@ -1770,8 +1783,8 @@ erDiagram
     UUID        session_id               PK,FK "-> booking_sessions.id CASCADE"
     UUID        student_id               PK,FK "-> users.id RESTRICT"
     VARCHAR     attendance_status           "invited/attended/absent"
-    TEXT        student_feedback
-    TEXT        teacher_feedback
+    VARCHAR     student_feedback
+    VARCHAR     teacher_feedback
     TIMESTAMPTZ feedback_at
     UUID        linked_listen_session_id FK  "-> listen_sessions.id SET NULL"
     TIMESTAMPTZ created_at
@@ -1920,11 +1933,22 @@ JSON 檔（前端 `src/utils/backup.ts`），上線時用它把既有資料搬�
 - **頭像**：不是 `https://` 的頭像網址存 NULL（2.1 的 CHECK 會拒絕），顯示時改用預設頭像
 - **順序**：依外鍵先後搬（`churches` → `users` → `courses`、`lecturers` → 其餘），整個搬移放在同一個交易，
   失敗就全部不算；搬完後比對各項筆數與備份檔一致
+- **超過長度上限的文字**：前端加上長度上限（2026-11-18）之前存下的資料可能比 [5.16](#516-文字欄位長度) 的上限長，
+  直接寫入會被資料庫拒絕。匯入前先列出這些資料，請管理員在前端縮短後重新匯出；真的需要時才截斷，並記下截斷了哪些
 - 備份檔含所有帳號的密碼與學員心得，搬完後請妥善刪除
 
 ---
 
 ## 版本紀錄
+
+### v1.9.0（2026-11-18）文字欄位長度
+
+- 新增 [5.16](#516-文字欄位長度)：資料庫欄位大小與 API、前端的長度上限一致
+- 講師名稱統一為 `VARCHAR(50)`（原本 `lecturers.name` 100、`listen_sessions.lecturer_name` 80、`booking_sessions.lecturer_name` 100、
+  `shining_lectures.speaker_name` 80）；`booking_sessions.lecturer_title` 改為 `VARCHAR(30)`，與 `lecturers.title` 相同
+- `users.display_name` 改為 `VARCHAR(20)`、`users.real_name` 改為 `VARCHAR(50)`；`themes.name`、`shining_lectures.theme_name` 改為 `VARCHAR(50)`
+- 心得、回覆、預約備註、預習說明、取消原因、自訂挑戰由 `TEXT` 改為有上限的 `VARCHAR(n)`；預習經文改為 `VARCHAR(100)[]`
+- 第 9 節補上超過長度上限的既有資料如何處理
 
 ### v1.8.1（2026-11-14）整理文件
 

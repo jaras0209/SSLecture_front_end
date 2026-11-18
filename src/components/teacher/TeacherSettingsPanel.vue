@@ -45,6 +45,7 @@
         <div class="add-theme-row mt-2 flex gap-2">
           <input
             v-model="newCharacterTheme"
+            :maxlength="MAX_LENGTH.themeName"
             type="text"
             class="form-input text-xs"
             :placeholder="$t('teacher.settings.characterPlaceholder')"
@@ -84,6 +85,7 @@
         <div class="add-theme-row mt-2 flex gap-2">
           <input
             v-model="newComingOfAgeTheme"
+            :maxlength="MAX_LENGTH.themeName"
             type="text"
             class="form-input text-xs"
             :placeholder="$t('teacher.settings.comingOfAgePlaceholder')"
@@ -168,6 +170,7 @@
 </template>
 
 <script setup lang="ts">
+import { MAX_LENGTH } from '@/utils/limits'
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { CHURCHES } from '@/stores/auth'

@@ -180,6 +180,7 @@
                 <div v-if="authStore.currentUser?.role !== 'parent'" class="inputs-row">
                   <input
                     v-model="lectureForms[theme].speaker"
+                    :maxlength="MAX_LENGTH.lecturerName"
                     type="text"
                     class="form-input text-xs pt-1 pb-1"
                     :aria-label="$t('a11y.lecturerFor', { theme })"
@@ -230,6 +231,7 @@
                 <div v-if="authStore.currentUser?.role !== 'parent'" class="inputs-row">
                   <input
                     v-model="lectureForms[theme].speaker"
+                    :maxlength="MAX_LENGTH.lecturerName"
                     type="text"
                     class="form-input text-xs pt-1 pb-1"
                     :aria-label="$t('a11y.lecturerFor', { theme })"
@@ -293,6 +295,7 @@
 </template>
 
 <script setup lang="ts">
+import { MAX_LENGTH } from '@/utils/limits'
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useToast } from '@/composables/useToast'

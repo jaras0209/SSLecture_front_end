@@ -78,6 +78,7 @@
           <input
             id="input-lecturer-name"
             v-model="lecturerForm.name"
+            :maxlength="MAX_LENGTH.lecturerName"
             type="text"
             class="form-input"
             :placeholder="$t('teacher.lecturer.namePlaceholder')"
@@ -139,6 +140,7 @@
 </template>
 
 <script setup lang="ts">
+import { MAX_LENGTH } from '@/utils/limits'
 import { vDialog } from '@/directives/dialog'
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'

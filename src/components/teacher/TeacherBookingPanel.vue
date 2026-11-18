@@ -240,11 +240,18 @@
             <textarea
               id="booking-cancel-reason"
               v-model="cancelReasonText"
+              :maxlength="MAX_LENGTH.cancelReason"
               class="form-input"
               rows="3"
               :placeholder="$t('teacher.booking.cancelReasonPlaceholder')"
               style="resize: vertical"
+              aria-describedby="booking-cancel-reason-count"
             ></textarea>
+            <CharCount
+              id="booking-cancel-reason-count"
+              :length="(cancelReasonText ?? '').length"
+              :max="MAX_LENGTH.cancelReason"
+            />
           </div>
           <div class="modal-footer mt-4">
             <button class="btn btn-outline" @click="showCancelModal = false">
@@ -261,6 +268,8 @@
 </template>
 
 <script setup lang="ts">
+import { MAX_LENGTH } from '@/utils/limits'
+import CharCount from '@/components/shared/CharCount.vue'
 import { vDialog } from '@/directives/dialog'
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'

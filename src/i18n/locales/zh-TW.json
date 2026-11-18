@@ -16,7 +16,8 @@
     "showPwd": "顯示密碼",
     "hidePwd": "隱藏密碼",
     "understood": "我瞭解了",
-    "editProfileHint": "點擊編輯個人資料"
+    "editProfileHint": "點擊編輯個人資料",
+    "charCount": "已輸入 {n}／{max} 字"
   },
   "nav": {
     "studentLink": "學習與檢視",
@@ -828,7 +829,6 @@
     "avatarUrlInvalid": "頭像網址需以 https:// 開頭",
     "nickname": "暱稱",
     "nicknamePlaceholder": "留空則顯示帳號名稱",
-    "charCount": "{n}/20 字元",
     "realName": "真實姓名",
     "adminVisible": "管理端可見",
     "realNamePlaceholder": "輸入你的真實姓名（教師、牧者管理時顯示）",

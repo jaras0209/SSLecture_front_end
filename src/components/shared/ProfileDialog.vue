@@ -50,6 +50,7 @@
               <div class="pd-custom-url-row">
                 <input
                   v-model="customAvatarUrl"
+                  :maxlength="MAX_LENGTH.avatarUrl"
                   type="url"
                   class="form-input form-input-sm"
                   :aria-label="$t('profile.avatarUrl')"
@@ -71,14 +72,17 @@
             <input
               id="pd-nickname"
               v-model="draftDisplayName"
+              :maxlength="MAX_LENGTH.displayName"
               type="text"
-              maxlength="20"
               class="form-input"
               :placeholder="$t('profile.nicknamePlaceholder')"
+              aria-describedby="pd-nickname-count"
             />
-            <p class="pd-char-hint">
-              {{ $t('profile.charCount', { n: draftDisplayName.length }) }}
-            </p>
+            <CharCount
+              id="pd-nickname-count"
+              :length="draftDisplayName.length"
+              :max="MAX_LENGTH.displayName"
+            />
           </div>
 
           <!-- ── Real Name ── -->
@@ -90,8 +94,8 @@
             <input
               id="pd-realname"
               v-model="draftRealName"
+              :maxlength="MAX_LENGTH.realName"
               type="text"
-              maxlength="20"
               class="form-input"
               :placeholder="$t('profile.realNamePlaceholder')"
             />
@@ -104,6 +108,7 @@
             <input
               id="pd-email"
               v-model="draftEmail"
+              :maxlength="MAX_LENGTH.email"
               type="email"
               class="form-input"
               autocomplete="email"
@@ -180,6 +185,8 @@
 </template>
 
 <script setup lang="ts">
+import { MAX_LENGTH } from '@/utils/limits'
+import CharCount from '@/components/shared/CharCount.vue'
 import { vDialog } from '@/directives/dialog'
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -462,12 +469,6 @@ function close() {
 }
 
 /* ── Char hint ── */
-.pd-char-hint {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  margin-top: 0.25rem;
-  text-align: right;
-}
 
 /* Real name management badge */
 .pd-field-badge {

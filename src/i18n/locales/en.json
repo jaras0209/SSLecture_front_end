@@ -16,7 +16,8 @@
     "showPwd": "Show Password",
     "hidePwd": "Hide Password",
     "understood": "Got it",
-    "editProfileHint": "Click to edit profile"
+    "editProfileHint": "Click to edit profile",
+    "charCount": "{n} / {max} characters"
   },
   "nav": {
     "studentLink": "Learning & Review",
@@ -828,7 +829,6 @@
     "avatarUrlInvalid": "The avatar address must start with https://",
     "nickname": "Display Name",
     "nicknamePlaceholder": "Leave blank to use your username",
-    "charCount": "{n}/20 characters",
     "realName": "Real Name",
     "adminVisible": "Admin visible",
     "realNamePlaceholder": "Enter your real name (shown to teachers and admins)",

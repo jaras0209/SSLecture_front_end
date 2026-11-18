@@ -9,6 +9,7 @@
         <input
           id="new-username"
           v-model="newUser.username"
+          :maxlength="MAX_LENGTH.username"
           type="text"
           autocomplete="off"
           class="form-input"
@@ -24,6 +25,7 @@
         <input
           id="new-email"
           v-model="newUser.email"
+          :maxlength="MAX_LENGTH.email"
           type="email"
           autocomplete="off"
           class="form-input"
@@ -35,6 +37,7 @@
         <input
           id="new-password"
           v-model="newUser.password"
+          :maxlength="MAX_LENGTH.newPassword"
           type="password"
           autocomplete="new-password"
           class="form-input"
@@ -76,6 +79,7 @@
 </template>
 
 <script setup lang="ts">
+import { MAX_LENGTH } from '@/utils/limits'
 import { ref, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore, CHURCHES } from '@/stores/auth'

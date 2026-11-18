@@ -5,6 +5,7 @@
       <input
         id="login-username"
         v-model="username"
+        :maxlength="MAX_LENGTH.identifier"
         type="text"
         class="form-input"
         :placeholder="$t('auth.login.usernamePlaceholder')"
@@ -18,6 +19,7 @@
         <input
           id="login-password"
           v-model="password"
+          :maxlength="MAX_LENGTH.password"
           :type="showLoginPwd ? 'text' : 'password'"
           autocomplete="current-password"
           class="form-input"
@@ -81,6 +83,7 @@
 </template>
 
 <script setup lang="ts">
+import { MAX_LENGTH } from '@/utils/limits'
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'

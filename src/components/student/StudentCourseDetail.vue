@@ -116,10 +116,17 @@
                       <textarea
                         id="edit-session-notes"
                         v-model="editSessionDraft.notes"
+                        :maxlength="MAX_LENGTH.sessionNotes"
                         class="form-input form-input-sm text-area"
                         rows="3"
                         :placeholder="$t('student.course.notesPlaceholder')"
+                        aria-describedby="edit-session-notes-count"
                       ></textarea>
+                      <CharCount
+                        id="edit-session-notes-count"
+                        :length="(editSessionDraft.notes ?? '').length"
+                        :max="MAX_LENGTH.sessionNotes"
+                      />
                     </div>
                     <div class="edit-session-actions">
                       <button class="btn btn-primary btn-xs" @click="saveEditSession(session.id)">
@@ -198,10 +205,17 @@
                 <textarea
                   id="review-notes-input"
                   v-model="notesText"
+                  :maxlength="MAX_LENGTH.sessionNotes"
                   class="form-input text-area"
                   :placeholder="$t('student.course.notesPlaceholder')"
                   rows="4"
+                  aria-describedby="review-notes-input-count"
                 ></textarea>
+                <CharCount
+                  id="review-notes-input-count"
+                  :length="(notesText ?? '').length"
+                  :max="MAX_LENGTH.sessionNotes"
+                />
               </div>
 
               <div class="save-row mt-3">
@@ -245,10 +259,17 @@
           <textarea
             id="notes-input"
             v-model="notesText"
+            :maxlength="MAX_LENGTH.sessionNotes"
             class="form-input text-area"
             :placeholder="$t('student.course.notesPlaceholder')"
             rows="5"
+            aria-describedby="notes-input-count"
           ></textarea>
+          <CharCount
+            id="notes-input-count"
+            :length="(notesText ?? '').length"
+            :max="MAX_LENGTH.sessionNotes"
+          />
 
           <div class="save-row mt-4">
             <button class="btn btn-secondary btn-sm" @click="saveNoteAndProgress">
@@ -268,6 +289,8 @@
 </template>
 
 <script setup lang="ts">
+import { MAX_LENGTH } from '@/utils/limits'
+import CharCount from '@/components/shared/CharCount.vue'
 import { ref, computed, reactive, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useI18nHelper } from '@/composables/useI18nHelper'

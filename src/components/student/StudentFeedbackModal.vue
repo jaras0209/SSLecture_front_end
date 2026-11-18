@@ -23,10 +23,17 @@
             <textarea
               id="student-feedback-textarea"
               v-model="localFeedback"
+              :maxlength="MAX_LENGTH.attendeeFeedback"
               class="form-input"
               rows="5"
               :placeholder="$t('student.course.feedbackPlaceholder')"
+              aria-describedby="student-feedback-count"
             ></textarea>
+            <CharCount
+              id="student-feedback-count"
+              :length="(localFeedback ?? '').length"
+              :max="MAX_LENGTH.attendeeFeedback"
+            />
           </div>
           <div class="modal-footer mt-4">
             <button class="btn btn-outline" @click="close">{{ $t('common.cancel') }}</button>
@@ -41,6 +48,8 @@
 </template>
 
 <script setup lang="ts">
+import { MAX_LENGTH } from '@/utils/limits'
+import CharCount from '@/components/shared/CharCount.vue'
 import { vDialog } from '@/directives/dialog'
 import { ref, watch } from 'vue'
 import type { BookingSession } from '@/stores/bookings'

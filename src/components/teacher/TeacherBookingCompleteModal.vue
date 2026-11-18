@@ -23,10 +23,17 @@
           <textarea
             id="complete-session-notes"
             v-model="completeForm.teacherNotes"
+            :maxlength="MAX_LENGTH.sessionSummary"
             class="form-input"
             rows="2"
             :placeholder="$t('teacher.booking.sessionNotesPlaceholder')"
+            aria-describedby="complete-session-notes-count"
           ></textarea>
+          <CharCount
+            id="complete-session-notes-count"
+            :length="(completeForm.teacherNotes ?? '').length"
+            :max="MAX_LENGTH.sessionSummary"
+          />
         </div>
         <div
           class="complete-attendees mt-4"
@@ -77,6 +84,7 @@
             <div class="mt-2">
               <textarea
                 v-model="completeForm.attendeeData[att.studentUsername].teacherFeedback"
+                :maxlength="MAX_LENGTH.attendeeFeedback"
                 class="form-input form-input-sm"
                 rows="2"
                 :aria-label="
@@ -89,9 +97,18 @@
                     name: authStore.displayNameOf(att.studentUsername)
                   })
                 "
+                :aria-describedby="`teacher-fb-count-${att.studentUsername}`"
               ></textarea>
+              <CharCount
+                :id="`teacher-fb-count-${att.studentUsername}`"
+                :length="
+                  (completeForm.attendeeData[att.studentUsername].teacherFeedback ?? '').length
+                "
+                :max="MAX_LENGTH.attendeeFeedback"
+              />
               <textarea
                 v-model="completeForm.attendeeData[att.studentUsername].studentFeedback"
+                :maxlength="MAX_LENGTH.attendeeFeedback"
                 class="form-input form-input-sm mt-1"
                 rows="2"
                 :aria-label="
@@ -104,7 +121,15 @@
                     name: authStore.displayNameOf(att.studentUsername)
                   })
                 "
+                :aria-describedby="`student-fb-count-${att.studentUsername}`"
               ></textarea>
+              <CharCount
+                :id="`student-fb-count-${att.studentUsername}`"
+                :length="
+                  (completeForm.attendeeData[att.studentUsername].studentFeedback ?? '').length
+                "
+                :max="MAX_LENGTH.attendeeFeedback"
+              />
             </div>
           </div>
         </div>
@@ -122,6 +147,8 @@
 </template>
 
 <script setup lang="ts">
+import { MAX_LENGTH } from '@/utils/limits'
+import CharCount from '@/components/shared/CharCount.vue'
 /**
  * 完成預約：記錄出席與每位學員的回饋。只列出教師看得到的學員，
  * 其他學員的出席狀態維持不變。

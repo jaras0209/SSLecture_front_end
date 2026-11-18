@@ -19,6 +19,7 @@
         <input
           :id="`${idPrefix}-${field.key}`"
           v-model="form[field.key]"
+          :maxlength="field.key === 'old' ? MAX_LENGTH.password : MAX_LENGTH.newPassword"
           :type="shown[field.key] ? 'text' : 'password'"
           :class="['form-input', { 'form-input-sm': compact }]"
           :autocomplete="field.key === 'old' ? 'current-password' : 'new-password'"
@@ -82,6 +83,7 @@
 </template>
 
 <script setup lang="ts">
+import { MAX_LENGTH } from '@/utils/limits'
 /**
  * 修改密碼表單：導覽列的對話框、個人資料視窗、強制改密碼頁共用，
  * 三處的檢查規則與欄位標示因此一致。按鈕由使用處放進預設插槽。

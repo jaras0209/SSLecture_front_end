@@ -49,6 +49,7 @@
           <input
             id="ob-username"
             v-model="customUsername"
+            :maxlength="MAX_LENGTH.username"
             type="text"
             class="form-input"
             :placeholder="authStore.currentUser?.displayName || displayName"
@@ -66,6 +67,7 @@
             <input
               id="ob-invite-code"
               v-model="inviteCodeInput"
+              :maxlength="MAX_LENGTH.inviteCode"
               type="text"
               class="form-input"
               :placeholder="$t('common.inviteCodePlaceholder')"
@@ -113,6 +115,7 @@
 </template>
 
 <script setup lang="ts">
+import { MAX_LENGTH } from '@/utils/limits'
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'

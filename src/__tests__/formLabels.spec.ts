@@ -94,3 +94,30 @@ describe('password fields tell the browser what they are for', () => {
     expect(unmarked).toEqual([])
   })
 })
+
+describe('text fields have a length limit', () => {
+  // The limits live in src/utils/limits.ts and match the API and the database, so whatever a
+  // form accepts can be saved once the backend is in place
+  it('every text field and text area has a maxlength', () => {
+    const unlimited: string[] = []
+    let found = 0
+    for (const { file, template } of templates) {
+      for (const m of template.matchAll(tag('input|textarea'))) {
+        const attrs = m[2]!
+        const type = /(^|\s)type="([^"]+)"/.exec(attrs)?.[2]
+        if (
+          type &&
+          /^(checkbox|radio|hidden|number|date|datetime-local|time|file|range|submit|button)$/.test(
+            type
+          )
+        )
+          continue
+        found++
+        if (!/(^|\s):?maxlength=/.test(attrs))
+          unlimited.push(`${file}:${lineOf(template, m.index)} <${m[1]}>`)
+      }
+    }
+    expect(found).toBeGreaterThanOrEqual(38)
+    expect(unlimited).toEqual([])
+  })
+})

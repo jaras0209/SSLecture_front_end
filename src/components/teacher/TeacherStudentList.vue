@@ -35,6 +35,7 @@
       <input
         v-if="authStore.currentUser?.role !== 'parent'"
         v-model="searchQuery"
+        :maxlength="MAX_LENGTH.search"
         type="text"
         class="form-input search-input"
         :aria-label="$t('a11y.searchStudents')"
@@ -142,6 +143,7 @@
 </template>
 
 <script setup lang="ts">
+import { MAX_LENGTH } from '@/utils/limits'
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'

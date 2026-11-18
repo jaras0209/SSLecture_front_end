@@ -86,6 +86,7 @@
             <div v-for="(_, i) in form.prep.scriptures" :key="i" class="flex gap-2 mb-1">
               <input
                 v-model="form.prep.scriptures[i]"
+                :maxlength="MAX_LENGTH.scripture"
                 class="form-input flex-1"
                 :aria-label="$t('teacher.booking.prepScriptureN', { n: i + 1 })"
                 :placeholder="$t('common.scripturePlaceholder')"
@@ -105,14 +106,22 @@
           <textarea
             id="booking-prep-notes"
             v-model="form.prep.readingNotes"
+            :maxlength="MAX_LENGTH.readingNotes"
             class="form-input"
             rows="2"
             :aria-label="$t('teacher.booking.prepNotesLabel')"
             :placeholder="$t('teacher.booking.prepReadingPlaceholder')"
+            aria-describedby="booking-prep-notes-count"
           ></textarea>
+          <CharCount
+            id="booking-prep-notes-count"
+            :length="(form.prep.readingNotes ?? '').length"
+            :max="MAX_LENGTH.readingNotes"
+          />
           <input
             id="booking-prep-materials"
             v-model="form.prep.materials"
+            :maxlength="MAX_LENGTH.materials"
             class="form-input mt-2"
             :aria-label="$t('teacher.booking.prepMaterialsLabel')"
             :placeholder="$t('teacher.booking.prepMaterialsPlaceholder')"
@@ -133,6 +142,8 @@
 </template>
 
 <script setup lang="ts">
+import { MAX_LENGTH } from '@/utils/limits'
+import CharCount from '@/components/shared/CharCount.vue'
 /**
  * 建立預約：選課程、講師、時間、學員與預習內容。只列出教師看得到的學員
  * 與同教會、可教這門課的講師。
