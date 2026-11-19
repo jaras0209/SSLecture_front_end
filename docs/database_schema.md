@@ -1,6 +1,6 @@
 # SSLecture 後端資料庫設計文件
 
-> **文件版本**：v1.12.0  
+> **文件版本**：v1.13.0  
 > **最後更新**：2026-11-19  
 > **資料來源**：分析前端 `src/stores/auth.ts`、`src/stores/courses.ts`、`src/stores/bookings.ts`、localStorage 資料結構  
 > **資料庫**：PostgreSQL 16 以上（第 6 節的 SQL 已實測可建立全部 22 張表）。不支援 MySQL：
@@ -197,6 +197,8 @@
   前端讀取時會換成代碼（`src/utils/lecturerTitle.ts`），認不得的稱謂原樣保留並原樣顯示。
   匯入舊資料時請依同一份對照表轉換（牧師→`pastor`、傳道／傳道人→`preacher`、長老→`elder`、
   師母→`pastor_wife`、輔導→`counselor`、講師→`lecturer`、特約講師→`guest`）
+
+**唯一性**：同一教會不重複列同名、同稱謂的講師（`uq_lecturers_church_name`）；一個帳號只連結一筆講師資料（`uq_lecturers_linked_user`）。都只計啟用中（`is_active`）的講師；`church_id` 為 NULL 的講師不受前者限制。
 
 ---
 
@@ -1155,7 +1157,10 @@ CREATE TABLE lecturers (
 );
 
 CREATE INDEX idx_lecturers_church       ON lecturers(church_id);
-CREATE INDEX idx_lecturers_linked_user  ON lecturers(linked_user_id);
+-- 一個帳號只連結一筆講師資料；同教會不重複列同名同稱謂的講師（停用的不算，見 2.4）
+CREATE UNIQUE INDEX uq_lecturers_linked_user ON lecturers(linked_user_id)
+  WHERE linked_user_id IS NOT NULL AND is_active;
+CREATE UNIQUE INDEX uq_lecturers_church_name ON lecturers(church_id, name, title) WHERE is_active;
 
 -- ═══════════════════════════════════════════════════
 --  5. lecturer_courses（講師授課關聯，多對多）
@@ -1964,6 +1969,8 @@ JSON 檔（前端 `src/utils/backup.ts`），上線時用它把既有資料搬�
 - **頭像**：不是 `https://` 的頭像網址存 NULL（2.1 的 CHECK 會拒絕），顯示時改用預設頭像
 - **順序**：依外鍵先後搬（`churches` → `users` → `courses`、`lecturers` → 其餘），整個搬移放在同一個交易，
   失敗就全部不算；搬完後比對各項筆數與備份檔一致
+- **重複的講師**：前端加上檢查（2026-11-19）之前，同一教會可能有同名同稱謂的講師，或一個帳號連結了兩筆講師資料，
+  會被 `uq_lecturers_*` 唯一索引拒絕。匯入前合併成一筆，並把聽課紀錄、預約指向保留的那一筆
 - **時間不合規則的預約與聽課紀錄**：前端加上檢查（2026-11-18）之前，可能存下提議時間早於建立時間的預約、
   課還沒開始就完成的預約，或未來時間的聽課紀錄，直接寫入會被 [5.17](#517-已發生事件的日期) 的 `CHECK` 拒絕。
   匯入前先列出這些資料請管理員確認；確實是誤植的請在前端修正或刪除後重新匯出
@@ -1974,6 +1981,12 @@ JSON 檔（前端 `src/utils/backup.ts`），上線時用它把既有資料搬�
 ---
 
 ## 版本紀錄
+
+### v1.13.0（2026-11-19）講師不重複
+
+- `lecturers` 新增唯一索引：`uq_lecturers_linked_user`（一個帳號只連結一筆講師資料）、
+  `uq_lecturers_church_name`（同教會不重複列同名同稱謂的講師）；原本的 `idx_lecturers_linked_user` 由前者取代
+- 第 9 節補上重複的講師如何處理
 
 ### v1.12.0（2026-11-19）專題主題改名
 

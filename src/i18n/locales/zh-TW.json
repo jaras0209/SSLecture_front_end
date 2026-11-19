@@ -361,7 +361,8 @@
       "cancelBtn": "取消",
       "saveBtn": "儲存",
       "nameRequired": "請填寫講師姓名！",
-      "savedToast": "講師資料已儲存！"
+      "savedToast": "講師資料已儲存！",
+      "alreadyLinked": "已連結到「{name}」"
     },
     "studentList": {
       "myStudents": "🛡️ 我負責的學員 ({n})",
@@ -839,7 +840,11 @@
       "themeRequired": "請輸入主題名稱。",
       "themeTooLong": "主題名稱最多 {themeMax} 字。",
       "themeExists": "已經有同名的主題。",
-      "themeNotFound": "找不到這個主題，可能已被刪除。"
+      "themeNotFound": "找不到這個主題，可能已被刪除。",
+      "lecturerNameRequired": "請輸入講師名稱。",
+      "lecturerExists": "這間教會已經有「{name}」這位講師（同樣的稱謂）。",
+      "lecturerAccountLinked": "帳號 {username} 已連結到講師「{name}」，一個帳號只能連結一筆講師資料。",
+      "lecturerNotFound": "找不到這位講師，可能已被刪除。"
     }
   },
   "booking": {
@@ -941,7 +946,9 @@
       "TOO_MANY_REQUESTS": "嘗試次數過多，請稍後再試",
       "THEME_EXISTS": "這個教會已經有同名的主題",
       "BOOKING_NOT_STARTED": "課程還沒開始，開始之後才能記錄出席與完成",
-      "BOOKING_NOT_PENDING": "這筆預約已確認或已結束，不能再確認時間"
+      "BOOKING_NOT_PENDING": "這筆預約已確認或已結束，不能再確認時間",
+      "LECTURER_EXISTS": "這間教會已有同名、同稱謂的講師",
+      "LECTURER_ACCOUNT_LINKED": "這個帳號已連結到另一筆講師資料，一個帳號只能連結一筆"
     }
   },
   "a11y": {

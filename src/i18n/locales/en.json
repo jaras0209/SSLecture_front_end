@@ -361,7 +361,8 @@
       "cancelBtn": "Cancel",
       "saveBtn": "Save",
       "nameRequired": "Please enter the lecturer's name.",
-      "savedToast": "Lecturer info saved!"
+      "savedToast": "Lecturer info saved!",
+      "alreadyLinked": "already linked to “{name}”"
     },
     "studentList": {
       "myStudents": "🛡️ My Students ({n})",
@@ -839,7 +840,11 @@
       "themeRequired": "Enter a name for the theme.",
       "themeTooLong": "A theme name can be at most {themeMax} characters.",
       "themeExists": "There is already a theme with this name.",
-      "themeNotFound": "This theme wasn't found; it may have been deleted."
+      "themeNotFound": "This theme wasn't found; it may have been deleted.",
+      "lecturerNameRequired": "Enter the lecturer's name.",
+      "lecturerExists": "This church already lists “{name}” with the same title.",
+      "lecturerAccountLinked": "The account {username} is already linked to the lecturer “{name}”; an account can be linked to one lecturer only.",
+      "lecturerNotFound": "This lecturer wasn't found; they may have been deleted."
     }
   },
   "booking": {
@@ -941,7 +946,9 @@
       "TOO_MANY_REQUESTS": "Too many attempts. Please try again later",
       "THEME_EXISTS": "This church already has a theme with that name",
       "BOOKING_NOT_STARTED": "The lecture hasn't started yet. Attendance and completion can be recorded once it has",
-      "BOOKING_NOT_PENDING": "This booking is already confirmed or over; its time can't be confirmed again"
+      "BOOKING_NOT_PENDING": "This booking is already confirmed or over; its time can't be confirmed again",
+      "LECTURER_EXISTS": "This church already lists a lecturer with this name and title",
+      "LECTURER_ACCOUNT_LINKED": "This account is already linked to another lecturer; an account can be linked to one lecturer only"
     }
   },
   "a11y": {

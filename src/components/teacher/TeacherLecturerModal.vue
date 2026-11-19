@@ -49,8 +49,16 @@
             @change="onLinkedUsernameChange(lecturerForm.linkedUsername)"
           >
             <option value="">{{ $t('teacher.lecturer.selectPlaceholder') }}</option>
-            <option v-for="tc in teachersInChurch" :key="tc.username" :value="tc.username">
+            <option
+              v-for="tc in teachersInChurch"
+              :key="tc.username"
+              :value="tc.username"
+              :disabled="!!tc.linkedElsewhere"
+            >
               {{ tc.displayLabel }} · {{ $t(`roleLabel.${tc.role}`) }}
+              <template v-if="tc.linkedElsewhere">
+                · {{ $t('teacher.lecturer.alreadyLinked', { name: tc.linkedElsewhere }) }}
+              </template>
             </option>
           </select>
           <p v-if="teachersInChurch.length === 0" class="text-xs text-muted mt-1">
@@ -126,6 +134,7 @@
           </div>
         </div>
 
+        <p v-if="saveError" class="alert-box error mt-4" role="alert">{{ saveError }}</p>
         <div class="flex justify-end gap-2 mt-6" style="display: flex; justify-content: flex-end">
           <button class="btn btn-outline btn-sm" @click="close">
             {{ $t('teacher.lecturer.cancelBtn') }}
@@ -168,6 +177,8 @@ const { toast } = useToast()
 const { t } = useI18n()
 const authStore = useAuthStore()
 const coursesStore = useCoursesStore()
+/** Why the lecturer wasn't saved; the form stays as filled in */
+const saveError = ref('')
 
 const lecturerForm = ref({
   name: '',
@@ -182,6 +193,7 @@ watch(
   () => props.modelValue,
   (open) => {
     if (!open) return
+    saveError.value = ''
     const lec = props.lecturer
     lecturerForm.value = lec
       ? {
@@ -214,7 +226,12 @@ const teachersInChurch = computed(() => {
         : u.displayName
           ? `${u.displayName}（${username}）`
           : `@${username}`,
-      name: u.realName || u.displayName || username
+      name: u.realName || u.displayName || username,
+      /** The other lecturer this account already goes with (one account, one lecturer) */
+      linkedElsewhere: (() => {
+        const lec = coursesStore.lecturerLinkedTo(username)
+        return lec && lec.id !== props.lecturer?.id ? lec.name : undefined
+      })()
     }
   })
 })
@@ -237,31 +254,28 @@ function onLinkedUsernameChange(username: string) {
 }
 
 function saveLecturer() {
-  if (!lecturerForm.value.name.trim()) {
-    toast(t('teacher.lecturer.nameRequired'), 'warning')
-    return
-  }
   const linkedUsername =
     lecturerForm.value.linkMode === 'link' ? lecturerForm.value.linkedUsername || '' : ''
 
-  if (props.lecturer) {
-    coursesStore.updateLecturer(
-      props.lecturer.id,
-      lecturerForm.value.name,
-      lecturerForm.value.title,
-      lecturerForm.value.courseIds,
-      props.church,
-      linkedUsername
-    )
-  } else {
-    coursesStore.addLecturer(
-      lecturerForm.value.name,
-      lecturerForm.value.title,
-      lecturerForm.value.courseIds,
-      props.church,
-      linkedUsername || undefined
-    )
-  }
+  const result = props.lecturer
+    ? coursesStore.updateLecturer(
+        props.lecturer.id,
+        lecturerForm.value.name,
+        lecturerForm.value.title,
+        lecturerForm.value.courseIds,
+        props.church,
+        linkedUsername
+      )
+    : coursesStore.addLecturer(
+        lecturerForm.value.name,
+        lecturerForm.value.title,
+        lecturerForm.value.courseIds,
+        props.church,
+        linkedUsername || undefined
+      )
+  // Not saved (no name, the church already has them, the account is taken): say why
+  saveError.value = result.success ? '' : result.message
+  if (!result.success) return
   close()
   toast(t('teacher.lecturer.savedToast'))
 }

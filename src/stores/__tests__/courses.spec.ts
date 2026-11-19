@@ -486,6 +486,37 @@ describe('useCoursesStore', () => {
 
   // ── ids and timestamps ────────────────────────────────────────────────────
 
+  describe('lecturers', () => {
+    it('keeps each lecturer once per church, and an account to one lecturer', async () => {
+      const { useCoursesStore } = await import('@/stores/courses')
+      const store = useCoursesStore()
+      const church = '主勝利'
+      expect(store.addLecturer(' 李講師 ', 'pastor', [], church).success).toBe(true)
+      expect(store.addLecturer('趙講師', 'pastor', [], church, 'teacher').success).toBe(true)
+      const [li, zhao] = store.lecturers.filter((l) => l.church === church)
+
+      expect(li!.name).toBe('李講師') // trimmed
+      // editing keeps its own name and account without clashing with itself
+      expect(store.updateLecturer(li!.id, '李講師', 'pastor', [], church).success).toBe(true)
+      expect(
+        store.updateLecturer(zhao!.id, '趙講師', 'pastor', [], church, 'teacher').success
+      ).toBe(true)
+      // but not another lecturer's name and title, or account
+      expect(store.updateLecturer(zhao!.id, '李講師', 'pastor', [], church).message).toBe(
+        t('stores.courses.lecturerExists', { name: '李講師' })
+      )
+      expect(store.updateLecturer(li!.id, '李講師', 'pastor', [], church, 'teacher').success).toBe(
+        false
+      )
+      expect(store.lecturerLinkedTo('teacher')?.id).toBe(zhao!.id)
+      // the same name in another church is someone else
+      expect(store.addLecturer('李講師', 'pastor', [], '愛與話語').success).toBe(true)
+      expect(store.updateLecturer('nope', 'x', 'pastor', []).message).toBe(
+        t('stores.courses.lecturerNotFound')
+      )
+    })
+  })
+
   describe('themes', () => {
     it("moves the church's students' records when a theme is renamed, and no one else's", async () => {
       const { useCoursesStore } = await import('@/stores/courses')

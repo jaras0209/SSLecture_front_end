@@ -1,6 +1,6 @@
 # SSLecture 後端 API 規格文件
 
-> **文件版本**：v1.13.0
+> **文件版本**：v1.14.0
 > **最後更新**：2026-11-19
 > **前端版本**：Vue 3 + TypeScript（目前以 localStorage 模擬，待串接）
 > **目標後端技術**：Spring Boot 3.x + Spring Security 6.x（OAuth2 Client + JWT）
@@ -864,6 +864,12 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 > `linkedUsername` 為空表示「自訂／外來講員」，不連結系統帳號。`PUT` 時未傳此欄位則維持現有的連結。
 > 早期資料的 `title` 可能是中文（如「牧師」），讀取或搬移時請依上表換成代碼（前端 `src/utils/lecturerTitle.ts`）；
 > 認不得的稱謂原樣保留。
+
+**Validation 規則**（`POST` 與 `PUT` 相同；前端 `addLecturer()` / `updateLecturer()` 檢查同一套規則）：
+- `name` 去掉前後空白後必填、最多 50 字元（`400 VALIDATION_ERROR`），存入的是去掉空白後的名稱
+- 同一教會不可有兩筆**同名、同稱謂**的講師（`409 LECTURER_EXISTS`）：學員登記聽課、教師建預約時的選單分不出是哪一位；
+  同名但稱謂不同視為不同的人
+- 一個帳號只能連結一筆講師資料（`409 LECTURER_ACCOUNT_LINKED`）：該帳號的「我的授課」就是這筆講師的課
 
 ---
 
@@ -1963,6 +1969,8 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | 403 | `STUDENT_NOT_VISIBLE` | 依可見範圍規則看不到此學員（如指派異性學員給教師） |
 | 409 | `BOOKING_NOT_CONFIRMED` | 場次時間尚未確認，還不能記錄出席或完成 |
 | 409 | `BOOKING_NOT_STARTED` | 課程還沒開始，還不能記錄出席或完成 |
+| 409 | `LECTURER_EXISTS` | 這間教會已有同名、同稱謂的講師 |
+| 409 | `LECTURER_ACCOUNT_LINKED` | 這個帳號已連結到另一筆講師資料 |
 | 409 | `BOOKING_NOT_PENDING` | 場次已確認或已結束，不能再確認時間 |
 | 403 | `ACCOUNT_DISABLED` | 帳號已被停用（isActive = false） |
 | 404 | `USER_NOT_FOUND` | 找不到此使用者 |
@@ -2127,6 +2135,11 @@ Refresh Token 有效期：30 天（建議）
 ---
 
 ## 版本紀錄
+
+### v1.14.0（2026-11-19）講師不重複
+
+- `POST` / `PUT /lecturers` 新增 Validation 規則：名稱去掉前後空白後必填；同教會不可有同名同稱謂的講師（`409 LECTURER_EXISTS`）；
+  一個帳號只能連結一筆講師資料（`409 LECTURER_ACCOUNT_LINKED`）
 
 ### v1.13.0（2026-11-19）專題主題改名
 

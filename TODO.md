@@ -1,11 +1,11 @@
 # TODO：後端串接待辦清單
 
 > **建立時間**：2026-08-12
-> **最後更新**：2026-11-18（文字欄位長度上限、已發生事件的日期、預約的時間規則：API 規格 v1.12.0、資料庫 v1.11.0）
+> **最後更新**：2026-11-19（專題主題改名、講師不重複：API 規格 v1.14.0、資料庫 v1.13.0）
 > **目的**：追蹤前端 Mock 實作中，待後端 Spring Boot 就緒後需實作或替換的所有項目
 > **參考文件**（從哪裡讀起見 [`docs/README.md`](./docs/README.md) 文件導覽）：
-> - [`docs/backend_api_spec.md`](./docs/backend_api_spec.md)（v1.13.0：API、可見範圍規則、嘗試次數限制、登入期限、CORS、錯誤碼、第 13 節 Store → API 對照）
-> - [`docs/database_schema.md`](./docs/database_schema.md)（v1.12.0：資料表、5.10–5.17 設計決策、第 9 節資料搬移）
+> - [`docs/backend_api_spec.md`](./docs/backend_api_spec.md)（v1.14.0：API、可見範圍規則、嘗試次數限制、登入期限、CORS、錯誤碼、第 13 節 Store → API 對照）
+> - [`docs/database_schema.md`](./docs/database_schema.md)（v1.13.0：資料表、5.10–5.17 設計決策、第 9 節資料搬移）
 > - [`docs/oauth2_social_login_spec.md`](./docs/oauth2_social_login_spec.md)（v1.1.1：社群登入流程、8.5 社群帳號規則）
 
 ---
@@ -69,6 +69,8 @@
 - [ ] **已停用帳號的名稱不可重新使用**（`409 USERNAME_TAKEN`）：歷史資料掛在該名稱下
 - [ ] **已發生事件的日期**：聽課時間不可晚於現在 1 小時以上、生日與專題課日期不可晚於今天（API 規格聽課紀錄與
   `PATCH /shining/:username` 的 Validation 規則、資料庫 5.17）。前端的對應在 `src/utils/recordRules.ts`
+- [ ] **講師不重複**：同教會不可有同名同稱謂的講師、一個帳號只連結一筆講師資料（`409 LECTURER_EXISTS` /
+  `LECTURER_ACCOUNT_LINKED`，資料庫 `uq_lecturers_*` 唯一索引）
 - [ ] **專題主題改名時同步學員的紀錄**：`PUT /themes/:themeId` 在同一個交易中更新該教會學員的
   `shining_lectures.theme_name`（API 規格〈專題主題 Themes〉、資料庫 5.3）
 - [ ] **預約的時間規則**：預約與確認的時間須晚於現在；完成場次與記錄出席須在已確認、已開始之後

@@ -3,7 +3,7 @@ import { DOMWrapper } from '@vue/test-utils'
 import TeacherLecturerModal from '@/components/teacher/TeacherLecturerModal.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useCoursesStore, type Lecturer } from '@/stores/courses'
-import { mountWith, toastTexts, t } from '@/__tests__/helpers'
+import { mountWith, mountPrepared, toastTexts, t } from '@/__tests__/helpers'
 import { LECTURER_TITLES } from '@/utils/lecturerTitle'
 
 const CHURCH = '愛與話語'
@@ -24,14 +24,76 @@ describe('TeacherLecturerModal', () => {
     document.body.innerHTML = ''
   })
 
-  it('requires a name', async () => {
+  it('requires a name, and says so next to the form', async () => {
     const { wrapper } = open()
     const before = useCoursesStore().lecturers.length
+    await $('#input-lecturer-name').setValue('   ')
     await $('#btn-save-lecturer').trigger('click')
-    expect(toastTexts()).toEqual([t('teacher.lecturer.nameRequired')])
+    expect($('[role="dialog"] [role="alert"]').text()).toBe(
+      t('stores.courses.lecturerNameRequired')
+    )
     expect(useCoursesStore().lecturers).toHaveLength(before)
     expect(wrapper.emitted('update:modelValue')).toBeUndefined()
     wrapper.unmount()
+  })
+
+  it("won't list the same lecturer twice in a church, and keeps the form", async () => {
+    const { wrapper } = open()
+    const courses = useCoursesStore()
+    courses.addLecturer('王講師', 'pastor', [], CHURCH)
+    const before = courses.lecturers.length
+    await $('#input-lecturer-name').setValue(' 王講師 ')
+    await $('#select-lecturer-title').setValue('pastor')
+    await $('#btn-save-lecturer').trigger('click')
+    expect($('[role="dialog"] [role="alert"]').text()).toBe(
+      t('stores.courses.lecturerExists', { name: '王講師' })
+    )
+    expect(courses.lecturers).toHaveLength(before)
+    expect(wrapper.emitted('update:modelValue')).toBeUndefined()
+
+    // the same name with another title is someone else
+    await $('#select-lecturer-title').setValue('preacher')
+    await $('#btn-save-lecturer').trigger('click')
+    expect(courses.lecturers).toHaveLength(before + 1)
+    expect(courses.lecturers.at(-1)!.name).toBe('王講師') // trimmed
+    wrapper.unmount()
+  })
+
+  it('offers an account only if no other lecturer is linked to it', async () => {
+    let own!: Lecturer
+    const seed = () => {
+      useAuthStore().usersDb.t2 = {
+        passwordHash: 'x',
+        role: 'teacher',
+        church: CHURCH,
+        realName: '王老師'
+      }
+      useCoursesStore().addLecturer('王老師', 'lecturer', [], CHURCH, 't2')
+      own = useCoursesStore().lecturers.find((l) => l.linkedUsername === 't2')!
+    }
+    const adding = mountPrepared(TeacherLecturerModal, seed, {
+      props: { modelValue: true, lecturer: null, church: CHURCH },
+      attachTo: document.body
+    })
+    await $('#btn-link-mode').trigger('click')
+    const option = $('#select-linked-teacher option[value="t2"]')
+    expect(option.attributes('disabled')).toBeDefined()
+    expect(option.text()).toContain(t('teacher.lecturer.alreadyLinked', { name: '王老師' }))
+    // and the store refuses too
+    expect(useCoursesStore().addLecturer('別名', 'lecturer', [], CHURCH, 't2').message).toBe(
+      t('stores.courses.lecturerAccountLinked', { username: 't2', name: '王老師' })
+    )
+    adding.wrapper.unmount()
+
+    // editing that lecturer keeps its own account available
+    const editing = mountPrepared(TeacherLecturerModal, seed, {
+      props: { modelValue: true, lecturer: null, church: CHURCH },
+      attachTo: document.body
+    })
+    await editing.wrapper.setProps({ lecturer: own }) // the one this mount's seed created
+    await $('#btn-link-mode').trigger('click')
+    expect($('#select-linked-teacher option[value="t2"]').attributes('disabled')).toBeUndefined()
+    editing.wrapper.unmount()
   })
 
   it('adds a lecturer with the selected courses and closes', async () => {
