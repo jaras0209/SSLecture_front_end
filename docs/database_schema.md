@@ -1,7 +1,7 @@
 # SSLecture 後端資料庫設計文件
 
-> **文件版本**：v1.11.0  
-> **最後更新**：2026-11-18  
+> **文件版本**：v1.12.0  
+> **最後更新**：2026-11-19  
 > **資料來源**：分析前端 `src/stores/auth.ts`、`src/stores/courses.ts`、`src/stores/bookings.ts`、localStorage 資料結構  
 > **資料庫**：PostgreSQL 16 以上（第 6 節的 SQL 已實測可建立全部 22 張表）。不支援 MySQL：
 > 用到了 PostgreSQL 專有的 `CREATE TYPE ... AS ENUM`、`INET`、`TIMESTAMPTZ`、正規表示式 `~` 等  
@@ -856,6 +856,11 @@ CREATE INDEX idx_auth_attempts_ip      ON auth_attempts(action, ip, attempted_at
 - 主題（themes）由管理員動態管理，可新增/刪除/改名
 - 若用外鍵，刪除主題會連帶影響已登記的歷史紀錄
 - 儲存文字確保資料的**歷史完整性**
+- 代價是**改名時要同步**：主題改名時，在同一個交易中把該教會學員的 `shining_lectures.theme_name` 從舊名稱改為新名稱
+  （`UPDATE shining_lectures SET theme_name = :new FROM shining_projects p JOIN users u ON u.id = p.student_id
+  WHERE shining_lectures.shining_project_id = p.id AND u.church_id = :church AND shining_lectures.type = :type
+  AND shining_lectures.theme_name = :old`），否則畫面依新名稱找不到這些紀錄；前端 `updateTheme()` 做同樣的事
+- 刪除主題（軟刪除）不改動已登記的講座，但畫面只依現有主題列出，所以不再顯示
 
 ### 5.4 `student_assignments` 為何用單一表而非關聯表？
 
@@ -1969,6 +1974,10 @@ JSON 檔（前端 `src/utils/backup.ts`），上線時用它把既有資料搬�
 ---
 
 ## 版本紀錄
+
+### v1.12.0（2026-11-19）專題主題改名
+
+- 5.3 補上：主題改名時須同步更新該教會學員的 `shining_lectures.theme_name`（附 SQL），刪除主題時已登記的紀錄保留但不再顯示
 
 ### v1.11.0（2026-11-18）預約的時間
 

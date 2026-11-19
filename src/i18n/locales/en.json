@@ -513,7 +513,10 @@
       "editLecturer": "Edit",
       "renamePhraseTitle": "Rename \"{theme}\" to:",
       "deleteThemeConfirm": "Delete theme \"{theme}\"?",
-      "deleteLecturerConfirm": "Delete this lecturer?"
+      "deleteLecturerConfirm": "Delete this lecturer?",
+      "renameTitle": "Rename theme",
+      "renameMovesRecords": "{n} students have recorded a lecture on this theme; their records move to the new name.",
+      "deleteThemeConfirmRecords": "Delete the theme “{theme}”? {n} students have recorded a lecture on it, and those records will no longer be shown."
     },
     "stats": {
       "panelTitle": "📊 Annual Teaching Report",
@@ -832,7 +835,11 @@
       "lectureDateInvalid": "The lecture date is not a valid date.",
       "lectureDateFuture": "The lecture date can't be after today. Record a lecture after it has taken place.",
       "speakerTooLong": "The lecturer name can be at most {max} characters.",
-      "sessionNotFound": "This listening record wasn't found; it may have been deleted."
+      "sessionNotFound": "This listening record wasn't found; it may have been deleted.",
+      "themeRequired": "Enter a name for the theme.",
+      "themeTooLong": "A theme name can be at most {themeMax} characters.",
+      "themeExists": "There is already a theme with this name.",
+      "themeNotFound": "This theme wasn't found; it may have been deleted."
     }
   },
   "booking": {

@@ -9,8 +9,8 @@
 
 | 文件 | 內容 | 給誰看 | 版本 |
 | :--- | :--- | :--- | :--- |
-| [`backend_api_spec.md`](./backend_api_spec.md) | 所有 API 的請求與回應、可見範圍規則、嘗試次數限制、登入期限、CORS、錯誤碼、資料模型、前端串接步驟 | 後端、串接 API 的前端 | v1.12.0 |
-| [`database_schema.md`](./database_schema.md) | 22 張資料表、索引、設計決策、PostgreSQL 建表 SQL、種子資料、ERD、從前端備份搬移資料 | 後端、資料庫管理 | v1.11.0 |
+| [`backend_api_spec.md`](./backend_api_spec.md) | 所有 API 的請求與回應、可見範圍規則、嘗試次數限制、登入期限、CORS、錯誤碼、資料模型、前端串接步驟 | 後端、串接 API 的前端 | v1.13.0 |
+| [`database_schema.md`](./database_schema.md) | 22 張資料表、索引、設計決策、PostgreSQL 建表 SQL、種子資料、ERD、從前端備份搬移資料 | 後端、資料庫管理 | v1.12.0 |
 | [`oauth2_social_login_spec.md`](./oauth2_social_login_spec.md) | Google / LINE 登入流程、Spring Security 設定、前端整合、帳號綁定、安全性、第三方平台設定 | 實作社群登入的後端 | v1.1.1 |
 | [`../TODO.md`](../TODO.md) | 後端上線前要完成的項目（安全性、資料表、各 store 改接 API、資料搬移、部署） | 專案負責人、後端 | — |
 

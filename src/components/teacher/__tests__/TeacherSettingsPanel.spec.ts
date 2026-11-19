@@ -2,7 +2,7 @@ import { describe, it, expect, afterEach, vi } from 'vitest'
 import { flushPromises } from '@vue/test-utils'
 import TeacherSettingsPanel from '@/components/teacher/TeacherSettingsPanel.vue'
 import { useCoursesStore } from '@/stores/courses'
-import { resolveConfirm } from '@/composables/useToast'
+import { resolveConfirm, useToastProvider } from '@/composables/useToast'
 import { mountWith, t } from '@/__tests__/helpers'
 
 const CHURCH = '愛與話語'
@@ -60,32 +60,73 @@ describe('TeacherSettingsPanel', () => {
     expect(themes(wrapper, 1)).toEqual(['獨立'])
   })
 
-  it('renames a theme, but not onto another existing one', async () => {
+  it('renames a theme in its own dialog, but not onto another existing one', async () => {
     const { wrapper, courses } = mountPanel(false, EMPTY)
     courses.addTheme('character', '誠實', EMPTY)
     courses.addTheme('character', '勇氣', EMPTY)
     await wrapper.vm.$nextTick()
+    const rename = async (value: string) => {
+      await button(wrapper, t('teacher.settings.rename'))[0].trigger('click')
+      const input = wrapper.find('#rename-theme-input')
+      expect(input.attributes('maxlength')).toBe('50')
+      await input.setValue(value)
+      await wrapper.find('[role="dialog"] form').trigger('submit')
+    }
 
-    vi.stubGlobal(
-      'prompt',
-      vi.fn(() => ' 正直 ')
+    await rename(' 正直 ')
+    expect(themes(wrapper, 0)).toEqual(['正直', '勇氣'])
+    expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
+
+    await rename('勇氣')
+    expect(wrapper.find('[role="dialog"] [role="alert"]').text()).toBe(
+      t('stores.courses.themeExists')
     )
-    await button(wrapper, t('teacher.settings.rename'))[0].trigger('click')
     expect(themes(wrapper, 0)).toEqual(['正直', '勇氣'])
+    await wrapper.find('[role="dialog"] .btn-outline').trigger('click') // cancel
+    expect(wrapper.find('[role="dialog"]').exists()).toBe(false)
+    expect(themes(wrapper, 0)).toEqual(['正直', '勇氣'])
+  })
 
-    vi.stubGlobal(
-      'prompt',
-      vi.fn(() => '勇氣')
+  it("moves students' records along when a theme is renamed, and says so", async () => {
+    const { wrapper, courses } = mountPanel()
+    const [theme] = courses.getThemesByChurch('character', CHURCH)
+    courses.updateShiningLecture('student', 'character', theme!, '王講師', '2026-01-01')
+    await wrapper.vm.$nextTick()
+
+    await button(wrapper, t('teacher.settings.rename'))[0].trigger('click')
+    expect(wrapper.find('[role="dialog"]').text()).toContain(
+      t('teacher.settings.renameMovesRecords', { n: 1 })
     )
-    await button(wrapper, t('teacher.settings.rename'))[0].trigger('click')
-    expect(themes(wrapper, 0)).toEqual(['正直', '勇氣'])
+    await wrapper.find('#rename-theme-input').setValue('自律（新）')
+    await wrapper.find('[role="dialog"] form').trigger('submit')
 
-    vi.stubGlobal(
-      'prompt',
-      vi.fn(() => null)
-    ) // cancelled
-    await button(wrapper, t('teacher.settings.rename'))[0].trigger('click')
-    expect(themes(wrapper, 0)).toEqual(['正直', '勇氣'])
+    const lectures = courses.getShiningProject('student').characterLectures
+    expect(lectures).toEqual({ '自律（新）': { speaker: '王講師', date: '2026-01-01' } })
+  })
+
+  it("won't add a theme that is already listed, and says so", async () => {
+    const { wrapper, courses } = mountPanel(false, EMPTY)
+    courses.addTheme('character', '誠實', EMPTY)
+    await wrapper.vm.$nextTick()
+    const input = block(wrapper, 0).find('input')
+    await input.setValue(' 誠實 ')
+    await input.trigger('keydown', { key: 'Enter' })
+    expect(block(wrapper, 0).find('[role="alert"]').text()).toBe(t('stores.courses.themeExists'))
+    expect((input.element as HTMLInputElement).value).toBe(' 誠實 ') // kept, to fix
+    expect(themes(wrapper, 0)).toEqual(['誠實'])
+  })
+
+  it('warns that deleting a theme hides the records students made under it', async () => {
+    const { wrapper, courses } = mountPanel()
+    const [theme] = courses.getThemesByChurch('character', CHURCH)
+    courses.updateShiningLecture('student', 'character', theme!, '王講師', '2026-01-01')
+    await wrapper.vm.$nextTick()
+    await button(wrapper, t('teacher.settings.delete'))[0].trigger('click')
+    expect(useToastProvider().confirmState.value.message).toBe(
+      t('teacher.settings.deleteThemeConfirmRecords', { theme, n: 1 })
+    )
+    resolveConfirm(false)
+    await flushPromises()
   })
 
   it('deletes a theme or lecturer only once confirmed', async () => {

@@ -513,7 +513,10 @@
       "editLecturer": "編輯",
       "renamePhraseTitle": "重新命名「{theme}」為：",
       "deleteThemeConfirm": "確定刪除主題「{theme}」？",
-      "deleteLecturerConfirm": "確定刪除此講師？"
+      "deleteLecturerConfirm": "確定刪除此講師？",
+      "renameTitle": "重新命名主題",
+      "renameMovesRecords": "已有 {n} 位學員登記了這個主題的課，紀錄會一起改到新名稱下。",
+      "deleteThemeConfirmRecords": "確定刪除主題「{theme}」？已有 {n} 位學員登記了這個主題的課，刪除後這些紀錄不會再顯示。"
     },
     "stats": {
       "panelTitle": "📊 年度教學人次申報",
@@ -832,7 +835,11 @@
       "lectureDateInvalid": "上課日期的格式不正確。",
       "lectureDateFuture": "上課日期不能晚於今天，請在上完課後再登記。",
       "speakerTooLong": "講師名稱最多 {max} 字。",
-      "sessionNotFound": "找不到這筆聽課紀錄，可能已被刪除。"
+      "sessionNotFound": "找不到這筆聽課紀錄，可能已被刪除。",
+      "themeRequired": "請輸入主題名稱。",
+      "themeTooLong": "主題名稱最多 {themeMax} 字。",
+      "themeExists": "已經有同名的主題。",
+      "themeNotFound": "找不到這個主題，可能已被刪除。"
     }
   },
   "booking": {

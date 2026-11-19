@@ -56,6 +56,9 @@
             {{ $t('teacher.settings.addTheme') }}
           </button>
         </div>
+        <p v-if="addError.character" class="alert-box error mt-2" role="alert">
+          {{ addError.character }}
+        </p>
       </div>
 
       <!-- Coming of Age Themes -->
@@ -96,6 +99,9 @@
             {{ $t('teacher.settings.addTheme') }}
           </button>
         </div>
+        <p v-if="addError.comingOfAge" class="alert-box error mt-2" role="alert">
+          {{ addError.comingOfAge }}
+        </p>
       </div>
     </section>
 
@@ -166,11 +172,50 @@
         </div>
       </div>
     </section>
+
+    <!-- Rename a theme -->
+    <div v-if="renaming" class="modal-overlay" @click.self="renaming = null">
+      <div
+        v-dialog="() => (renaming = null)"
+        class="glass-panel modal-card"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="rename-theme-title"
+      >
+        <h3 id="rename-theme-title" aria-level="2">{{ $t('teacher.settings.renameTitle') }}</h3>
+        <form class="mt-3" @submit.prevent="submitRename">
+          <label for="rename-theme-input" class="form-label">{{
+            $t('teacher.settings.renamePhraseTitle', { theme: renaming.oldName })
+          }}</label>
+          <input
+            id="rename-theme-input"
+            v-model="renaming.value"
+            :maxlength="MAX_LENGTH.themeName"
+            type="text"
+            class="form-input"
+            autofocus
+          />
+          <p v-if="renaming.recordCount" class="text-xs text-muted mt-2">
+            {{ $t('teacher.settings.renameMovesRecords', { n: renaming.recordCount }) }}
+          </p>
+          <p v-if="renaming.error" class="alert-box error mt-3" role="alert">
+            {{ renaming.error }}
+          </p>
+          <div class="modal-footer mt-4">
+            <button type="button" class="btn btn-outline" @click="renaming = null">
+              {{ $t('common.cancel') }}
+            </button>
+            <button type="submit" class="btn btn-primary">{{ $t('common.save') }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { MAX_LENGTH } from '@/utils/limits'
+import { vDialog } from '@/directives/dialog'
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { CHURCHES } from '@/stores/auth'
@@ -198,6 +243,8 @@ const emit = defineEmits<{
 
 const coursesStore = useCoursesStore()
 
+type ThemeType = 'character' | 'comingOfAge'
+
 const newCharacterTheme = ref('')
 const newComingOfAgeTheme = ref('')
 
@@ -208,24 +255,56 @@ const comingOfAgeThemes = computed(() =>
 
 const filteredLecturers = computed(() => coursesStore.getLecturersByChurch(church.value))
 
-function handleAddTheme(type: 'character' | 'comingOfAge') {
-  const value =
-    type === 'character' ? newCharacterTheme.value.trim() : newComingOfAgeTheme.value.trim()
-  if (!value) return
-  coursesStore.addTheme(type, value, church.value)
-  if (type === 'character') newCharacterTheme.value = ''
-  else newComingOfAgeTheme.value = ''
+/** Why the last theme added to each list wasn't (e.g. it is already there) */
+const addError = ref<Record<ThemeType, string>>({ character: '', comingOfAge: '' })
+
+function handleAddTheme(type: ThemeType) {
+  const input = type === 'character' ? newCharacterTheme : newComingOfAgeTheme
+  if (!input.value.trim()) return
+  const result = coursesStore.addTheme(type, input.value, church.value)
+  // Not added: say why and keep what was typed
+  addError.value[type] = result.success ? '' : result.message
+  if (result.success) input.value = ''
 }
 
-function handleRenameTheme(type: 'character' | 'comingOfAge', theme: string) {
-  const newName = window.prompt(t('teacher.settings.renamePhraseTitle', { theme }), theme)
-  if (newName && newName.trim() && newName.trim() !== theme) {
-    coursesStore.updateTheme(type, theme, newName.trim(), church.value)
+/** The theme being renamed in the dialog */
+const renaming = ref<{
+  type: ThemeType
+  oldName: string
+  value: string
+  error: string
+  recordCount: number
+} | null>(null)
+
+function handleRenameTheme(type: ThemeType, theme: string) {
+  renaming.value = {
+    type,
+    oldName: theme,
+    value: theme,
+    error: '',
+    recordCount: coursesStore.studentsWithThemeRecords(type, theme, church.value).length
   }
 }
 
-async function handleDeleteTheme(type: 'character' | 'comingOfAge', theme: string) {
-  const ok = await confirm(t('teacher.settings.deleteThemeConfirm', { theme }))
+function submitRename() {
+  const r = renaming.value
+  if (!r) return
+  const result = coursesStore.updateTheme(r.type, r.oldName, r.value, church.value)
+  if (!result.success) {
+    r.error = result.message
+    return
+  }
+  renaming.value = null
+}
+
+async function handleDeleteTheme(type: ThemeType, theme: string) {
+  // Students' records under it stay stored but no longer show anywhere: say how many
+  const n = coursesStore.studentsWithThemeRecords(type, theme, church.value).length
+  const ok = await confirm(
+    n > 0
+      ? t('teacher.settings.deleteThemeConfirmRecords', { theme, n })
+      : t('teacher.settings.deleteThemeConfirm', { theme })
+  )
   if (ok) {
     coursesStore.deleteTheme(type, theme, church.value)
   }

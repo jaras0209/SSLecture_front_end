@@ -486,6 +486,51 @@ describe('useCoursesStore', () => {
 
   // ── ids and timestamps ────────────────────────────────────────────────────
 
+  describe('themes', () => {
+    it("moves the church's students' records when a theme is renamed, and no one else's", async () => {
+      const { useCoursesStore } = await import('@/stores/courses')
+      const { useAuthStore } = await import('@/stores/auth')
+      const store = useCoursesStore()
+      const auth = useAuthStore()
+      auth.usersDb.away = { passwordHash: 'x', role: 'student', church: '主勝利' }
+      store.addTheme('character', '自律', '主勝利')
+      const [theme] = store.getThemesByChurch('character', '愛與話語')
+      store.updateShiningLecture('student', 'character', theme!, '王講師', '2026-01-01')
+      store.updateShiningLecture('away', 'character', theme!, '李講師', '2026-01-02')
+
+      expect(store.studentsWithThemeRecords('character', theme!, '愛與話語')).toEqual(['student'])
+      expect(store.updateTheme('character', theme!, ' 自律與節制 ', '愛與話語').success).toBe(true)
+      expect(store.getShiningProject('student').characterLectures).toEqual({
+        自律與節制: { speaker: '王講師', date: '2026-01-01' }
+      })
+      // another church has its own themes: its student's record is left alone
+      expect(Object.keys(store.getShiningProject('away').characterLectures)).toEqual([theme])
+    })
+
+    it('refuses a blank, too long or taken name, and a theme that is gone', async () => {
+      const { useCoursesStore } = await import('@/stores/courses')
+      const store = useCoursesStore()
+      const church = '主勝利'
+      expect(store.addTheme('character', ' 誠實 ', church).success).toBe(true)
+      expect(store.getThemesByChurch('character', church)).toEqual(['誠實'])
+      expect(store.addTheme('character', '誠實', church).message).toBe(
+        t('stores.courses.themeExists')
+      )
+      expect(store.addTheme('character', '   ', church).message).toBe(
+        t('stores.courses.themeRequired')
+      )
+      expect(store.addTheme('character', '講'.repeat(51), church).message).toBe(
+        t('stores.courses.themeTooLong', { themeMax: 50 })
+      )
+      // the same name on the other list, or keeping its own name, is fine
+      expect(store.addTheme('comingOfAge', '誠實', church).success).toBe(true)
+      expect(store.updateTheme('character', '誠實', '誠實', church).success).toBe(true)
+      expect(store.updateTheme('character', '不存在', '新名', church).message).toBe(
+        t('stores.courses.themeNotFound')
+      )
+    })
+  })
+
   describe('records of things that already happened', () => {
     beforeEach(() => {
       vi.useFakeTimers({ toFake: ['Date'] })

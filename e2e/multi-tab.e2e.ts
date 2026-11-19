@@ -52,6 +52,10 @@ test.describe('multiple tabs', () => {
     const { context, a, b } = await twoTabs(browser, { superstart_user: users.teacher })
     await a.goto(baseURL + 'teacher')
     await b.goto(baseURL + 'teacher')
+    // The page loads before the app starts (it first waits briefly to hear from other tabs):
+    // sign out once tab b is running, which is what this is about. Signing out before it starts
+    // also ends on the login page, with ?redirect= added, which another test covers.
+    await expect(b.getByRole('button', { name: /登出/ })).toBeVisible()
     await a.getByRole('button', { name: /登出/ }).click()
     await expect(b).toHaveURL(/\/login$/)
     await context.close()
@@ -64,6 +68,7 @@ test.describe('multiple tabs', () => {
     const { context, a, b } = await twoTabs(browser, { superstart_user: users.teacher })
     await b.goto(baseURL + 'teacher')
     await a.goto(baseURL + 'teacher')
+    await expect(b.getByRole('button', { name: /登出/ })).toBeVisible() // tab b is running
     await a.getByRole('button', { name: /登出/ }).click()
     await expect(b).toHaveURL(/\/login$/)
     await a.fill('#login-username', 'student')
