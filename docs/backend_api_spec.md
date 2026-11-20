@@ -1,7 +1,7 @@
 # SSLecture 後端 API 規格文件
 
-> **文件版本**：v1.14.0
-> **最後更新**：2026-11-19
+> **文件版本**：v1.14.1
+> **最後更新**：2026-11-20
 > **前端版本**：Vue 3 + TypeScript（目前以 localStorage 模擬，待串接）
 > **目標後端技術**：Spring Boot 3.x + Spring Security 6.x（OAuth2 Client + JWT）
 > **相關文件**：[文件導覽](./README.md)・[資料庫設計](./database_schema.md)・[社群登入](./oauth2_social_login_spec.md)・各版本異動見文末[版本紀錄](#版本紀錄)
@@ -2036,11 +2036,11 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | `saveTeachingStats()` | `PUT /teaching-stats/:username/:year` |
 | `getTeachingStats()` | `GET /teaching-stats?teacherUsername=...&year=...` |
 | `getAllTeachingStats()` | `GET /teaching-stats/summary?year=...` |
-| `bookingsStore.createSession()` | `POST /bookings/sessions` |
-| `bookingsStore.updateSessionStatus()` | `PATCH /bookings/sessions/:id/status` |
+| `bookingsStore.proposeSession()`（先檢查時間，再呼叫 `createSession()`） | `POST /bookings/sessions` |
+| `bookingsStore.confirmSession()`（確認時間）、`updateSessionStatus()`（取消） | `PATCH /bookings/sessions/:id/status` |
 | `bookingsStore.updatePrep()` | `PATCH /bookings/sessions/:id/prep` |
-| `bookingsStore.completeSession()` | `POST /bookings/sessions/:id/complete` |
-| `bookingsStore.updateAttendee()` | `PATCH /bookings/sessions/:id/attendees/:username` |
+| `bookingsStore.finishSession()`（先檢查已開始，再記錄每位學員並呼叫 `completeSession()`） | `PATCH .../attendees/:username` 後 `POST /bookings/sessions/:id/complete` |
+| `bookingsStore.recordAttendance()`（講師記錄出席）、`updateAttendee()`（學員填寫心得） | `PATCH /bookings/sessions/:id/attendees/:username` |
 | `bookingsStore.addAttendeeToSession()` | `POST /bookings/sessions/:id/attendees` |
 | `bookingsStore.deleteSession()` | `DELETE /bookings/sessions/:id` |
 | `bookingsStore.getSessionsByTeacher()` | `GET /bookings/sessions?teacherUsername=...` |
@@ -2067,7 +2067,7 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | `authStore.consumeInviteCode()` | 由 `POST /auth/register`、`PUT /auth/complete-profile` 在後端處理 |
 | `authStore.unbindChildEverywhere()`、`coursesStore.releaseStudent()` / `releaseCaretaker()` / `unlinkLecturerAccount()` | 由 `DELETE` / `PUT /admin/users/:username` 在後端處理（同 `releaseRole()`） |
 | `coursesStore.updateShiningChecklist()` / `updateShiningCustomChallenge()` / `updateShiningLecture()` | `PATCH /shining/:username`（只傳變更的欄位） |
-| `coursesStore.addTheme()` / `updateTheme()` / `deleteTheme()` | `POST` / `PUT` / `DELETE /themes` |
+| `coursesStore.addTheme()` / `updateTheme()` / `deleteTheme()`（改名會一併移動學員的紀錄，見〈專題主題 Themes〉） | `POST` / `PUT` / `DELETE /themes` |
 | `bookingsStore.updateSessionProp()` | 依欄位對應 `PATCH /bookings/sessions/:id/status` 或 `/prep` |
 
 ### 搬移既有資料
@@ -2080,11 +2080,11 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 
 ```
 Access Token 有效期：1 小時（建議）
-Refresh Token 有效期：30 天（建議）
+Refresh Token 有效期：未勾「記住我」閒置 2 小時、勾選 30 天（見下方〈記住我與閒置登出〉）
 
 自動刷新流程：
 1. 登入 → 取得 accessToken + refreshToken，存入 localStorage
-2. 每次 API 請求，在 axios 攔截器中自動帶入 Authorization header
+2. 每次 API 請求，由前端 `src/utils/api.ts` 自動帶入 Authorization header
 3. 若收到 401 TOKEN_EXPIRED，自動呼叫 POST /auth/refresh 換發新 Token
 4. 若換發失敗（REFRESH_TOKEN_EXPIRED），清除 Token，導向登入頁
 ```
@@ -2126,7 +2126,11 @@ Refresh Token 有效期：30 天（建議）
    正式環境同時把 `VITE_DEMO_MODE` 設為 `false`
 2. **啟用 Token 換發**：取消 `src/utils/api.ts` 中 `refreshToken()` 已寫好、被註解的 `fetch` 區塊
 3. **登入與社群登入**：替換 `src/stores/auth.ts` 中標示 `TODO（後端就緒後）` 的 mock（`login()`、`exchangeOAuthCode()`、`completeProfile()`）
-4. **逐步替換各 Store**：依上方兩張對照表，把讀寫 `localStorage` 的地方改為呼叫 `apiGet` / `apiPost` 等；
+4. **逐步替換各 Store**：依上方兩張對照表，把讀寫 `localStorage` 的地方改為呼叫 `apiGet` / `apiPost` 等。
+   部分函式放在 `src/stores/parts/`（講師、專題主題、心得回覆、閃耀計畫、教學統計、邀請碼、性別與家長綁定），
+   由 `courses` / `auth` store 組合後對外提供，名稱不變。預約的 `createSession()`、`completeSession()` 等只是直接寫入
+   （載入資料與測試用），畫面一律使用會先檢查規則的 `proposeSession()` / `confirmSession()` / `finishSession()` /
+   `recordAttendance()`，改接 API 時替換這幾個即可；
    `bookings.ts` 與其他 store 無相依，可先串接 `/bookings/*`
 5. **權限以後端為準**：前端的可見範圍（`src/utils/scope.ts`）、登入期限（`src/utils/session.ts`）只是讓畫面即時反映，
    後端回 `401` / `403` 時以後端為準
@@ -2135,6 +2139,13 @@ Refresh Token 有效期：30 天（建議）
 ---
 
 ## 版本紀錄
+
+### v1.14.1（2026-11-20）對照表更新
+
+- 第 13 節對照表改列畫面實際使用、會先檢查規則的預約動作（`proposeSession()`、`confirmSession()`、`finishSession()`、
+  `recordAttendance()`），並說明部分函式已移到 `src/stores/parts/`
+- 「心得回覆」的上限（1000 字）前端已在資料層檢查
+- 〈Token 管理〉改正：前端以 `src/utils/api.ts`（不是 axios）帶入 Token；Refresh Token 的有效期依是否「記住我」
 
 ### v1.14.0（2026-11-19）講師不重複
 

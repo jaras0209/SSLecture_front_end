@@ -1,10 +1,10 @@
 # TODO：後端串接待辦清單
 
 > **建立時間**：2026-08-12
-> **最後更新**：2026-11-19（專題主題改名、講師不重複：API 規格 v1.14.0、資料庫 v1.13.0）
+> **最後更新**：2026-11-20（store 拆分到 `src/stores/parts/`、第 13 節對照表更新：API 規格 v1.14.1、資料庫 v1.13.0）
 > **目的**：追蹤前端 Mock 實作中，待後端 Spring Boot 就緒後需實作或替換的所有項目
 > **參考文件**（從哪裡讀起見 [`docs/README.md`](./docs/README.md) 文件導覽）：
-> - [`docs/backend_api_spec.md`](./docs/backend_api_spec.md)（v1.14.0：API、可見範圍規則、嘗試次數限制、登入期限、CORS、錯誤碼、第 13 節 Store → API 對照）
+> - [`docs/backend_api_spec.md`](./docs/backend_api_spec.md)（v1.14.1：API、可見範圍規則、嘗試次數限制、登入期限、CORS、錯誤碼、第 13 節 Store → API 對照）
 > - [`docs/database_schema.md`](./docs/database_schema.md)（v1.13.0：資料表、5.10–5.17 設計決策、第 9 節資料搬移）
 > - [`docs/oauth2_social_login_spec.md`](./docs/oauth2_social_login_spec.md)（v1.1.1：社群登入流程、8.5 社群帳號規則）
 
