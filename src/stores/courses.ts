@@ -7,6 +7,11 @@ import { persistToStorage } from '@/utils/persist'
 import { toLocalDateTimeInput, nowIso, normalizeLegacyDateTime } from '@/utils/datetime'
 import { createId } from '@/utils/id'
 import { buildMockCourses } from '@/mocks/courses'
+import { createCourseThemes } from '@/stores/parts/courseThemes'
+import { createCourseLecturers } from '@/stores/parts/courseLecturers'
+import { createCourseFeedback } from '@/stores/parts/courseFeedback'
+import { createShiningProject, withShiningDefaults } from '@/stores/parts/shiningProject'
+import { createTeachingStats } from '@/stores/parts/teachingStats'
 
 // 型別定義集中至 src/types/courses.ts—從這裡 re-export 保持向下相容
 export type {
@@ -38,44 +43,18 @@ import type {
   CaretakerRole,
   AssignedCaretakerRole,
   StudentTeacherDb,
-  ShiningProject,
   ShiningProjectDb,
   Lecturer,
-  TeachingStats,
   TeachingStatsDb,
-  ShiningChecklistKey,
-  CourseFeedback,
   CourseFeedbackDb
 } from '@/types/courses'
 import { DEFAULT_CHURCH } from '@/types/auth'
 import { normalizeLecturerTitle } from '@/utils/lecturerTitle'
 import { translate as t } from '@/i18n'
-import { MAX_LENGTH } from '@/utils/limits'
-import {
-  listenSessionProblem,
-  birthdayProblem,
-  lectureEntryProblem,
-  type RuleProblem
-} from '@/utils/recordRules'
+import { listenSessionProblem } from '@/utils/recordRules'
+import { refused, SAVED, type SaveResult } from '@/stores/parts/results'
 
-/** Outcome of a save that checks its input first */
-export interface SaveResult {
-  success: boolean
-  message: string
-}
-
-/** Why a theme name can't be used (a key under stores.courses) */
-type ThemeProblem = 'themeRequired' | 'themeTooLong' | 'themeExists'
-
-const refused = (problem: RuleProblem | ThemeProblem): SaveResult => ({
-  success: false,
-  message: t(`stores.courses.${problem}`, {
-    max: MAX_LENGTH.lecturerName,
-    notesMax: MAX_LENGTH.sessionNotes,
-    themeMax: MAX_LENGTH.themeName
-  })
-})
-const SAVED: SaveResult = { success: true, message: '' }
+export type { SaveResult } from '@/stores/parts/results'
 
 export const useCoursesStore = defineStore('courses', () => {
   // Course catalog — dev seed data lives in src/mocks/courses.ts
@@ -323,56 +302,16 @@ export const useCoursesStore = defineStore('courses', () => {
 
   persistToStorage(feedbackSeenDb, 'superstart_feedback_seen_db')
 
-  // Blank template initializer
-  function createBlankShiningProject(): ShiningProject {
-    const charLectures: Record<string, { speaker: string; date: string }> = {}
-    const ageTopics: Record<string, { speaker: string; date: string }> = {}
-
-    return {
-      name: '',
-      birthday: '',
-      church: '',
-      schoolGrade: '',
-      faithPhase1: {
-        worship: false,
-        prayer: false,
-        independent: false,
-        reply: false,
-        share: false
-      },
-      faithPhase2: {
-        courses30: false,
-        prayerLong: false,
-        morningWorship: false,
-        readBible: false,
-        churchService: false
-      },
-      advancedChallenges: {
-        wednesday: false,
-        shareFaith: false,
-        copySermon: false,
-        morningProverb: false,
-        custom: false
-      },
-      customChallenge: '',
-      characterLectures: charLectures,
-      comingOfAgeTopics: ageTopics
-    }
-  }
-
-  /** Fill in any fields missing from an older stored ShiningProject. */
-  function withShiningDefaults(project: Partial<ShiningProject>): ShiningProject {
-    const blank = createBlankShiningProject()
-    return {
-      ...blank,
-      ...project,
-      faithPhase1: { ...blank.faithPhase1, ...project.faithPhase1 },
-      faithPhase2: { ...blank.faithPhase2, ...project.faithPhase2 },
-      advancedChallenges: { ...blank.advancedChallenges, ...project.advancedChallenges },
-      characterLectures: project.characterLectures ?? {},
-      comingOfAgeTopics: project.comingOfAgeTopics ?? {}
-    }
-  }
+  // Groups of functions kept in their own files (src/stores/parts/); they share the state above
+  const themesPart = createCourseThemes({
+    characterThemesDb,
+    comingOfAgeThemesDb,
+    shiningProjectDb
+  })
+  const lecturersPart = createCourseLecturers({ lecturers })
+  const feedbackPart = createCourseFeedback({ feedbackDb, feedbackSeenDb })
+  const shiningPart = createShiningProject({ shiningProjectDb, progressDb, courses })
+  const teachingStatsPart = createTeachingStats({ teachingStatsDb })
 
   // Actions
 
@@ -581,186 +520,6 @@ export const useCoursesStore = defineStore('courses', () => {
     return getStudentCaretaker(studentUsername, role) === username
   }
 
-  // Dynamic themes actions
-  function getThemesByChurch(type: 'character' | 'comingOfAge', church: string): string[] {
-    const db = type === 'character' ? characterThemesDb : comingOfAgeThemesDb
-    return db.value[church] || []
-  }
-
-  /** Why `name` (trimmed) can't name a theme of the church, or null; `current` is the one renamed */
-  function themeNameProblem(
-    type: 'character' | 'comingOfAge',
-    name: string,
-    church: string,
-    current?: string
-  ): ThemeProblem | null {
-    if (!name) return 'themeRequired'
-    if (name.length > MAX_LENGTH.themeName) return 'themeTooLong'
-    const themes = getThemesByChurch(type, church)
-    if (name !== current && themes.includes(name)) return 'themeExists'
-    return null
-  }
-
-  function addTheme(
-    type: 'character' | 'comingOfAge',
-    themeName: string,
-    church: string
-  ): SaveResult {
-    const name = themeName.trim()
-    const problem = themeNameProblem(type, name, church)
-    if (problem) return refused(problem)
-    const db = type === 'character' ? characterThemesDb : comingOfAgeThemesDb
-    ;(db.value[church] ??= []).push(name)
-    return SAVED
-  }
-
-  /** The church's students whose Shining Project records a lecture under this theme */
-  function studentsWithThemeRecords(
-    type: 'character' | 'comingOfAge',
-    theme: string,
-    church: string
-  ): string[] {
-    const field = type === 'character' ? 'characterLectures' : 'comingOfAgeTopics'
-    return membersOf(useAuthStore().usersDb, 'student', church).filter(
-      (username) => !!shiningProjectDb.value[username]?.[field][theme]
-    )
-  }
-
-  function deleteTheme(type: 'character' | 'comingOfAge', themeName: string, church: string): void {
-    const db = type === 'character' ? characterThemesDb : comingOfAgeThemesDb
-    if (db.value[church]) {
-      const index = db.value[church].indexOf(themeName)
-      if (index > -1) {
-        db.value[church].splice(index, 1)
-      }
-    }
-  }
-
-  /**
-   * Rename a theme. Students' Shining Project records are filed under the theme's name, so
-   * theirs move to the new name too; otherwise they would vanish from every page.
-   */
-  function updateTheme(
-    type: 'character' | 'comingOfAge',
-    oldName: string,
-    newName: string,
-    church: string
-  ): SaveResult {
-    const name = newName.trim()
-    const db = type === 'character' ? characterThemesDb : comingOfAgeThemesDb
-    const index = db.value[church]?.indexOf(oldName) ?? -1
-    if (index === -1) return { success: false, message: t('stores.courses.themeNotFound') }
-    const problem = themeNameProblem(type, name, church, oldName)
-    if (problem) return refused(problem)
-    if (name === oldName) return SAVED
-
-    const field = type === 'character' ? 'characterLectures' : 'comingOfAgeTopics'
-    for (const username of studentsWithThemeRecords(type, oldName, church)) {
-      const lectures = shiningProjectDb.value[username]![field]
-      lectures[name] = lectures[oldName]!
-      delete lectures[oldName]
-    }
-    db.value[church]![index] = name
-    return SAVED
-  }
-
-  // Lecturer actions
-  function getLecturersByChurch(church: string): Lecturer[] {
-    return lecturers.value.filter((l) => l.church === church || !l.church)
-  }
-
-  /**
-   * Why a lecturer can't be saved, or null: a name is needed; the church can't list the same
-   * lecturer (name and title) twice, or students and teachers couldn't tell the two apart in
-   * the menus; and an account goes with one lecturer entry, whose lectures are its「我的授課」.
-   * `id` is the lecturer being edited, if any.
-   */
-  function lecturerProblem(
-    entry: { name: string; title: string; church?: string; linkedUsername?: string },
-    id?: string
-  ): SaveResult | null {
-    const name = entry.name.trim()
-    if (!name) return { success: false, message: t('stores.courses.lecturerNameRequired') }
-    if (name.length > MAX_LENGTH.lecturerName) return refused('lecturerTooLong')
-    const title = normalizeLecturerTitle(entry.title)
-    const others = lecturers.value.filter((l) => l.id !== id)
-    const church = entry.church ?? lecturers.value.find((l) => l.id === id)?.church
-    const sameChurch = others.filter((l) => !l.church || !church || l.church === church)
-    if (sameChurch.some((l) => l.name.trim() === name && l.title === title)) {
-      return { success: false, message: t('stores.courses.lecturerExists', { name }) }
-    }
-    const linked =
-      entry.linkedUsername && others.find((l) => l.linkedUsername === entry.linkedUsername)
-    if (linked) {
-      return {
-        success: false,
-        message: t('stores.courses.lecturerAccountLinked', {
-          username: entry.linkedUsername,
-          name: linked.name
-        })
-      }
-    }
-    return null
-  }
-
-  function addLecturer(
-    name: string,
-    title: string,
-    courseIds: string[],
-    church: string,
-    linkedUsername?: string
-  ): SaveResult {
-    const problem = lecturerProblem({ name, title, church, linkedUsername })
-    if (problem) return problem
-    const id = createId('l')
-    lecturers.value.push({
-      id,
-      name: name.trim(),
-      title: normalizeLecturerTitle(title),
-      courseIds,
-      church,
-      linkedUsername
-    })
-    return SAVED
-  }
-
-  function updateLecturer(
-    id: string,
-    name: string,
-    title: string,
-    courseIds: string[],
-    church?: string,
-    linkedUsername?: string
-  ): SaveResult {
-    const lec = lecturers.value.find((l) => l.id === id)
-    if (!lec) return { success: false, message: t('stores.courses.lecturerNotFound') }
-    const problem = lecturerProblem({ name, title, church, linkedUsername }, id)
-    if (problem) return problem
-    {
-      lec.name = name.trim()
-      lec.title = normalizeLecturerTitle(title)
-      lec.courseIds = courseIds
-      if (church) lec.church = church
-      // linkedUsername: pass undefined to keep existing, pass '' to clear, pass value to set
-      if (linkedUsername !== undefined) {
-        lec.linkedUsername = linkedUsername || undefined
-      }
-    }
-    return SAVED
-  }
-
-  /** The lecturer entry an account is linked to, if any */
-  function lecturerLinkedTo(username: string): Lecturer | undefined {
-    return lecturers.value.find((l) => l.linkedUsername === username)
-  }
-
-  function deleteLecturer(id: string): void {
-    const index = lecturers.value.findIndex((l) => l.id === id)
-    if (index > -1) {
-      lecturers.value.splice(index, 1)
-    }
-  }
-
   /**
    * 取得一筆紀錄中每次聽課的講師名稱（已 trim、排除空白）。
    * 講師記錄在 sessions[].lecturer；尚未遷移的舊紀錄則退回 record.lecturer。
@@ -769,60 +528,6 @@ export const useCoursesStore = defineStore('courses', () => {
   function getSessionLecturers(record: ProgressRecord): string[] {
     const names = record.sessions ? record.sessions.map((s) => s.lecturer) : [record.lecturer]
     return names.map((n) => (n ?? '').trim()).filter((n) => n !== '')
-  }
-
-  /** Replies to `student`'s notes on `courseId`, oldest first */
-  function getFeedback(student: string, courseId: string): CourseFeedback[] {
-    return feedbackDb.value[student]?.[courseId] ?? []
-  }
-
-  /** When `student` last looked at the replies on `courseId` ('' if never) */
-  function feedbackSeenAt(student: string, courseId: string): string {
-    return feedbackSeenDb.value[student]?.[courseId] ?? ''
-  }
-
-  /** Replies on `courseId` that `student` hasn't seen yet */
-  function unreadFeedback(student: string, courseId: string): CourseFeedback[] {
-    const seen = feedbackSeenAt(student, courseId)
-    return getFeedback(student, courseId).filter((f) => f.createdAt > seen)
-  }
-
-  /** Courses with replies `student` hasn't seen yet */
-  function coursesWithUnreadFeedback(student: string): string[] {
-    return Object.keys(feedbackDb.value[student] ?? {}).filter(
-      (courseId) => unreadFeedback(student, courseId).length > 0
-    )
-  }
-
-  /** `student` has now seen every reply on `courseId` */
-  function markFeedbackSeen(student: string, courseId: string): void {
-    const unread = unreadFeedback(student, courseId)
-    if (unread.length === 0) return
-    const byCourse = (feedbackSeenDb.value[student] ??= {})
-    // The newest reply's own time, so the mark doesn't depend on clocks agreeing
-    byCourse[courseId] = unread.reduce((t, f) => (f.createdAt > t ? f.createdAt : t), '')
-  }
-
-  /** Reply to a student's notes on a course; blank messages are ignored */
-  function addFeedback(
-    student: string,
-    courseId: string,
-    author: string,
-    message: string
-  ): CourseFeedback | undefined {
-    const text = message.trim()
-    if (!text) return undefined
-    const entry: CourseFeedback = { id: createId('fb'), author, message: text, createdAt: nowIso() }
-    const byCourse = (feedbackDb.value[student] ??= {})
-    byCourse[courseId] = [...(byCourse[courseId] ?? []), entry]
-    return entry
-  }
-
-  /**
-   * 取得教師帳號在講師資料庫中的 linked 紀錄
-   */
-  function getLecturerByUsername(username: string): Lecturer | undefined {
-    return lecturers.value.find((l) => l.linkedUsername === username)
   }
 
   /**
@@ -842,103 +547,6 @@ export const useCoursesStore = defineStore('courses', () => {
       })
     })
     return count
-  }
-
-  // Shining Project Actions
-
-  /**
-   * Read a student's Shining Project. Pure: never writes to the store.
-   * Returns the stored project (same object, so watchers on it stay stable) or,
-   * if the student has none yet, a fresh blank template that is NOT saved.
-   * The auto-completed `courses30` item is not stored here — use isShiningChecked().
-   */
-  function getShiningProject(username: string): ShiningProject {
-    return shiningProjectDb.value[username] ?? createBlankShiningProject()
-  }
-
-  /** Write paths only: get the stored project, creating it on first write. */
-  function ensureShiningProject(username: string): ShiningProject {
-    if (!shiningProjectDb.value[username]) {
-      shiningProjectDb.value[username] = createBlankShiningProject()
-    }
-    return shiningProjectDb.value[username]
-  }
-
-  /** Number of courses in the current catalog that the student has completed. */
-  function getCompletedCourseCount(username: string): number {
-    const userRecords = progressDb.value[username]
-    if (!userRecords) return 0
-    return courses.value.filter((c) => userRecords[c.id]?.completed).length
-  }
-
-  /** Whether the student has completed every course in the current catalog. */
-  function hasCompletedAllCourses(username: string): boolean {
-    return courses.value.length > 0 && getCompletedCourseCount(username) >= courses.value.length
-  }
-
-  /**
-   * Whether a Shining checklist item is checked: the stored value, or — for
-   * `courses30` — automatically when every course has been completed.
-   */
-  function isShiningChecked(
-    username: string,
-    category: 'faithPhase1' | 'faithPhase2' | 'advancedChallenges',
-    key: ShiningChecklistKey
-  ): boolean {
-    const checklist = getShiningProject(username)[category] as Record<string, boolean>
-    if (checklist[key]) return true
-    return category === 'faithPhase2' && key === 'courses30' && hasCompletedAllCourses(username)
-  }
-
-  function updateShiningBasicInfo(
-    username: string,
-    info: { name: string; birthday: string; church: string; schoolGrade: string }
-  ): SaveResult {
-    const problem = birthdayProblem(info.birthday)
-    if (problem) return refused(problem)
-    const project = ensureShiningProject(username)
-    project.name = info.name
-    project.birthday = info.birthday
-    project.church = info.church
-    project.schoolGrade = info.schoolGrade
-    return SAVED
-  }
-
-  function updateShiningChecklist(
-    username: string,
-    category: 'faithPhase1' | 'faithPhase2' | 'advancedChallenges',
-    key: ShiningChecklistKey,
-    value: boolean
-  ): void {
-    const project = ensureShiningProject(username)
-
-    // Type casting to ensure typescript compatibility
-    const checklist = project[category] as Record<string, boolean>
-    checklist[key] = value
-  }
-
-  function updateShiningCustomChallenge(username: string, text: string): void {
-    const project = ensureShiningProject(username)
-    project.customChallenge = text
-  }
-
-  function updateShiningLecture(
-    username: string,
-    type: 'character' | 'comingOfAge',
-    theme: string,
-    speaker: string,
-    date: string
-  ): SaveResult {
-    const problem = lectureEntryProblem({ speaker, date })
-    if (problem) return refused(problem)
-    speaker = speaker.trim()
-    const project = ensureShiningProject(username)
-    if (type === 'character') {
-      project.characterLectures[theme] = { speaker, date }
-    } else {
-      project.comingOfAgeTopics[theme] = { speaker, date }
-    }
-    return SAVED
   }
 
   // Church-based query functions
@@ -1018,57 +626,12 @@ export const useCoursesStore = defineStore('courses', () => {
       .sort((a, b) => b.sessionCount - a.sessionCount)
   }
 
-  // ── Teaching Stats Actions ──────────────────────────────
-
-  /**
-   * 教師填報或更新某年度的教學人次統計
-   */
-  function saveTeachingStats(
-    teacherUsername: string,
-    year: number,
-    church: string,
-    stats: Omit<TeachingStats, 'teacherUsername' | 'year' | 'church' | 'submittedAt'>
-  ): void {
-    const key = `${teacherUsername}_${year}`
-    teachingStatsDb.value[key] = {
-      teacherUsername,
-      year,
-      church,
-      ...stats,
-      submittedAt: nowIso()
-    }
-  }
-
-  /**
-   * 取得指定教師在某年度的統計（若無則回傳預設空值）
-   */
-  function getTeachingStats(teacherUsername: string, year: number): TeachingStats {
-    const key = `${teacherUsername}_${year}`
-    return (
-      teachingStatsDb.value[key] ?? {
-        teacherUsername,
-        year,
-        church: '',
-        oneOnOne30: 0,
-        oneToMany30: 0,
-        oneOnOneShining: 0,
-        oneToManyShining: 0
-      }
-    )
-  }
-
-  /**
-   * 取得所有教師的統計（可選年份篩選）；SS 中央用
-   */
-  function getAllTeachingStats(year?: number): TeachingStats[] {
-    const all = Object.values(teachingStatsDb.value)
-    if (year !== undefined) {
-      return all.filter((s) => s.year === year)
-    }
-    return all
-  }
-
   return {
+    ...themesPart,
+    ...lecturersPart,
+    ...feedbackPart,
+    ...shiningPart,
+    ...teachingStatsPart,
     courses,
     progressDb,
     restrictionsDb,
@@ -1090,24 +653,6 @@ export const useCoursesStore = defineStore('courses', () => {
     releaseCaretaker,
     releaseStudent,
     unlinkLecturerAccount,
-    getThemesByChurch,
-    addTheme,
-    studentsWithThemeRecords,
-    deleteTheme,
-    updateTheme,
-    getLecturersByChurch,
-    addLecturer,
-    updateLecturer,
-    deleteLecturer,
-    lecturerLinkedTo,
-    getShiningProject,
-    getCompletedCourseCount,
-    hasCompletedAllCourses,
-    isShiningChecked,
-    updateShiningBasicInfo,
-    updateShiningChecklist,
-    updateShiningCustomChallenge,
-    updateShiningLecture,
     getStudentsByChurch,
     getTeachersByChurch,
     getPastorsByChurch,
@@ -1115,17 +660,7 @@ export const useCoursesStore = defineStore('courses', () => {
     getStudentsManagedByTeacher,
     getChurchSummaries,
     getLecturerStatsForChurch,
-    saveTeachingStats,
-    getTeachingStats,
-    getAllTeachingStats,
-    getLecturerByUsername,
     feedbackDb,
-    getFeedback,
-    addFeedback,
-    feedbackSeenAt,
-    unreadFeedback,
-    coursesWithUnreadFeedback,
-    markFeedbackSeen,
     getActualTeachingCourseCounts
   }
 })

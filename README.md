@@ -89,10 +89,12 @@ SSLecture/
 │   ├── mocks/              # 開發期預設資料（30 堂課程），後端就緒後替換
 │   ├── router/             # 路由、導航守衛、捲動位置（index.ts）與各角色首頁（homeRoute.ts）
 │   ├── stores/             # Pinia：auth（帳號、邀請碼、登入）、courses（課程、進度、閃耀計畫、講師、配對）、bookings（預約、出席）
+│   │   └── parts/          # store 拆出的部分：講師、專題主題、心得回覆、閃耀計畫、教學統計、邀請碼、性別與家長綁定
 │   ├── types/              # TypeScript 型別
 │   ├── utils/              # 工具：api（呼叫後端）、scope（誰看得到誰）、session（登入期限）、backup（備份還原）、
 │   │                       #       persist／storage（localStorage）、appUpdate（網站更新後重新載入）、limits（各文字欄位的長度上限）、recordRules（聽課紀錄與日期的規則）、bookingRules（預約的時間規則）、csp、account、datetime、avatar、motion…
 │   ├── views/              # 各頁面：登入、社群登入回調、首次登入補資料、改密碼、學員／教師／管理員主頁、404、無權限
+│   │   └── styles/         # 學員、教師主頁的樣式（*.css 只套用於該頁元件；*.page.css 在該頁顯示時套用）
 │   ├── App.vue             # 根元件（導覽列、語言切換、Toast、個人資料與密碼 Modal、自動登出提醒）
 │   └── main.ts             # 入口（Pinia、Router、i18n、登入狀態檢查）
 │   # 各資料夾的 __tests__/ 為該處的單元測試（Vitest）

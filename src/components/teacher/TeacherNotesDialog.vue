@@ -253,7 +253,11 @@ function onSendFeedback(courseId: string) {
   const student = props.student?.username
   const author = authStore.currentUser?.username
   if (!student || !author || !props.canSendFeedback) return
-  if (!coursesStore.addFeedback(student, courseId, author, feedbackInputs.value[courseId] ?? '')) {
+  const text = feedbackInputs.value[courseId] ?? ''
+  if (!coursesStore.addFeedback(student, courseId, author, text)) {
+    // Not saved: blank (nothing to say), or longer than replies may be
+    if (text.trim())
+      toast(t('stores.courses.replyTooLong', { max: MAX_LENGTH.feedbackReply }), 'error')
     return
   }
   feedbackInputs.value[courseId] = ''

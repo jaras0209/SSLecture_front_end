@@ -844,7 +844,8 @@
       "lecturerNameRequired": "Enter the lecturer's name.",
       "lecturerExists": "This church already lists “{name}” with the same title.",
       "lecturerAccountLinked": "The account {username} is already linked to the lecturer “{name}”; an account can be linked to one lecturer only.",
-      "lecturerNotFound": "This lecturer wasn't found; they may have been deleted."
+      "lecturerNotFound": "This lecturer wasn't found; they may have been deleted.",
+      "replyTooLong": "A reply can be at most {max} characters."
     }
   },
   "booking": {

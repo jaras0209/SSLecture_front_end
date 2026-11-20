@@ -758,6 +758,10 @@ describe('useCoursesStore', () => {
       const store = useCoursesStore()
       expect(store.getFeedback('student', 'bible-01')).toEqual([])
       expect(store.addFeedback('student', 'bible-01', 'teacher', '   ')).toBeUndefined()
+      // as long as the API allows, and no longer
+      expect(store.addFeedback('student', 'bible-09', 'teacher', '好'.repeat(1001))).toBeUndefined()
+      expect(store.addFeedback('student', 'bible-09', 'teacher', '好'.repeat(1000))).toBeDefined()
+      store.feedbackDb.student!['bible-09'] = []
       store.addFeedback('student', 'bible-01', 'teacher', ' 寫得很好 ')
       store.addFeedback('student', 'bible-01', 'pastor', '繼續加油')
       store.addFeedback('student', 'bible-02', 'teacher', '另一課')

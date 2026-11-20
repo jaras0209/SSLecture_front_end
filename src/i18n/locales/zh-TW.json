@@ -844,7 +844,8 @@
       "lecturerNameRequired": "請輸入講師名稱。",
       "lecturerExists": "這間教會已經有「{name}」這位講師（同樣的稱謂）。",
       "lecturerAccountLinked": "帳號 {username} 已連結到講師「{name}」，一個帳號只能連結一筆講師資料。",
-      "lecturerNotFound": "找不到這位講師，可能已被刪除。"
+      "lecturerNotFound": "找不到這位講師，可能已被刪除。",
+      "replyTooLong": "回覆最多 {max} 字。"
     }
   },
   "booking": {

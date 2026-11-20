@@ -1,0 +1,74 @@
+.gender-unset-banner {
+  margin-bottom: 1.25rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.header-user-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+.teacher-avatar-wrap {
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.teacher-avatar-sm {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 2px solid rgba(99, 102, 241, 0.25);
+  object-fit: cover;
+  transition: opacity 0.2s;
+}
+.teacher-avatar-wrap:hover .teacher-avatar-sm {
+  opacity: 0.8;
+}
+.teacher-role-badge {
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  background: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.last-login-hint-sm {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.stats-grid {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+/* ── Booking Styles ─────────────────────────────────────────────────────────── */
+
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #ef4444;
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 700;
+  border-radius: 10px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
