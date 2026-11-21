@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  # Run again by hand (Actions → Deploy to GitHub Pages → Run workflow), e.g. when GitHub's
+  # side failed: re-running the same run finds the earlier upload too and refuses to deploy
+  workflow_dispatch:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
