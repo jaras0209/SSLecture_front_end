@@ -1,7 +1,7 @@
 # SSLecture OAuth2 社群登入設計規格
 
-> **文件版本**：v1.1.1
-> **最後更新**：2026-11-14
+> **文件版本**：v1.1.2
+> **最後更新**：2026-11-25
 > **適用後端**：Spring Boot 3.x（Spring Security 6.x OAuth2 Client）
 > **適用前端**：Vue 3 + TypeScript + Pinia
 > **相關文件**：[文件導覽](./README.md)・[API 規格](./backend_api_spec.md)・[資料庫設計](./database_schema.md)・各版本異動見文末[版本紀錄](#版本紀錄)
@@ -423,28 +423,12 @@ public UserResult findOrCreateOAuthUser(
 
 ### 5.6 新增資料表：social_accounts
 
-```sql
-CREATE TABLE social_accounts (
-  id               UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id          UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  provider         VARCHAR(20)  NOT NULL,       -- 'google' | 'line'
-  provider_user_id VARCHAR(100) NOT NULL,        -- Google sub / LINE userId
-  created_at       TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+欄位與建表 SQL（MySQL）以資料庫設計為準：[2.18 `social_accounts`](./database_schema.md#218-social_accounts-社群帳號綁定)、
+[第 6 節](./database_schema.md#6-sql-建表語句mysql)。重點：
 
-  CONSTRAINT uq_social_provider UNIQUE (provider, provider_user_id)
-);
-
-CREATE INDEX idx_social_accounts_user     ON social_accounts(user_id);
-CREATE INDEX idx_social_accounts_provider ON social_accounts(provider, provider_user_id);
-```
-
-同時修改 `users` 表，補充 email 欄位：
-
-```sql
-ALTER TABLE users
-  ADD COLUMN email          VARCHAR(255) UNIQUE,
-  ADD COLUMN email_verified BOOLEAN NOT NULL DEFAULT FALSE;
-```
+- `UNIQUE (provider, provider_user_id)`：同一個 Google / LINE 帳號只能綁定一位使用者
+- `UNIQUE (user_id, provider)`：一位使用者在同一平台只綁定一次
+- `users.email`（不分大小寫唯一）、`users.email_verified` 已在 `users` 表中，不需另外修改
 
 ---
 
@@ -881,6 +865,10 @@ Refresh Token：
 ---
 
 ## 版本紀錄
+
+### v1.1.2（2026-11-25）資料庫改用 MySQL
+
+- 5.6 的 `social_accounts` 建表 SQL 改為引用資料庫設計（MySQL），不再另寫一份（原本的 PostgreSQL 版本與資料庫設計不一致）
 
 ### v1.1.1（2026-11-14）整理文件
 

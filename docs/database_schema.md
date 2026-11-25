@@ -1,12 +1,12 @@
 # SSLecture 後端資料庫設計文件
 
-> **文件版本**：v1.13.0  
-> **最後更新**：2026-11-19  
+> **文件版本**：v1.14.0  
+> **最後更新**：2026-11-25  
 > **資料來源**：分析前端 `src/stores/auth.ts`、`src/stores/courses.ts`、`src/stores/bookings.ts`、localStorage 資料結構  
-> **資料庫**：PostgreSQL 16 以上（第 6 節的 SQL 已實測可建立全部 22 張表）。不支援 MySQL：
-> 用到了 PostgreSQL 專有的 `CREATE TYPE ... AS ENUM`、`INET`、`TIMESTAMPTZ`、正規表示式 `~` 等  
+> **資料庫**：MySQL 8.4 LTS（8.0.16 以上皆可；第 6 節的 SQL 已實測可建立全部 22 張表，字元集、定序與連線時區的設定也見第 6 節）。
+> 不適用 MariaDB 與 PostgreSQL（`CHECK`、運算式索引、`JSON` 的寫法不同）  
 > **後端存取**：Spring Boot 3（見 [API 規格](./backend_api_spec.md)）建議以 Spring Data JPA（Hibernate）存取，
-> 以 Flyway 管理建表與日後的結構變更  
+> 以 Flyway 管理建表與日後的結構變更（第一版直接用第 6 節的 SQL）  
 > **相關文件**：[文件導覽](./README.md)・[API 規格](./backend_api_spec.md)・[社群登入](./oauth2_social_login_spec.md)・各版本異動見文末[版本紀錄](#版本紀錄)
 
 ---
@@ -40,7 +40,7 @@
 3. [索引設計](#3-索引設計)
 4. [資料關聯一覽](#4-資料關聯一覽)
 5. [設計決策與說明](#5-設計決策與說明)
-6. [SQL 建表語句（PostgreSQL）](#6-sql-建表語句postgresql)
+6. [SQL 建表語句（MySQL）](#6-sql-建表語句mysql)
 7. [種子資料（Seed Data）](#7-種子資料seed-data)
 8. [Mermaid ERD 關聯圖](#8-mermaid-erd-關聯圖)
 9. [從前端備份搬移資料](#9-從前端備份搬移資料)
@@ -96,11 +96,11 @@
 
 | 欄位名 | 資料型別 | 限制 | 說明 |
 |--------|----------|------|------|
-| `id` | `UUID` | PK, NOT NULL | 系統唯一識別碼 |
+| `id` | `CHAR(36)` | PK, NOT NULL | 系統唯一識別碼 |
 | `username` | `VARCHAR(30)` | UNIQUE, NOT NULL, CHECK | 帳號：小寫、3–30 字元、只用英數字與 `. _ -`；系統內永不變的識別碼 |
 | `password_hash` | `VARCHAR(255)` | NULL | bcrypt 雜湊密碼；NULL = 只用 Google / LINE 登入，不能以密碼登入 |
 | `role` | `ENUM` | NOT NULL | `student` / `teacher` / `pastor` / `parent` / `admin` |
-| `church_id` | `UUID` | FK → churches.id, NULL | 所屬教會（admin 為 NULL） |
+| `church_id` | `CHAR(36)` | FK → churches.id, NULL | 所屬教會（admin 為 NULL） |
 | `display_name` | `VARCHAR(20)` | NULL | 暱稱（公開顯示）；從 Google / LINE 帶入的名稱超過 20 字時截斷 |
 | `real_name` | `VARCHAR(50)` | NULL | 真實姓名（管理端顯示，不對學員公開） |
 | `email` | `VARCHAR(255)` | NULL, UNIQUE（小寫） | 選填，可用來登入；孩子常沒有信箱所以可為空 |
@@ -111,9 +111,9 @@
 | `login_method` | `ENUM` | NOT NULL, DEFAULT 'credentials' | `credentials` / `google` / `line` |
 | `token_version` | `INTEGER` | NOT NULL, DEFAULT 0 | 停用、改角色、重設或修改密碼時遞增；版本不符的 Token 失效（見 5.15） |
 | `is_active` | `BOOLEAN` | NOT NULL, DEFAULT TRUE | 帳號是否啟用（FALSE = 軟刪除） |
-| `last_login_at` | `TIMESTAMPTZ` | NULL | 最後登入時間 |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
-| `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 最後更新時間 |
+| `last_login_at` | `DATETIME(3)` | NULL | 最後登入時間 |
+| `created_at` | `DATETIME(3)` | NOT NULL, DEFAULT CURRENT_TIMESTAMP(3) | 建立時間 |
+| `updated_at` | `DATETIME(3)` | NOT NULL, DEFAULT CURRENT_TIMESTAMP(3) | 最後更新時間 |
 
 **設計說明**：
 - `username` 唯一索引，用於登入
@@ -138,11 +138,11 @@
 
 | 欄位名 | 資料型別 | 限制 | 說明 |
 |--------|----------|------|------|
-| `id` | `UUID` | PK, NOT NULL | 唯一識別碼 |
+| `id` | `CHAR(36)` | PK, NOT NULL | 唯一識別碼 |
 | `name` | `VARCHAR(100)` | UNIQUE, NOT NULL | 教會名稱（如「愛與話語」） |
 | `region` | `VARCHAR(100)` | NULL | 地區（如「台北」） |
 | `is_active` | `BOOLEAN` | NOT NULL, DEFAULT TRUE | 是否啟用 |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
+| `created_at` | `DATETIME(3)` | NOT NULL, DEFAULT CURRENT_TIMESTAMP(3) | 建立時間 |
 
 **內建資料（19 間）**：
 `愛與話語`、`主大明`、`主勝利`、`主生命`、`主和睦光`、`台北主話語`、`聖靈`、`永明`、`主希望光`、`實踐`、`主愛`、`主大永`、`主磐石`、`信主`、`宜蘭主話語`、`天民`、`主幸福`、`信榮`、`主盼望`
@@ -163,7 +163,7 @@
 | `duration_seconds` | `INTEGER` | NOT NULL, DEFAULT 0 | 課程時長（秒） |
 | `sort_order` | `INTEGER` | NOT NULL, DEFAULT 0 | 顯示排序 |
 | `is_active` | `BOOLEAN` | NOT NULL, DEFAULT TRUE | 是否啟用 |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
+| `created_at` | `DATETIME(3)` | NOT NULL, DEFAULT CURRENT_TIMESTAMP(3) | 建立時間 |
 
 **內建 30 堂課**：
 - 聖經課程 15 堂（`bible-01` ～ `bible-15`）
@@ -177,14 +177,14 @@
 
 | 欄位名 | 資料型別 | 限制 | 說明 |
 |--------|----------|------|------|
-| `id` | `UUID` | PK, NOT NULL | 唯一識別碼 |
+| `id` | `CHAR(36)` | PK, NOT NULL | 唯一識別碼 |
 | `name` | `VARCHAR(50)` | NOT NULL | 講師顯示名稱 |
 | `title` | `VARCHAR(30)` | NOT NULL | 稱謂代碼：`lecturer`、`pastor`、`preacher`、`elder`、`pastor_wife`、`counselor`、`guest`；畫面依語言翻譯（見設計說明） |
-| `church_id` | `UUID` | FK → churches.id, NULL | 所屬教會（NULL 表示跨教會） |
-| `linked_user_id` | `UUID` | FK → users.id, NULL | 連結的教師或牧者帳號（NULL = 外來/自訂講師） |
+| `church_id` | `CHAR(36)` | FK → churches.id, NULL | 所屬教會（NULL 表示跨教會） |
+| `linked_user_id` | `CHAR(36)` | FK → users.id, NULL | 連結的教師或牧者帳號（NULL = 外來/自訂講師） |
 | `is_active` | `BOOLEAN` | NOT NULL, DEFAULT TRUE | 是否啟用 |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
-| `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 最後更新時間 |
+| `created_at` | `DATETIME(3)` | NOT NULL, DEFAULT CURRENT_TIMESTAMP(3) | 建立時間 |
+| `updated_at` | `DATETIME(3)` | NOT NULL, DEFAULT CURRENT_TIMESTAMP(3) | 最後更新時間 |
 
 **設計說明**：
 - `linked_user_id` 是選填欄位：
@@ -208,7 +208,7 @@
 
 | 欄位名 | 資料型別 | 限制 | 說明 |
 |--------|----------|------|------|
-| `lecturer_id` | `UUID` | FK → lecturers.id, NOT NULL | 講師 |
+| `lecturer_id` | `CHAR(36)` | FK → lecturers.id, NOT NULL | 講師 |
 | `course_id` | `VARCHAR(20)` | FK → courses.id, NOT NULL | 課程 |
 
 **複合主鍵**：`(lecturer_id, course_id)`
@@ -222,14 +222,14 @@
 
 | 欄位名 | 資料型別 | 限制 | 說明 |
 |--------|----------|------|------|
-| `id` | `UUID` | PK, NOT NULL | 唯一識別碼 |
-| `student_id` | `UUID` | FK → users.id, NOT NULL, ON DELETE RESTRICT | 學員；帳號軟刪除，聽課紀錄保留 |
+| `id` | `CHAR(36)` | PK, NOT NULL | 唯一識別碼 |
+| `student_id` | `CHAR(36)` | FK → users.id, NOT NULL, ON DELETE RESTRICT | 學員；帳號軟刪除，聽課紀錄保留 |
 | `course_id` | `VARCHAR(20)` | FK → courses.id, NOT NULL | 課程 |
 | `lecturer_name` | `VARCHAR(50)` | NOT NULL | 授課講師名稱（自由文字，來自 lecturers.name + title） |
-| `listened_at` | `TIMESTAMPTZ` | NOT NULL, CHECK | 學員填報的聽課時間；不可晚於寫入時間 1 小時以上（見 5.17） |
+| `listened_at` | `DATETIME(3)` | NOT NULL, CHECK | 學員填報的聽課時間；不可晚於寫入時間 1 小時以上（見 5.17） |
 | `notes` | `VARCHAR(2000)` | NULL | 學員心得（可為空） |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 系統建立時間（不可修改） |
-| `updated_at` | `TIMESTAMPTZ` | NULL | 最後修改時間（NULL 表示從未修改） |
+| `created_at` | `DATETIME(3)` | NOT NULL, DEFAULT CURRENT_TIMESTAMP(3) | 系統建立時間（不可修改） |
+| `updated_at` | `DATETIME(3)` | NULL | 最後修改時間（NULL 表示從未修改） |
 
 **業務邏輯**：
 - 同一 `(student_id, course_id)` 可有多筆，不做 UNIQUE 限制
@@ -248,11 +248,11 @@
 
 | 欄位名 | 資料型別 | 限制 | 說明 |
 |--------|----------|------|------|
-| `id` | `UUID` | PK, NOT NULL | 唯一識別碼 |
-| `student_id` | `UUID` | UNIQUE, FK → users.id, NOT NULL | 學員（唯一，一位學員只有一筆配對記錄） |
-| `teacher_id` | `UUID` | FK → users.id, NULL | 輔導教師（可為空） |
-| `pastor_id` | `UUID` | FK → users.id, NULL | 分區牧者（可為空） |
-| `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 最後更新時間 |
+| `id` | `CHAR(36)` | PK, NOT NULL | 唯一識別碼 |
+| `student_id` | `CHAR(36)` | UNIQUE, FK → users.id, NOT NULL | 學員（唯一，一位學員只有一筆配對記錄） |
+| `teacher_id` | `CHAR(36)` | FK → users.id, NULL | 輔導教師（可為空） |
+| `pastor_id` | `CHAR(36)` | FK → users.id, NULL | 分區牧者（可為空） |
+| `updated_at` | `DATETIME(3)` | NOT NULL, DEFAULT CURRENT_TIMESTAMP(3) | 最後更新時間 |
 
 **設計說明**：
 - `student_id` 加 UNIQUE，確保一位學員只有一筆配對記錄（UPSERT 操作）
@@ -269,15 +269,15 @@
 
 | 欄位名 | 資料型別 | 限制 | 說明 |
 |--------|----------|------|------|
-| `id` | `UUID` | PK, NOT NULL | 唯一識別碼 |
-| `student_id` | `UUID` | UNIQUE, FK → users.id, NOT NULL | 學員（一人一筆） |
+| `id` | `CHAR(36)` | PK, NOT NULL | 唯一識別碼 |
+| `student_id` | `CHAR(36)` | UNIQUE, FK → users.id, NOT NULL | 學員（一人一筆） |
 | `name` | `VARCHAR(50)` | NULL | 真實姓名 |
 | `birthday` | `DATE` | NULL, CHECK | 生日；介於 1900-01-01 與今天之間（見 5.17） |
 | `church_name` | `VARCHAR(100)` | NULL | 聚會教會（學員填報，可與 users.church_id 不同） |
 | `school_grade` | `VARCHAR(50)` | NULL | 學校年級（如「師大附中 高一」） |
 | `custom_challenge` | `VARCHAR(200)` | NULL | 自訂進階挑戰文字 |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
-| `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 最後更新時間 |
+| `created_at` | `DATETIME(3)` | NOT NULL, DEFAULT CURRENT_TIMESTAMP(3) | 建立時間 |
+| `updated_at` | `DATETIME(3)` | NOT NULL, DEFAULT CURRENT_TIMESTAMP(3) | 最後更新時間 |
 
 ---
 
@@ -288,12 +288,12 @@
 
 | 欄位名 | 資料型別 | 限制 | 說明 |
 |--------|----------|------|------|
-| `id` | `UUID` | PK, NOT NULL | 唯一識別碼 |
-| `shining_project_id` | `UUID` | FK → shining_projects.id, NOT NULL | 所屬閃耀計畫 |
+| `id` | `CHAR(36)` | PK, NOT NULL | 唯一識別碼 |
+| `shining_project_id` | `CHAR(36)` | FK → shining_projects.id, NOT NULL | 所屬閃耀計畫 |
 | `category` | `ENUM` | NOT NULL | `faith_phase1` / `faith_phase2` / `advanced_challenges` |
 | `item_key` | `VARCHAR(50)` | NOT NULL | 項目 key（如 `worship`、`prayer`、`courses30`） |
 | `is_checked` | `BOOLEAN` | NOT NULL, DEFAULT FALSE | 是否勾選 |
-| `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 最後更新時間 |
+| `updated_at` | `DATETIME(3)` | NOT NULL, DEFAULT CURRENT_TIMESTAMP(3) | 最後更新時間 |
 
 **複合唯一鍵**：`(shining_project_id, category, item_key)`
 
@@ -326,14 +326,14 @@
 
 | 欄位名 | 資料型別 | 限制 | 說明 |
 |--------|----------|------|------|
-| `id` | `UUID` | PK, NOT NULL | 唯一識別碼 |
-| `shining_project_id` | `UUID` | FK → shining_projects.id, NOT NULL | 所屬閃耀計畫 |
+| `id` | `CHAR(36)` | PK, NOT NULL | 唯一識別碼 |
+| `shining_project_id` | `CHAR(36)` | FK → shining_projects.id, NOT NULL | 所屬閃耀計畫 |
 | `type` | `ENUM` | NOT NULL | `character`（品格力）/ `coming_of_age`（成年禮必修） |
 | `theme_name` | `VARCHAR(50)` | NOT NULL | 主題名稱（來自 themes 表，但儲存文字以保留歷史） |
 | `speaker_name` | `VARCHAR(50)` | NULL | 授課講師名稱（自由文字） |
 | `lecture_date` | `DATE` | NULL | 上課日期；不可晚於今天（API 檢查，見 5.17） |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
-| `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 最後更新時間 |
+| `created_at` | `DATETIME(3)` | NOT NULL, DEFAULT CURRENT_TIMESTAMP(3) | 建立時間 |
+| `updated_at` | `DATETIME(3)` | NOT NULL, DEFAULT CURRENT_TIMESTAMP(3) | 最後更新時間 |
 
 **複合唯一鍵**：`(shining_project_id, type, theme_name)`
 
@@ -346,13 +346,13 @@
 
 | 欄位名 | 資料型別 | 限制 | 說明 |
 |--------|----------|------|------|
-| `id` | `UUID` | PK, NOT NULL | 唯一識別碼 |
-| `church_id` | `UUID` | FK → churches.id, NOT NULL | 所屬教會 |
+| `id` | `CHAR(36)` | PK, NOT NULL | 唯一識別碼 |
+| `church_id` | `CHAR(36)` | FK → churches.id, NOT NULL | 所屬教會 |
 | `type` | `ENUM` | NOT NULL | `character`（品格力）/ `coming_of_age`（成年禮） |
 | `name` | `VARCHAR(50)` | NOT NULL | 主題名稱（如「品格力 - 自律」） |
 | `sort_order` | `INTEGER` | NOT NULL, DEFAULT 0 | 顯示排序 |
 | `is_active` | `BOOLEAN` | NOT NULL, DEFAULT TRUE | 是否啟用 |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
+| `created_at` | `DATETIME(3)` | NOT NULL, DEFAULT CURRENT_TIMESTAMP(3) | 建立時間 |
 
 **複合唯一鍵**：`(church_id, type, name)`
 
@@ -369,10 +369,10 @@
 
 | 欄位名 | 資料型別 | 限制 | 說明 |
 |--------|----------|------|------|
-| `id` | `UUID` | PK, NOT NULL | 唯一識別碼 |
-| `user_id` | `UUID` | FK → users.id, NOT NULL | 被限制的使用者 |
+| `id` | `CHAR(36)` | PK, NOT NULL | 唯一識別碼 |
+| `user_id` | `CHAR(36)` | FK → users.id, NOT NULL | 被限制的使用者 |
 | `page_path` | `VARCHAR(100)` | NOT NULL | 被限制的頁面路徑（如 `/shining`） |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
+| `created_at` | `DATETIME(3)` | NOT NULL, DEFAULT CURRENT_TIMESTAMP(3) | 建立時間 |
 
 **複合唯一鍵**：`(user_id, page_path)`
 
@@ -384,15 +384,15 @@
 
 | 欄位名 | 資料型別 | 限制 | 說明 |
 |--------|----------|------|------|
-| `id` | `UUID` | PK, NOT NULL | 唯一識別碼 |
-| `user_id` | `UUID` | FK → users.id, NOT NULL | 所屬使用者 |
+| `id` | `CHAR(36)` | PK, NOT NULL | 唯一識別碼 |
+| `user_id` | `CHAR(36)` | FK → users.id, NOT NULL | 所屬使用者 |
 | `token_hash` | `VARCHAR(255)` | UNIQUE, NOT NULL | Refresh Token 的 SHA256 雜湊值 |
 | `remember_me` | `BOOLEAN` | NOT NULL, DEFAULT FALSE | 登入時是否勾選「記住我」（社群登入一律 FALSE） |
 | `token_version` | `INTEGER` | NOT NULL | 簽發時的 `users.token_version`；不符即失效 |
-| `expires_at` | `TIMESTAMPTZ` | NOT NULL | 失效時間；每次換發時順延（見設計說明） |
+| `expires_at` | `DATETIME(3)` | NOT NULL | 失效時間；每次換發時順延（見設計說明） |
 | `is_revoked` | `BOOLEAN` | NOT NULL, DEFAULT FALSE | 是否已被撤銷（見設計說明） |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
-| `last_used_at` | `TIMESTAMPTZ` | NULL | 最後使用時間 |
+| `created_at` | `DATETIME(3)` | NOT NULL, DEFAULT CURRENT_TIMESTAMP(3) | 建立時間 |
+| `last_used_at` | `DATETIME(3)` | NULL | 最後使用時間 |
 
 **設計說明**：
 - 期限是**閒置**期限，每次換發時順延：`remember_me = FALSE` 為 `last_used_at + 2 小時`，`TRUE` 為 `+ 30 天`
@@ -409,23 +409,23 @@
 
 | 欄位名 | 資料型別 | 限制 | 說明 |
 |--------|----------|------|------|
-| `id` | `UUID` | PK, NOT NULL | 系統唯一識別碼 |
-| `teacher_id` | `UUID` | FK → users.id, NOT NULL, ON DELETE RESTRICT | 教師帳號（role = teacher）；帳號軟刪除，統計保留為歷史 |
+| `id` | `CHAR(36)` | PK, NOT NULL | 系統唯一識別碼 |
+| `teacher_id` | `CHAR(36)` | FK → users.id, NOT NULL, ON DELETE RESTRICT | 教師帳號（role = teacher）；帳號軟刪除，統計保留為歷史 |
 | `year` | `SMALLINT` | NOT NULL, CHECK >= 2020 | 統計年度（如 2025） |
 | `one_on_one_30` | `INTEGER` | NOT NULL, DEFAULT 0, CHECK >= 0 | 1對1 講「三十個論」人次 |
 | `one_to_many_30` | `INTEGER` | NOT NULL, DEFAULT 0, CHECK >= 0 | 1對多 講「三十個論」人次 |
 | `one_on_one_shining` | `INTEGER` | NOT NULL, DEFAULT 0, CHECK >= 0 | 1對1 講「閃耀計畫課程」人次 |
 | `one_to_many_shining` | `INTEGER` | NOT NULL, DEFAULT 0, CHECK >= 0 | 1對多 講「閃耀計畫課程」人次 |
-| `submitted_at` | `TIMESTAMPTZ` | NULL | 最後申報/更新時間 |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
-| `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 最後更新時間 |
+| `submitted_at` | `DATETIME(3)` | NULL | 最後申報/更新時間 |
+| `created_at` | `DATETIME(3)` | NOT NULL, DEFAULT CURRENT_TIMESTAMP(3) | 建立時間 |
+| `updated_at` | `DATETIME(3)` | NOT NULL, DEFAULT CURRENT_TIMESTAMP(3) | 最後更新時間 |
 
 **設計說明**：
 - `(teacher_id, year)` 為複合唯一鍵，保證每位教師每年度僅一筆紀錄
 - 人次對應前端計算規則：一次對多人講義以「人次」計（如一次對3人 = 3人次）
 - 後端可用 `GROUP BY year` 提供跨教會的年度比較
 
-**SQL DDL**：見[第 6 節](#6-sql-建表語句postgresql)（依相依順序與其他表一起建立）。
+**SQL DDL**：見[第 6 節](#6-sql-建表語句mysql)（依相依順序與其他表一起建立）。
 
 ---
 
@@ -436,26 +436,26 @@
 
 | 欄位名 | 資料型別 | 限制 | 說明 |
 |--------|----------|------|------|
-| `id` | `UUID` | PK, NOT NULL | 系統產生；前端 mock 的 `sess_...` 只是暫時格式，API 一律當不透明字串處理 |
-| `teacher_id` | `UUID` | FK → users.id, NOT NULL, ON DELETE RESTRICT | 建立並管理預約的輔導教師 |
-| `church_id` | `UUID` | FK → churches.id, NULL | 場次所屬教會 |
+| `id` | `CHAR(36)` | PK, NOT NULL | 系統產生；前端 mock 的 `sess_...` 只是暫時格式，API 一律當不透明字串處理 |
+| `teacher_id` | `CHAR(36)` | FK → users.id, NOT NULL, ON DELETE RESTRICT | 建立並管理預約的輔導教師 |
+| `church_id` | `CHAR(36)` | FK → churches.id, NULL | 場次所屬教會 |
 | `course_id` | `VARCHAR(20)` | FK → courses.id, NULL | 對應課程（與 courses.id 同型別） |
 | `course_title` | `VARCHAR(200)` | NOT NULL | 課程名稱（冗餘儲存，保留歷史） |
-| `lecturer_id` | `UUID` | FK → lecturers.id, NULL | 對應講師（連結帳號的講師可在「我的授課」看到此預約，見 5.11） |
+| `lecturer_id` | `CHAR(36)` | FK → lecturers.id, NULL | 對應講師（連結帳號的講師可在「我的授課」看到此預約，見 5.11） |
 | `lecturer_name` | `VARCHAR(50)` | NOT NULL | 講師姓名（冗餘儲存） |
 | `lecturer_title` | `VARCHAR(30)` | NOT NULL, DEFAULT '' | 講師稱謂代碼（如 `pastor`，同 `lecturers.title`） |
-| `proposed_at` | `TIMESTAMPTZ` | NOT NULL | 教師提議的時間 |
-| `confirmed_at` | `TIMESTAMPTZ` | NULL | 最終確認的時間（雙方同意後填入） |
+| `proposed_at` | `DATETIME(3)` | NOT NULL | 教師提議的時間 |
+| `confirmed_at` | `DATETIME(3)` | NULL | 最終確認的時間（雙方同意後填入） |
 | `duration_minutes` | `SMALLINT` | NULL, CHECK >= 1 | 預計課程時長（分鐘） |
 | `status` | `VARCHAR(20)` | NOT NULL, DEFAULT 'pending' | `pending / confirmed / completed / cancelled` |
 | `cancel_reason` | `VARCHAR(500)` | NULL | 取消原因（status = cancelled 時填入） |
 | `teacher_session_notes` | `VARCHAR(2000)` | NULL | 教師整場備注（完成後填寫） |
 | `is_group_session` | `BOOLEAN` | NOT NULL, DEFAULT FALSE | 是否為團體聽課 |
-| `prep_scriptures` | `VARCHAR(100)[]` | NOT NULL, DEFAULT '{}' | 預習經文列表（PostgreSQL 陣列，每段最多 100 字） |
+| `prep_scriptures` | `JSON` | NOT NULL, DEFAULT (JSON_ARRAY()), CHECK 為陣列 | 預習經文列表（字串陣列，每段最多 100 字，由 API 檢查） |
 | `prep_reading_notes` | `VARCHAR(2000)` | NULL | 預習說明 |
 | `prep_materials` | `VARCHAR(500)` | NULL | 補充材料說明 |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
-| `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 最後更新時間 |
+| `created_at` | `DATETIME(3)` | NOT NULL, DEFAULT CURRENT_TIMESTAMP(3) | 建立時間 |
+| `updated_at` | `DATETIME(3)` | NOT NULL, DEFAULT CURRENT_TIMESTAMP(3) | 最後更新時間 |
 
 **狀態機**：
 ```
@@ -466,13 +466,13 @@ pending ──confirm──> confirmed ──complete──> completed
 
 **設計說明**：
 - `course_title`、`lecturer_name`、`lecturer_title` 冗餘儲存，避免講師/課程被刪除後歷史資料遺失
-- `prep_scriptures` 使用 PostgreSQL 原生陣列型別；MySQL 替代方案可改用 JSON 欄位
+- `prep_scriptures` 存成 JSON 字串陣列（如 `["約翰福音 3:16"]`），JPA 以 `@JdbcTypeCode(SqlTypes.JSON)` 對應 `List<String>`
 - 建議後端在 `status = completed` 時自動 trigger 同步至 `listen_sessions`（若需要）
 - 誰能看、誰能改：安排的教師管理整筆預約，但只看得到同性別的學員；連結帳號的講師看得到全部學員
   並可記錄出席（見 5.10、5.11）
 - 刪除教師帳號或變更其角色時，`pending` / `confirmed` 的預約改為 `cancelled` 並附原因（見 5.12）
 
-**SQL DDL**：見[第 6 節](#6-sql-建表語句postgresql)（依相依順序與其他表一起建立）。
+**SQL DDL**：見[第 6 節](#6-sql-建表語句mysql)（依相依順序與其他表一起建立）。
 
 ---
 
@@ -483,15 +483,15 @@ pending ──confirm──> confirmed ──complete──> completed
 
 | 欄位名 | 資料型別 | 限制 | 說明 |
 |--------|----------|------|------|
-| `session_id` | `UUID` | PK, FK → booking_sessions.id, NOT NULL | 所屬預約場次 |
-| `student_id` | `UUID` | PK, FK → users.id, NOT NULL, ON DELETE RESTRICT | 受邀學員；帳號軟刪除，出席紀錄保留 |
+| `session_id` | `CHAR(36)` | PK, FK → booking_sessions.id, NOT NULL | 所屬預約場次 |
+| `student_id` | `CHAR(36)` | PK, FK → users.id, NOT NULL, ON DELETE RESTRICT | 受邀學員；帳號軟刪除，出席紀錄保留 |
 | `attendance_status` | `VARCHAR(20)` | NOT NULL, DEFAULT 'invited' | `invited / attended / absent` |
 | `student_feedback` | `VARCHAR(1000)` | NULL | 學員課後心得（由學員自行填寫） |
 | `teacher_feedback` | `VARCHAR(1000)` | NULL | 教師對該學員的個別回饋 |
-| `feedback_at` | `TIMESTAMPTZ` | NULL | 回饋最後更新時間 |
-| `linked_listen_session_id` | `UUID` | FK → listen_sessions.id, NULL | 手動連結至聽課進度紀錄 |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
-| `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 最後更新時間 |
+| `feedback_at` | `DATETIME(3)` | NULL | 回饋最後更新時間 |
+| `linked_listen_session_id` | `CHAR(36)` | FK → listen_sessions.id, NULL | 手動連結至聽課進度紀錄 |
+| `created_at` | `DATETIME(3)` | NOT NULL, DEFAULT CURRENT_TIMESTAMP(3) | 建立時間 |
+| `updated_at` | `DATETIME(3)` | NOT NULL, DEFAULT CURRENT_TIMESTAMP(3) | 最後更新時間 |
 
 **設計說明**：
 - 主鍵為 `(session_id, student_id)`：同一場次同一學員只有一筆，不需要另外的 `id`
@@ -501,7 +501,7 @@ pending ──confirm──> confirmed ──complete──> completed
 - `linked_listen_session_id` 為選填，允許手動關聯到已存在的 `listen_sessions` 紀錄
 - 不另存學員帳號：帳號是永不變的識別碼，需要時由 `student_id` JOIN `users` 取得（見 5.7）
 
-**SQL DDL**：見[第 6 節](#6-sql-建表語句postgresql)（依相依順序與其他表一起建立）。
+**SQL DDL**：見[第 6 節](#6-sql-建表語句mysql)（依相依順序與其他表一起建立）。
 
 ---
 
@@ -514,12 +514,12 @@ pending ──confirm──> confirmed ──complete──> completed
 |--------|----------|------|------|
 | `code` | `VARCHAR(20)` | PK, NOT NULL | 邀請碼（例：`SS-TCH-K7M2QX9D`） |
 | `role` | `ENUM` | NOT NULL | 允許註冊的角色 |
-| `church_id` | `UUID` | FK → churches.id, NULL | 指定教會（admin為NULL） |
-| `created_by` | `UUID` | FK → users.id, NULL, ON DELETE SET NULL | 產生此邀請碼的管理員 ID（管理員被刪除後置 NULL） |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 建立時間 |
-| `expires_at` | `TIMESTAMPTZ` | NOT NULL | 到期時間 |
-| `used_by` | `UUID` | FK → users.id, NULL | 使用此邀請碼註冊的帳號 ID |
-| `used_at` | `TIMESTAMPTZ` | NULL | 使用時間 |
+| `church_id` | `CHAR(36)` | FK → churches.id, NULL | 指定教會（admin為NULL） |
+| `created_by` | `CHAR(36)` | FK → users.id, NULL, ON DELETE SET NULL | 產生此邀請碼的管理員 ID（管理員被刪除後置 NULL） |
+| `created_at` | `DATETIME(3)` | NOT NULL, DEFAULT CURRENT_TIMESTAMP(3) | 建立時間 |
+| `expires_at` | `DATETIME(3)` | NOT NULL | 到期時間 |
+| `used_by` | `CHAR(36)` | FK → users.id, NULL | 使用此邀請碼註冊的帳號 ID |
+| `used_at` | `DATETIME(3)` | NULL | 使用時間 |
 | `revoked` | `BOOLEAN` | NOT NULL, DEFAULT FALSE | 是否已被管理員作廢 |
 
 **設計說明**：
@@ -528,7 +528,7 @@ pending ──confirm──> confirmed ──complete──> completed
 - 外鍵均使用 `ON DELETE SET NULL`，避免教會或管理員被刪除時連帶刪除邀請碼歷史（詳見 Section 5.8）
 - 有效判斷：`revoked = FALSE AND used_by IS NULL AND expires_at > NOW()`
 
-**SQL DDL**：見[第 6 節](#6-sql-建表語句postgresql)（依相依順序與其他表一起建立）。
+**SQL DDL**：見[第 6 節](#6-sql-建表語句mysql)（依相依順序與其他表一起建立）。
 
 ---
 
@@ -539,8 +539,8 @@ pending ──confirm──> confirmed ──complete──> completed
 
 | 欄位名 | 資料型別 | 限制 | 說明 |
 |--------|----------|------|------|
-| `id` | `UUID` | PK, DEFAULT gen_random_uuid() | 主鍵 |
-| `user_id` | `UUID` | FK → users.id, NOT NULL, ON DELETE CASCADE | 對應的使用者 |
+| `id` | `CHAR(36)` | PK, DEFAULT (UUID()) | 主鍵 |
+| `user_id` | `CHAR(36)` | FK → users.id, NOT NULL, ON DELETE CASCADE | 對應的使用者 |
 | `provider` | `VARCHAR(20)` | NOT NULL | 第三方平台（`google` / `line`） |
 | `provider_user_id` | `VARCHAR(255)` | NOT NULL | 第三方平台的使用者唯一 ID |
 | `email` | `VARCHAR(255)` | NULL | 從第三方取得的 email（LINE 不一定有） |
@@ -548,9 +548,9 @@ pending ──confirm──> confirmed ──complete──> completed
 | `avatar_url` | `TEXT` | NULL | 第三方頭像 URL |
 | `access_token` | `TEXT` | NULL | 第三方 Access Token（加密儲存） |
 | `refresh_token` | `TEXT` | NULL | 第三方 Refresh Token（加密儲存，若有） |
-| `token_expires_at` | `TIMESTAMPTZ` | NULL | Access Token 到期時間 |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 首次綁定時間 |
-| `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 最近更新時間（Token 更新時） |
+| `token_expires_at` | `DATETIME(3)` | NULL | Access Token 到期時間 |
+| `created_at` | `DATETIME(3)` | NOT NULL, DEFAULT CURRENT_TIMESTAMP(3) | 首次綁定時間 |
+| `updated_at` | `DATETIME(3)` | NOT NULL, DEFAULT CURRENT_TIMESTAMP(3) | 最近更新時間（Token 更新時） |
 
 **Unique 約束**：
 - `UNIQUE (provider, provider_user_id)`：同一平台的使用者 ID 全域唯一（防止同帳號綁定多個本地使用者）
@@ -562,7 +562,7 @@ pending ──confirm──> confirmed ──complete──> completed
 - 相同 email 的不同 provider 可自動合併到同一 `user_id`（由後端 `SocialAccountService` 處理）
 - `access_token` / `refresh_token` 建議使用 AES-256 加密後儲存，在 `application.yml` 設定密鑰
 
-**SQL DDL**：見[第 6 節](#6-sql-建表語句postgresql)（依相依順序與其他表一起建立）。
+**SQL DDL**：見[第 6 節](#6-sql-建表語句mysql)（依相依順序與其他表一起建立）。
 
 ---
 
@@ -573,9 +573,9 @@ pending ──confirm──> confirmed ──complete──> completed
 
 | 欄位名 | 資料型別 | 限制 | 說明 |
 |--------|----------|------|------|
-| `parent_id` | `UUID` | PK, FK → users.id, NOT NULL | 家長帳號（`role = 'parent'`） |
-| `student_id` | `UUID` | PK, FK → users.id, NOT NULL | 綁定的孩子（`role = 'student'`） |
-| `bound_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 綁定時間 |
+| `parent_id` | `CHAR(36)` | PK, FK → users.id, NOT NULL | 家長帳號（`role = 'parent'`） |
+| `student_id` | `CHAR(36)` | PK, FK → users.id, NOT NULL | 綁定的孩子（`role = 'student'`） |
+| `bound_at` | `DATETIME(3)` | NOT NULL, DEFAULT CURRENT_TIMESTAMP(3) | 綁定時間 |
 
 **複合主鍵**：`(parent_id, student_id)`
 
@@ -585,16 +585,7 @@ pending ──confirm──> confirmed ──complete──> completed
 - 家長只看得到綁定的孩子（見 5.10）
 - 學員或家長帳號刪除時，對應的綁定一併刪除（軟刪除時由應用端處理，見 5.12）
 
-**資料遷移**（自 v1.6.0）：
-```sql
-INSERT INTO parent_children (parent_id, student_id)
-SELECT parent_id, student_id FROM student_assignments WHERE parent_id IS NOT NULL
-ON CONFLICT DO NOTHING;
-
-ALTER TABLE student_assignments DROP COLUMN parent_id;
-```
-
-**SQL DDL**：見 [第 6 節](#6-sql-建表語句postgresql) `parent_children`。
+**SQL DDL**：見 [第 6 節](#6-sql-建表語句mysql) `parent_children`。
 
 ---
 
@@ -605,12 +596,12 @@ ALTER TABLE student_assignments DROP COLUMN parent_id;
 
 | 欄位名 | 資料型別 | 限制 | 說明 |
 |--------|----------|------|------|
-| `id` | `UUID` | PK, NOT NULL | 唯一識別碼 |
-| `student_id` | `UUID` | FK → users.id, NOT NULL, ON DELETE RESTRICT | 學員 |
+| `id` | `CHAR(36)` | PK, NOT NULL | 唯一識別碼 |
+| `student_id` | `CHAR(36)` | FK → users.id, NOT NULL, ON DELETE RESTRICT | 學員 |
 | `course_id` | `VARCHAR(20)` | FK → courses.id, NOT NULL | 課程 |
-| `author_id` | `UUID` | FK → users.id, NOT NULL, ON DELETE RESTRICT | 回覆者（教師、牧者或管理員） |
+| `author_id` | `CHAR(36)` | FK → users.id, NOT NULL, ON DELETE RESTRICT | 回覆者（教師、牧者或管理員） |
 | `message` | `VARCHAR(1000)` | NOT NULL，不可為空白 | 回覆內容 |
-| `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 回覆時間 |
+| `created_at` | `DATETIME(3)` | NOT NULL, DEFAULT CURRENT_TIMESTAMP(3) | 回覆時間 |
 
 **設計說明**：
 - 回覆的對象是「學員在某課程的心得」，同一學員同一課程可以有多則回覆（教師、牧者都可回），依時間排序
@@ -620,7 +611,7 @@ ALTER TABLE student_assignments DROP COLUMN parent_id;
 - 學員在自己的課程頁看到回覆（新的在前）；教師的「學員筆記」對話框依時間列出
 - 只會新增、不修改；帳號軟刪除後回覆保留為歷史（`ON DELETE RESTRICT`）
 
-**SQL DDL**：見[第 6 節](#6-sql-建表語句postgresql)。
+**SQL DDL**：見[第 6 節](#6-sql-建表語句mysql)。
 
 ---
 
@@ -631,9 +622,9 @@ ALTER TABLE student_assignments DROP COLUMN parent_id;
 
 | 欄位名 | 資料型別 | 限制 | 說明 |
 |--------|----------|------|------|
-| `student_id` | `UUID` | PK, FK → users.id, NOT NULL | 學員 |
+| `student_id` | `CHAR(36)` | PK, FK → users.id, NOT NULL | 學員 |
 | `course_id` | `VARCHAR(20)` | PK, FK → courses.id, NOT NULL | 課程 |
-| `seen_up_to` | `TIMESTAMPTZ` | NOT NULL | 已讀到的最新一則回覆的 `created_at` |
+| `seen_up_to` | `DATETIME(3)` | NOT NULL | 已讀到的最新一則回覆的 `created_at` |
 
 **設計說明**：
 - 學員打開課程即視為已讀；`created_at > seen_up_to` 的回覆算「新回覆」，顯示在課程卡片與「課程」分頁上
@@ -649,7 +640,7 @@ WHERE f.student_id = :student_id AND (r.seen_up_to IS NULL OR f.created_at > r.s
 GROUP BY f.course_id;
 ```
 
-**SQL DDL**：見[第 6 節](#6-sql-建表語句postgresql)。
+**SQL DDL**：見[第 6 節](#6-sql-建表語句mysql)。
 
 ---
 
@@ -660,12 +651,12 @@ GROUP BY f.course_id;
 
 | 欄位名 | 資料型別 | 限制 | 說明 |
 |--------|----------|------|------|
-| `id` | `BIGSERIAL` | PK | 流水號 |
+| `id` | `BIGINT` | PK, AUTO_INCREMENT | 流水號 |
 | `action` | `ENUM` | NOT NULL | `login` / `invite_code` / `password_forgot` / `password_reset` / `password_change` / `oauth_exchange` |
 | `subject` | `VARCHAR(255)` | NULL | 嘗試的帳號或信箱（小寫）；不知道是誰時為 NULL |
-| `ip` | `INET` | NOT NULL | 來源 IP |
+| `ip` | `VARCHAR(45)` | NOT NULL | 來源 IP（IPv4 或 IPv6 的文字形式） |
 | `succeeded` | `BOOLEAN` | NOT NULL | 是否成功 |
-| `attempted_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT NOW() | 時間 |
+| `attempted_at` | `DATETIME(3)` | NOT NULL, DEFAULT CURRENT_TIMESTAMP(3) | 時間 |
 
 **設計說明**：
 - 以「帳號」與「來源 IP」各算一份失敗次數，例如同一帳號 15 分鐘內登入失敗 5 次就鎖 15 分鐘（各項上限見 API 規格）
@@ -678,12 +669,12 @@ GROUP BY f.course_id;
 -- 帳號 :subject 最近 15 分鐘、最後一次成功之後的登入失敗次數
 SELECT COUNT(*) FROM auth_attempts
 WHERE action = 'login' AND subject = :subject AND NOT succeeded
-  AND attempted_at > NOW() - INTERVAL '15 minutes'
+  AND attempted_at > NOW(3) - INTERVAL 15 MINUTE
   AND attempted_at > COALESCE((SELECT MAX(attempted_at) FROM auth_attempts
-                               WHERE action = 'login' AND subject = :subject AND succeeded), '-infinity');
+                               WHERE action = 'login' AND subject = :subject AND succeeded), '1000-01-01');
 ```
 
-**SQL DDL**：見[第 6 節](#6-sql-建表語句postgresql)。
+**SQL DDL**：見[第 6 節](#6-sql-建表語句mysql)。
 
 ---
 
@@ -757,7 +748,7 @@ CREATE INDEX idx_auth_attempts_ip      ON auth_attempts(action, ip, attempted_at
 所有外鍵依被參照的表分組。「刪除父列時」說明實體刪除被參照的資料時會發生什麼；帳號一律軟刪除
 （`users.is_active = FALSE`，見 5.12），所以 `RESTRICT` 的關聯在正常流程中不會被觸發，只是防止誤刪歷史資料。
 
-> 此表由第 6 節建表語句在 PostgreSQL 16 實際建立後，從 `pg_constraint` 查出整理而成。
+> 此表由第 6 節建表語句在 MySQL 實際建立後，從 `information_schema.REFERENTIAL_CONSTRAINTS` 查出整理而成。
 
 **churches**
 
@@ -859,16 +850,15 @@ CREATE INDEX idx_auth_attempts_ip      ON auth_attempts(action, ip, attempted_at
 - 若用外鍵，刪除主題會連帶影響已登記的歷史紀錄
 - 儲存文字確保資料的**歷史完整性**
 - 代價是**改名時要同步**：主題改名時，在同一個交易中把該教會學員的 `shining_lectures.theme_name` 從舊名稱改為新名稱
-  （`UPDATE shining_lectures SET theme_name = :new FROM shining_projects p JOIN users u ON u.id = p.student_id
-  WHERE shining_lectures.shining_project_id = p.id AND u.church_id = :church AND shining_lectures.type = :type
-  AND shining_lectures.theme_name = :old`），否則畫面依新名稱找不到這些紀錄；前端 `updateTheme()` 做同樣的事
+  （`UPDATE shining_lectures sl JOIN shining_projects p ON p.id = sl.shining_project_id JOIN users u ON u.id = p.student_id
+  SET sl.theme_name = :new WHERE u.church_id = :church AND sl.type = :type AND sl.theme_name = :old`），否則畫面依新名稱找不到這些紀錄；前端 `updateTheme()` 做同樣的事
 - 刪除主題（軟刪除）不改動已登記的講座，但畫面只依現有主題列出，所以不再顯示
 
 ### 5.4 `student_assignments` 為何用單一表而非關聯表？
 
 - 一位學員固定只能有「一位」teacher、「一位」pastor
 - 用單一表 + 2 個 FK 欄位（可為 NULL）最直觀
-- UPSERT（INSERT ON CONFLICT UPDATE）操作簡單
+- UPSERT（`INSERT ... ON DUPLICATE KEY UPDATE`）操作簡單
 - 家長則不同：一位家長可綁定多位孩子，一位孩子也可能有父母兩位家長，所以另用
   多對多的 `parent_children`（v1.7.0 起；前端已統一以家長帳號的 `childUsernames` 為唯一來源）
 
@@ -878,7 +868,7 @@ CREATE INDEX idx_auth_attempts_ip      ON auth_attempts(action, ip, attempted_at
 -- 後端應在查詢時自動計算，不完全依賴前端傳入
 SELECT COUNT(DISTINCT course_id) AS completed_count
 FROM listen_sessions
-WHERE student_id = $1
+WHERE student_id = :student_id
 -- 若 completed_count >= 30，則 courses30 = true
 ```
 
@@ -1006,17 +996,21 @@ ORDER BY COALESCE(bs.confirmed_at, bs.proposed_at) DESC;
 
 | 種類 | 欄位 | 意義 | 前端格式 | 後端處理 |
 |------|------|------|----------|----------|
-| 牆上時間（使用者選的時間） | `listen_sessions.listened_at`、`booking_sessions.proposed_at` / `confirmed_at` | 「台灣時間幾點」 | `YYYY-MM-DDTHH:mm`，**不帶時區**（`<input type="datetime-local">`） | 一律以 `Asia/Taipei` 解讀後存成 `TIMESTAMPTZ`；回傳時再轉回同樣格式 |
-| 系統時間戳記 | `created_at`、`updated_at`、`submitted_at`、`last_login_at`、`feedback_at` 等 | 事件發生的時刻 | ISO 8601（UTC，`...Z`） | 直接存 `TIMESTAMPTZ`，原樣回傳 ISO 8601 |
+| 牆上時間（使用者選的時間） | `listen_sessions.listened_at`、`booking_sessions.proposed_at` / `confirmed_at` | 「台灣時間幾點」 | `YYYY-MM-DDTHH:mm`，**不帶時區**（`<input type="datetime-local">`） | 一律以 `Asia/Taipei` 解讀、換成 UTC 後存入 `DATETIME(3)`；回傳時再轉回同樣格式 |
+| 系統時間戳記 | `created_at`、`updated_at`、`submitted_at`、`last_login_at`、`feedback_at` 等 | 事件發生的時刻 | ISO 8601（UTC，`...Z`） | 存 UTC 的 `DATETIME(3)`，回傳 ISO 8601（UTC） |
+
+MySQL 的 `DATETIME` 不記時區，所以**資料庫裡一律是 UTC**（連線時區設定見[第 6 節](#6-sql-建表語句mysql)）。
+轉換建議在後端程式做（`LocalDateTime.parse(s).atZone(ZoneId.of("Asia/Taipei")).toInstant()`）；在 SQL 裡轉換時：
 
 ```sql
--- 寫入：前端的 '2026-10-28T14:30' 代表台灣時間 14:30
-INSERT INTO booking_sessions (..., proposed_at) VALUES (..., '2026-10-28T14:30'::timestamp AT TIME ZONE 'Asia/Taipei');
+-- 寫入：前端的 '2026-10-28T14:30' 代表台灣時間 14:30，存成 UTC 06:30
+INSERT INTO booking_sessions (..., proposed_at) VALUES (..., CONVERT_TZ('2026-10-28 14:30', '+08:00', '+00:00'));
 -- 讀出：轉回不帶時區的台灣時間
-SELECT to_char(proposed_at AT TIME ZONE 'Asia/Taipei', 'YYYY-MM-DD"T"HH24:MI') AS proposed_at FROM booking_sessions;
+SELECT DATE_FORMAT(CONVERT_TZ(proposed_at, '+00:00', '+08:00'), '%Y-%m-%dT%H:%i') AS proposed_at FROM booking_sessions;
 ```
 
 - 不可把牆上時間當成 UTC（會差 8 小時），也不要依伺服器所在時區解讀（雲端主機多半是 UTC）
+- 台灣沒有日光節約時間，所以 SQL 裡可直接寫 `+08:00`；要寫 `'Asia/Taipei'` 須先把時區資料載入 MySQL（`mysql_tzinfo_to_sql`）
 - 目前所有教會都在台灣，所以固定 `Asia/Taipei`；若未來有其他時區的教會，再在 `churches` 加 `time_zone` 欄位
 - 前端相關工具：`src/utils/datetime.ts`（`toLocalDateTimeInput()` 產生牆上時間、`nowIso()` 產生系統時間戳記）
 
@@ -1045,7 +1039,8 @@ API 規格〈欄位長度上限〉）。這樣前端收下的內容，後端與�
 不會到儲存時才失敗。
 
 - 長文字（心得、備註、預習說明）也用 `VARCHAR(n)` 而不是不限長度的 `TEXT`，讓資料庫同樣守住上限
-- PostgreSQL 的 `VARCHAR(n)` 以**字元**計算，中文與英文都算 1 個，與前端的計算一致
+- MySQL（`utf8mb4`）的 `VARCHAR(n)` 以**字元**計算，中文與英文都算 1 個，與前端的計算一致；超過時因 `STRICT_TRANS_TABLES`
+  而拒絕寫入（關掉嚴格模式會被默默截斷，所以不可關）
 - 同一個資料存在多張表時大小相同：講師名稱在 `lecturers.name`、`listen_sessions.lecturer_name`、
   `booking_sessions.lecturer_name`、`shining_lectures.speaker_name` 都是 50；講師稱謂代碼都是 `VARCHAR(30)`
 - 從 Google / LINE 帶入的暱稱可能超過 20 字，寫入 `users.display_name` 前截斷
@@ -1072,120 +1067,140 @@ API 規格〈欄位長度上限〉）。這樣前端收下的內容，後端與�
 
 ---
 
-## 6. SQL 建表語句（PostgreSQL）
+## 6. SQL 建表語句（MySQL）
+
+以 MySQL 8.4 LTS 為準（8.0.16 起才會真正執行 `CHECK`，更早的版本與 MariaDB 不適用）。這一節的 SQL 已在
+MySQL 8.0.46 實際建立全部 22 張表，並逐一測試唯一限制與 `CHECK`（用到的語法 8.0 與 8.4 相同）。
+
+**資料庫與連線設定**：
+
+| 項目 | 設定 | 原因 |
+|------|------|------|
+| 字元集 | `utf8mb4` | 中文、表情符號都存得下（MySQL 的 `utf8` 只有 3 個位元組，存不了表情符號） |
+| 定序 | `utf8mb4_0900_as_cs`（區分大小寫與重音） | 唯一限制與比對和前端一致（前端比對講師、主題名稱時區分大小寫）；MySQL 預設的 `_ai_ci` 會把 `John` 與 `john` 當成重複。需要不分大小寫搜尋時在查詢裡寫 `COLLATE utf8mb4_0900_ai_ci` |
+| 時區 | 連線時區設為 UTC：JDBC 網址加 `connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true`，Hibernate 設 `hibernate.jdbc.time_zone=UTC` | `DATETIME` 不記時區，全部存 UTC（見 [5.14](#514-時間與時區)）；`DEFAULT CURRENT_TIMESTAMP(3)` 依連線時區取值 |
+| `sql_mode` | 保留預設的 `STRICT_TRANS_TABLES` | 太長的文字、不合法的值會被拒絕，而不是被截斷後存入（見 [5.16](#516-文字欄位長度)） |
+| 儲存引擎 | InnoDB（預設） | 外鍵與交易 |
+
+**型別對照**：識別碼為 UUID 字串 `CHAR(36)`，預設由資料庫產生（`DEFAULT (UUID())`），也可由後端產生後寫入；
+時間一律 `DATETIME(3)`（毫秒，存 UTC；不用 `TIMESTAMP`，它只到 2038 年）；`BOOLEAN` 即 `TINYINT(1)`；
+列舉直接寫在欄位上（`ENUM(...)`）。
 
 ```sql
 -- ═══════════════════════════════════════════════════
---  啟用 UUID 擴展
+--  建立資料庫（區分大小寫的定序，見上表）
 -- ═══════════════════════════════════════════════════
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+CREATE DATABASE sslecture CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_as_cs;
+USE sslecture;
 
 -- ═══════════════════════════════════════════════════
 --  1. churches（教會）
 -- ═══════════════════════════════════════════════════
 CREATE TABLE churches (
-  id         UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  id         CHAR(36)     PRIMARY KEY DEFAULT (UUID()),
   name       VARCHAR(100) NOT NULL UNIQUE,
   region     VARCHAR(100),
-  is_active  BOOLEAN     NOT NULL DEFAULT TRUE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  is_active  BOOLEAN      NOT NULL DEFAULT TRUE,
+  created_at DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
 );
 
 -- ═══════════════════════════════════════════════════
 --  2. users（使用者）
 -- ═══════════════════════════════════════════════════
-CREATE TYPE user_role AS ENUM ('student', 'teacher', 'pastor', 'parent', 'admin');
-CREATE TYPE login_method AS ENUM ('credentials', 'google', 'line');
-CREATE TYPE user_gender AS ENUM ('male', 'female');
-
 CREATE TABLE users (
-  id            UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
-  username      VARCHAR(30)  NOT NULL UNIQUE
-                CHECK (username ~ '^[a-z0-9._-]{3,30}$'),
+  id            CHAR(36)     PRIMARY KEY DEFAULT (UUID()),
+  username      VARCHAR(30)  NOT NULL UNIQUE,
   password_hash VARCHAR(255),                 -- NULL = 只用社群登入
-  role          user_role    NOT NULL,
-  church_id     UUID         REFERENCES churches(id) ON DELETE SET NULL,
+  role          ENUM('student', 'teacher', 'pastor', 'parent', 'admin') NOT NULL,
+  church_id     CHAR(36),
   display_name  VARCHAR(20),
   real_name     VARCHAR(50),
-  gender        user_gender,                 -- 只用於 student / teacher；NULL = 未設定
-  email                VARCHAR(255),           -- 選填，小寫儲存
+  gender        ENUM('male', 'female'),       -- 只用於 student / teacher；NULL = 未設定
+  email                VARCHAR(255),          -- 選填，小寫儲存
   email_verified       BOOLEAN NOT NULL DEFAULT FALSE,
   must_change_password BOOLEAN NOT NULL DEFAULT FALSE,
-  avatar_url    VARCHAR(2048)
-                CHECK (avatar_url ~ '^https://'),  -- 只接受 https（見 2.1）
-  login_method  login_method NOT NULL DEFAULT 'credentials',
+  avatar_url    VARCHAR(2048),                -- 只接受 https（見 2.1）
+  login_method  ENUM('credentials', 'google', 'line') NOT NULL DEFAULT 'credentials',
   token_version INTEGER      NOT NULL DEFAULT 0,   -- 遞增即讓既有登入失效（見 5.15）
   is_active     BOOLEAN      NOT NULL DEFAULT TRUE,
-  last_login_at TIMESTAMPTZ,
-  created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-  updated_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+  last_login_at DATETIME(3),
+  created_at    DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at    DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  CONSTRAINT users_username_format CHECK (REGEXP_LIKE(username, '^[a-z0-9._-]{3,30}$', 'c')),
+  CONSTRAINT users_avatar_https    CHECK (REGEXP_LIKE(avatar_url, '^https://', 'c')),
+  CONSTRAINT fk_users_church FOREIGN KEY (church_id) REFERENCES churches(id) ON DELETE SET NULL
 );
 
 CREATE INDEX idx_users_username    ON users(username);
 CREATE INDEX idx_users_church_role ON users(church_id, role);
-CREATE UNIQUE INDEX uq_users_email ON users(lower(email)) WHERE email IS NOT NULL;
+-- 信箱不分大小寫唯一；NULL 不受限制
+CREATE UNIQUE INDEX uq_users_email ON users((LOWER(email)));
 
 -- ═══════════════════════════════════════════════════
 --  3. courses（課程）
 -- ═══════════════════════════════════════════════════
-CREATE TYPE course_category AS ENUM ('bible', 'lecture');
-
 CREATE TABLE courses (
-  id               VARCHAR(20)     PRIMARY KEY,
-  title            VARCHAR(100)    NOT NULL,
-  category         course_category NOT NULL,
+  id               VARCHAR(20)  PRIMARY KEY,
+  title            VARCHAR(100) NOT NULL,
+  category         ENUM('bible', 'lecture') NOT NULL,
   description      TEXT,
   cover_color      VARCHAR(200),
-  duration_seconds INTEGER         NOT NULL DEFAULT 0,
-  sort_order       INTEGER         NOT NULL DEFAULT 0,
-  is_active        BOOLEAN         NOT NULL DEFAULT TRUE,
-  created_at       TIMESTAMPTZ     NOT NULL DEFAULT NOW()
+  duration_seconds INTEGER      NOT NULL DEFAULT 0,
+  sort_order       INTEGER      NOT NULL DEFAULT 0,
+  is_active        BOOLEAN      NOT NULL DEFAULT TRUE,
+  created_at       DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
 );
 
 -- ═══════════════════════════════════════════════════
 --  4. lecturers（講師）
 -- ═══════════════════════════════════════════════════
 CREATE TABLE lecturers (
-  id              UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+  id              CHAR(36)     PRIMARY KEY DEFAULT (UUID()),
   name            VARCHAR(50)  NOT NULL,
   title           VARCHAR(30)  NOT NULL,
-  church_id       UUID         REFERENCES churches(id) ON DELETE SET NULL,
-  linked_user_id  UUID         REFERENCES users(id) ON DELETE SET NULL,  -- NULL = 外來/自訂講師
+  church_id       CHAR(36),
+  linked_user_id  CHAR(36),                   -- NULL = 外來/自訂講師
   is_active       BOOLEAN      NOT NULL DEFAULT TRUE,
-  created_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-  updated_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+  created_at      DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at      DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  CONSTRAINT fk_lecturers_church      FOREIGN KEY (church_id)      REFERENCES churches(id) ON DELETE SET NULL,
+  CONSTRAINT fk_lecturers_linked_user FOREIGN KEY (linked_user_id) REFERENCES users(id)    ON DELETE SET NULL
 );
 
-CREATE INDEX idx_lecturers_church       ON lecturers(church_id);
--- 一個帳號只連結一筆講師資料；同教會不重複列同名同稱謂的講師（停用的不算，見 2.4）
-CREATE UNIQUE INDEX uq_lecturers_linked_user ON lecturers(linked_user_id)
-  WHERE linked_user_id IS NOT NULL AND is_active;
-CREATE UNIQUE INDEX uq_lecturers_church_name ON lecturers(church_id, name, title) WHERE is_active;
+CREATE INDEX idx_lecturers_church ON lecturers(church_id);
+-- 一個帳號只連結一筆講師資料；同教會不重複列同名同稱謂的講師（停用的不算，見 2.4）。
+-- MySQL 沒有部分索引：停用的列讓運算式得到 NULL，而唯一索引不限制 NULL
+CREATE UNIQUE INDEX uq_lecturers_linked_user ON lecturers((IF(is_active, linked_user_id, NULL)));
+CREATE UNIQUE INDEX uq_lecturers_church_name ON lecturers((IF(is_active, church_id, NULL)), name, title);
 
 -- ═══════════════════════════════════════════════════
 --  5. lecturer_courses（講師授課關聯，多對多）
 -- ═══════════════════════════════════════════════════
 CREATE TABLE lecturer_courses (
-  lecturer_id UUID        NOT NULL REFERENCES lecturers(id) ON DELETE CASCADE,
-  course_id   VARCHAR(20) NOT NULL REFERENCES courses(id)   ON DELETE CASCADE,
-  PRIMARY KEY (lecturer_id, course_id)
+  lecturer_id CHAR(36)    NOT NULL,
+  course_id   VARCHAR(20) NOT NULL,
+  PRIMARY KEY (lecturer_id, course_id),
+  CONSTRAINT fk_lecturer_courses_lecturer FOREIGN KEY (lecturer_id) REFERENCES lecturers(id) ON DELETE CASCADE,
+  CONSTRAINT fk_lecturer_courses_course   FOREIGN KEY (course_id)   REFERENCES courses(id)   ON DELETE CASCADE
 );
 
 -- ═══════════════════════════════════════════════════
 --  6. listen_sessions（聽課紀錄）
 -- ═══════════════════════════════════════════════════
 CREATE TABLE listen_sessions (
-  id            UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  student_id    UUID        NOT NULL REFERENCES users(id) ON DELETE RESTRICT, -- 聽課紀錄保留為歷史
-  course_id     VARCHAR(20) NOT NULL REFERENCES courses(id),
+  id            CHAR(36)    PRIMARY KEY DEFAULT (UUID()),
+  student_id    CHAR(36)    NOT NULL,
+  course_id     VARCHAR(20) NOT NULL,
   lecturer_name VARCHAR(50) NOT NULL,
-  listened_at   TIMESTAMPTZ NOT NULL,
+  listened_at   DATETIME(3) NOT NULL,
   notes         VARCHAR(2000),
-  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at    TIMESTAMPTZ,
+  created_at    DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at    DATETIME(3),
   -- 聽課時間不可晚於寫入時間 1 小時以上（見 5.17）
   CONSTRAINT listened_not_in_future
-    CHECK (listened_at - COALESCE(updated_at, created_at) <= INTERVAL '1 hour')
+    CHECK (listened_at <= COALESCE(updated_at, created_at) + INTERVAL 1 HOUR),
+  CONSTRAINT fk_listen_sessions_student FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE RESTRICT, -- 聽課紀錄保留為歷史
+  CONSTRAINT fk_listen_sessions_course  FOREIGN KEY (course_id)  REFERENCES courses(id)
 );
 
 CREATE INDEX idx_listen_sessions_student        ON listen_sessions(student_id);
@@ -1196,11 +1211,14 @@ CREATE INDEX idx_listen_sessions_listened_at    ON listen_sessions(listened_at D
 --  7. student_assignments（學員關懷配對）
 -- ═══════════════════════════════════════════════════
 CREATE TABLE student_assignments (
-  id         UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  student_id UUID        NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
-  teacher_id UUID        REFERENCES users(id) ON DELETE SET NULL,
-  pastor_id  UUID        REFERENCES users(id) ON DELETE SET NULL,
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  id         CHAR(36)    PRIMARY KEY DEFAULT (UUID()),
+  student_id CHAR(36)    NOT NULL UNIQUE,
+  teacher_id CHAR(36),
+  pastor_id  CHAR(36),
+  updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  CONSTRAINT fk_student_assignments_student FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_student_assignments_teacher FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE SET NULL,
+  CONSTRAINT fk_student_assignments_pastor  FOREIGN KEY (pastor_id)  REFERENCES users(id) ON DELETE SET NULL
 );
 
 CREATE INDEX idx_student_assignments_teacher ON student_assignments(teacher_id);
@@ -1208,10 +1226,12 @@ CREATE INDEX idx_student_assignments_pastor  ON student_assignments(pastor_id);
 
 -- parent_children（家長綁定，多對多）
 CREATE TABLE parent_children (
-  parent_id  UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  student_id UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  bound_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  PRIMARY KEY (parent_id, student_id)
+  parent_id  CHAR(36)    NOT NULL,
+  student_id CHAR(36)    NOT NULL,
+  bound_at   DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (parent_id, student_id),
+  CONSTRAINT fk_parent_children_parent  FOREIGN KEY (parent_id)  REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_parent_children_student FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE INDEX idx_parent_children_student ON parent_children(student_id);
@@ -1220,30 +1240,31 @@ CREATE INDEX idx_parent_children_student ON parent_children(student_id);
 --  8. shining_projects（閃耀計畫主表）
 -- ═══════════════════════════════════════════════════
 CREATE TABLE shining_projects (
-  id               UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  student_id       UUID        NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+  id               CHAR(36)    PRIMARY KEY DEFAULT (UUID()),
+  student_id       CHAR(36)    NOT NULL UNIQUE,
   name             VARCHAR(50),
-  birthday         DATE CHECK (birthday >= DATE '1900-01-01'), -- 不晚於今天由 API 檢查（見 5.17）
+  birthday         DATE,                      -- 不晚於今天由 API 檢查（見 5.17）
   church_name      VARCHAR(100),
   school_grade     VARCHAR(50),
   custom_challenge VARCHAR(200),
-  created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at       DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at       DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  CONSTRAINT shining_birthday_from_1900 CHECK (birthday >= '1900-01-01'),
+  CONSTRAINT fk_shining_projects_student FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- ═══════════════════════════════════════════════════
 --  9. shining_faith_checklists（信仰指標勾選）
 -- ═══════════════════════════════════════════════════
-CREATE TYPE checklist_category AS ENUM ('faith_phase1', 'faith_phase2', 'advanced_challenges');
-
 CREATE TABLE shining_faith_checklists (
-  id                  UUID               PRIMARY KEY DEFAULT gen_random_uuid(),
-  shining_project_id  UUID               NOT NULL REFERENCES shining_projects(id) ON DELETE CASCADE,
-  category            checklist_category NOT NULL,
-  item_key            VARCHAR(50)        NOT NULL,
-  is_checked          BOOLEAN            NOT NULL DEFAULT FALSE,
-  updated_at          TIMESTAMPTZ        NOT NULL DEFAULT NOW(),
-  UNIQUE (shining_project_id, category, item_key)
+  id                  CHAR(36)    PRIMARY KEY DEFAULT (UUID()),
+  shining_project_id  CHAR(36)    NOT NULL,
+  category            ENUM('faith_phase1', 'faith_phase2', 'advanced_challenges') NOT NULL,
+  item_key            VARCHAR(50) NOT NULL,
+  is_checked          BOOLEAN     NOT NULL DEFAULT FALSE,
+  updated_at          DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  UNIQUE (shining_project_id, category, item_key),
+  CONSTRAINT fk_faith_checklists_project FOREIGN KEY (shining_project_id) REFERENCES shining_projects(id) ON DELETE CASCADE
 );
 
 CREATE INDEX idx_faith_checklists_project ON shining_faith_checklists(shining_project_id);
@@ -1251,18 +1272,17 @@ CREATE INDEX idx_faith_checklists_project ON shining_faith_checklists(shining_pr
 -- ═══════════════════════════════════════════════════
 --  10. shining_lectures（閃耀計畫專題課登記）
 -- ═══════════════════════════════════════════════════
-CREATE TYPE lecture_type AS ENUM ('character', 'coming_of_age');
-
 CREATE TABLE shining_lectures (
-  id                  UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
-  shining_project_id  UUID         NOT NULL REFERENCES shining_projects(id) ON DELETE CASCADE,
-  type                lecture_type NOT NULL,
-  theme_name          VARCHAR(50)  NOT NULL,
+  id                  CHAR(36)    PRIMARY KEY DEFAULT (UUID()),
+  shining_project_id  CHAR(36)    NOT NULL,
+  type                ENUM('character', 'coming_of_age') NOT NULL,
+  theme_name          VARCHAR(50) NOT NULL,
   speaker_name        VARCHAR(50),
   lecture_date        DATE,
-  created_at          TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-  updated_at          TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-  UNIQUE (shining_project_id, type, theme_name)
+  created_at          DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at          DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  UNIQUE (shining_project_id, type, theme_name),
+  CONSTRAINT fk_shining_lectures_project FOREIGN KEY (shining_project_id) REFERENCES shining_projects(id) ON DELETE CASCADE
 );
 
 CREATE INDEX idx_shining_lectures_project ON shining_lectures(shining_project_id);
@@ -1270,17 +1290,16 @@ CREATE INDEX idx_shining_lectures_project ON shining_lectures(shining_project_id
 -- ═══════════════════════════════════════════════════
 --  11. themes（動態專題大綱）
 -- ═══════════════════════════════════════════════════
-CREATE TYPE theme_type AS ENUM ('character', 'coming_of_age');
-
 CREATE TABLE themes (
-  id         UUID       PRIMARY KEY DEFAULT gen_random_uuid(),
-  church_id  UUID       NOT NULL REFERENCES churches(id) ON DELETE CASCADE,
-  type       theme_type NOT NULL,
-  name       VARCHAR(50)  NOT NULL,
-  sort_order INTEGER      NOT NULL DEFAULT 0,
-  is_active  BOOLEAN      NOT NULL DEFAULT TRUE,
-  created_at TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-  UNIQUE (church_id, type, name)
+  id         CHAR(36)    PRIMARY KEY DEFAULT (UUID()),
+  church_id  CHAR(36)    NOT NULL,
+  type       ENUM('character', 'coming_of_age') NOT NULL,
+  name       VARCHAR(50) NOT NULL,
+  sort_order INTEGER     NOT NULL DEFAULT 0,
+  is_active  BOOLEAN     NOT NULL DEFAULT TRUE,
+  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  UNIQUE (church_id, type, name),
+  CONSTRAINT fk_themes_church FOREIGN KEY (church_id) REFERENCES churches(id) ON DELETE CASCADE
 );
 
 CREATE INDEX idx_themes_church_type ON themes(church_id, type);
@@ -1289,11 +1308,12 @@ CREATE INDEX idx_themes_church_type ON themes(church_id, type);
 --  12. page_restrictions（頁面存取限制）
 -- ═══════════════════════════════════════════════════
 CREATE TABLE page_restrictions (
-  id         UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id    UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  id         CHAR(36)     PRIMARY KEY DEFAULT (UUID()),
+  user_id    CHAR(36)     NOT NULL,
   page_path  VARCHAR(100) NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE (user_id, page_path)
+  created_at DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  UNIQUE (user_id, page_path),
+  CONSTRAINT fk_page_restrictions_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE INDEX idx_page_restrictions_user ON page_restrictions(user_id);
@@ -1302,15 +1322,16 @@ CREATE INDEX idx_page_restrictions_user ON page_restrictions(user_id);
 --  13. refresh_tokens（JWT Token 管理）
 -- ═══════════════════════════════════════════════════
 CREATE TABLE refresh_tokens (
-  id           UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id      UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  token_hash   VARCHAR(255) NOT NULL UNIQUE,
-  remember_me  BOOLEAN     NOT NULL DEFAULT FALSE,
-  token_version INTEGER    NOT NULL,             -- 簽發時的 users.token_version
-  expires_at   TIMESTAMPTZ NOT NULL,             -- 閒置期限，換發時順延（見 2.13）
-  is_revoked   BOOLEAN     NOT NULL DEFAULT FALSE,
-  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  last_used_at TIMESTAMPTZ
+  id            CHAR(36)     PRIMARY KEY DEFAULT (UUID()),
+  user_id       CHAR(36)     NOT NULL,
+  token_hash    VARCHAR(255) NOT NULL UNIQUE,
+  remember_me   BOOLEAN      NOT NULL DEFAULT FALSE,
+  token_version INTEGER      NOT NULL,        -- 簽發時的 users.token_version
+  expires_at    DATETIME(3)  NOT NULL,        -- 閒置期限，換發時順延（見 2.13）
+  is_revoked    BOOLEAN      NOT NULL DEFAULT FALSE,
+  created_at    DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  last_used_at  DATETIME(3),
+  CONSTRAINT fk_refresh_tokens_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE INDEX idx_refresh_tokens_user       ON refresh_tokens(user_id);
@@ -1320,52 +1341,58 @@ CREATE INDEX idx_refresh_tokens_expires_at ON refresh_tokens(expires_at);
 --  14. teaching_stats（年度教學統計，見 2.14）
 -- ═══════════════════════════════════════════════════
 CREATE TABLE teaching_stats (
-  id                    UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
-  teacher_id            UUID         NOT NULL REFERENCES users(id) ON DELETE RESTRICT, -- 統計保留為歷史
-  year                  SMALLINT     NOT NULL CHECK (year >= 2020),
-  one_on_one_30         INTEGER      NOT NULL DEFAULT 0 CHECK (one_on_one_30 >= 0),
-  one_to_many_30        INTEGER      NOT NULL DEFAULT 0 CHECK (one_to_many_30 >= 0),
-  one_on_one_shining    INTEGER      NOT NULL DEFAULT 0 CHECK (one_on_one_shining >= 0),
-  one_to_many_shining   INTEGER      NOT NULL DEFAULT 0 CHECK (one_to_many_shining >= 0),
-  submitted_at          TIMESTAMPTZ,
-  created_at            TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-  updated_at            TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+  id                    CHAR(36)    PRIMARY KEY DEFAULT (UUID()),
+  teacher_id            CHAR(36)    NOT NULL,
+  year                  SMALLINT    NOT NULL CHECK (year >= 2020),
+  one_on_one_30         INTEGER     NOT NULL DEFAULT 0 CHECK (one_on_one_30 >= 0),
+  one_to_many_30        INTEGER     NOT NULL DEFAULT 0 CHECK (one_to_many_30 >= 0),
+  one_on_one_shining    INTEGER     NOT NULL DEFAULT 0 CHECK (one_on_one_shining >= 0),
+  one_to_many_shining   INTEGER     NOT NULL DEFAULT 0 CHECK (one_to_many_shining >= 0),
+  submitted_at          DATETIME(3),
+  created_at            DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at            DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
-  CONSTRAINT uq_teaching_stats_teacher_year UNIQUE (teacher_id, year)
+  CONSTRAINT uq_teaching_stats_teacher_year UNIQUE (teacher_id, year),
+  CONSTRAINT fk_teaching_stats_teacher FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE RESTRICT -- 統計保留為歷史
 );
 
-CREATE INDEX idx_teaching_stats_year ON teaching_stats(year);
+CREATE INDEX idx_teaching_stats_year    ON teaching_stats(year);
 CREATE INDEX idx_teaching_stats_teacher ON teaching_stats(teacher_id);
 
 -- ═══════════════════════════════════════════════════
 --  15. booking_sessions（預約場次，見 2.15）
 -- ═══════════════════════════════════════════════════
 CREATE TABLE booking_sessions (
-  id                    UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
-  teacher_id            UUID         NOT NULL REFERENCES users(id) ON DELETE RESTRICT, -- 帳號軟刪除，預約保留為歷史
-  church_id             UUID         REFERENCES churches(id) ON DELETE SET NULL,
-  course_id             VARCHAR(20)  REFERENCES courses(id) ON DELETE SET NULL,
+  id                    CHAR(36)     PRIMARY KEY DEFAULT (UUID()),
+  teacher_id            CHAR(36)     NOT NULL,
+  church_id             CHAR(36),
+  course_id             VARCHAR(20),
   course_title          VARCHAR(200) NOT NULL,
-  lecturer_id           UUID         REFERENCES lecturers(id) ON DELETE SET NULL,
+  lecturer_id           CHAR(36),
   lecturer_name         VARCHAR(50)  NOT NULL,
   lecturer_title        VARCHAR(30)  NOT NULL DEFAULT '',
-  proposed_at           TIMESTAMPTZ  NOT NULL,
-  confirmed_at          TIMESTAMPTZ,
+  proposed_at           DATETIME(3)  NOT NULL,
+  confirmed_at          DATETIME(3),
   duration_minutes      SMALLINT     CHECK (duration_minutes >= 1),
   status                VARCHAR(20)  NOT NULL DEFAULT 'pending'
                           CHECK (status IN ('pending','confirmed','completed','cancelled')),
   cancel_reason         VARCHAR(500),
   teacher_session_notes VARCHAR(2000),
   is_group_session      BOOLEAN      NOT NULL DEFAULT FALSE,
-  prep_scriptures       VARCHAR(100)[] NOT NULL DEFAULT '{}',
+  prep_scriptures       JSON         NOT NULL DEFAULT (JSON_ARRAY()),  -- 字串陣列，每段最多 100 字（API 檢查）
   prep_reading_notes    VARCHAR(2000),
   prep_materials        VARCHAR(500),
-  created_at            TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-  updated_at            TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+  created_at            DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at            DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  CONSTRAINT booking_prep_scriptures_array CHECK (JSON_TYPE(prep_scriptures) = 'ARRAY'),
   -- 預約的是還沒上的課；完成要等課開始之後（見 5.17）
   CONSTRAINT booking_proposed_ahead CHECK (proposed_at > created_at),
   CONSTRAINT booking_completed_after_start
-    CHECK (status <> 'completed' OR (confirmed_at IS NOT NULL AND confirmed_at <= updated_at))
+    CHECK (status <> 'completed' OR (confirmed_at IS NOT NULL AND confirmed_at <= updated_at)),
+  CONSTRAINT fk_booking_sessions_teacher  FOREIGN KEY (teacher_id)  REFERENCES users(id)     ON DELETE RESTRICT, -- 帳號軟刪除，預約保留為歷史
+  CONSTRAINT fk_booking_sessions_church   FOREIGN KEY (church_id)   REFERENCES churches(id)  ON DELETE SET NULL,
+  CONSTRAINT fk_booking_sessions_course   FOREIGN KEY (course_id)   REFERENCES courses(id)   ON DELETE SET NULL,
+  CONSTRAINT fk_booking_sessions_lecturer FOREIGN KEY (lecturer_id) REFERENCES lecturers(id) ON DELETE SET NULL
 );
 
 CREATE INDEX idx_booking_sessions_teacher  ON booking_sessions(teacher_id);
@@ -1378,19 +1405,22 @@ CREATE INDEX idx_booking_sessions_proposed ON booking_sessions(proposed_at DESC)
 --  16. booking_attendees（場次學員，見 2.16）
 -- ═══════════════════════════════════════════════════
 CREATE TABLE booking_attendees (
-  session_id               UUID         NOT NULL REFERENCES booking_sessions(id) ON DELETE CASCADE,
-  student_id               UUID         NOT NULL REFERENCES users(id) ON DELETE RESTRICT, -- 出席紀錄保留為歷史
+  session_id               CHAR(36)     NOT NULL,
+  student_id               CHAR(36)     NOT NULL,
   attendance_status        VARCHAR(20)  NOT NULL DEFAULT 'invited'
                              CHECK (attendance_status IN ('invited','attended','absent')),
   student_feedback         VARCHAR(1000),
   teacher_feedback         VARCHAR(1000),
-  feedback_at              TIMESTAMPTZ,
-  linked_listen_session_id UUID         REFERENCES listen_sessions(id) ON DELETE SET NULL,
-  created_at               TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-  updated_at               TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+  feedback_at              DATETIME(3),
+  linked_listen_session_id CHAR(36),
+  created_at               DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at               DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
   -- 一場預約裡每位學員一筆：直接以 (場次, 學員) 當主鍵，主鍵也涵蓋依場次查詢
-  PRIMARY KEY (session_id, student_id)
+  PRIMARY KEY (session_id, student_id),
+  CONSTRAINT fk_booking_attendees_session FOREIGN KEY (session_id) REFERENCES booking_sessions(id) ON DELETE CASCADE,
+  CONSTRAINT fk_booking_attendees_student FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE RESTRICT, -- 出席紀錄保留為歷史
+  CONSTRAINT fk_booking_attendees_listen  FOREIGN KEY (linked_listen_session_id) REFERENCES listen_sessions(id) ON DELETE SET NULL
 );
 
 CREATE INDEX idx_booking_attendees_student ON booking_attendees(student_id);
@@ -1401,14 +1431,17 @@ CREATE INDEX idx_booking_attendees_status  ON booking_attendees(attendance_statu
 -- ═══════════════════════════════════════════════════
 CREATE TABLE invite_codes (
   code       VARCHAR(20)  PRIMARY KEY,
-  role       user_role    NOT NULL,
-  church_id  UUID         REFERENCES churches(id) ON DELETE SET NULL,
-  created_by UUID         REFERENCES users(id)    ON DELETE SET NULL,
-  created_at TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-  expires_at TIMESTAMPTZ  NOT NULL,
-  used_by    UUID         REFERENCES users(id)    ON DELETE SET NULL,
-  used_at    TIMESTAMPTZ,
-  revoked    BOOLEAN      NOT NULL DEFAULT FALSE
+  role       ENUM('student', 'teacher', 'pastor', 'parent', 'admin') NOT NULL,
+  church_id  CHAR(36),
+  created_by CHAR(36),
+  created_at DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  expires_at DATETIME(3)  NOT NULL,
+  used_by    CHAR(36),
+  used_at    DATETIME(3),
+  revoked    BOOLEAN      NOT NULL DEFAULT FALSE,
+  CONSTRAINT fk_invite_codes_church     FOREIGN KEY (church_id)  REFERENCES churches(id) ON DELETE SET NULL,
+  CONSTRAINT fk_invite_codes_created_by FOREIGN KEY (created_by) REFERENCES users(id)    ON DELETE SET NULL,
+  CONSTRAINT fk_invite_codes_used_by    FOREIGN KEY (used_by)    REFERENCES users(id)    ON DELETE SET NULL
 );
 
 CREATE INDEX idx_invite_codes_created_by ON invite_codes(created_by);
@@ -1420,8 +1453,8 @@ CREATE INDEX idx_invite_codes_church     ON invite_codes(church_id);
 --  18. social_accounts（社群帳號綁定，見 2.18）
 -- ═══════════════════════════════════════════════════
 CREATE TABLE social_accounts (
-  id                UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id           UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  id                CHAR(36)     PRIMARY KEY DEFAULT (UUID()),
+  user_id           CHAR(36)     NOT NULL,
   provider          VARCHAR(20)  NOT NULL,
   provider_user_id  VARCHAR(255) NOT NULL,
   email             VARCHAR(255),
@@ -1429,28 +1462,33 @@ CREATE TABLE social_accounts (
   avatar_url        TEXT,
   access_token      TEXT,
   refresh_token     TEXT,
-  token_expires_at  TIMESTAMPTZ,
-  created_at        TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-  updated_at        TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+  token_expires_at  DATETIME(3),
+  created_at        DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at        DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
   CONSTRAINT uq_social_provider_uid UNIQUE (provider, provider_user_id),
-  CONSTRAINT uq_user_provider       UNIQUE (user_id, provider)
+  CONSTRAINT uq_user_provider       UNIQUE (user_id, provider),
+  CONSTRAINT fk_social_accounts_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_social_accounts_user_id         ON social_accounts(user_id);
-CREATE INDEX idx_social_accounts_provider_uid    ON social_accounts(provider, provider_user_id);
-CREATE INDEX idx_social_accounts_email           ON social_accounts(email);
+CREATE INDEX idx_social_accounts_user_id      ON social_accounts(user_id);
+CREATE INDEX idx_social_accounts_provider_uid ON social_accounts(provider, provider_user_id);
+CREATE INDEX idx_social_accounts_email        ON social_accounts(email);
 
 -- ═══════════════════════════════════════════════════
 --  19. course_feedback（心得回覆，見 2.20）
 -- ═══════════════════════════════════════════════════
 CREATE TABLE course_feedback (
-  id         UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  student_id UUID        NOT NULL REFERENCES users(id) ON DELETE RESTRICT,   -- 保留為歷史
-  course_id  VARCHAR(20) NOT NULL REFERENCES courses(id),
-  author_id  UUID        NOT NULL REFERENCES users(id) ON DELETE RESTRICT,   -- 教師、牧者或管理員
-  message    VARCHAR(1000) NOT NULL CHECK (length(btrim(message)) > 0),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  id         CHAR(36)      PRIMARY KEY DEFAULT (UUID()),
+  student_id CHAR(36)      NOT NULL,
+  course_id  VARCHAR(20)   NOT NULL,
+  author_id  CHAR(36)      NOT NULL,          -- 教師、牧者或管理員
+  message    VARCHAR(1000) NOT NULL,
+  created_at DATETIME(3)   NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  CONSTRAINT feedback_message_not_blank CHECK (CHAR_LENGTH(TRIM(message)) > 0),
+  CONSTRAINT fk_course_feedback_student FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE RESTRICT, -- 保留為歷史
+  CONSTRAINT fk_course_feedback_course  FOREIGN KEY (course_id)  REFERENCES courses(id),
+  CONSTRAINT fk_course_feedback_author  FOREIGN KEY (author_id)  REFERENCES users(id) ON DELETE RESTRICT
 );
 
 CREATE INDEX idx_course_feedback_student_course ON course_feedback(student_id, course_id, created_at);
@@ -1459,31 +1497,38 @@ CREATE INDEX idx_course_feedback_student_course ON course_feedback(student_id, c
 --  20. course_feedback_reads（回覆已讀，見 2.21）
 -- ═══════════════════════════════════════════════════
 CREATE TABLE course_feedback_reads (
-  student_id UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  course_id  VARCHAR(20) NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
-  seen_up_to TIMESTAMPTZ NOT NULL,
-  PRIMARY KEY (student_id, course_id)
+  student_id CHAR(36)    NOT NULL,
+  course_id  VARCHAR(20) NOT NULL,
+  seen_up_to DATETIME(3) NOT NULL,
+  PRIMARY KEY (student_id, course_id),
+  CONSTRAINT fk_feedback_reads_student FOREIGN KEY (student_id) REFERENCES users(id)   ON DELETE CASCADE,
+  CONSTRAINT fk_feedback_reads_course  FOREIGN KEY (course_id)  REFERENCES courses(id) ON DELETE CASCADE
 );
 
 -- ═══════════════════════════════════════════════════
 --  21. auth_attempts（嘗試次數，見 2.22）
 -- ═══════════════════════════════════════════════════
-CREATE TYPE auth_action AS ENUM (
-  'login', 'invite_code', 'password_forgot', 'password_reset', 'password_change', 'oauth_exchange'
-);
-
 CREATE TABLE auth_attempts (
-  id           BIGSERIAL    PRIMARY KEY,
-  action       auth_action  NOT NULL,
-  subject      VARCHAR(255),                     -- 帳號或信箱（小寫），不設外鍵（見 2.22）
-  ip           INET         NOT NULL,
+  id           BIGINT       PRIMARY KEY AUTO_INCREMENT,
+  action       ENUM('login', 'invite_code', 'password_forgot', 'password_reset',
+                    'password_change', 'oauth_exchange') NOT NULL,
+  subject      VARCHAR(255),                  -- 帳號或信箱（小寫），不設外鍵（見 2.22）
+  ip           VARCHAR(45)  NOT NULL,         -- IPv4 或 IPv6 的文字形式
   succeeded    BOOLEAN      NOT NULL,
-  attempted_at TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+  attempted_at DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
 );
 
 CREATE INDEX idx_auth_attempts_subject ON auth_attempts(action, subject, attempted_at);
 CREATE INDEX idx_auth_attempts_ip      ON auth_attempts(action, ip, attempted_at);
 ```
+
+**和 PostgreSQL 寫法的差別**（參考其他資料或範例時注意）：
+
+- 沒有部分索引（`WHERE is_active`）：改用運算式索引，讓不受限制的列得到 NULL（見 `uq_lecturers_*`、`uq_users_email`）
+- `CHECK` 不能用在有 `ON DELETE SET NULL` / `CASCADE` 的外鍵欄位上，也不能用 `NOW()` 等會變的函式；本設計的 `CHECK` 都沒有用到
+- 結構變更（`CREATE`、`ALTER`）不能放在交易裡復原：Flyway 的一個版本檔失敗時，已執行的部分要手動處理，
+  所以每個版本檔只做一件事
+- `UPSERT` 寫成 `INSERT ... ON DUPLICATE KEY UPDATE`；`UPDATE` 多表時寫成 `UPDATE a JOIN b ... SET`（見 5.3）
 
 ---
 
@@ -1537,17 +1582,17 @@ INSERT INTO courses (id, title, category, duration_seconds, sort_order) VALUES
 -- ────────────────────────────────────────────────
 --  種子主題（以愛與話語教會為例）
 -- ────────────────────────────────────────────────
-INSERT INTO themes (church_id, type, name, sort_order)
-SELECT id, 'character', unnest(ARRAY[
-  '品格力 - 自律', '品格力 - 感謝', '品格力 - 勇氣', '品格力 - 正直'
-]), generate_series(1, 4)
-FROM churches WHERE name = '愛與話語';
+SET @church_id = (SELECT id FROM churches WHERE name = '愛與話語');
 
-INSERT INTO themes (church_id, type, name, sort_order)
-SELECT id, 'coming_of_age', unnest(ARRAY[
-  '基督教歷史', '台灣攝理歷史', '情感教育', 'R的使命與精神'
-]), generate_series(1, 4)
-FROM churches WHERE name = '愛與話語';
+INSERT INTO themes (church_id, type, name, sort_order) VALUES
+  (@church_id, 'character',     '品格力 - 自律', 1),
+  (@church_id, 'character',     '品格力 - 感謝', 2),
+  (@church_id, 'character',     '品格力 - 勇氣', 3),
+  (@church_id, 'character',     '品格力 - 正直', 4),
+  (@church_id, 'coming_of_age', '基督教歷史',     1),
+  (@church_id, 'coming_of_age', '台灣攝理歷史',   2),
+  (@church_id, 'coming_of_age', '情感教育',       3),
+  (@church_id, 'coming_of_age', 'R的使命與精神',  4);
 
 -- ────────────────────────────────────────────────
 --  種子測試帳號（密碼請使用 bcrypt 雜湊後填入）
@@ -1572,6 +1617,7 @@ SELECT p.id, s.id FROM users p, users s WHERE p.username = 'parent' AND s.userna
 ## 8. Mermaid ERD 關聯圖
 
 > 此圖展示所有資料表的欄位、主鍵（PK）、外鍵（FK）以及關聯性（一對一 / 一對多 / 多對多）。
+> 型別只列名稱，長度見第 6 節：`CHAR` 是 `CHAR(36)` 的 UUID 字串，`DATETIME` 是 `DATETIME(3)`（UTC）。
 
 ```mermaid
 erDiagram
@@ -1581,55 +1627,55 @@ erDiagram
   %% ════════════════════════════════════
 
   churches {
-    UUID        id         PK
+    CHAR id         PK
     VARCHAR     name       UK "NOT NULL UNIQUE"
     VARCHAR     region
     BOOLEAN     is_active  "DEFAULT TRUE"
-    TIMESTAMPTZ created_at
+    DATETIME    created_at
   }
 
   users {
-    UUID        id            PK
+    CHAR id            PK
     VARCHAR     username      UK "UNIQUE NOT NULL"
     VARCHAR     password_hash    "NULL = 只用社群登入"
-    user_role   role             "ENUM"
-    UUID        church_id     FK "-> churches.id SET NULL"
+    ENUM      role             "ENUM"
+    CHAR church_id     FK "-> churches.id SET NULL"
     VARCHAR     display_name
     VARCHAR     real_name
-    user_gender gender           "ENUM male/female, NULL = 未設定"
+    ENUM        gender           "ENUM male/female, NULL = 未設定"
     VARCHAR     email            "選填，UNIQUE(lower)"
     BOOLEAN     email_verified   "DEFAULT FALSE"
     BOOLEAN     must_change_password "DEFAULT FALSE"
     VARCHAR     avatar_url       "https only"
-    login_method login_method    "ENUM, DEFAULT credentials"
+    ENUM         login_method    "ENUM, DEFAULT credentials"
     INTEGER     token_version    "DEFAULT 0"
     BOOLEAN     is_active        "DEFAULT TRUE"
-    TIMESTAMPTZ last_login_at
-    TIMESTAMPTZ created_at
-    TIMESTAMPTZ updated_at
+    DATETIME    last_login_at
+    DATETIME    created_at
+    DATETIME    updated_at
   }
 
   courses {
     VARCHAR         id               PK  "bible-01..lecture-15"
     VARCHAR         title               "NOT NULL"
-    course_category category            "ENUM"
+    ENUM            category            "ENUM"
     TEXT            description
     VARCHAR         cover_color
     INTEGER         duration_seconds    "DEFAULT 0"
     INTEGER         sort_order          "DEFAULT 0"
     BOOLEAN         is_active           "DEFAULT TRUE"
-    TIMESTAMPTZ     created_at
+    DATETIME    created_at
   }
 
   lecturers {
-    UUID        id             PK
+    CHAR id             PK
     VARCHAR     name              "NOT NULL"
     VARCHAR     title             "NOT NULL"
-    UUID        church_id      FK "-> churches.id SET NULL"
-    UUID        linked_user_id FK "-> users.id SET NULL"
+    CHAR church_id      FK "-> churches.id SET NULL"
+    CHAR linked_user_id FK "-> users.id SET NULL"
     BOOLEAN     is_active
-    TIMESTAMPTZ created_at
-    TIMESTAMPTZ updated_at
+    DATETIME    created_at
+    DATETIME    updated_at
   }
 
   %% ════════════════════════════════════
@@ -1637,7 +1683,7 @@ erDiagram
   %% ════════════════════════════════════
 
   lecturer_courses {
-    UUID    lecturer_id PK,FK "-> lecturers.id CASCADE"
+    CHAR lecturer_id PK,FK "-> lecturers.id CASCADE"
     VARCHAR course_id   PK,FK "-> courses.id CASCADE"
   }
 
@@ -1646,14 +1692,14 @@ erDiagram
   %% ════════════════════════════════════
 
   listen_sessions {
-    UUID        id            PK
-    UUID        student_id    FK "-> users.id RESTRICT"
+    CHAR id            PK
+    CHAR student_id    FK "-> users.id RESTRICT"
     VARCHAR     course_id     FK "-> courses.id"
     VARCHAR     lecturer_name    "自由文字（不用FK）"
-    TIMESTAMPTZ listened_at      "NOT NULL"
+    DATETIME    listened_at      "NOT NULL"
     VARCHAR        notes
-    TIMESTAMPTZ created_at
-    TIMESTAMPTZ updated_at
+    DATETIME    created_at
+    DATETIME    updated_at
   }
 
   %% ════════════════════════════════════
@@ -1661,32 +1707,32 @@ erDiagram
   %% ════════════════════════════════════
 
   student_assignments {
-    UUID        id         PK
-    UUID        student_id FK,UK "-> users.id CASCADE (UNIQUE)"
-    UUID        teacher_id FK    "-> users.id SET NULL"
-    UUID        pastor_id  FK    "-> users.id SET NULL"
-    TIMESTAMPTZ updated_at
+    CHAR id         PK
+    CHAR student_id FK,UK "-> users.id CASCADE (UNIQUE)"
+    CHAR teacher_id FK    "-> users.id SET NULL"
+    CHAR pastor_id  FK    "-> users.id SET NULL"
+    DATETIME    updated_at
   }
 
   parent_children {
-    UUID        parent_id  PK,FK "-> users.id CASCADE"
-    UUID        student_id PK,FK "-> users.id CASCADE"
-    TIMESTAMPTZ bound_at
+    CHAR parent_id  PK,FK "-> users.id CASCADE"
+    CHAR student_id PK,FK "-> users.id CASCADE"
+    DATETIME    bound_at
   }
 
   course_feedback {
-    UUID        id         PK
-    UUID        student_id FK "-> users.id RESTRICT"
+    CHAR id         PK
+    CHAR student_id FK "-> users.id RESTRICT"
     VARCHAR     course_id  FK "-> courses.id"
-    UUID        author_id  FK "-> users.id RESTRICT"
+    CHAR author_id  FK "-> users.id RESTRICT"
     VARCHAR        message       "NOT NULL"
-    TIMESTAMPTZ created_at
+    DATETIME    created_at
   }
 
   course_feedback_reads {
-    UUID        student_id PK,FK "-> users.id CASCADE"
+    CHAR student_id PK,FK "-> users.id CASCADE"
     VARCHAR     course_id  PK,FK "-> courses.id CASCADE"
-    TIMESTAMPTZ seen_up_to    "已讀到的最新回覆時間"
+    DATETIME    seen_up_to    "已讀到的最新回覆時間"
   }
 
   %% ════════════════════════════════════
@@ -1694,35 +1740,35 @@ erDiagram
   %% ════════════════════════════════════
 
   shining_projects {
-    UUID        id               PK
-    UUID        student_id       FK,UK "-> users.id CASCADE (UNIQUE)"
+    CHAR id               PK
+    CHAR student_id       FK,UK "-> users.id CASCADE (UNIQUE)"
     VARCHAR     name
     DATE        birthday
     VARCHAR     church_name
     VARCHAR     school_grade
     VARCHAR        custom_challenge
-    TIMESTAMPTZ created_at
-    TIMESTAMPTZ updated_at
+    DATETIME    created_at
+    DATETIME    updated_at
   }
 
   shining_faith_checklists {
-    UUID               id                 PK
-    UUID               shining_project_id FK "-> shining_projects.id CASCADE"
-    checklist_category category              "ENUM"
+    CHAR id                 PK
+    CHAR shining_project_id FK "-> shining_projects.id CASCADE"
+    ENUM               category              "ENUM"
     VARCHAR            item_key
     BOOLEAN            is_checked            "DEFAULT FALSE"
-    TIMESTAMPTZ        updated_at
+    DATETIME    updated_at
   }
 
   shining_lectures {
-    UUID         id                 PK
-    UUID         shining_project_id FK "-> shining_projects.id CASCADE"
-    lecture_type type                  "ENUM: character / coming_of_age"
+    CHAR id                 PK
+    CHAR shining_project_id FK "-> shining_projects.id CASCADE"
+    ENUM         type                  "ENUM: character / coming_of_age"
     VARCHAR      theme_name            "NOT NULL"
     VARCHAR      speaker_name
     DATE         lecture_date
-    TIMESTAMPTZ  created_at
-    TIMESTAMPTZ  updated_at
+    DATETIME    created_at
+    DATETIME    updated_at
   }
 
   %% ════════════════════════════════════
@@ -1730,13 +1776,13 @@ erDiagram
   %% ════════════════════════════════════
 
   themes {
-    UUID        id         PK
-    UUID        church_id  FK "-> churches.id CASCADE"
-    theme_type  type          "ENUM: character / coming_of_age"
+    CHAR id         PK
+    CHAR church_id  FK "-> churches.id CASCADE"
+    ENUM       type          "ENUM: character / coming_of_age"
     VARCHAR     name          "NOT NULL"
     INTEGER     sort_order
     BOOLEAN     is_active
-    TIMESTAMPTZ created_at
+    DATETIME    created_at
   }
 
   %% ════════════════════════════════════
@@ -1744,31 +1790,31 @@ erDiagram
   %% ════════════════════════════════════
 
   page_restrictions {
-    UUID        id         PK
-    UUID        user_id    FK "-> users.id CASCADE"
+    CHAR id         PK
+    CHAR user_id    FK "-> users.id CASCADE"
     VARCHAR     page_path
-    TIMESTAMPTZ created_at
+    DATETIME    created_at
   }
 
   refresh_tokens {
-    UUID        id           PK
-    UUID        user_id      FK "-> users.id CASCADE"
+    CHAR id           PK
+    CHAR user_id      FK "-> users.id CASCADE"
     VARCHAR     token_hash   UK "UNIQUE"
     BOOLEAN     remember_me     "DEFAULT FALSE"
     INTEGER     token_version
-    TIMESTAMPTZ expires_at
+    DATETIME    expires_at
     BOOLEAN     is_revoked      "DEFAULT FALSE"
-    TIMESTAMPTZ created_at
-    TIMESTAMPTZ last_used_at
+    DATETIME    created_at
+    DATETIME    last_used_at
   }
 
   auth_attempts {
-    BIGSERIAL   id           PK
-    auth_action action          "ENUM login/invite_code/..."
+    BIGINT    id           PK
+    ENUM        action          "ENUM login/invite_code/..."
     VARCHAR     subject         "帳號或信箱，無外鍵"
-    INET        ip
+    VARCHAR ip
     BOOLEAN     succeeded
-    TIMESTAMPTZ attempted_at
+    DATETIME    attempted_at
   }
 
   %% ════════════════════════════════════
@@ -1776,16 +1822,16 @@ erDiagram
   %% ════════════════════════════════════
 
   teaching_stats {
-    UUID        id                   PK
-    UUID        teacher_id           FK "-> users.id CASCADE"
+    CHAR id                   PK
+    CHAR teacher_id           FK "-> users.id CASCADE"
     SMALLINT    year                    "CHECK >= 2020"
     INTEGER     one_on_one_30
     INTEGER     one_to_many_30
     INTEGER     one_on_one_shining
     INTEGER     one_to_many_shining
-    TIMESTAMPTZ submitted_at
-    TIMESTAMPTZ created_at
-    TIMESTAMPTZ updated_at
+    DATETIME    submitted_at
+    DATETIME    created_at
+    DATETIME    updated_at
   }
 
   %% ════════════════════════════════════
@@ -1793,38 +1839,38 @@ erDiagram
   %% ════════════════════════════════════
 
   booking_sessions {
-    UUID        id                      PK
-    UUID        teacher_id              FK  "-> users.id RESTRICT"
-    UUID        church_id               FK  "-> churches.id SET NULL"
+    CHAR id                      PK
+    CHAR teacher_id              FK  "-> users.id RESTRICT"
+    CHAR church_id               FK  "-> churches.id SET NULL"
     VARCHAR     course_id               FK  "-> courses.id SET NULL"
     VARCHAR     course_title               "NOT NULL （冗餘）"
     VARCHAR     lecturer_id             FK  "-> lecturers.id SET NULL"
     VARCHAR     lecturer_name              "NOT NULL （冗餘）"
     VARCHAR     lecturer_title
-    TIMESTAMPTZ proposed_at
-    TIMESTAMPTZ confirmed_at
+    DATETIME    proposed_at
+    DATETIME    confirmed_at
     SMALLINT    duration_minutes
     VARCHAR     status                     "pending/confirmed/completed/cancelled"
     VARCHAR        cancel_reason
     VARCHAR        teacher_session_notes
     BOOLEAN     is_group_session            "DEFAULT FALSE"
-    VARCHAR_ARR prep_scriptures
+    JSON        prep_scriptures
     VARCHAR     prep_reading_notes
     VARCHAR     prep_materials
-    TIMESTAMPTZ created_at
-    TIMESTAMPTZ updated_at
+    DATETIME    created_at
+    DATETIME    updated_at
   }
 
   booking_attendees {
-    UUID        session_id               PK,FK "-> booking_sessions.id CASCADE"
-    UUID        student_id               PK,FK "-> users.id RESTRICT"
+    CHAR session_id               PK,FK "-> booking_sessions.id CASCADE"
+    CHAR student_id               PK,FK "-> users.id RESTRICT"
     VARCHAR     attendance_status           "invited/attended/absent"
     VARCHAR     student_feedback
     VARCHAR     teacher_feedback
-    TIMESTAMPTZ feedback_at
-    UUID        linked_listen_session_id FK  "-> listen_sessions.id SET NULL"
-    TIMESTAMPTZ created_at
-    TIMESTAMPTZ updated_at
+    DATETIME    feedback_at
+    CHAR linked_listen_session_id FK  "-> listen_sessions.id SET NULL"
+    DATETIME    created_at
+    DATETIME    updated_at
   }
 
   %% ════════════════════════════════════
@@ -1833,13 +1879,13 @@ erDiagram
 
   invite_codes {
     VARCHAR     code       PK  "SS-TCH-K7M2QX9D"
-    user_role   role           "ENUM"
-    UUID        church_id  FK  "-> churches.id SET NULL"
-    UUID        created_by FK  "-> users.id SET NULL"
-    TIMESTAMPTZ created_at
-    TIMESTAMPTZ expires_at    "NOT NULL"
-    UUID        used_by    FK  "-> users.id SET NULL"
-    TIMESTAMPTZ used_at
+    ENUM      role           "ENUM"
+    CHAR church_id  FK  "-> churches.id SET NULL"
+    CHAR created_by FK  "-> users.id SET NULL"
+    DATETIME    created_at
+    DATETIME    expires_at    "NOT NULL"
+    CHAR used_by    FK  "-> users.id SET NULL"
+    DATETIME    used_at
     BOOLEAN     revoked       "DEFAULT FALSE"
   }
 
@@ -1981,6 +2027,16 @@ JSON 檔（前端 `src/utils/backup.ts`），上線時用它把既有資料搬�
 ---
 
 ## 版本紀錄
+
+### v1.14.0（2026-11-25）改用 MySQL
+
+- 資料庫改為 MySQL 8.4 LTS（教會使用 MySQL）：第 6 節的 SQL 改寫為 MySQL 語法，並在 MySQL 8.0.46 實測建立全部 22 張表、
+  逐一測試唯一限制與 `CHECK`；不再提供 PostgreSQL 版本
+- 型別：UUID 改存 `CHAR(36)`（`DEFAULT (UUID())`）、時間改為 `DATETIME(3)` 並一律存 UTC、`INET` 改為 `VARCHAR(45)`、
+  `prep_scriptures` 改為 JSON 陣列、列舉直接寫在欄位上
+- 部分唯一索引（`uq_users_email`、`uq_lecturers_*`）改為運算式索引，規則不變
+- 第 6 節新增資料庫與連線設定（`utf8mb4`、區分大小寫的定序、UTC 連線時區、嚴格模式）；5.3、5.14、2.22 的 SQL 改為 MySQL 寫法
+- 移除 2.19 從 v1.6.0 搬移家長綁定的 SQL（還沒有正式的資料庫，第一版直接以第 6 節建立）
 
 ### v1.13.0（2026-11-19）講師不重複
 

@@ -1,12 +1,13 @@
 # TODO：後端串接待辦清單
 
 > **建立時間**：2026-08-12
-> **最後更新**：2026-11-20（store 拆分到 `src/stores/parts/`、第 13 節對照表更新：API 規格 v1.14.1、資料庫 v1.13.0）
+> **最後更新**：2026-11-25（資料庫改用 MySQL 8.4：資料庫 v1.14.0；新增後端第一階段工作計畫）
 > **目的**：追蹤前端 Mock 實作中，待後端 Spring Boot 就緒後需實作或替換的所有項目
 > **參考文件**（從哪裡讀起見 [`docs/README.md`](./docs/README.md) 文件導覽）：
 > - [`docs/backend_api_spec.md`](./docs/backend_api_spec.md)（v1.14.1：API、可見範圍規則、嘗試次數限制、登入期限、CORS、錯誤碼、第 13 節 Store → API 對照）
-> - [`docs/database_schema.md`](./docs/database_schema.md)（v1.13.0：資料表、5.10–5.17 設計決策、第 9 節資料搬移）
-> - [`docs/oauth2_social_login_spec.md`](./docs/oauth2_social_login_spec.md)（v1.1.1：社群登入流程、8.5 社群帳號規則）
+> - [`docs/backend_phase1_plan.md`](./docs/backend_phase1_plan.md)（v1.0.0：後端第一階段的工作順序、第二階段的項目）
+> - [`docs/database_schema.md`](./docs/database_schema.md)（v1.14.0：MySQL 8.4 建表 SQL、5.10–5.17 設計決策、第 9 節資料搬移）
+> - [`docs/oauth2_social_login_spec.md`](./docs/oauth2_social_login_spec.md)（v1.1.2：社群登入流程、8.5 社群帳號規則）
 
 ---
 
@@ -81,26 +82,18 @@
 
 ---
 
-## 資料庫 Migration（後端工程師負責）
+## 資料庫（後端工程師負責）
 
-- [ ] 依 `docs/database_schema.md` v1.8.0（第 6 節 SQL 已在 PostgreSQL 16 實測可建立 22 張表）：
-  - [ ] `users` 新增 `token_version INTEGER NOT NULL DEFAULT 0`；`avatar_url` 改為 `VARCHAR(2048)` 並 CHECK `https://`
-  - [ ] `refresh_tokens` 新增 `remember_me`、`token_version`（2.13）
-  - [ ] 新增 `auth_attempts`（2.22），或改用 Redis 計數
-  - [ ] `users` 新增 `gender user_gender NULL`（只用於 student / teacher）
-  - [ ] `users.password_hash` 改為可為 NULL（社群登入帳號沒有密碼）
-  - [ ] 新增 `parent_children`，並把 `student_assignments.parent_id` 搬過去後刪除該欄（遷移 SQL 見 2.19）
-  - [ ] `booking_sessions.teacher_id` 改為 `ON DELETE RESTRICT`；新增 `idx_booking_sessions_lecturer`
-  - [ ] `lecturers.linked_user_id` 只允許連結 `teacher` / `pastor`（應用端檢查）
+還沒有正式的資料庫，所以不需要逐項 `ALTER TABLE`：第一版直接以 `docs/database_schema.md` 第 6 節的 SQL 建立。
+工作順序見 [`docs/backend_phase1_plan.md`](./docs/backend_phase1_plan.md)。
 
-- [ ] 建立 `social_accounts` 資料表（DDL 見 docs/oauth2_social_login_spec.md Section 5.6）
-- [ ] `users` 表新增欄位：
-  ```sql
-  ALTER TABLE users
-    ADD COLUMN email          VARCHAR(255) UNIQUE,
-    ADD COLUMN email_verified BOOLEAN NOT NULL DEFAULT FALSE;
-  ```
-- [x] 更新 `docs/database_schema.md` Section 2、Section 6 DDL、Section 8 ERD（已含 social_accounts，目前 v1.8.0）
+- [ ] 建立 MySQL 8.4 資料庫，字元集 `utf8mb4`、定序 `utf8mb4_0900_as_cs`，連線時區設為 UTC、保留嚴格模式（資料庫第 6 節的設定表）
+- [ ] Flyway：`V1__init.sql` 用第 6 節的 SQL、`V2__seed.sql` 用第 7 節的種子資料（示範帳號的密碼雜湊重新產生）
+- [ ] 後端的整合測試以真實的 MySQL 執行，確認唯一限制與 `CHECK` 的錯誤轉成 API 規格的錯誤碼（如 `409 LECTURER_EXISTS`）
+- [ ] 應用端的檢查（資料庫做不到的）：`lecturers.linked_user_id` 只連結 `teacher` / `pastor`；「不晚於今天」的日期（5.17）；
+  `prep_scriptures` 每段最多 100 字
+- [ ] 決定部署位置後，設定每日備份並演練還原
+- [x] `docs/database_schema.md` 改為 MySQL 8.4（v1.14.0），第 6、7 節的 SQL 已在 MySQL 8.0.46 實測
 
 ---
 
@@ -243,8 +236,9 @@
 - [x] docs/oauth2_social_login_spec.md：v1.1.0（前端現況、家長綁定、社群帳號規則）
 - [x] README.md：功能、各角色、登入期限、環境變數、部署（CSP、CORS）、資料備份
 - [x] 文件整理（v1.8.1 / v1.8.1 / v1.1.1）：新增 `docs/README.md` 文件導覽；異動摘要移到各文件文末〈版本紀錄〉；
-  資料庫文件改為只支援 PostgreSQL、存取建議改為 Spring Data JPA 與 Flyway；API 規格的前端串接步驟改寫為現況；
+  資料庫文件的存取建議改為 Spring Data JPA 與 Flyway；API 規格的前端串接步驟改寫為現況；
   README 加上線上示範、文件一覽，目錄結構依現況重寫；文件中的連結由 `src/__tests__/docs.spec.ts` 檢查
+- [x] 資料庫改用 MySQL 8.4（資料庫 v1.14.0、社群登入 v1.1.2）；新增 `docs/backend_phase1_plan.md` 後端第一階段工作計畫
 
 ---
 

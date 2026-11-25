@@ -55,8 +55,9 @@ SSLecture 是一個基於 **Vue 3 + TypeScript + Vite** 技術棧開發的現代
 | :--- | :--- |
 | [`docs/README.md`](./docs/README.md) | **文件導覽**：各文件給誰看、建議閱讀順序、依主題查找、文件維護方式 |
 | [`docs/backend_api_spec.md`](./docs/backend_api_spec.md) | 後端 API 規格：所有端點、可見範圍規則、嘗試次數限制、登入期限、CORS、錯誤碼、前端串接步驟 |
-| [`docs/database_schema.md`](./docs/database_schema.md) | 資料庫設計：22 張表、設計決策、PostgreSQL 建表 SQL、ERD、從前端備份搬移資料 |
+| [`docs/database_schema.md`](./docs/database_schema.md) | 資料庫設計（MySQL 8.4）：22 張表、設計決策、建表 SQL 與連線設定、ERD、從前端備份搬移資料 |
 | [`docs/oauth2_social_login_spec.md`](./docs/oauth2_social_login_spec.md) | Google / LINE 社群登入的流程、後端設定與前端整合 |
+| [`docs/backend_phase1_plan.md`](./docs/backend_phase1_plan.md) | 後端第一階段的工作順序與第二階段的項目 |
 | [`TODO.md`](./TODO.md) | 後端上線前的待辦清單 |
 
 文件中的連結、章節錨點與檔案路徑由 `npm test` 檢查（`src/__tests__/docs.spec.ts`），改標題或搬檔案時會提醒您一併更新。

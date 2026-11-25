@@ -1,8 +1,9 @@
 # SSLecture 文件導覽
 
-> **最後更新**：2026-11-20
+> **最後更新**：2026-11-25
 
 前端已先做好，資料暫存在瀏覽器裡；這裡的規格依前端的實作與資料結構整理，給接手實作 Spring Boot 後端的人。
+後端放在另一個 repository，資料庫使用 MySQL 8.4。
 專案本身怎麼執行、測試、部署，見根目錄的 [`README.md`](../README.md)。
 
 ## 文件一覽
@@ -10,17 +11,19 @@
 | 文件 | 內容 | 給誰看 | 版本 |
 | :--- | :--- | :--- | :--- |
 | [`backend_api_spec.md`](./backend_api_spec.md) | 所有 API 的請求與回應、可見範圍規則、嘗試次數限制、登入期限、CORS、錯誤碼、資料模型、前端串接步驟 | 後端、串接 API 的前端 | v1.14.1 |
-| [`database_schema.md`](./database_schema.md) | 22 張資料表、索引、設計決策、PostgreSQL 建表 SQL、種子資料、ERD、從前端備份搬移資料 | 後端、資料庫管理 | v1.13.0 |
-| [`oauth2_social_login_spec.md`](./oauth2_social_login_spec.md) | Google / LINE 登入流程、Spring Security 設定、前端整合、帳號綁定、安全性、第三方平台設定 | 實作社群登入的後端 | v1.1.1 |
+| [`database_schema.md`](./database_schema.md) | 22 張資料表、索引、設計決策、MySQL 建表 SQL 與連線設定、種子資料、ERD、從前端備份搬移資料 | 後端、資料庫管理 | v1.14.0 |
+| [`oauth2_social_login_spec.md`](./oauth2_social_login_spec.md) | Google / LINE 登入流程、Spring Security 設定、前端整合、帳號綁定、安全性、第三方平台設定 | 實作社群登入的後端 | v1.1.2 |
+| [`backend_phase1_plan.md`](./backend_phase1_plan.md) | 後端第一階段的工作順序（帳號密碼登入、管理員、關懷配對、聽課紀錄、心得回覆、試辦）、第二階段的項目、已決定與還沒決定的事 | 專案負責人、後端 | v1.0.0 |
 | [`../TODO.md`](../TODO.md) | 後端上線前要完成的項目（安全性、資料表、各 store 改接 API、資料搬移、部署） | 專案負責人、後端 | — |
 
 各文件開頭有目錄，文末有〈版本紀錄〉記錄每一版改了什麼。
 
 ## 建議閱讀順序（後端）
 
+0. 先看[第一階段工作計畫](./backend_phase1_plan.md)：哪些功能先做、依什麼順序
 1. API 規格[第 1 節〈通用規範〉](./backend_api_spec.md#1-通用規範)：回應格式、認證、可見範圍、時間格式、嘗試次數限制、CORS
 2. 資料庫設計[第 1 節總覽](./database_schema.md#1-資料庫設計總覽)與[第 5 節設計決策](./database_schema.md#5-設計決策與說明)，
-   再以[第 6 節的 SQL](./database_schema.md#6-sql-建表語句postgresql) 建立資料庫
+   再以[第 6 節的 SQL](./database_schema.md#6-sql-建表語句mysql) 建立資料庫
 3. API 規格第 2–10 節：依功能逐一實作
 4. 社群登入：[`oauth2_social_login_spec.md`](./oauth2_social_login_spec.md)，先完成[第 9 章的平台設定](./oauth2_social_login_spec.md#9-第三方平台設定清單)
 5. 上線前：對照 [`TODO.md`](../TODO.md)，並依 [API 規格第 13 節](./backend_api_spec.md#13-前端串接遷移指南)、
