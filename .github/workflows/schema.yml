@@ -1,0 +1,47 @@
+name: Database schema
+
+# 以 MySQL 8.4 實際執行 docs/database_schema.md 第 6、7 節的 SQL，並測試每個 CHECK、唯一限制與外鍵
+# （scripts/check-schema.py）。只在資料庫文件或檢查程式改動時執行，不影響網站部署
+on:
+  push:
+    paths:
+      - docs/database_schema.md
+      - scripts/check-schema.py
+      - .github/workflows/schema.yml
+  pull_request:
+    paths:
+      - docs/database_schema.md
+      - scripts/check-schema.py
+      - .github/workflows/schema.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mysql:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root # 只用於這個暫時的測試容器
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install the MySQL client if missing
+        run: command -v mysql || (sudo apt-get update && sudo apt-get install -y mysql-client)
+
+      - name: Build the schema and check its constraints
+        env:
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_PWD: root
+        run: python3 scripts/check-schema.py

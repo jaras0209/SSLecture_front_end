@@ -20,10 +20,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  # 建置與部署分成兩個工作（GitHub 官方範本的做法）：在同一個工作裡上傳後立刻部署，
+  # 部署步驟有時還查不到剛上傳的檔案（No artifacts named "github-pages"）
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -79,6 +78,13 @@ jobs:
         with:
           path: './dist'
 
+  deploy:
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
