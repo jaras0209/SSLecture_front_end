@@ -40,7 +40,7 @@ SSLecture 是一個基於 **Vue 3 + TypeScript + Vite** 技術棧開發的現代
 *   **多語系架構**：Vue I18n 11（Composition API 模式，`zh-TW` / `en` 雙語系；`en` 語系檔按需載入）
 *   **路由管理**：Vue Router 5（HTML5 History 模式，內建角色與頁面限制導航守衛；按上一頁時回到原本的捲動位置）
 *   **字型**：Quicksand 由 `@fontsource` 隨專案打包，不向 Google Fonts 發出請求
-*   **測試**：Vitest 5 + Happy DOM + Vue Test Utils（74 個測試檔案、685 項測試，含四個主要頁面、composable 與表單元件測試，以及以本機 HTTP 伺服器驗證 `api.ts` 的整合測試）；Playwright 端對端測試（66 項，含以 axe 檢查 WCAG 2.1 AA 無障礙與鍵盤操作，以及內容安全政策）
+*   **測試**：Vitest 5 + Happy DOM + Vue Test Utils（75 個測試檔案、687 項測試，含四個主要頁面、composable 與表單元件測試，以及以本機 HTTP 伺服器驗證 `api.ts` 的整合測試）；Playwright 端對端測試（66 項，含以 axe 檢查 WCAG 2.1 AA 無障礙與鍵盤操作，以及內容安全政策）
 *   **程式碼品質**：TypeScript 6.0（Strict 嚴格模式，以 vue-tsc 3 檢查）、ESLint 10、Prettier 3
 *   **樣式設計**：Vanilla CSS（響應式排版，適配行動端、桌面端與 `@media print` 列印模式）
 *   **CI／部署**：GitHub Actions（`.github/workflows/`）。分支推送時跑 CI；`main` 更新時再跑一次全部檢查，建置後由另一個工作部署到 GitHub Pages。
@@ -80,7 +80,7 @@ SSLecture/
 │   ├── audit.mjs           # CI 的套件漏洞檢查（npm audit，高風險以上即失敗，例外見上）
 │   ├── check-schema.py     # 以 MySQL 實際執行資料庫文件的建表 SQL、測試各項限制與備份匯入
 │   ├── backup-to-sql.py    # 把前端的備份檔轉成匯入 MySQL 的 SQL（後端上線時用）
-│   └── fixtures/           # 範例備份（以前端程式產生，供匯入工具的測試使用）
+│   └── fixtures/           # 範例備份（由 src/__tests__/sampleBackup.spec.ts 以前端程式產生，供匯入工具的測試使用）
 ├── public/                 # 直接複製到網站的檔案：分頁圖示 favicon.svg、手機主畫面圖示 apple-touch-icon.png
 ├── src/
 │   ├── assets/             # 圖示與全域樣式（styles/main.css：CSS 變數、玻璃擬態、工具類、列印、減少動態效果）
@@ -209,6 +209,9 @@ npm run test:coverage
 # 端對端測試（Playwright：自動 build、啟動 vite preview 後以 Chromium 執行）
 # 第一次使用前先安裝瀏覽器：npx playwright install chromium
 npm run test:e2e
+
+# 前端儲存的資料結構改變後，重新產生匯入工具用的範例備份（見 docs/database_schema.md 第 9 節）
+npm run fixtures:backup
 ```
 
 **最低覆蓋率**：`vitest.config.ts` 的 `thresholds` 設定了語句 93%、分支 86%、函式 87%、行數 93.5%，

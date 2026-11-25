@@ -82,8 +82,8 @@
       "leaving"
     ],
     "superstart_invite_codes": {
-      "SS-STU-8BDBBF2K": {
-        "code": "SS-STU-8BDBBF2K",
+      "SS-STU-ZAHC2YUR": {
+        "code": "SS-STU-ZAHC2YUR",
         "role": "student",
         "church": "愛與話語",
         "createdBy": "admin",
@@ -91,8 +91,8 @@
         "expiresAt": "2026-09-08T02:00:00.000Z",
         "revoked": false
       },
-      "SS-TCH-ZHVE54KZ": {
-        "code": "SS-TCH-ZHVE54KZ",
+      "SS-TCH-HMWGJKUZ": {
+        "code": "SS-TCH-HMWGJKUZ",
         "role": "teacher",
         "church": "愛與話語",
         "createdBy": "admin",
@@ -102,8 +102,8 @@
         "usedBy": "lin.teacher",
         "usedAt": "2026-09-01T02:00:00.000Z"
       },
-      "SS-PST-BNTTQ245": {
-        "code": "SS-PST-BNTTQ245",
+      "SS-PST-527AERD2": {
+        "code": "SS-PST-527AERD2",
         "role": "pastor",
         "church": "主大明",
         "createdBy": "admin",
@@ -135,16 +135,16 @@
           "lastUpdated": "2026-09-01T02:00:00.000Z",
           "sessions": [
             {
-              "id": "session_ba0c68f05193703692443951a2b825a8",
+              "id": "session_f6a3ab122ce1bac1cee80db7ea4aa885",
               "lecturer": "張牧師",
-              "listenedAt": "2026-08-31T19:30",
+              "listenedAt": "2026-08-28T19:30",
               "notes": "第一次聽，很受感動",
               "createdAt": "2026-09-01T02:00:00.000Z"
             },
             {
-              "id": "session_fed8dcee82547d6e08ec1dd1a9fabf2f",
+              "id": "session_21bb523f80e81325400896bc063375b6",
               "lecturer": "張牧師",
-              "listenedAt": "2026-09-01T09:00",
+              "listenedAt": "2026-08-29T09:00",
               "notes": "",
               "createdAt": "2026-09-01T02:00:00.000Z"
             }
@@ -159,7 +159,7 @@
           "lastUpdated": "2026-09-01T02:00:00.000Z",
           "sessions": [
             {
-              "id": "session_ed7eb544e9e28abb12a327dba9b19ea3",
+              "id": "session_51308ac8d72ae1f1109afb855eb53f1e",
               "lecturer": "林老師",
               "listenedAt": "2026-08-15T20:00",
               "notes": "想再聽一次",
@@ -173,7 +173,7 @@
       "student": {
         "bible-01": [
           {
-            "id": "fb_80a76dbb6f38353e7f761e63ab9cbc7b",
+            "id": "fb_0ad293a79a49540aac487260e9cf7f5a",
             "author": "teacher",
             "message": "很好，下次分享給小組",
             "createdAt": "2026-09-01T02:00:00.000Z"
@@ -183,7 +183,7 @@
       "mei": {
         "lecture-02": [
           {
-            "id": "fb_921dbe25fd58e8529dd5d147a7e3adce",
+            "id": "fb_f3b7668d7772c0e24b3dd3f2e9d5b513",
             "author": "pastor",
             "message": "說得好！可以再想想 \"為什麼\" 和 '怎麼做'",
             "createdAt": "2026-09-01T02:00:00.000Z"
@@ -311,7 +311,7 @@
         "church": "愛與話語"
       },
       {
-        "id": "l_3a011969f0b9f078465afa7c9e36aa1e",
+        "id": "l_e861f8c45cec6917010e60080691f144",
         "name": "林老師",
         "title": "lecturer",
         "courseIds": [
@@ -322,7 +322,7 @@
         "linkedUsername": "lin.teacher"
       },
       {
-        "id": "l_28ce426ea18195b2b900792b2311a145",
+        "id": "l_cd0814298fa5f72a5925f6b601fb8c67",
         "name": "Grace Wu",
         "title": "guest",
         "courseIds": [
@@ -344,8 +344,8 @@
       }
     },
     "superstart_booking_sessions_db": {
-      "sess_75c7ff87f61c0237fe2d916384a39a59": {
-        "id": "sess_75c7ff87f61c0237fe2d916384a39a59",
+      "sess_ea4cf2edabeeb8a25e936f0c98f67a93": {
+        "id": "sess_ea4cf2edabeeb8a25e936f0c98f67a93",
         "courseId": "bible-02",
         "courseTitle": "日月停止",
         "lecturerId": "l1",
@@ -366,11 +366,11 @@
         "church": "愛與話語",
         "isGroupSession": false,
         "createdAt": "2026-09-01T02:00:00.000Z",
-        "updatedAt": "2026-09-10T08:00:00.000Z",
+        "updatedAt": "2026-09-11T12:00:00.000Z",
         "confirmedAt": "2026-09-10T14:00"
       },
-      "sess_e49721bb9d5e10b060f3e222a83b2e97": {
-        "id": "sess_e49721bb9d5e10b060f3e222a83b2e97",
+      "sess_44b3ded46925f7ed65f116b300ae8dc3": {
+        "id": "sess_44b3ded46925f7ed65f116b300ae8dc3",
         "courseId": "lecture-02",
         "courseTitle": "聖子論",
         "lecturerId": "l1",
@@ -391,8 +391,8 @@
         "createdAt": "2026-09-01T02:00:00.000Z",
         "updatedAt": "2026-09-01T02:00:00.000Z"
       },
-      "sess_d69785571005a59c1c165a297b2687dc": {
-        "id": "sess_d69785571005a59c1c165a297b2687dc",
+      "sess_7cafdc14dfd32b284931fbf8d40f227f": {
+        "id": "sess_7cafdc14dfd32b284931fbf8d40f227f",
         "courseId": "bible-02",
         "courseTitle": "日月停止",
         "lecturerId": "l1",
@@ -418,20 +418,20 @@
       }
     },
     "superstart_booking_attendees_db": {
-      "att_sess_75c7ff87f61c0237fe2d916384a39a59_student": {
-        "id": "att_sess_75c7ff87f61c0237fe2d916384a39a59_student",
-        "sessionId": "sess_75c7ff87f61c0237fe2d916384a39a59",
+      "att_sess_ea4cf2edabeeb8a25e936f0c98f67a93_student": {
+        "id": "att_sess_ea4cf2edabeeb8a25e936f0c98f67a93_student",
+        "sessionId": "sess_ea4cf2edabeeb8a25e936f0c98f67a93",
         "studentUsername": "student",
         "attendanceStatus": "attended",
         "studentFeedback": "收穫很多",
         "teacherFeedback": "專心聽講",
         "createdAt": "2026-09-01T02:00:00.000Z",
-        "updatedAt": "2026-09-10T08:00:00.000Z",
-        "feedbackAt": "2026-09-10T08:00:00.000Z"
+        "updatedAt": "2026-09-11T12:00:00.000Z",
+        "feedbackAt": "2026-09-11T12:00:00.000Z"
       },
-      "att_sess_e49721bb9d5e10b060f3e222a83b2e97_mei": {
-        "id": "att_sess_e49721bb9d5e10b060f3e222a83b2e97_mei",
-        "sessionId": "sess_e49721bb9d5e10b060f3e222a83b2e97",
+      "att_sess_44b3ded46925f7ed65f116b300ae8dc3_mei": {
+        "id": "att_sess_44b3ded46925f7ed65f116b300ae8dc3_mei",
+        "sessionId": "sess_44b3ded46925f7ed65f116b300ae8dc3",
         "studentUsername": "mei",
         "attendanceStatus": "invited",
         "studentFeedback": "",
@@ -439,9 +439,9 @@
         "createdAt": "2026-09-01T02:00:00.000Z",
         "updatedAt": "2026-09-01T02:00:00.000Z"
       },
-      "att_sess_e49721bb9d5e10b060f3e222a83b2e97_oauth_google_1": {
-        "id": "att_sess_e49721bb9d5e10b060f3e222a83b2e97_oauth_google_1",
-        "sessionId": "sess_e49721bb9d5e10b060f3e222a83b2e97",
+      "att_sess_44b3ded46925f7ed65f116b300ae8dc3_oauth_google_1": {
+        "id": "att_sess_44b3ded46925f7ed65f116b300ae8dc3_oauth_google_1",
+        "sessionId": "sess_44b3ded46925f7ed65f116b300ae8dc3",
         "studentUsername": "oauth_google_1",
         "attendanceStatus": "invited",
         "studentFeedback": "",
@@ -449,9 +449,9 @@
         "createdAt": "2026-09-01T02:00:00.000Z",
         "updatedAt": "2026-09-01T02:00:00.000Z"
       },
-      "att_sess_d69785571005a59c1c165a297b2687dc_student": {
-        "id": "att_sess_d69785571005a59c1c165a297b2687dc_student",
-        "sessionId": "sess_d69785571005a59c1c165a297b2687dc",
+      "att_sess_7cafdc14dfd32b284931fbf8d40f227f_student": {
+        "id": "att_sess_7cafdc14dfd32b284931fbf8d40f227f_student",
+        "sessionId": "sess_7cafdc14dfd32b284931fbf8d40f227f",
         "studentUsername": "student",
         "attendanceStatus": "invited",
         "studentFeedback": "",

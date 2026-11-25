@@ -1,6 +1,6 @@
 # SSLecture 後端資料庫設計文件
 
-> **文件版本**：v1.15.0  
+> **文件版本**：v1.15.1  
 > **最後更新**：2026-11-25  
 > **資料來源**：分析前端 `src/stores/auth.ts`、`src/stores/courses.ts`、`src/stores/bookings.ts`、localStorage 資料結構  
 > **資料庫**：MySQL 8.4 LTS（8.0.16 以上皆可；第 6 節的 SQL 已實測可建立全部 22 張表，字元集、定序與連線時區的設定也見第 6 節）。
@@ -2027,7 +2027,9 @@ mysql --default-character-set=utf8mb4 -u <帳號> -p sslecture < import.sql
 - 整個匯入是一個交易，任何一列被拒絕就全部不算（以 `mysql` 執行時不要加 `--force`）；完成後畫面上會列出各表筆數，
   可與資料庫比對
 - 備份檔有明碼密碼、SQL 檔有密碼雜湊，匯入後兩個都刪除
-- 這個工具由 CI 以前端產生的範例備份（`scripts/fixtures/sample-backup.json`）在 MySQL 8.4 實際匯入測試
+- 這個工具由 CI 以範例備份（`scripts/fixtures/sample-backup.json`）在 MySQL 8.4 實際匯入測試。範例備份由前端程式產生，
+  前端儲存的資料一改變，單元測試（`src/__tests__/sampleBackup.spec.ts`）就會失敗，提醒重新產生（`npm run fixtures:backup`）
+  並檢查這個工具與本節的對照表
 
 **檔案格式**：
 
@@ -2087,6 +2089,10 @@ mysql --default-character-set=utf8mb4 -u <帳號> -p sslecture < import.sql
 ---
 
 ## 版本紀錄
+
+### v1.15.1（2026-11-25）範例備份與前端同步
+
+- 第 9 節補上：範例備份由單元測試以前端程式重新產生並比對，前端的資料結構改變時會提醒更新匯入工具
 
 ### v1.15.0（2026-11-25）種子資料分開、匯入工具
 

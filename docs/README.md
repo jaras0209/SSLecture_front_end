@@ -11,7 +11,7 @@
 | 文件 | 內容 | 給誰看 | 版本 |
 | :--- | :--- | :--- | :--- |
 | [`backend_api_spec.md`](./backend_api_spec.md) | 所有 API 的請求與回應、可見範圍規則、嘗試次數限制、登入期限、CORS、錯誤碼、資料模型、前端串接步驟 | 後端、串接 API 的前端 | v1.14.1 |
-| [`database_schema.md`](./database_schema.md) | 22 張資料表、索引、設計決策、MySQL 建表 SQL 與連線設定、種子資料、ERD、從前端備份搬移資料 | 後端、資料庫管理 | v1.15.0 |
+| [`database_schema.md`](./database_schema.md) | 22 張資料表、索引、設計決策、MySQL 建表 SQL 與連線設定、種子資料、ERD、從前端備份搬移資料 | 後端、資料庫管理 | v1.15.1 |
 | [`oauth2_social_login_spec.md`](./oauth2_social_login_spec.md) | Google / LINE 登入流程、Spring Security 設定、前端整合、帳號綁定、安全性、第三方平台設定 | 實作社群登入的後端 | v1.1.2 |
 | [`backend_phase1_plan.md`](./backend_phase1_plan.md) | 後端第一階段的工作順序（帳號密碼登入、管理員、關懷配對、聽課紀錄、心得回覆、試辦）、第二階段的項目、已決定與還沒決定的事 | 專案負責人、後端 | v1.1.0 |
 | [`../TODO.md`](../TODO.md) | 後端上線前要完成的項目（安全性、資料表、各 store 改接 API、資料搬移、部署） | 專案負責人、後端 | — |
@@ -60,4 +60,5 @@
   `src/…`、`e2e/…` 等檔案路徑都存在（`src/__tests__/docs.spec.ts`）。改標題或搬移檔案後，請一併更新引用它的地方
 - **建表 SQL 會被檢查**：改到 [`database_schema.md`](./database_schema.md) 時，CI 以 MySQL 8.4 實際建表並測試各項限制
   與備份匯入（`scripts/check-schema.py`）。新增限制時，請在該檔的 `CASES` 加上應被拒絕與應被接受的例子；
-  前端的資料結構改變時，同步更新 `scripts/backup-to-sql.py` 與範例備份 `scripts/fixtures/sample-backup.json`
+  前端儲存的資料結構改變時，`npm test` 會因範例備份 `scripts/fixtures/sample-backup.json` 不同而失敗
+  （`src/__tests__/sampleBackup.spec.ts`）：執行 `npm run fixtures:backup` 重新產生，並確認 `scripts/backup-to-sql.py` 是否要跟著改

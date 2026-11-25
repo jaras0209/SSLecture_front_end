@@ -251,7 +251,7 @@ def check_import(doc, bcrypt):
             failures.append(f'import: {table} has {actual} rows, expected {expected}')
     spot = {
         # Taiwan time 19:30 is 11:30 UTC
-        "SELECT listened_at FROM listen_sessions WHERE notes = '第一次聽，很受感動'": [['2026-08-31 11:30:00.000']],
+        "SELECT listened_at FROM listen_sessions WHERE notes = '第一次聽，很受感動'": [['2026-08-28 11:30:00.000']],
         "SELECT is_active, password_hash IS NULL FROM users WHERE username = 'leaving'": [['0', '1']],
         "SELECT must_change_password, email FROM users WHERE username = 'mei'": [['1', 'mei@example.tw']],
         "SELECT avatar_url IS NULL FROM users WHERE username = 'lin.teacher'": [['1']],

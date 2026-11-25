@@ -1,12 +1,12 @@
 # TODO：後端串接待辦清單
 
 > **建立時間**：2026-08-12
-> **最後更新**：2026-11-25（種子資料分開、備份匯入工具：資料庫 v1.15.0、第一階段計畫 v1.1.0）
+> **最後更新**：2026-11-25（範例備份與前端同步：資料庫 v1.15.1）
 > **目的**：追蹤前端 Mock 實作中，待後端 Spring Boot 就緒後需實作或替換的所有項目
 > **參考文件**（從哪裡讀起見 [`docs/README.md`](./docs/README.md) 文件導覽）：
 > - [`docs/backend_api_spec.md`](./docs/backend_api_spec.md)（v1.14.1：API、可見範圍規則、嘗試次數限制、登入期限、CORS、錯誤碼、第 13 節 Store → API 對照）
 > - [`docs/backend_phase1_plan.md`](./docs/backend_phase1_plan.md)（v1.1.0：後端第一階段的工作順序、第二階段的項目）
-> - [`docs/database_schema.md`](./docs/database_schema.md)（v1.15.0：MySQL 8.4 建表 SQL、種子資料、5.10–5.17 設計決策、第 9 節資料搬移）
+> - [`docs/database_schema.md`](./docs/database_schema.md)（v1.15.1：MySQL 8.4 建表 SQL、種子資料、5.10–5.17 設計決策、第 9 節資料搬移）
 > - [`docs/oauth2_social_login_spec.md`](./docs/oauth2_social_login_spec.md)（v1.1.2：社群登入流程、8.5 社群帳號規則）
 
 ---
@@ -174,6 +174,7 @@
   以 `scripts/backup-to-sql.py` 轉成 SQL 後匯入（`docs/database_schema.md` 第 9 節）
   - [x] 匯入工具：密碼以 bcrypt 雜湊並要求第一次登入時更換；前端 ID 換成 UUID；牆上時間以台灣時間換成 UTC；
     中文講師稱謂換成代碼；非 https 頭像不匯入；先列出不符合資料庫規則的資料；整個匯入是一個交易（CI 以範例備份測試）
+  - [x] 範例備份由單元測試以前端程式產生並比對；前端資料結構改變時測試失敗，提醒更新工具（`npm run fixtures:backup`）
   - [ ] 試辦前以實際的備份檔試轉一次，處理工具列出的問題
   - [ ] 匯入後比對工具列出的各表筆數；刪除備份檔與 SQL 檔（含密碼與學員心得）
 - [ ] 後端上線後，管理員頁面的「資料備份」改為後端的匯出功能或移除（`AdminDataBackup.vue`、`src/utils/backup.ts`）

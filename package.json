@@ -14,7 +14,8 @@
     "test": "vitest run --config vitest.config.ts",
     "test:watch": "vitest --config vitest.config.ts",
     "test:coverage": "vitest run --config vitest.config.ts --coverage",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "fixtures:backup": "vitest run --config vitest.config.ts src/__tests__/sampleBackup.spec.ts --update"
   },
   "dependencies": {
     "@dicebear/adventurer": "^9.4.3",
