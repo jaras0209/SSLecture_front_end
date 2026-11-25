@@ -1,6 +1,6 @@
 # SSLecture 後端資料庫設計文件
 
-> **文件版本**：v1.14.0  
+> **文件版本**：v1.14.1  
 > **最後更新**：2026-11-25  
 > **資料來源**：分析前端 `src/stores/auth.ts`、`src/stores/courses.ts`、`src/stores/bookings.ts`、localStorage 資料結構  
 > **資料庫**：MySQL 8.4 LTS（8.0.16 以上皆可；第 6 節的 SQL 已實測可建立全部 22 張表，字元集、定序與連線時區的設定也見第 6 節）。
@@ -1069,8 +1069,10 @@ API 規格〈欄位長度上限〉）。這樣前端收下的內容，後端與�
 
 ## 6. SQL 建表語句（MySQL）
 
-以 MySQL 8.4 LTS 為準（8.0.16 起才會真正執行 `CHECK`，更早的版本與 MariaDB 不適用）。這一節的 SQL 已在
-MySQL 8.0.46 實際建立全部 22 張表，並逐一測試唯一限制與 `CHECK`（用到的語法 8.0 與 8.4 相同）。
+以 MySQL 8.4 LTS 為準（8.0.16 起才會真正執行 `CHECK`，更早的版本與 MariaDB 不適用）。這一節與第 7 節的 SQL 由
+CI 以 MySQL 8.4 自動檢查（`scripts/check-schema.py`、`.github/workflows/schema.yml`）：實際建立全部 22 張表與種子資料，
+確認資料表與第 2 節、外鍵與[第 4 節](#4-資料關聯一覽)一致，並逐一測試唯一限制與 `CHECK`。修改這一節或第 7 節後，CI 會再檢查一次；
+本機有 MySQL 時也可直接執行 `python3 scripts/check-schema.py`（會刪除並重建名為 `sslecture` 的資料庫）。
 
 **資料庫與連線設定**：
 
@@ -2027,6 +2029,11 @@ JSON 檔（前端 `src/utils/backup.ts`），上線時用它把既有資料搬�
 ---
 
 ## 版本紀錄
+
+### v1.14.1（2026-11-25）SQL 自動檢查
+
+- 第 6、7 節的 SQL 改由 CI 以 MySQL 8.4 自動檢查（`scripts/check-schema.py`）：建表、資料表與外鍵和第 2、4 節一致、
+  63 項唯一限制與 `CHECK` 的測試；首次在 MySQL 8.4.13 全部通過
 
 ### v1.14.0（2026-11-25）改用 MySQL
 

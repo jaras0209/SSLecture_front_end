@@ -1,12 +1,12 @@
 # TODO：後端串接待辦清單
 
 > **建立時間**：2026-08-12
-> **最後更新**：2026-11-25（資料庫改用 MySQL 8.4：資料庫 v1.14.0；新增後端第一階段工作計畫）
+> **最後更新**：2026-11-25（資料庫改用 MySQL 8.4，建表 SQL 由 CI 自動檢查：資料庫 v1.14.1；新增後端第一階段工作計畫）
 > **目的**：追蹤前端 Mock 實作中，待後端 Spring Boot 就緒後需實作或替換的所有項目
 > **參考文件**（從哪裡讀起見 [`docs/README.md`](./docs/README.md) 文件導覽）：
 > - [`docs/backend_api_spec.md`](./docs/backend_api_spec.md)（v1.14.1：API、可見範圍規則、嘗試次數限制、登入期限、CORS、錯誤碼、第 13 節 Store → API 對照）
 > - [`docs/backend_phase1_plan.md`](./docs/backend_phase1_plan.md)（v1.0.0：後端第一階段的工作順序、第二階段的項目）
-> - [`docs/database_schema.md`](./docs/database_schema.md)（v1.14.0：MySQL 8.4 建表 SQL、5.10–5.17 設計決策、第 9 節資料搬移）
+> - [`docs/database_schema.md`](./docs/database_schema.md)（v1.14.1：MySQL 8.4 建表 SQL、5.10–5.17 設計決策、第 9 節資料搬移）
 > - [`docs/oauth2_social_login_spec.md`](./docs/oauth2_social_login_spec.md)（v1.1.2：社群登入流程、8.5 社群帳號規則）
 
 ---
@@ -93,7 +93,8 @@
 - [ ] 應用端的檢查（資料庫做不到的）：`lecturers.linked_user_id` 只連結 `teacher` / `pastor`；「不晚於今天」的日期（5.17）；
   `prep_scriptures` 每段最多 100 字
 - [ ] 決定部署位置後，設定每日備份並演練還原
-- [x] `docs/database_schema.md` 改為 MySQL 8.4（v1.14.0），第 6、7 節的 SQL 已在 MySQL 8.0.46 實測
+- [x] `docs/database_schema.md` 改為 MySQL 8.4（v1.14.0）；第 6、7 節的 SQL 由 CI 以 MySQL 8.4 自動建表並測試各項限制
+  （`scripts/check-schema.py`），後端的 Flyway 版本檔可直接沿用
 
 ---
 
