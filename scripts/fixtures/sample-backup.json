@@ -1,0 +1,464 @@
+{
+  "app": "sslecture",
+  "version": 1,
+  "exportedAt": "2026-09-12T01:00:00.000Z",
+  "data": {
+    "superstart_users_db": {
+      "student": {
+        "passwordHash": "123456",
+        "role": "student",
+        "church": "愛與話語",
+        "gender": "male",
+        "lastLoginAt": "2026-08-30T12:00:00.000Z"
+      },
+      "teacher": {
+        "passwordHash": "123456",
+        "role": "teacher",
+        "church": "愛與話語",
+        "gender": "male"
+      },
+      "admin": {
+        "passwordHash": "123456",
+        "role": "admin"
+      },
+      "parent": {
+        "passwordHash": "123456",
+        "role": "parent",
+        "church": "愛與話語",
+        "childUsernames": [
+          "student"
+        ]
+      },
+      "pastor": {
+        "passwordHash": "123456",
+        "role": "pastor",
+        "church": "愛與話語"
+      },
+      "mei": {
+        "passwordHash": "Temp-pass-1",
+        "role": "student",
+        "church": "愛與話語",
+        "email": "mei@example.tw",
+        "mustChangePassword": true,
+        "displayName": "小美",
+        "realName": "陳小美",
+        "avatarUrl": "https://example.tw/mei.png",
+        "gender": "female"
+      },
+      "lin.teacher": {
+        "passwordHash": "Temp-pass-2",
+        "role": "teacher",
+        "church": "愛與話語",
+        "mustChangePassword": false,
+        "avatarUrl": "http://old.example.tw/lin.png",
+        "gender": "female"
+      },
+      "mom_chen": {
+        "passwordHash": "Temp-pass-3",
+        "role": "parent",
+        "church": "愛與話語",
+        "mustChangePassword": true,
+        "childUsernames": [
+          "mei"
+        ]
+      },
+      "wang-pastor": {
+        "passwordHash": "Temp-pass-4",
+        "role": "pastor",
+        "church": "主大明",
+        "mustChangePassword": true
+      },
+      "oauth_google_1": {
+        "passwordHash": "",
+        "role": "student",
+        "loginMethod": "google",
+        "church": "愛與話語",
+        "email": "g.user@gmail.com",
+        "displayName": "G User",
+        "gender": "male"
+      }
+    },
+    "superstart_retired_usernames": [
+      "leaving"
+    ],
+    "superstart_invite_codes": {
+      "SS-STU-8BDBBF2K": {
+        "code": "SS-STU-8BDBBF2K",
+        "role": "student",
+        "church": "愛與話語",
+        "createdBy": "admin",
+        "createdAt": "2026-09-01T02:00:00.000Z",
+        "expiresAt": "2026-09-08T02:00:00.000Z",
+        "revoked": false
+      },
+      "SS-TCH-ZHVE54KZ": {
+        "code": "SS-TCH-ZHVE54KZ",
+        "role": "teacher",
+        "church": "愛與話語",
+        "createdBy": "admin",
+        "createdAt": "2026-09-01T02:00:00.000Z",
+        "expiresAt": "2026-09-08T02:00:00.000Z",
+        "revoked": false,
+        "usedBy": "lin.teacher",
+        "usedAt": "2026-09-01T02:00:00.000Z"
+      },
+      "SS-PST-BNTTQ245": {
+        "code": "SS-PST-BNTTQ245",
+        "role": "pastor",
+        "church": "主大明",
+        "createdBy": "admin",
+        "createdAt": "2026-09-01T02:00:00.000Z",
+        "expiresAt": "2026-09-08T02:00:00.000Z",
+        "revoked": true
+      }
+    },
+    "superstart_student_teacher_db": {
+      "mei": {
+        "teacher": "lin.teacher",
+        "pastor": "pastor"
+      },
+      "student": {
+        "teacher": "teacher"
+      }
+    },
+    "superstart_restrictions_db": {
+      "mei": [
+        "/shining"
+      ]
+    },
+    "superstart_progress_db": {
+      "student": {
+        "bible-01": {
+          "courseId": "bible-01",
+          "completed": true,
+          "notes": "第一次聽，很受感動",
+          "lastUpdated": "2026-09-01T02:00:00.000Z",
+          "sessions": [
+            {
+              "id": "session_ba0c68f05193703692443951a2b825a8",
+              "lecturer": "張牧師",
+              "listenedAt": "2026-08-31T19:30",
+              "notes": "第一次聽，很受感動",
+              "createdAt": "2026-09-01T02:00:00.000Z"
+            },
+            {
+              "id": "session_fed8dcee82547d6e08ec1dd1a9fabf2f",
+              "lecturer": "張牧師",
+              "listenedAt": "2026-09-01T09:00",
+              "notes": "",
+              "createdAt": "2026-09-01T02:00:00.000Z"
+            }
+          ]
+        }
+      },
+      "mei": {
+        "lecture-02": {
+          "courseId": "lecture-02",
+          "completed": true,
+          "notes": "想再聽一次",
+          "lastUpdated": "2026-09-01T02:00:00.000Z",
+          "sessions": [
+            {
+              "id": "session_ed7eb544e9e28abb12a327dba9b19ea3",
+              "lecturer": "林老師",
+              "listenedAt": "2026-08-15T20:00",
+              "notes": "想再聽一次",
+              "createdAt": "2026-09-01T02:00:00.000Z"
+            }
+          ]
+        }
+      }
+    },
+    "superstart_feedback_db": {
+      "student": {
+        "bible-01": [
+          {
+            "id": "fb_80a76dbb6f38353e7f761e63ab9cbc7b",
+            "author": "teacher",
+            "message": "很好，下次分享給小組",
+            "createdAt": "2026-09-01T02:00:00.000Z"
+          }
+        ]
+      },
+      "mei": {
+        "lecture-02": [
+          {
+            "id": "fb_921dbe25fd58e8529dd5d147a7e3adce",
+            "author": "pastor",
+            "message": "說得好！可以再想想 \"為什麼\" 和 '怎麼做'",
+            "createdAt": "2026-09-01T02:00:00.000Z"
+          }
+        ]
+      }
+    },
+    "superstart_feedback_seen_db": {
+      "student": {
+        "bible-01": "2026-09-01T02:00:00.000Z"
+      }
+    },
+    "superstart_shining_project_db": {
+      "student": {
+        "name": "王小明",
+        "birthday": "2012-05-01",
+        "church": "愛與話語",
+        "schoolGrade": "國一",
+        "faithPhase1": {
+          "worship": true,
+          "prayer": false,
+          "independent": false,
+          "reply": false,
+          "share": false
+        },
+        "faithPhase2": {
+          "courses30": false,
+          "prayerLong": false,
+          "morningWorship": false,
+          "readBible": false,
+          "churchService": false
+        },
+        "advancedChallenges": {
+          "wednesday": false,
+          "shareFaith": false,
+          "copySermon": false,
+          "morningProverb": false,
+          "custom": true
+        },
+        "customChallenge": "每天背一節經文",
+        "characterLectures": {
+          "品格力 - 自律": {
+            "speaker": "張牧師",
+            "date": "2026-08-20"
+          }
+        },
+        "comingOfAgeTopics": {
+          "基督教歷史": {
+            "speaker": "陳傳道",
+            "date": ""
+          }
+        }
+      }
+    },
+    "superstart_character_themes_db": {
+      "愛與話語": [
+        "品格力 - 自律",
+        "品格力 - 感謝",
+        "品格力 - 勇敢",
+        "品格力 - 正直",
+        "品格力 - 誠實"
+      ]
+    },
+    "superstart_coming_of_age_themes_db": {
+      "愛與話語": [
+        "基督教歷史",
+        "台灣攝理歷史",
+        "情感教育",
+        "R的使命與精神"
+      ]
+    },
+    "superstart_lecturers_db": [
+      {
+        "id": "l1",
+        "name": "張牧師",
+        "title": "pastor",
+        "courseIds": [
+          "bible-01",
+          "bible-02",
+          "bible-03",
+          "bible-04",
+          "bible-05",
+          "bible-06",
+          "bible-07",
+          "bible-08",
+          "bible-09",
+          "bible-10"
+        ],
+        "church": "愛與話語"
+      },
+      {
+        "id": "l2",
+        "name": "陳傳道",
+        "title": "preacher",
+        "courseIds": [
+          "bible-11",
+          "bible-12",
+          "bible-13",
+          "bible-14",
+          "bible-15",
+          "lecture-01",
+          "lecture-02",
+          "lecture-03",
+          "lecture-04",
+          "lecture-05"
+        ],
+        "church": "愛與話語"
+      },
+      {
+        "id": "l3",
+        "name": "林輔導",
+        "title": "counselor",
+        "courseIds": [
+          "lecture-06",
+          "lecture-07",
+          "lecture-08",
+          "lecture-09",
+          "lecture-10",
+          "lecture-11",
+          "lecture-12",
+          "lecture-13",
+          "lecture-14",
+          "lecture-15"
+        ],
+        "church": "愛與話語"
+      },
+      {
+        "id": "l_3a011969f0b9f078465afa7c9e36aa1e",
+        "name": "林老師",
+        "title": "lecturer",
+        "courseIds": [
+          "bible-01",
+          "lecture-02"
+        ],
+        "church": "愛與話語",
+        "linkedUsername": "lin.teacher"
+      },
+      {
+        "id": "l_28ce426ea18195b2b900792b2311a145",
+        "name": "Grace Wu",
+        "title": "guest",
+        "courseIds": [
+          "lecture-03"
+        ],
+        "church": "主大明"
+      }
+    ],
+    "superstart_teaching_stats_db": {
+      "teacher_2026": {
+        "teacherUsername": "teacher",
+        "year": 2026,
+        "church": "愛與話語",
+        "oneOnOne30": 3,
+        "oneToMany30": 1,
+        "oneOnOneShining": 0,
+        "oneToManyShining": 2,
+        "submittedAt": "2026-09-01T02:00:00.000Z"
+      }
+    },
+    "superstart_booking_sessions_db": {
+      "sess_75c7ff87f61c0237fe2d916384a39a59": {
+        "id": "sess_75c7ff87f61c0237fe2d916384a39a59",
+        "courseId": "bible-02",
+        "courseTitle": "日月停止",
+        "lecturerId": "l1",
+        "lecturerName": "張牧師",
+        "lecturerTitle": "pastor",
+        "teacherUsername": "teacher",
+        "proposedAt": "2026-09-10T14:00",
+        "durationMinutes": 90,
+        "status": "completed",
+        "prep": {
+          "scriptures": [
+            "約書亞記 10:12-14"
+          ],
+          "readingNotes": "先讀經文",
+          "materials": ""
+        },
+        "teacherSessionNotes": "大家都很投入",
+        "church": "愛與話語",
+        "isGroupSession": false,
+        "createdAt": "2026-09-01T02:00:00.000Z",
+        "updatedAt": "2026-09-10T08:00:00.000Z",
+        "confirmedAt": "2026-09-10T14:00"
+      },
+      "sess_e49721bb9d5e10b060f3e222a83b2e97": {
+        "id": "sess_e49721bb9d5e10b060f3e222a83b2e97",
+        "courseId": "lecture-02",
+        "courseTitle": "聖子論",
+        "lecturerId": "l1",
+        "lecturerName": "張牧師",
+        "lecturerTitle": "pastor",
+        "teacherUsername": "lin.teacher",
+        "proposedAt": "2026-12-20T19:30",
+        "durationMinutes": 90,
+        "status": "pending",
+        "prep": {
+          "scriptures": [],
+          "readingNotes": "",
+          "materials": "筆記本"
+        },
+        "teacherSessionNotes": "",
+        "church": "愛與話語",
+        "isGroupSession": true,
+        "createdAt": "2026-09-01T02:00:00.000Z",
+        "updatedAt": "2026-09-01T02:00:00.000Z"
+      },
+      "sess_d69785571005a59c1c165a297b2687dc": {
+        "id": "sess_d69785571005a59c1c165a297b2687dc",
+        "courseId": "bible-02",
+        "courseTitle": "日月停止",
+        "lecturerId": "l1",
+        "lecturerName": "張牧師",
+        "lecturerTitle": "pastor",
+        "teacherUsername": "teacher",
+        "proposedAt": "2026-09-20T10:00",
+        "durationMinutes": 90,
+        "status": "cancelled",
+        "prep": {
+          "scriptures": [
+            "約書亞記 10:12-14"
+          ],
+          "readingNotes": "先讀經文",
+          "materials": ""
+        },
+        "teacherSessionNotes": "",
+        "church": "愛與話語",
+        "isGroupSession": false,
+        "createdAt": "2026-09-01T02:00:00.000Z",
+        "updatedAt": "2026-09-01T02:00:00.000Z",
+        "cancelReason": "講師臨時有事"
+      }
+    },
+    "superstart_booking_attendees_db": {
+      "att_sess_75c7ff87f61c0237fe2d916384a39a59_student": {
+        "id": "att_sess_75c7ff87f61c0237fe2d916384a39a59_student",
+        "sessionId": "sess_75c7ff87f61c0237fe2d916384a39a59",
+        "studentUsername": "student",
+        "attendanceStatus": "attended",
+        "studentFeedback": "收穫很多",
+        "teacherFeedback": "專心聽講",
+        "createdAt": "2026-09-01T02:00:00.000Z",
+        "updatedAt": "2026-09-10T08:00:00.000Z",
+        "feedbackAt": "2026-09-10T08:00:00.000Z"
+      },
+      "att_sess_e49721bb9d5e10b060f3e222a83b2e97_mei": {
+        "id": "att_sess_e49721bb9d5e10b060f3e222a83b2e97_mei",
+        "sessionId": "sess_e49721bb9d5e10b060f3e222a83b2e97",
+        "studentUsername": "mei",
+        "attendanceStatus": "invited",
+        "studentFeedback": "",
+        "teacherFeedback": "",
+        "createdAt": "2026-09-01T02:00:00.000Z",
+        "updatedAt": "2026-09-01T02:00:00.000Z"
+      },
+      "att_sess_e49721bb9d5e10b060f3e222a83b2e97_oauth_google_1": {
+        "id": "att_sess_e49721bb9d5e10b060f3e222a83b2e97_oauth_google_1",
+        "sessionId": "sess_e49721bb9d5e10b060f3e222a83b2e97",
+        "studentUsername": "oauth_google_1",
+        "attendanceStatus": "invited",
+        "studentFeedback": "",
+        "teacherFeedback": "",
+        "createdAt": "2026-09-01T02:00:00.000Z",
+        "updatedAt": "2026-09-01T02:00:00.000Z"
+      },
+      "att_sess_d69785571005a59c1c165a297b2687dc_student": {
+        "id": "att_sess_d69785571005a59c1c165a297b2687dc_student",
+        "sessionId": "sess_d69785571005a59c1c165a297b2687dc",
+        "studentUsername": "student",
+        "attendanceStatus": "invited",
+        "studentFeedback": "",
+        "teacherFeedback": "",
+        "createdAt": "2026-09-01T02:00:00.000Z",
+        "updatedAt": "2026-09-01T02:00:00.000Z"
+      }
+    }
+  }
+}

@@ -1,12 +1,12 @@
 # TODO：後端串接待辦清單
 
 > **建立時間**：2026-08-12
-> **最後更新**：2026-11-25（資料庫改用 MySQL 8.4，建表 SQL 由 CI 自動檢查：資料庫 v1.14.1；新增後端第一階段工作計畫）
+> **最後更新**：2026-11-25（種子資料分開、備份匯入工具：資料庫 v1.15.0、第一階段計畫 v1.1.0）
 > **目的**：追蹤前端 Mock 實作中，待後端 Spring Boot 就緒後需實作或替換的所有項目
 > **參考文件**（從哪裡讀起見 [`docs/README.md`](./docs/README.md) 文件導覽）：
 > - [`docs/backend_api_spec.md`](./docs/backend_api_spec.md)（v1.14.1：API、可見範圍規則、嘗試次數限制、登入期限、CORS、錯誤碼、第 13 節 Store → API 對照）
-> - [`docs/backend_phase1_plan.md`](./docs/backend_phase1_plan.md)（v1.0.0：後端第一階段的工作順序、第二階段的項目）
-> - [`docs/database_schema.md`](./docs/database_schema.md)（v1.14.1：MySQL 8.4 建表 SQL、5.10–5.17 設計決策、第 9 節資料搬移）
+> - [`docs/backend_phase1_plan.md`](./docs/backend_phase1_plan.md)（v1.1.0：後端第一階段的工作順序、第二階段的項目）
+> - [`docs/database_schema.md`](./docs/database_schema.md)（v1.15.0：MySQL 8.4 建表 SQL、種子資料、5.10–5.17 設計決策、第 9 節資料搬移）
 > - [`docs/oauth2_social_login_spec.md`](./docs/oauth2_social_login_spec.md)（v1.1.2：社群登入流程、8.5 社群帳號規則）
 
 ---
@@ -88,7 +88,8 @@
 工作順序見 [`docs/backend_phase1_plan.md`](./docs/backend_phase1_plan.md)。
 
 - [ ] 建立 MySQL 8.4 資料庫，字元集 `utf8mb4`、定序 `utf8mb4_0900_as_cs`，連線時區設為 UTC、保留嚴格模式（資料庫第 6 節的設定表）
-- [ ] Flyway：`V1__init.sql` 用第 6 節的 SQL、`V2__seed.sql` 用第 7 節的種子資料（示範帳號的密碼雜湊重新產生）
+- [ ] Flyway：`V1__init.sql` 用第 6 節的 SQL、`V2__seed.sql` 用 7.1 的正式資料；7.3 的示範帳號只放在開發環境載入的位置
+- [ ] 正式環境上線：匯入前端備份（下方〈既有資料搬遷〉），或不匯入時以 7.2 建立第一個管理員
 - [ ] 後端的整合測試以真實的 MySQL 執行，確認唯一限制與 `CHECK` 的錯誤轉成 API 規格的錯誤碼（如 `409 LECTURER_EXISTS`）
 - [ ] 應用端的檢查（資料庫做不到的）：`lecturers.linked_user_id` 只連結 `teacher` / `pastor`；「不晚於今天」的日期（5.17）；
   `prep_scriptures` 每段最多 100 字
@@ -170,10 +171,11 @@
 ### 既有資料搬遷
 
 - [ ] 決定是否要把示範站的資料搬進後端。若要：請管理員在前端「資料備份」匯出備份檔（JSON），
-  依 `docs/database_schema.md` 第 9 節的對照寫一次性匯入腳本：
-  - [ ] 密碼在備份檔中是明文：雜湊後存入並設 `must_change_password = TRUE`（空字串＝社群帳號，存 NULL）
-  - [ ] 前端 ID 換成 UUID 並保留對照；牆上時間以 `Asia/Taipei` 解讀；中文講師稱謂換成代碼；非 https 頭像存 NULL
-  - [ ] 整個匯入放在同一個交易，完成後比對筆數；搬完後刪除備份檔（含密碼與學員心得）
+  以 `scripts/backup-to-sql.py` 轉成 SQL 後匯入（`docs/database_schema.md` 第 9 節）
+  - [x] 匯入工具：密碼以 bcrypt 雜湊並要求第一次登入時更換；前端 ID 換成 UUID；牆上時間以台灣時間換成 UTC；
+    中文講師稱謂換成代碼；非 https 頭像不匯入；先列出不符合資料庫規則的資料；整個匯入是一個交易（CI 以範例備份測試）
+  - [ ] 試辦前以實際的備份檔試轉一次，處理工具列出的問題
+  - [ ] 匯入後比對工具列出的各表筆數；刪除備份檔與 SQL 檔（含密碼與學員心得）
 - [ ] 後端上線後，管理員頁面的「資料備份」改為後端的匯出功能或移除（`AdminDataBackup.vue`、`src/utils/backup.ts`）
 
 ### loginWithThirdParty（已完成）
@@ -240,6 +242,7 @@
   資料庫文件的存取建議改為 Spring Data JPA 與 Flyway；API 規格的前端串接步驟改寫為現況；
   README 加上線上示範、文件一覽，目錄結構依現況重寫；文件中的連結由 `src/__tests__/docs.spec.ts` 檢查
 - [x] 資料庫改用 MySQL 8.4（資料庫 v1.14.0、社群登入 v1.1.2）；新增 `docs/backend_phase1_plan.md` 後端第一階段工作計畫
+- [x] 種子資料分成正式資料、第一個管理員、示範帳號；新增備份匯入工具 `scripts/backup-to-sql.py`（資料庫 v1.15.0）
 
 ---
 

@@ -44,7 +44,7 @@ SSLecture 是一個基於 **Vue 3 + TypeScript + Vite** 技術棧開發的現代
 *   **程式碼品質**：TypeScript 6.0（Strict 嚴格模式，以 vue-tsc 3 檢查）、ESLint 10、Prettier 3
 *   **樣式設計**：Vanilla CSS（響應式排版，適配行動端、桌面端與 `@media print` 列印模式）
 *   **CI／部署**：GitHub Actions（`.github/workflows/`）。分支推送時跑 CI；`main` 更新時再跑一次全部檢查，建置後由另一個工作部署到 GitHub Pages。
-    資料庫文件的建表 SQL 改動時，另以 MySQL 8.4 實際建表並測試各項限制（`scripts/check-schema.py`、`.github/workflows/schema.yml`）。
+    資料庫文件的建表 SQL 或匯入工具改動時，另以 MySQL 8.4 實際建表、測試各項限制與備份匯入（`scripts/check-schema.py`、`.github/workflows/schema.yml`）。
     檢查項目：套件漏洞（`scripts/audit.mjs`；尚無修正版、確認不影響網站的個別漏洞可暫列 `.github/audit-exceptions.json`，附原因與到期日）、
     ESLint、Prettier、單元測試與最低覆蓋率、型別檢查與建置、端對端測試
 
@@ -78,7 +78,9 @@ SSLecture/
 ├── e2e/                    # Playwright 端對端測試（*.e2e.ts，對正式 build 執行；fixtures.ts 為共用的測試帳號與工具）
 ├── scripts/
 │   ├── audit.mjs           # CI 的套件漏洞檢查（npm audit，高風險以上即失敗，例外見上）
-│   └── check-schema.py     # 以 MySQL 實際執行資料庫文件的建表 SQL 並測試各項限制
+│   ├── check-schema.py     # 以 MySQL 實際執行資料庫文件的建表 SQL、測試各項限制與備份匯入
+│   ├── backup-to-sql.py    # 把前端的備份檔轉成匯入 MySQL 的 SQL（後端上線時用）
+│   └── fixtures/           # 範例備份（以前端程式產生，供匯入工具的測試使用）
 ├── public/                 # 直接複製到網站的檔案：分頁圖示 favicon.svg、手機主畫面圖示 apple-touch-icon.png
 ├── src/
 │   ├── assets/             # 圖示與全域樣式（styles/main.css：CSS 變數、玻璃擬態、工具類、列印、減少動態效果）
@@ -295,7 +297,7 @@ location / {
 
 - **備份與還原**：管理員頁面最下方的「資料備份」可匯出全部資料為 JSON 檔（`src/utils/backup.ts`），需要時從檔案還原
   （會取代目前所有資料，並請所有人重新登入）。超過 7 天未備份時，管理員頁面會提醒。備份檔含所有帳號的密碼與學員心得，請妥善保管。
-  後端上線時也可用這個檔案搬移既有資料（見 [`docs/database_schema.md`](./docs/database_schema.md) 第 9 節）。
+  後端上線時以 `scripts/backup-to-sql.py` 把這個檔案轉成 SQL 匯入資料庫（見 [`docs/database_schema.md`](./docs/database_schema.md) 第 9 節）。
 - **儲存失敗**：瀏覽器拒絕儲存（例如空間已滿、無痕模式）時，畫面上方會出現警告，此時的變更在重新整理後會遺失。
 
 如果您想將資料還原為系統初始狀態（**會刪除所有資料，建議先匯出備份**），只需要：

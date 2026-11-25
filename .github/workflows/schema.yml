@@ -1,17 +1,21 @@
 name: Database schema
 
-# 以 MySQL 8.4 實際執行 docs/database_schema.md 第 6、7 節的 SQL，並測試每個 CHECK、唯一限制與外鍵
-# （scripts/check-schema.py）。只在資料庫文件或檢查程式改動時執行，不影響網站部署
+# 以 MySQL 8.4 實際執行 docs/database_schema.md 第 6、7 節的 SQL，測試每個 CHECK、唯一限制與外鍵，
+# 並以範例備份測試匯入工具（scripts/check-schema.py）。只在相關檔案改動時執行，不影響網站部署
 on:
   push:
     paths:
       - docs/database_schema.md
       - scripts/check-schema.py
+      - scripts/backup-to-sql.py
+      - scripts/fixtures/**
       - .github/workflows/schema.yml
   pull_request:
     paths:
       - docs/database_schema.md
       - scripts/check-schema.py
+      - scripts/backup-to-sql.py
+      - scripts/fixtures/**
       - .github/workflows/schema.yml
   workflow_dispatch:
 
@@ -40,7 +44,11 @@ jobs:
       - name: Install the MySQL client if missing
         run: command -v mysql || (sudo apt-get update && sudo apt-get install -y mysql-client)
 
-      - name: Build the schema and check its constraints
+      # 匯入工具以 bcrypt 雜湊密碼
+      - name: Install bcrypt
+        run: pip install bcrypt==5.0.0
+
+      - name: Build the schema, check its constraints and the import
         env:
           MYSQL_HOST: 127.0.0.1
           MYSQL_PWD: root

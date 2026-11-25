@@ -1,6 +1,6 @@
 # SSLecture 後端第一階段工作計畫
 
-> **文件版本**：v1.0.0  
+> **文件版本**：v1.1.0  
 > **最後更新**：2026-11-25  
 > **資料庫**：MySQL 8.4 LTS（建表 SQL 見[資料庫設計第 6 節](./database_schema.md#6-sql-建表語句mysql)）  
 > **後端**：Spring Boot 3，放在另一個 repository；本 repository 只有前端與文件  
@@ -42,8 +42,9 @@
 ### 步驟 0：專案骨架
 
 - 建立 Spring Boot 3 專案：Spring Web、Spring Security、Spring Data JPA、Flyway、MySQL 驅動
-- Flyway 的第一個版本檔（`V1__init.sql`）直接用資料庫設計第 6 節的 SQL，第二個（`V2__seed.sql`）用第 7 節的種子資料
-  （示範帳號的密碼雜湊須重新產生）
+- Flyway 的第一個版本檔（`V1__init.sql`）直接用資料庫設計第 6 節的 SQL，第二個（`V2__seed.sql`）用
+  [7.1 正式資料](./database_schema.md#71-正式資料)；[7.3 示範帳號](./database_schema.md#73-示範帳號只在開發與測試環境)
+  放在只有開發設定會載入的位置。這些 SQL 都由 CI 以 MySQL 8.4 檢查過
 - 共用的部分：回應格式與錯誤碼（API 規格[第 1 節](./backend_api_spec.md#1-通用規範)、[第 12 節](./backend_api_spec.md#12-錯誤碼一覽)）、
   [欄位長度上限](./backend_api_spec.md#欄位長度上限)的檢查、[跨網域（CORS）](./backend_api_spec.md#跨網域cors)、時間格式（資料庫 5.14）
 - 測試環境：以 Testcontainers 或 CI 的 MySQL 服務跑整合測試
@@ -83,7 +84,9 @@
 ### 步驟 6：試辦
 
 - 前端以 `VITE_API_BASE_URL` 指向後端、`VITE_DEMO_MODE=false` 重新建置（根目錄 README〈環境變數〉）
-- 匯入示範站的資料：管理員匯出備份檔，依資料庫設計第 9 節匯入；密碼雜湊後要求每個人第一次登入時更換，匯入後刪除備份檔
+- 匯入示範站的資料：管理員匯出備份檔，以 `scripts/backup-to-sql.py` 轉成 SQL 後匯入（資料庫設計第 9 節）。
+  工具會先列出不符合資料庫規則的資料，請在前端修正後重新匯出；密碼雜湊後每個人第一次登入時須更換，匯入後刪除備份檔與 SQL 檔
+- 不匯入時，改以[資料庫設計 7.2](./database_schema.md#72-第一個管理員) 建立第一個管理員
 - 第二階段的功能在試辦期間仍存在瀏覽器裡，正式切換前再匯入一次
 
 ---
@@ -109,6 +112,11 @@
 ---
 
 ## 版本紀錄
+
+### v1.1.0（2026-11-25）
+
+- 步驟 0：種子資料分成正式資料（7.1）與只在開發環境的示範帳號（7.3）
+- 步驟 6：匯入改用 `scripts/backup-to-sql.py`；不匯入時以 7.2 建立第一個管理員
 
 ### v1.0.0（2026-11-25）
 

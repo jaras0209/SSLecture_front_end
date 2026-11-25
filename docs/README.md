@@ -11,9 +11,9 @@
 | 文件 | 內容 | 給誰看 | 版本 |
 | :--- | :--- | :--- | :--- |
 | [`backend_api_spec.md`](./backend_api_spec.md) | 所有 API 的請求與回應、可見範圍規則、嘗試次數限制、登入期限、CORS、錯誤碼、資料模型、前端串接步驟 | 後端、串接 API 的前端 | v1.14.1 |
-| [`database_schema.md`](./database_schema.md) | 22 張資料表、索引、設計決策、MySQL 建表 SQL 與連線設定、種子資料、ERD、從前端備份搬移資料 | 後端、資料庫管理 | v1.14.1 |
+| [`database_schema.md`](./database_schema.md) | 22 張資料表、索引、設計決策、MySQL 建表 SQL 與連線設定、種子資料、ERD、從前端備份搬移資料 | 後端、資料庫管理 | v1.15.0 |
 | [`oauth2_social_login_spec.md`](./oauth2_social_login_spec.md) | Google / LINE 登入流程、Spring Security 設定、前端整合、帳號綁定、安全性、第三方平台設定 | 實作社群登入的後端 | v1.1.2 |
-| [`backend_phase1_plan.md`](./backend_phase1_plan.md) | 後端第一階段的工作順序（帳號密碼登入、管理員、關懷配對、聽課紀錄、心得回覆、試辦）、第二階段的項目、已決定與還沒決定的事 | 專案負責人、後端 | v1.0.0 |
+| [`backend_phase1_plan.md`](./backend_phase1_plan.md) | 後端第一階段的工作順序（帳號密碼登入、管理員、關懷配對、聽課紀錄、心得回覆、試辦）、第二階段的項目、已決定與還沒決定的事 | 專案負責人、後端 | v1.1.0 |
 | [`../TODO.md`](../TODO.md) | 後端上線前要完成的項目（安全性、資料表、各 store 改接 API、資料搬移、部署） | 專案負責人、後端 | — |
 
 各文件開頭有目錄，文末有〈版本紀錄〉記錄每一版改了什麼。
@@ -47,7 +47,7 @@
 | 錯誤碼與訊息 | API [第 12 節](./backend_api_spec.md#12-錯誤碼一覽) | `src/utils/api.ts`、語系檔的 `api.codes` |
 | 時間與時區 | API〈[時間格式](./backend_api_spec.md#時間格式)〉、資料庫 [5.14](./database_schema.md#514-時間與時區) | `src/utils/datetime.ts` |
 | 社群登入 | [`oauth2_social_login_spec.md`](./oauth2_social_login_spec.md) | `src/views/LoginCallback.vue`、`src/views/OnboardingView.vue`、`src/stores/auth.ts` |
-| 前端資料搬進資料庫 | API〈[搬移既有資料](./backend_api_spec.md#搬移既有資料)〉、資料庫[第 9 節](./database_schema.md#9-從前端備份搬移資料) | `src/utils/backup.ts` |
+| 前端資料搬進資料庫 | API〈[搬移既有資料](./backend_api_spec.md#搬移既有資料)〉、資料庫[第 9 節](./database_schema.md#9-從前端備份搬移資料) | `src/utils/backup.ts`；匯入工具 `scripts/backup-to-sql.py` |
 | 跨網域與內容安全政策 | API〈[跨網域（CORS）](./backend_api_spec.md#跨網域cors)〉、根目錄 README〈[安全性標頭與跨網域](../README.md#安全性標頭與跨網域)〉 | `src/utils/csp.ts` |
 
 ## 維護方式
@@ -59,4 +59,5 @@
 - **連結會被檢查**：`npm test` 會確認這些文件、根目錄 README 與 TODO 裡的連結、章節錨點，以及以反引號寫出的
   `src/…`、`e2e/…` 等檔案路徑都存在（`src/__tests__/docs.spec.ts`）。改標題或搬移檔案後，請一併更新引用它的地方
 - **建表 SQL 會被檢查**：改到 [`database_schema.md`](./database_schema.md) 時，CI 以 MySQL 8.4 實際建表並測試各項限制
-  （`scripts/check-schema.py`）。新增限制時，請在該檔的 `CASES` 加上應被拒絕與應被接受的例子
+  與備份匯入（`scripts/check-schema.py`）。新增限制時，請在該檔的 `CASES` 加上應被拒絕與應被接受的例子；
+  前端的資料結構改變時，同步更新 `scripts/backup-to-sql.py` 與範例備份 `scripts/fixtures/sample-backup.json`

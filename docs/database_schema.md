@@ -1,6 +1,6 @@
 # SSLecture 後端資料庫設計文件
 
-> **文件版本**：v1.14.1  
+> **文件版本**：v1.15.0  
 > **最後更新**：2026-11-25  
 > **資料來源**：分析前端 `src/stores/auth.ts`、`src/stores/courses.ts`、`src/stores/bookings.ts`、localStorage 資料結構  
 > **資料庫**：MySQL 8.4 LTS（8.0.16 以上皆可；第 6 節的 SQL 已實測可建立全部 22 張表，字元集、定序與連線時區的設定也見第 6 節）。
@@ -1083,6 +1083,7 @@ CI 以 MySQL 8.4 自動檢查（`scripts/check-schema.py`、`.github/workflows/s
 | 時區 | 連線時區設為 UTC：JDBC 網址加 `connectionTimeZone=UTC&forceConnectionTimeZoneToSession=true`，Hibernate 設 `hibernate.jdbc.time_zone=UTC` | `DATETIME` 不記時區，全部存 UTC（見 [5.14](#514-時間與時區)）；`DEFAULT CURRENT_TIMESTAMP(3)` 依連線時區取值 |
 | `sql_mode` | 保留預設的 `STRICT_TRANS_TABLES` | 太長的文字、不合法的值會被拒絕，而不是被截斷後存入（見 [5.16](#516-文字欄位長度)） |
 | 儲存引擎 | InnoDB（預設） | 外鍵與交易 |
+| `mysql` 用戶端 | 加 `--default-character-set=utf8mb4` 執行這裡的 SQL | 否則用戶端可能以 latin1 傳送，中文（教會名稱等）存成亂碼，之後依名稱也查不到 |
 
 **型別對照**：識別碼為 UUID 字串 `CHAR(36)`，預設由資料庫產生（`DEFAULT (UUID())`），也可由後端產生後寫入；
 時間一律 `DATETIME(3)`（毫秒，存 UTC；不用 `TIMESTAMP`，它只到 2038 年）；`BOOLEAN` 即 `TINYINT(1)`；
@@ -1536,6 +1537,16 @@ CREATE INDEX idx_auth_attempts_ip      ON auth_attempts(action, ip, attempted_at
 
 ## 7. 種子資料（Seed Data）
 
+分成三部分，放的地方不同：
+
+| 部分 | 內容 | 用在哪裡 | Flyway |
+|------|------|----------|--------|
+| [7.1 正式資料](#71-正式資料) | 19 間教會、30 堂課程、專題主題範例 | 每個環境 | `db/migration/V2__seed.sql` |
+| [7.2 第一個管理員](#72-第一個管理員) | 一個 SS 中央管理員帳號 | 正式環境，上線時執行一次 | 不放進 Flyway（密碼雜湊不進版本控制） |
+| [7.3 示範帳號](#73-示範帳號只在開發與測試環境) | 前端示範站的 5 個帳號，密碼皆為 `123456` | 只在開發與測試環境 | `db/dev/R__demo_accounts.sql` |
+
+### 7.1 正式資料
+
 ```sql
 -- ────────────────────────────────────────────────
 --  種子教會（19 間）
@@ -1595,23 +1606,50 @@ INSERT INTO themes (church_id, type, name, sort_order) VALUES
   (@church_id, 'coming_of_age', '台灣攝理歷史',   2),
   (@church_id, 'coming_of_age', '情感教育',       3),
   (@church_id, 'coming_of_age', 'R的使命與精神',  4);
+```
 
--- ────────────────────────────────────────────────
---  種子測試帳號（密碼請使用 bcrypt 雜湊後填入）
--- ────────────────────────────────────────────────
--- 以下 password_hash 為 '123456' 的 bcrypt 雜湊（範例，實際請重新生成）
--- $2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewYpR8HRuHQOBDGS
+### 7.2 第一個管理員
 
+正式環境需要一個管理員登入後建立其他帳號與邀請碼。上線時由資料庫管理者執行一次，密碼只給負責的人，
+第一次登入就要更換（`must_change_password`）。
+
+```sql
+-- 帳號與雜湊換成實際的值；雜湊用 bcrypt（cost 12）產生，例如：
+--   htpasswd -bnBC 12 "" '臨時密碼' | tr -d ':\n'        （apache2-utils）
+--   new BCryptPasswordEncoder(12).encode("臨時密碼")      （Spring Security）
+SET @admin_username      = 'ss.admin';
+SET @admin_password_hash = '<bcrypt 雜湊>';
+
+INSERT INTO users (username, password_hash, role, display_name, must_change_password)
+VALUES (@admin_username, @admin_password_hash, 'admin', 'SS中央管理員', TRUE);
+```
+
+- 試辦時若用前端備份檔匯入資料（[第 9 節](#9-從前端備份搬移資料)），備份裡已有管理員帳號，**不要**先執行這一段：
+  匯入工具要求 `users` 是空的
+- 不要使用 7.3 的示範帳號代替：它們的密碼是公開的 `123456`
+
+### 7.3 示範帳號（只在開發與測試環境）
+
+與前端示範站相同的 5 個帳號（密碼皆為 `123456`），方便前端在開發環境接上後端後照常測試。**不可放進正式環境**：
+放在只有開發設定會載入的 Flyway 位置，例如 `application-dev.yml` 設
+`spring.flyway.locations: classpath:db/migration,classpath:db/dev`。這是可重複執行的版本檔（`R__`），重複執行不會出錯。
+
+```sql
+-- password_hash 是 '123456' 的 bcrypt 雜湊（cost 12）
 -- 示範教師與學員同為男性，教師才看得到學員（見 5.10）；家長綁定示範學員（見 2.19）
 INSERT INTO users (username, password_hash, role, church_id, display_name, gender) VALUES
-  ('student', '$2b$12$...', 'student', (SELECT id FROM churches WHERE name='愛與話語'), 'SS學員',       'male'),
-  ('teacher', '$2b$12$...', 'teacher', (SELECT id FROM churches WHERE name='愛與話語'), '輔導教師',     'male'),
-  ('pastor',  '$2b$12$...', 'pastor',  (SELECT id FROM churches WHERE name='愛與話語'), '分區牧者',     NULL),
-  ('parent',  '$2b$12$...', 'parent',  (SELECT id FROM churches WHERE name='愛與話語'), '關懷家長',     NULL),
-  ('admin',   '$2b$12$...', 'admin',   NULL,                                            'SS中央管理員', NULL);
+  ('student', '$2b$12$pnH2nqEGQ3cUteGYDpJWGulCSlFJGeE4ketApm7EiMHuj7BtPwxx6', 'student', (SELECT id FROM churches WHERE name='愛與話語'), 'SS學員',       'male'),
+  ('teacher', '$2b$12$pnH2nqEGQ3cUteGYDpJWGulCSlFJGeE4ketApm7EiMHuj7BtPwxx6', 'teacher', (SELECT id FROM churches WHERE name='愛與話語'), '輔導教師',     'male'),
+  ('pastor',  '$2b$12$pnH2nqEGQ3cUteGYDpJWGulCSlFJGeE4ketApm7EiMHuj7BtPwxx6', 'pastor',  (SELECT id FROM churches WHERE name='愛與話語'), '分區牧者',     NULL),
+  ('parent',  '$2b$12$pnH2nqEGQ3cUteGYDpJWGulCSlFJGeE4ketApm7EiMHuj7BtPwxx6', 'parent',  (SELECT id FROM churches WHERE name='愛與話語'), '關懷家長',     NULL),
+  ('admin',   '$2b$12$pnH2nqEGQ3cUteGYDpJWGulCSlFJGeE4ketApm7EiMHuj7BtPwxx6', 'admin',   NULL,                                            'SS中央管理員', NULL)
+AS demo
+ON DUPLICATE KEY UPDATE password_hash = demo.password_hash, role = demo.role, church_id = demo.church_id,
+                        display_name = demo.display_name, gender = demo.gender, is_active = TRUE;
 
 INSERT INTO parent_children (parent_id, student_id)
-SELECT p.id, s.id FROM users p, users s WHERE p.username = 'parent' AND s.username = 'student';
+SELECT p.id, s.id FROM users p, users s WHERE p.username = 'parent' AND s.username = 'student'
+ON DUPLICATE KEY UPDATE bound_at = parent_children.bound_at;
 ```
 
 ---
@@ -1974,6 +2012,23 @@ erDiagram
 後端上線前，資料都存在前端（瀏覽器的 localStorage）。管理員頁面的「資料備份」可以把全部資料匯出成一個
 JSON 檔（前端 `src/utils/backup.ts`），上線時用它把既有資料搬進資料庫。
 
+**匯入工具** `scripts/backup-to-sql.py` 依這一節的對照與注意事項，把備份檔轉成一個 SQL 檔：
+
+```
+pip install bcrypt                                    # 雜湊密碼用
+python3 scripts/backup-to-sql.py 備份檔.json -o import.sql
+mysql --default-character-set=utf8mb4 -u <帳號> -p sslecture < import.sql
+```
+
+- 匯入的資料庫只執行過第 6 節與 [7.1](#71-正式資料)（不要先建立 7.2 的管理員或 7.3 的示範帳號）：
+  SQL 開頭會檢查 `users` 是空的、備份用到的教會都存在，否則什麼都不改
+- 轉換前先依資料庫的規則檢查備份（下方「搬移時注意」的各項）。有不符合的資料時列出清單、不產生 SQL：
+  請管理員在前端修正後重新匯出
+- 整個匯入是一個交易，任何一列被拒絕就全部不算（以 `mysql` 執行時不要加 `--force`）；完成後畫面上會列出各表筆數，
+  可與資料庫比對
+- 備份檔有明碼密碼、SQL 檔有密碼雜湊，匯入後兩個都刪除
+- 這個工具由 CI 以前端產生的範例備份（`scripts/fixtures/sample-backup.json`）在 MySQL 8.4 實際匯入測試
+
 **檔案格式**：
 
 ```json
@@ -2008,7 +2063,10 @@ JSON 檔（前端 `src/utils/backup.ts`），上線時用它把既有資料搬�
 
 - **密碼**：前端模擬階段的 `passwordHash` 其實是**明碼**。搬移時須以 bcrypt 雜湊後存入，並建議設
   `must_change_password = TRUE`，請大家第一次登入後換掉（這些密碼曾以明碼存在瀏覽器與備份檔裡）；
-  空字串表示社群帳號，存 NULL
+  空字串表示社群帳號，存 NULL。社群帳號在備份裡沒有 Google / LINE 的使用者 ID，匯入後第一次以社群登入時依
+  [社群登入文件](./oauth2_social_login_spec.md)的規則綁定
+- **已刪除的帳號**（`superstart_retired_usernames`）：匯入成停用的帳號（`is_active = FALSE`、沒有密碼），名稱不能再被註冊
+- **專題主題**：備份裡各教會的主題取代 7.1 的範例；不在備份裡的主題改為停用（軟刪除），已登記的紀錄保留
 - **識別碼**：前端的 ID（如講師 `l1`、預約 `sess_…`、回覆 `fb_…`）不是 UUID。搬移時產生新的 UUID，
   並在同一次搬移中保留「舊 ID → 新 UUID」的對照，用來接上預約與講師、出席與預約等關聯
 - **時間**：系統時間戳記（`createdAt`、`lastLoginAt` 等）是 ISO 8601（UTC），直接存入；學員填的牆上時間
@@ -2029,6 +2087,15 @@ JSON 檔（前端 `src/utils/backup.ts`），上線時用它把既有資料搬�
 ---
 
 ## 版本紀錄
+
+### v1.15.0（2026-11-25）種子資料分開、匯入工具
+
+- 第 7 節分成 7.1 正式資料（每個環境）、7.2 第一個管理員（正式環境上線時執行一次，第一次登入須改密碼）、
+  7.3 示範帳號（只在開發與測試環境；密碼雜湊改為真正的 `123456` bcrypt 雜湊，可重複執行）
+- 第 9 節新增匯入工具 `scripts/backup-to-sql.py`：先檢查備份，再產生一個交易的 SQL；補上已刪除的帳號、專題主題、
+  社群帳號如何匯入
+- 第 6 節的設定表補上 `mysql` 用戶端要用 `utf8mb4`
+- CI 的檢查（`scripts/check-schema.py`）一併測試 7.2、7.3（重複執行不出錯、示範密碼正確）與匯入工具
 
 ### v1.14.1（2026-11-25）SQL 自動檢查
 
