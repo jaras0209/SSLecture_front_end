@@ -1,12 +1,13 @@
 # SSLecture 後端資料庫設計文件
 
-> **文件版本**：v1.15.1  
+> **文件版本**：v1.16.0  
 > **最後更新**：2026-11-25  
 > **資料來源**：分析前端 `src/stores/auth.ts`、`src/stores/courses.ts`、`src/stores/bookings.ts`、localStorage 資料結構  
 > **資料庫**：MySQL 8.4 LTS（8.0.16 以上皆可；第 6 節的 SQL 已實測可建立全部 22 張表，字元集、定序與連線時區的設定也見第 6 節）。
 > 不適用 MariaDB 與 PostgreSQL（`CHECK`、運算式索引、`JSON` 的寫法不同）  
-> **後端存取**：Spring Boot 3（見 [API 規格](./backend_api_spec.md)）建議以 Spring Data JPA（Hibernate）存取，
-> 以 Flyway 管理建表與日後的結構變更（第一版直接用第 6 節的 SQL）  
+> **後端存取**：Spring Boot（見 [API 規格](./backend_api_spec.md)）以 Spring Data JPA（Hibernate）存取，
+> 以 Liquibase 管理建表與日後的結構變更（後端 [`SSLecture_backend`](https://github.com/jaras0209/SSLecture_backend) 的
+> `src/main/resources/db/changelog/`，內容與第 6、7 節相同）  
 > **相關文件**：[文件導覽](./README.md)・[API 規格](./backend_api_spec.md)・[社群登入](./oauth2_social_login_spec.md)・各版本異動見文末[版本紀錄](#版本紀錄)
 
 ---
@@ -451,7 +452,7 @@
 | `cancel_reason` | `VARCHAR(500)` | NULL | 取消原因（status = cancelled 時填入） |
 | `teacher_session_notes` | `VARCHAR(2000)` | NULL | 教師整場備注（完成後填寫） |
 | `is_group_session` | `BOOLEAN` | NOT NULL, DEFAULT FALSE | 是否為團體聽課 |
-| `prep_scriptures` | `JSON` | NOT NULL, DEFAULT (JSON_ARRAY()), CHECK 為陣列 | 預習經文列表（字串陣列，每段最多 100 字，由 API 檢查） |
+| `prep_scriptures` | `JSON` | NOT NULL, DEFAULT (JSON_ARRAY()), CHECK | 預習經文列表：字串陣列，每段最多 100 字（`JSON_SCHEMA_VALID` 檢查） |
 | `prep_reading_notes` | `VARCHAR(2000)` | NULL | 預習說明 |
 | `prep_materials` | `VARCHAR(500)` | NULL | 補充材料說明 |
 | `created_at` | `DATETIME(3)` | NOT NULL, DEFAULT CURRENT_TIMESTAMP(3) | 建立時間 |
@@ -1382,12 +1383,13 @@ CREATE TABLE booking_sessions (
   cancel_reason         VARCHAR(500),
   teacher_session_notes VARCHAR(2000),
   is_group_session      BOOLEAN      NOT NULL DEFAULT FALSE,
-  prep_scriptures       JSON         NOT NULL DEFAULT (JSON_ARRAY()),  -- 字串陣列，每段最多 100 字（API 檢查）
+  prep_scriptures       JSON         NOT NULL DEFAULT (JSON_ARRAY()),  -- 字串陣列，每段最多 100 字
   prep_reading_notes    VARCHAR(2000),
   prep_materials        VARCHAR(500),
   created_at            DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   updated_at            DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-  CONSTRAINT booking_prep_scriptures_array CHECK (JSON_TYPE(prep_scriptures) = 'ARRAY'),
+  CONSTRAINT booking_prep_scriptures_array CHECK (JSON_SCHEMA_VALID(
+    '{"type": "array", "items": {"type": "string", "maxLength": 100}}', prep_scriptures)),
   -- 預約的是還沒上的課；完成要等課開始之後（見 5.17）
   CONSTRAINT booking_proposed_ahead CHECK (proposed_at > created_at),
   CONSTRAINT booking_completed_after_start
@@ -1529,8 +1531,8 @@ CREATE INDEX idx_auth_attempts_ip      ON auth_attempts(action, ip, attempted_at
 
 - 沒有部分索引（`WHERE is_active`）：改用運算式索引，讓不受限制的列得到 NULL（見 `uq_lecturers_*`、`uq_users_email`）
 - `CHECK` 不能用在有 `ON DELETE SET NULL` / `CASCADE` 的外鍵欄位上，也不能用 `NOW()` 等會變的函式；本設計的 `CHECK` 都沒有用到
-- 結構變更（`CREATE`、`ALTER`）不能放在交易裡復原：Flyway 的一個版本檔失敗時，已執行的部分要手動處理，
-  所以每個版本檔只做一件事
+- 結構變更（`CREATE`、`ALTER`）不能放在交易裡復原：Liquibase 的一個 changeset 失敗時，已執行的部分要手動處理，
+  所以每個 changeset 只做一件事（後端每張表一個 changeset）
 - `UPSERT` 寫成 `INSERT ... ON DUPLICATE KEY UPDATE`；`UPDATE` 多表時寫成 `UPDATE a JOIN b ... SET`（見 5.3）
 
 ---
@@ -1539,11 +1541,11 @@ CREATE INDEX idx_auth_attempts_ip      ON auth_attempts(action, ip, attempted_at
 
 分成三部分，放的地方不同：
 
-| 部分 | 內容 | 用在哪裡 | Flyway |
+| 部分 | 內容 | 用在哪裡 | 後端的 Liquibase changeset |
 |------|------|----------|--------|
-| [7.1 正式資料](#71-正式資料) | 19 間教會、30 堂課程、專題主題範例 | 每個環境 | `db/migration/V2__seed.sql` |
-| [7.2 第一個管理員](#72-第一個管理員) | 一個 SS 中央管理員帳號 | 正式環境，上線時執行一次 | 不放進 Flyway（密碼雜湊不進版本控制） |
-| [7.3 示範帳號](#73-示範帳號只在開發與測試環境) | 前端示範站的 5 個帳號，密碼皆為 `123456` | 只在開發與測試環境 | `db/dev/R__demo_accounts.sql` |
+| [7.1 正式資料](#71-正式資料) | 19 間教會、30 堂課程、專題主題範例 | 每個環境 | `002-seed-reference-data.sql` |
+| [7.2 第一個管理員](#72-第一個管理員) | 一個 SS 中央管理員帳號 | 正式環境，上線時執行一次 | 不放進 Liquibase（密碼雜湊不進版本控制） |
+| [7.3 示範帳號](#73-示範帳號只在開發與測試環境) | 前端示範站的 5 個帳號，密碼皆為 `123456` | 只在開發與測試環境 | `003-seed-dev-users.sql`（`context:dev,test`） |
 
 ### 7.1 正式資料
 
@@ -1631,8 +1633,8 @@ VALUES (@admin_username, @admin_password_hash, 'admin', 'SS中央管理員', TRU
 ### 7.3 示範帳號（只在開發與測試環境）
 
 與前端示範站相同的 5 個帳號（密碼皆為 `123456`），方便前端在開發環境接上後端後照常測試。**不可放進正式環境**：
-放在只有開發設定會載入的 Flyway 位置，例如 `application-dev.yml` 設
-`spring.flyway.locations: classpath:db/migration,classpath:db/dev`。這是可重複執行的版本檔（`R__`），重複執行不會出錯。
+後端以 Liquibase 的 `context:dev,test` 只在開發與測試環境執行（正式環境的 `contexts` 為 `prod`）。
+重複執行也不會出錯，資料庫已有這些帳號時只會把它們改回示範的設定。
 
 ```sql
 -- password_hash 是 '123456' 的 bcrypt 雜湊（cost 12）
@@ -2089,6 +2091,12 @@ mysql --default-character-set=utf8mb4 -u <帳號> -p sslecture < import.sql
 ---
 
 ## 版本紀錄
+
+### v1.16.0（2026-11-26）後端改用 MySQL
+
+- `booking_sessions.prep_scriptures` 的 `CHECK` 改用 `JSON_SCHEMA_VALID`：除了須為陣列，也檢查每段是字串且最多 100 字
+  （原本只檢查陣列，每段長度由 API 檢查）
+- 結構管理改寫為 Liquibase（後端 `SSLecture_backend` 已採用）：第 7 節對照表列出後端的 changeset，7.3 改以 `context:dev,test` 說明
 
 ### v1.15.1（2026-11-25）範例備份與前端同步
 

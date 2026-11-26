@@ -1,9 +1,9 @@
 # SSLecture 後端 API 規格文件
 
-> **文件版本**：v1.14.1
-> **最後更新**：2026-11-20
+> **文件版本**：v1.14.2
+> **最後更新**：2026-11-26
 > **前端版本**：Vue 3 + TypeScript（目前以 localStorage 模擬，待串接）
-> **目標後端技術**：Spring Boot 3.x + Spring Security 6.x（OAuth2 Client + JWT）
+> **後端**：[`SSLecture_backend`](https://github.com/jaras0209/SSLecture_backend)（Spring Boot 4 + Spring Security；OAuth2 Client + JWT）
 > **相關文件**：[文件導覽](./README.md)・[資料庫設計](./database_schema.md)・[社群登入](./oauth2_social_login_spec.md)・各版本異動見文末[版本紀錄](#版本紀錄)
 
 ---
@@ -1984,6 +1984,8 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | 409 | `EMAIL_TAKEN` | 信箱已被其他帳號使用 |
 | 409 | `THEME_EXISTS` | 同一教會已有同名的專題主題 |
 | 400 | `WEAK_PASSWORD` | 密碼不符合密碼規則（見 `POST /auth/register`） |
+| 400 | `CHURCH_REQUIRED` | 沒有選擇所屬教會（註冊、首次社群登入） |
+| 400 | `INVALID_INVITE_CODE` | 邀請碼無效、過期或已作廢 |
 | 403 | `PASSWORD_CHANGE_REQUIRED` | 須先修改管理員設定的密碼 |
 | 409 | `ATTENDEE_ALREADY_EXISTS` | 該學員已加入此場次 |
 | 500 | `INTERNAL_ERROR` | 伺服器內部錯誤 |
@@ -2139,6 +2141,11 @@ Refresh Token 有效期：未勾「記住我」閒置 2 小時、勾選 30 天�
 ---
 
 ## 版本紀錄
+
+### v1.14.2（2026-11-26）錯誤碼一覽補齊
+
+- 第 12 節補上端點說明裡已有、後端也已使用的 `CHURCH_REQUIRED`、`INVALID_INVITE_CODE`
+- 開頭的後端改為實際的 `SSLecture_backend`
 
 ### v1.14.1（2026-11-20）對照表更新
 

@@ -1,9 +1,9 @@
 # SSLecture 後端第一階段工作計畫
 
-> **文件版本**：v1.1.0  
-> **最後更新**：2026-11-25  
+> **文件版本**：v1.2.0  
+> **最後更新**：2026-11-26  
 > **資料庫**：MySQL 8.4 LTS（建表 SQL 見[資料庫設計第 6 節](./database_schema.md#6-sql-建表語句mysql)）  
-> **後端**：Spring Boot 3，放在另一個 repository；本 repository 只有前端與文件  
+> **後端**：[`SSLecture_backend`](https://github.com/jaras0209/SSLecture_backend)（Java 25、Spring Boot 4、Liquibase）；本 repository 只有前端與文件  
 > **相關文件**：[文件導覽](./README.md)・[API 規格](./backend_api_spec.md)・[資料庫設計](./database_schema.md)・[社群登入](./oauth2_social_login_spec.md)・[待辦清單](../TODO.md)
 
 第一階段的目標：**教會能以帳號密碼登入，完成最常用的流程**（帳號與邀請碼、關懷配對、聽課紀錄、心得回覆），
@@ -14,7 +14,7 @@
 ## 目錄
 
 1. [已決定的事](#1-已決定的事)
-2. [第一階段的步驟](#2-第一階段的步驟)
+2. [第一階段的步驟](#2-第一階段的步驟)（含[目前進度](#目前進度)）
 3. [第二階段](#3-第二階段)
 4. [還沒決定的事](#4-還沒決定的事)
 
@@ -27,7 +27,8 @@
 | 項目 | 決定 | 說明 |
 |------|------|------|
 | 資料庫 | MySQL 8.4 LTS | 教會使用 MySQL。字元集、定序、連線時區等設定見資料庫設計第 6 節 |
-| 後端位置 | 另一個 repository | 前端以 `VITE_API_BASE_URL` 連到後端（見根目錄 [`README.md`](../README.md)） |
+| 後端位置 | [`SSLecture_backend`](https://github.com/jaras0209/SSLecture_backend) | 前端以 `VITE_API_BASE_URL` 連到後端（見根目錄 [`README.md`](../README.md)） |
+| 結構管理 | Liquibase | 後端已採用；changelog 與資料庫設計第 6、7 節的 SQL 相同 |
 | 社群登入（Google / LINE） | 第二階段 | 第一階段只用帳號密碼；需要 Redis 與第三方平台設定，見 [`oauth2_social_login_spec.md`](./oauth2_social_login_spec.md) |
 | 示範站的資料 | 試辦時用前端備份檔匯入 | 管理員在前端「資料備份」匯出 JSON，依[資料庫設計第 9 節](./database_schema.md#9-從前端備份搬移資料)一次匯入 |
 
@@ -39,15 +40,25 @@
 `CHECK` 與唯一限制才測得到），以及前端改接（API 規格[第 13 節](./backend_api_spec.md#13-前端串接遷移指南)的對照表）。
 完成一步再做下一步，前端可以一步一步切換。
 
+### 目前進度
+
+2026-11-26 對照後端 repository 整理：
+
+| 步驟 | 後端 | 前端改接 |
+|------|------|----------|
+| 0 專案骨架 | 完成。資料庫由 PostgreSQL ＋ H2 改為 MySQL 8.4 的變更已完成並通過測試，待推送到後端 repository | — |
+| 1 登入與帳號 | 大致完成：登入、註冊、換發 Token、登出、重設密碼、`GET` / `PATCH /auth/me`、嘗試次數限制、記住我、`token_version` | 尚未開始 |
+| 2–5 | 尚未開始 | 尚未開始 |
+
 ### 步驟 0：專案骨架
 
-- 建立 Spring Boot 3 專案：Spring Web、Spring Security、Spring Data JPA、Flyway、MySQL 驅動
-- Flyway 的第一個版本檔（`V1__init.sql`）直接用資料庫設計第 6 節的 SQL，第二個（`V2__seed.sql`）用
-  [7.1 正式資料](./database_schema.md#71-正式資料)；[7.3 示範帳號](./database_schema.md#73-示範帳號只在開發與測試環境)
-  放在只有開發設定會載入的位置。這些 SQL 都由 CI 以 MySQL 8.4 檢查過
+- Spring Boot 專案：Spring Web、Spring Security、Spring Data JPA、Liquibase、MySQL 驅動
+- Liquibase 的 changelog 與資料庫設計第 6 節、[7.1 正式資料](./database_schema.md#71-正式資料)相同；
+  [7.3 示範帳號](./database_schema.md#73-示範帳號只在開發與測試環境)以 `context:dev,test` 只在開發與測試執行。
+  這些 SQL 都由前端的 CI 以 MySQL 8.4 檢查過
 - 共用的部分：回應格式與錯誤碼（API 規格[第 1 節](./backend_api_spec.md#1-通用規範)、[第 12 節](./backend_api_spec.md#12-錯誤碼一覽)）、
   [欄位長度上限](./backend_api_spec.md#欄位長度上限)的檢查、[跨網域（CORS）](./backend_api_spec.md#跨網域cors)、時間格式（資料庫 5.14）
-- 測試環境：以 Testcontainers 或 CI 的 MySQL 服務跑整合測試
+- 測試環境：以 Testcontainers 或 CI 的 MySQL 8.4 服務跑整合測試（後端的 `.github/workflows/ci.yml`）
 
 ### 步驟 1：登入與帳號
 
@@ -112,6 +123,11 @@
 ---
 
 ## 版本紀錄
+
+### v1.2.0（2026-11-26）對照後端進度
+
+- 新增〈目前進度〉：步驟 0 完成、步驟 1 的後端大致完成
+- 後端位置、技術改為實際的 `SSLecture_backend`（Spring Boot 4、Liquibase）；Flyway 的說明改為 Liquibase
 
 ### v1.1.0（2026-11-25）
 
