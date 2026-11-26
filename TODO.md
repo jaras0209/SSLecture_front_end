@@ -1,12 +1,12 @@
 # TODO：後端串接待辦清單
 
 > **建立時間**：2026-08-12
-> **最後更新**：2026-11-26（後端改用 MySQL 8.4 與 Liquibase：API 規格 v1.14.2、資料庫 v1.16.0、第一階段計畫 v1.2.0）
+> **最後更新**：2026-11-26（前端改接後端的登入：API 規格 v1.14.3、資料庫 v1.16.1、第一階段計畫 v1.3.0）
 > **目的**：追蹤前端 Mock 實作中，待後端 Spring Boot 就緒後需實作或替換的所有項目
 > **參考文件**（從哪裡讀起見 [`docs/README.md`](./docs/README.md) 文件導覽）：
-> - [`docs/backend_api_spec.md`](./docs/backend_api_spec.md)（v1.14.2：API、可見範圍規則、嘗試次數限制、登入期限、CORS、錯誤碼、第 13 節 Store → API 對照）
-> - [`docs/backend_phase1_plan.md`](./docs/backend_phase1_plan.md)（v1.2.0：後端第一階段的工作順序與目前進度、第二階段的項目）
-> - [`docs/database_schema.md`](./docs/database_schema.md)（v1.16.0：MySQL 8.4 建表 SQL、種子資料、5.10–5.17 設計決策、第 9 節資料搬移）
+> - [`docs/backend_api_spec.md`](./docs/backend_api_spec.md)（v1.14.3：API、可見範圍規則、嘗試次數限制、登入期限、CORS、錯誤碼、第 13 節 Store → API 對照）
+> - [`docs/backend_phase1_plan.md`](./docs/backend_phase1_plan.md)（v1.3.0：後端第一階段的工作順序與目前進度、第二階段的項目）
+> - [`docs/database_schema.md`](./docs/database_schema.md)（v1.16.1：MySQL 8.4 建表 SQL、種子資料、5.10–5.17 設計決策、第 9 節資料搬移）
 > - [`docs/oauth2_social_login_spec.md`](./docs/oauth2_social_login_spec.md)（v1.1.2：社群登入流程、8.5 社群帳號規則）
 
 ---
@@ -146,13 +146,15 @@
 - [ ] 新回覆提醒：`coursesWithUnreadFeedback()` / `markFeedbackSeen()` 改用 `GET /progress/:username/feedback/unread`、
       `POST /progress/:username/:courseId/feedback/seen`（新表 `course_feedback_reads`，見 2.21）
 - [ ] 家長看孩子的預約：`StudentBookingsSummary` 改用 `GET /bookings/sessions?studentUsername=`（後端檢查家長綁定）
-- [ ] 個人資料：`authStore.updateProfile()` 改用 `PATCH /auth/me`
+- [x] 個人資料：接上後端時 `authStore.saveProfile()` 呼叫 `PATCH /auth/me`
 - [ ] 專題主題：`addTheme()` / `updateTheme()` / `deleteTheme()` 改用 `/themes`（處理 `409 THEME_EXISTS`）
 - [ ] 管理員：`adminResetPassword()` 改用 `PUT /admin/users/:username`；`deleteAccount()` 改用 `DELETE /admin/users/:username`，
   後端會保留帳號名稱，前端可移除 `retiredUsernames`
-- [ ] 登入：`authStore.login()` 把「記住我」送成 `rememberMe`；前端 `src/utils/session.ts` 的閒置計時與提醒保留（讓畫面即時反映），
-  但以後端的 `401` 為準，Token 換發失敗就回登入頁
-- [ ] `GET /auth/me` 回傳的 `mustChangePassword`、`loginMethod`、`childUsernames` 取代前端從 `usersDb` 讀取的部分
+- [x] 登入：接上後端時 `authStore.signIn()` 把「記住我」送成 `rememberMe`；`src/utils/session.ts` 的閒置計時與提醒保留，
+  以後端的 `401` 為準，Token 換發失敗就回登入頁並說明原因（`src/stores/parts/authBackend.ts`、`src/utils/api.ts`）
+- [x] 登入的帳號資料（`mustChangePassword`、`loginMethod`、`childUsernames` 等）以 `GET /auth/me` 為準，開啟網站時重新讀取
+- [x] 註冊、登出、修改密碼改呼叫 `POST /auth/register`、`/auth/logout`、`/auth/reset-password`
+- [ ] 家長註冊時綁定孩子：接上後端時目前不提供（學員清單在後端），等關懷配對與家長綁定（第一階段步驟 3）改接
 - [x] 錯誤訊息：`src/utils/api.ts` 依 `error.code` 顯示目前語系的訊息（`api.codes.*`，`VALIDATION_ERROR` 沿用後端訊息）；
   `src/i18n/__tests__/apiCodes.spec.ts` 確保 API 規格第 12 節的每個錯誤碼都有中英文訊息
 
@@ -192,7 +194,7 @@
 
 - [x] 建立 `src/utils/api.ts`：集中 HTTP 請求、JWT header 注入、401 refresh 骨架
   - `apiGet / apiPost / apiPut / apiPatch / apiDelete` 已備妥
-  - `refreshToken()` 已預寫，後端就緒後取消註解即可
+  - `refreshToken()`：接上後端時以 `POST /auth/refresh` 換發，失敗時通知 App 登出
   - `ApiError` 型別已定義，供 store 使用
 
 ---

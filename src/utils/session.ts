@@ -30,8 +30,11 @@ const TOUCH_EVERY_MS = 30 * 1000
  */
 export const TAB_REPLY_WAIT_MS = 500
 
-/** idle: unused too long; restored: an admin restored all data from a backup */
-export type SignOutReason = 'idle' | 'restored'
+/**
+ * idle: unused too long; restored: an admin restored all data from a backup; expired: the server
+ * ended the sign-in (with the backend: expired, or the account was changed or disabled)
+ */
+export type SignOutReason = 'idle' | 'restored' | 'expired'
 
 export interface SessionMeta {
   remember: boolean
@@ -182,8 +185,10 @@ export async function settleSessionOnStart(now = Date.now()): Promise<void> {
   if (!meta.remember && !tabWasOpen && !(await anotherTabOpen())) signOutStored()
 }
 
-/** Sign out before the stores load (they read the session from storage) */
+/** Sign out before the stores load (they read the session from storage), backend tokens too */
 function signOutStored(): void {
   remove(localStorage, USER_KEY)
+  remove(localStorage, 'superstart_access_token')
+  remove(localStorage, 'superstart_refresh_token')
   endSession()
 }

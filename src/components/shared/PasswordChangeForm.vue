@@ -83,6 +83,7 @@
 </template>
 
 <script setup lang="ts">
+import { usesBackend } from '@/utils/backendMode'
 import { MAX_LENGTH } from '@/utils/limits'
 /**
  * 修改密碼表單：導覽列的對話框、個人資料視窗、強制改密碼頁共用，
@@ -151,13 +152,16 @@ function show(text: string, type: 'success' | 'error') {
   messageType.value = type
 }
 
-function submit() {
+async function submit() {
   const username = authStore.currentUser?.username
   if (!username) return
   const why = problem()
   if (why) return show(why, 'error')
 
-  const result = authStore.updatePassword(username, form.old, form.new)
+  // With the backend (utils/backendMode.ts) the server checks the current password
+  const result = usesBackend()
+    ? await authStore.changeOwnPassword(form.old, form.new)
+    : authStore.updatePassword(username, form.old, form.new)
   if (!result.success) return show(result.message, 'error')
 
   clearFields()

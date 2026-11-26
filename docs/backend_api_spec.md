@@ -1,6 +1,6 @@
 # SSLecture 後端 API 規格文件
 
-> **文件版本**：v1.14.2
+> **文件版本**：v1.14.3
 > **最後更新**：2026-11-26
 > **前端版本**：Vue 3 + TypeScript（目前以 localStorage 模擬，待串接）
 > **後端**：[`SSLecture_backend`](https://github.com/jaras0209/SSLecture_backend)（Spring Boot 4 + Spring Security；OAuth2 Client + JWT）
@@ -2124,10 +2124,14 @@ Refresh Token 有效期：未勾「記住我」閒置 2 小時、勾選 30 天�
 `apiGet` / `apiPost` / `apiPut` / `apiPatch` / `apiDelete` 會自動帶上 Access Token、遇到 `401` 時換發一次再重試、
 15 秒逾時、可取消，並把第 12 節的錯誤碼依目前語系翻譯成 `ApiError`（`429` 會依 `Retry-After` 顯示等待時間）。
 
-1. **設定 API 網址**：在 `.env.production` 設定 `VITE_API_BASE_URL` 並**重新建置**（網站的 CSP 只允許連線到這個網址）；
-   正式環境同時把 `VITE_DEMO_MODE` 設為 `false`
-2. **啟用 Token 換發**：取消 `src/utils/api.ts` 中 `refreshToken()` 已寫好、被註解的 `fetch` 區塊
-3. **登入與社群登入**：替換 `src/stores/auth.ts` 中標示 `TODO（後端就緒後）` 的 mock（`login()`、`exchangeOAuthCode()`、`completeProfile()`）
+1. **設定 API 網址**：在 `.env.production` 設定 `VITE_API_BASE_URL` 並**重新建置**（網站的 CSP 只允許連線到這個網址），
+   並把 `VITE_DEMO_MODE` 設為 `false`：前端以這兩個設定判斷是否接上後端（`src/utils/backendMode.ts`）
+2. **Token 換發**（已完成）：`src/utils/api.ts` 遇到 `401` 時以 `POST /auth/refresh` 換發一次再重試；換發失敗時
+   App 登出並回到登入頁，登入頁說明「登入已過期，或帳號已有變更」。登入、註冊等不帶 Token 的請求不換發
+3. **登入、註冊、登出、修改密碼、個人資料**（已完成）：`src/stores/parts/authBackend.ts`，由 auth store 的
+   `signIn()` / `signUp()` / `signOut()` / `changeOwnPassword()` / `saveProfile()` / `refreshCurrentUser()` 提供，
+   接上後端時畫面改用這幾個（示範模式仍用 `login()` 等）。帶邀請碼註冊時由後端決定角色與教會；
+   家長註冊時綁定孩子、社群登入（`exchangeOAuthCode()`、`completeProfile()`）尚未改接
 4. **逐步替換各 Store**：依上方兩張對照表，把讀寫 `localStorage` 的地方改為呼叫 `apiGet` / `apiPost` 等。
    部分函式放在 `src/stores/parts/`（講師、專題主題、心得回覆、閃耀計畫、教學統計、邀請碼、性別與家長綁定），
    由 `courses` / `auth` store 組合後對外提供，名稱不變。預約的 `createSession()`、`completeSession()` 等只是直接寫入
@@ -2141,6 +2145,10 @@ Refresh Token 有效期：未勾「記住我」閒置 2 小時、勾選 30 天�
 ---
 
 ## 版本紀錄
+
+### v1.14.3（2026-11-26）前端已改接登入
+
+- 第 13 節〈前端串接步驟〉：Token 換發與登入、註冊、登出、修改密碼、個人資料已改接後端，列出對應的 store 函式
 
 ### v1.14.2（2026-11-26）錯誤碼一覽補齊
 

@@ -26,7 +26,7 @@ export function useSessionTimeout() {
     if (authStore.isAuthenticated && sessionExpired()) {
       minutesLeft.value = null
       noteSignOutReason('idle')
-      authStore.logout()
+      void authStore.signOut()
       void router.replace('/login')
       return true
     }

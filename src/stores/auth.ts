@@ -7,6 +7,17 @@ import { randomPassword } from '@/utils/id'
 import { translate as t } from '@/i18n'
 import { createInviteCodes } from '@/stores/parts/inviteCodes'
 import { createAccountLinks } from '@/stores/parts/accountLinks'
+import {
+  backendChangePassword,
+  backendCurrentUser,
+  backendLogin,
+  backendLogout,
+  backendRegister,
+  backendUpdateProfile,
+  type AuthResult
+} from '@/stores/parts/authBackend'
+import { usesBackend } from '@/utils/backendMode'
+import { clearTokens, hasTokens } from '@/utils/api'
 
 // 後端就緒後，在 exchangeOAuthCode / completeProfile 中：
 // 移除 mock 區塊，改用 src/utils/api.ts 的 apiPost / apiPut 取代 fetch 呼叫
@@ -35,6 +46,12 @@ export const useAuthStore = defineStore('auth', () => {
   const currentUser = ref<User | null>(
     safeGet<User | null>('superstart_user', null, { clearOnError: true })
   )
+  // With the backend, a sign-in is its tokens: without them (e.g. signed out in a way that dropped
+  // only the tokens) there is no sign-in to resume
+  if (usesBackend() && currentUser.value && !hasTokens()) {
+    currentUser.value = null
+    safeRemove('superstart_user')
+  }
   // Derived synchronously — always matches currentUser
   const isAuthenticated = computed<boolean>(() => currentUser.value !== null)
   const isAuthenticating = ref<boolean>(false)
@@ -516,6 +533,108 @@ export const useAuthStore = defineStore('auth', () => {
   function logout() {
     currentUser.value = null
     endSession()
+    clearTokens()
+  }
+
+  // ── With the backend (utils/backendMode.ts) ───────────────────────────────
+  // The same actions as above, against SSLecture_backend (stores/parts/authBackend.ts). Pages call
+  // these when usesBackend(); in the demo they fall back to the in-browser versions.
+
+  /** Sign in with the backend; see login() */
+  async function signIn(
+    identifier: string,
+    password: string,
+    remember = false
+  ): Promise<AuthResult> {
+    if (!usesBackend()) return login(identifier, password, remember)
+    isAuthenticating.value = true
+    try {
+      const { result, user } = await backendLogin(identifier, password, remember)
+      if (user) {
+        currentUser.value = user
+        beginSession(remember)
+      }
+      return result
+    } finally {
+      isAuthenticating.value = false
+    }
+  }
+
+  /**
+   * Register with the backend and sign in. With an invite code the server decides the role and
+   * church; without one the account is a student of `church`.
+   */
+  async function signUp(account: {
+    username: string
+    password: string
+    church?: string
+    email?: string
+    inviteCode?: string
+  }): Promise<AuthResult> {
+    if (!usesBackend()) {
+      return register(
+        account.username,
+        account.password,
+        'student',
+        account.church,
+        undefined,
+        account.email
+      )
+    }
+    isAuthenticating.value = true
+    try {
+      const { result, user } = await backendRegister(account)
+      if (user) {
+        currentUser.value = user
+        beginSession(false)
+      }
+      return result
+    } finally {
+      isAuthenticating.value = false
+    }
+  }
+
+  /** Sign out here and end the sign-in on the server */
+  async function signOut(): Promise<void> {
+    // The request takes the token with it before logout() drops it
+    const ending = usesBackend() ? backendLogout() : Promise.resolve()
+    logout()
+    await ending
+  }
+
+  /** Change the signed-in user's own password; see updatePassword() */
+  async function changeOwnPassword(oldPassword: string, newPassword: string): Promise<AuthResult> {
+    const me = currentUser.value
+    if (!me) return { success: false, message: t('stores.auth.notLoggedIn') }
+    if (!usesBackend()) return updatePassword(me.username, oldPassword, newPassword)
+    const { result, user } = await backendChangePassword(oldPassword, newPassword)
+    if (user) currentUser.value = user
+    return result
+  }
+
+  /** Save the signed-in user's profile; see updateProfile() */
+  async function saveProfile(patch: {
+    displayName?: string
+    realName?: string
+    avatarUrl?: string
+    email?: string
+  }): Promise<AuthResult> {
+    const me = currentUser.value
+    if (!me) return { success: false, message: t('stores.auth.notLoggedIn') }
+    if (!usesBackend()) return updateProfile(me.username, patch)
+    if (patch.avatarUrl !== undefined && !isAllowedAvatarUrl(patch.avatarUrl)) {
+      return { success: false, message: t('profile.avatarUrlInvalid') }
+    }
+    const { result, user } = await backendUpdateProfile(patch)
+    if (user) currentUser.value = user
+    return result
+  }
+
+  /** Bring the signed-in user up to date with the server (role or profile changed elsewhere) */
+  async function refreshCurrentUser(): Promise<void> {
+    if (!usesBackend() || !currentUser.value) return
+    const user = await backendCurrentUser()
+    if (user && currentUser.value) currentUser.value = user
   }
 
   function updatePassword(
@@ -633,6 +752,12 @@ export const useAuthStore = defineStore('auth', () => {
     exchangeOAuthCode,
     completeProfile,
     logout,
+    signIn,
+    signUp,
+    signOut,
+    changeOwnPassword,
+    saveProfile,
+    refreshCurrentUser,
     updatePassword,
     adminResetPassword,
     updateProfile

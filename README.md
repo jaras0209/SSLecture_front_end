@@ -40,7 +40,7 @@ SSLecture 是一個基於 **Vue 3 + TypeScript + Vite** 技術棧開發的現代
 *   **多語系架構**：Vue I18n 11（Composition API 模式，`zh-TW` / `en` 雙語系；`en` 語系檔按需載入）
 *   **路由管理**：Vue Router 5（HTML5 History 模式，內建角色與頁面限制導航守衛；按上一頁時回到原本的捲動位置）
 *   **字型**：Quicksand 由 `@fontsource` 隨專案打包，不向 Google Fonts 發出請求
-*   **測試**：Vitest 5 + Happy DOM + Vue Test Utils（75 個測試檔案、687 項測試，含四個主要頁面、composable 與表單元件測試，以及以本機 HTTP 伺服器驗證 `api.ts` 的整合測試）；Playwright 端對端測試（66 項，含以 axe 檢查 WCAG 2.1 AA 無障礙與鍵盤操作，以及內容安全政策）
+*   **測試**：Vitest 5 + Happy DOM + Vue Test Utils（76 個測試檔案、704 項測試，含四個主要頁面、composable 與表單元件測試，以及以本機 HTTP 伺服器驗證 `api.ts` 的整合測試）；Playwright 端對端測試（66 項，含以 axe 檢查 WCAG 2.1 AA 無障礙與鍵盤操作，以及內容安全政策）
 *   **程式碼品質**：TypeScript 6.0（Strict 嚴格模式，以 vue-tsc 3 檢查）、ESLint 10、Prettier 3
 *   **樣式設計**：Vanilla CSS（響應式排版，適配行動端、桌面端與 `@media print` 列印模式）
 *   **CI／部署**：GitHub Actions（`.github/workflows/`）。分支推送時跑 CI；`main` 更新時再跑一次全部檢查，建置後由另一個工作部署到 GitHub Pages。
@@ -264,7 +264,12 @@ npm run preview
 | 變數名稱 | 說明 | 範例 |
 |------------|------|------|
 | `VITE_API_BASE_URL` | 後端 Spring Boot API 網址；**改變後須重新建置**，因為網站的 CSP 只允許連線到這個網址 | `http://localhost:8080`（開發） |
-| `VITE_DEMO_MODE` | 登入頁是否顯示快速測試帳號；**接上真正的後端後須設為 `false`** | `true`（目前的示範站） |
+| `VITE_DEMO_MODE` | `true`：示範模式，資料都存在瀏覽器裡，登入頁顯示快速測試帳號。`false` 且設定了 `VITE_API_BASE_URL`：登入、註冊、登出、修改密碼與個人資料改由後端處理（`src/utils/backendMode.ts`），其他資料仍在瀏覽器裡，依後端進度逐步改接 | `true`（目前的示範站） |
+
+**接上本機的後端試用**：依 [`SSLecture_backend`](https://github.com/jaras0209/SSLecture_backend) 的 README 啟動後端
+（`docker compose up -d` 後 `./mvnw spring-boot:run`），再以 `VITE_DEMO_MODE=false npm run dev` 啟動前端
+（`.env.development` 的 `VITE_API_BASE_URL` 已是 `http://localhost:8080`，後端預設允許 `http://localhost:5173`）。
+示範帳號同樣是 `student`、`teacher`、`pastor`、`parent`、`admin`，密碼 `123456`。
 
 詳細後端串接待辦清單請參閱 [`TODO.md`](./TODO.md)。
 

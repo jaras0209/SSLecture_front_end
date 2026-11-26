@@ -172,6 +172,9 @@ import { homeRouteFor } from '@/router/homeRoute'
 import { storageWriteFailed } from '@/utils/storage'
 import { appUpdateNeeded, reloadApp } from '@/utils/appUpdate'
 import { useSessionTimeout } from '@/composables/useSessionTimeout'
+import { onSessionExpired } from '@/utils/api'
+import { usesBackend } from '@/utils/backendMode'
+import { noteSignOutReason } from '@/utils/session'
 import { usePageTitle } from '@/composables/usePageTitle'
 
 const router = useRouter()
@@ -206,7 +209,9 @@ const mustChangePassword = computed(() => !!authStore.currentUser?.mustChangePas
 /** Whether the signed-in account has a password (Google / LINE accounts don't) */
 const hasPassword = computed(() => {
   const me = authStore.currentUser
-  return !!me && !!authStore.usersDb[me.username]?.passwordHash
+  if (!me || me.loginMethod !== 'credentials') return false
+  // The demo keeps passwords in the browser; with the backend the account's sign-in method says
+  return usesBackend() || !!authStore.usersDb[me.username]?.passwordHash
 })
 
 /**
@@ -228,9 +233,20 @@ watch(
 )
 
 function handleLogout() {
-  authStore.logout()
+  void authStore.signOut()
   router.push('/login')
 }
+
+// With the backend: the sign-in ended on the server (expired, or the account was changed or
+// disabled) → sign out here too, and the login page says why
+onSessionExpired(() => {
+  if (!authStore.isAuthenticated) return
+  noteSignOutReason('expired')
+  authStore.logout()
+  void router.replace('/login')
+})
+// The account may have changed elsewhere since this device signed in (role, profile)
+void authStore.refreshCurrentUser()
 
 // Another tab signed in or out (the session lives in localStorage): follow it
 watch(

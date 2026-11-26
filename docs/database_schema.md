@@ -1,6 +1,6 @@
 # SSLecture 後端資料庫設計文件
 
-> **文件版本**：v1.16.0  
+> **文件版本**：v1.16.1  
 > **最後更新**：2026-11-25  
 > **資料來源**：分析前端 `src/stores/auth.ts`、`src/stores/courses.ts`、`src/stores/bookings.ts`、localStorage 資料結構  
 > **資料庫**：MySQL 8.4 LTS（8.0.16 以上皆可；第 6 節的 SQL 已實測可建立全部 22 張表，字元集、定序與連線時區的設定也見第 6 節）。
@@ -1302,7 +1302,7 @@ CREATE TABLE themes (
   sort_order INTEGER     NOT NULL DEFAULT 0,
   is_active  BOOLEAN     NOT NULL DEFAULT TRUE,
   created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-  UNIQUE (church_id, type, name),
+  CONSTRAINT uq_themes_church_type_name UNIQUE (church_id, type, name),  -- API 的 409 THEME_EXISTS 依這個名稱判斷
   CONSTRAINT fk_themes_church FOREIGN KEY (church_id) REFERENCES churches(id) ON DELETE CASCADE
 );
 
@@ -2091,6 +2091,11 @@ mysql --default-character-set=utf8mb4 -u <帳號> -p sslecture < import.sql
 ---
 
 ## 版本紀錄
+
+### v1.16.1（2026-11-26）唯一限制的名稱
+
+- `themes` 的唯一限制命名為 `uq_themes_church_type_name`（原本沒有名稱，MySQL 以第一個欄位命名為 `church_id`）。
+  後端依唯一限制的名稱回傳 `409 THEME_EXISTS`、`USERNAME_TAKEN`、`EMAIL_TAKEN`、`LECTURER_EXISTS`、`LECTURER_ACCOUNT_LINKED`
 
 ### v1.16.0（2026-11-26）後端改用 MySQL
 

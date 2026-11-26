@@ -7,7 +7,8 @@
  *   1. 統一 base URL（從 VITE_API_BASE_URL 環境變數讀取）
  *   2. 自動注入 JWT Authorization header
  *   3. 統一錯誤格式解析（ApiError），前端產生的錯誤訊息走 i18n
- *   4. 401 自動 Refresh Token 機制（後端就緒後啟用）
+ *   4. 401 時以 Refresh Token 換發一次再重試（接上後端時，見 utils/backendMode.ts）；換發失敗時通知
+ *      onSessionExpired() 註冊的處理（App.vue：登出並回到登入頁）
  *   5. 逾時（預設 DEFAULT_TIMEOUT_MS）與呼叫端取消（AbortSignal）
  *   6. 204 No Content / 空 body 回傳 undefined
  *
@@ -25,14 +26,14 @@
  *   docs/backend_api_spec.md 第 12 節列出的錯誤碼，訊息由前端依目前語系翻譯
  *   （i18n 的 api.codes.*）；其他錯誤碼（含 VALIDATION_ERROR，需指出哪個欄位）沿用後端訊息。
  *
- * TODO（後端就緒後）：
- *   1. 設定 .env 的 VITE_API_BASE_URL
- *   2. 啟用 refreshToken() 中的真實 fetch 呼叫
- *   3. 各 store 的 mock fetch 替換為此工具的 apiPost / apiPut 等
+ * 接上後端：設定 VITE_API_BASE_URL 並把 VITE_DEMO_MODE 設為 false（utils/backendMode.ts）。
+ * 目前登入、註冊、登出、修改密碼與個人資料已改接（stores/parts/authBackend.ts），其他 store 依
+ * docs/backend_phase1_plan.md 逐步改接。
  */
 
-import { safeGet, safeRemove } from '@/utils/storage'
+import { safeGet, safeRemove, safeSet } from '@/utils/storage'
 import { translate as t, hasMessage } from '@/i18n'
+import { usesBackend } from '@/utils/backendMode'
 
 // ─── 常數 ────────────────────────────────────────────────────────────────────
 
@@ -83,10 +84,38 @@ function getAccessToken(): string {
   return safeGet<string>('superstart_access_token', '')
 }
 
+const ACCESS_KEY = 'superstart_access_token'
+const REFRESH_KEY = 'superstart_refresh_token'
+
+/** 登入或換發後保存 Token */
+export function saveTokens(accessToken: string, refreshToken: string): void {
+  safeSet(ACCESS_KEY, accessToken)
+  safeSet(REFRESH_KEY, refreshToken)
+}
+
 /** 清除所有 Token（登出時使用） */
 export function clearTokens(): void {
-  safeRemove('superstart_access_token')
-  safeRemove('superstart_refresh_token')
+  safeRemove(ACCESS_KEY)
+  safeRemove(REFRESH_KEY)
+}
+
+/** Whether this device holds a sign-in to the backend */
+export function hasTokens(): boolean {
+  return !!getAccessToken() || !!safeGet<string>(REFRESH_KEY, '')
+}
+
+let sessionExpiredHandler: (() => void) | null = null
+
+/**
+ * What to do when the sign-in has ended on the server (the Refresh Token expired, was revoked, or
+ * the account changed): App.vue signs out and goes to the login page. Returns a function that
+ * removes the handler.
+ */
+export function onSessionExpired(handler: () => void): () => void {
+  sessionExpiredHandler = handler
+  return () => {
+    if (sessionExpiredHandler === handler) sessionExpiredHandler = null
+  }
 }
 
 // ─── Refresh Token 機制 ───────────────────────────────────────────────────────
@@ -95,32 +124,34 @@ let _isRefreshing = false
 let _refreshPromise: Promise<boolean> | null = null
 
 /**
- * 呼叫後端換取新 Access Token。
- * TODO（後端就緒後）：取消以下 fetch 呼叫的註解，移除 mock。
+ * 以 Refresh Token 向後端換發新的 Token（POST /auth/refresh）。換發失敗（過期、已撤銷、帳號已變更）時清除 Token。
+ * 示範模式沒有後端，一律失敗。
  */
 async function refreshToken(): Promise<boolean> {
-  // === 後端就緒後取消此區塊的註解 ===
-  // const rt = safeGet<string>('superstart_refresh_token', '')
-  // if (!rt) return false
-  // try {
-  //   const res = await fetch(API_BASE + '/auth/refresh', {
-  //     method: 'POST',
-  //     headers: { 'Content-Type': 'application/json' },
-  //     body: JSON.stringify({ refreshToken: rt })
-  //   })
-  //   if (!res.ok) { clearTokens(); return false }
-  //   const data = await res.json()
-  //   safeSet('superstart_access_token', data.data.accessToken)
-  //   safeSet('superstart_refresh_token', data.data.refreshToken)
-  //   return true
-  // } catch {
-  //   clearTokens()
-  //   return false
-  // }
-
-  // === 開發期 mock（後端就緒後移除）===
-  console.warn('[API] refreshToken: 後端就緒前不支援 token refresh')
-  return false
+  if (!usesBackend()) return false
+  const refresh = safeGet<string>(REFRESH_KEY, '')
+  if (!refresh) return false
+  try {
+    const { res, text } = await send(
+      API_BASE + '/auth/refresh',
+      {
+        method: 'POST',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken: refresh })
+      },
+      {}
+    )
+    const tokens = parseResponse<{ accessToken: string; refreshToken: string }>(res, text)
+    saveTokens(tokens.accessToken, tokens.refreshToken)
+    return true
+  } catch (err) {
+    // The server can't be reached: keep the tokens and try again on the next request
+    if (err instanceof ApiError && (err.code === 'NETWORK_ERROR' || err.code === 'TIMEOUT')) {
+      return false
+    }
+    clearTokens()
+    return false
+  }
 }
 
 async function ensureTokenRefreshed(): Promise<boolean> {
@@ -156,12 +187,16 @@ async function request<T>(
     options
   )
 
-  // 401 → 嘗試 refresh token 再重試一次
-  if (res.status === 401 && !options.isRetry) {
+  // 401 → 換發 Token 再重試一次。不帶 Token 的請求（登入、註冊）的 401 是它本身的結果
+  // （如 INVALID_CREDENTIALS），照常回報
+  if (res.status === 401 && !options.skipAuth && !options.isRetry) {
+    const hadSignIn = hasTokens()
     const refreshed = await ensureTokenRefreshed()
     if (refreshed) {
       return request<T>(method, path, body, { ...options, isRetry: true })
     }
+    // The sign-in ended on the server (not just an unreachable server: the tokens are gone)
+    if (hadSignIn && !hasTokens()) sessionExpiredHandler?.()
     throw new ApiError(401, 'UNAUTHORIZED', t('api.errors.unauthorized'))
   }
 

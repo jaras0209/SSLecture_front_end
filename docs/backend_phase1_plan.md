@@ -1,6 +1,6 @@
 # SSLecture 後端第一階段工作計畫
 
-> **文件版本**：v1.2.0  
+> **文件版本**：v1.3.0  
 > **最後更新**：2026-11-26  
 > **資料庫**：MySQL 8.4 LTS（建表 SQL 見[資料庫設計第 6 節](./database_schema.md#6-sql-建表語句mysql)）  
 > **後端**：[`SSLecture_backend`](https://github.com/jaras0209/SSLecture_backend)（Java 25、Spring Boot 4、Liquibase）；本 repository 只有前端與文件  
@@ -46,8 +46,8 @@
 
 | 步驟 | 後端 | 前端改接 |
 |------|------|----------|
-| 0 專案骨架 | 完成。資料庫由 PostgreSQL ＋ H2 改為 MySQL 8.4 的變更已完成並通過測試，待推送到後端 repository | — |
-| 1 登入與帳號 | 大致完成：登入、註冊、換發 Token、登出、重設密碼、`GET` / `PATCH /auth/me`、嘗試次數限制、記住我、`token_version` | 尚未開始 |
+| 0 專案骨架 | 完成。資料庫由 PostgreSQL ＋ H2 改為 MySQL 8.4、資料庫規則的錯誤回傳對應的錯誤碼，已完成並通過測試，待推送到後端 repository | — |
+| 1 登入與帳號 | 大致完成：登入、註冊、換發 Token、登出、重設密碼、`GET` / `PATCH /auth/me`、嘗試次數限制、記住我、`token_version` | 完成：登入、註冊、登出、Token 換發、修改密碼、個人資料（`VITE_DEMO_MODE=false` 時，見 `src/utils/backendMode.ts`）。尚未：家長註冊時綁定孩子（等步驟 3）、社群登入（第二階段） |
 | 2–5 | 尚未開始 | 尚未開始 |
 
 ### 步驟 0：專案骨架
@@ -123,6 +123,10 @@
 ---
 
 ## 版本紀錄
+
+### v1.3.0（2026-11-26）前端改接登入
+
+- 〈目前進度〉：步驟 1 的前端改接完成（登入、註冊、登出、Token 換發、修改密碼、個人資料），並以瀏覽器實際連到後端測試
 
 ### v1.2.0（2026-11-26）對照後端進度
 

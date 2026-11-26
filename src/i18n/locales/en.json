@@ -69,7 +69,8 @@
       "remember": "Remember me",
       "rememberHint": "Stay signed in on this device for 30 days. Leave it unticked on a shared computer: you are then signed out after 2 hours idle or when the browser closes.",
       "signedOutIdle": "You were signed out after 2 hours without activity. Please sign in again.",
-      "signedOutRestored": "Data restored from the backup. Please sign in again."
+      "signedOutRestored": "Data restored from the backup. Please sign in again.",
+      "signedOutExpired": "Your sign-in has expired or your account was changed. Please sign in again."
     },
     "register": {
       "inviteCode": "Invite Code",
@@ -77,6 +78,8 @@
       "inviteCodeBadgeValid": "✅ Valid",
       "inviteCodeBadgeInvalid": "❌ Invalid",
       "inviteExpiry": "Valid until {date}",
+      "inviteCheckedOnSubmit": "The invite code is checked when you register; it sets your role and church.",
+      "roleFromInvite": "Set by the invite code",
       "inviteInvalidHint": "Invite code is invalid, expired, or already used. Please request a new one from the admin.",
       "inviteLockedBadge": "🔒 Set by invite code",
       "username": "Set Username",

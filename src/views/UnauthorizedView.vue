@@ -30,7 +30,7 @@ function goHome() {
 }
 
 function handleLogout() {
-  authStore.logout()
+  void authStore.signOut()
   router.push('/login')
 }
 </script>

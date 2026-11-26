@@ -38,6 +38,10 @@
       <p v-if="inviteCodeStatus === 'invalid'" class="field-hint error-hint">
         {{ $t('auth.register.inviteInvalidHint') }}
       </p>
+      <!-- With the backend the server checks the code when the form is sent -->
+      <p v-if="backend && inviteCodeInput.trim()" class="field-hint">
+        {{ $t('auth.register.inviteCheckedOnSubmit') }}
+      </p>
     </div>
 
     <!-- Divider -->
@@ -135,6 +139,10 @@
         {{ roleLabel(validatedInvite.role) }}
         <span class="locked-badge">{{ $t('auth.register.inviteLockedBadge') }}</span>
       </div>
+      <div v-else-if="backend && inviteCodeInput.trim()" class="locked-field-display">
+        {{ $t('auth.register.roleFromInvite') }}
+        <span class="locked-badge">{{ $t('auth.register.inviteLockedBadge') }}</span>
+      </div>
       <div v-else class="locked-field-display student-only">
         {{ $t('auth.register.studentRole') }}
         <span class="locked-badge">{{ $t('auth.register.studentRoleHint') }}</span>
@@ -188,6 +196,7 @@ import { isStrongEnough } from '@/composables/usePasswordStrength'
 import PasswordStrengthMeter from '@/components/shared/PasswordStrengthMeter.vue'
 import { DEFAULT_CHURCH } from '@/types/auth'
 import { membersOf } from '@/utils/scope'
+import { usesBackend } from '@/utils/backendMode'
 
 const router = useRouter()
 const route = useRoute()
@@ -202,9 +211,12 @@ const inviteCodeInput = ref('')
 const inviteCodeStatus = ref<'idle' | 'valid' | 'invalid'>('idle')
 const validatedInvite = ref<InviteCode | null>(null)
 
+/** Registering with SSLecture_backend (utils/backendMode.ts): the server checks invite codes */
+const backend = usesBackend()
+
 function onInviteCodeInput() {
   const code = inviteCodeInput.value.trim().toUpperCase()
-  if (!code) {
+  if (!code || backend) {
     inviteCodeStatus.value = 'idle'
     validatedInvite.value = null
     return
@@ -250,6 +262,35 @@ const registerAvailableStudents = computed(() =>
   membersOf(authStore.usersDb, 'student', effectiveChurch.value)
 )
 
+/**
+ * Register with the backend. With an invite code the server sets the role and church (and says if
+ * the code is wrong); a parent's children are bound later by a pastor (the server has the students).
+ */
+async function registerWithBackend() {
+  const inviteCode = inviteCodeInput.value.trim().toUpperCase()
+  if (!inviteCode && !registerForm.church) {
+    toast(t('auth.validation.selectChurch'), 'error')
+    return
+  }
+  const result = await authStore.signUp({
+    username: registerForm.username,
+    password: registerForm.password,
+    church: registerForm.church,
+    email: registerForm.email,
+    inviteCode
+  })
+  if (!result.success) {
+    toast(result.message, 'error')
+    return
+  }
+  toast(result.message, 'success')
+  const role = authStore.currentUser?.role ?? 'student'
+  const back = afterLoginRoute(route.query.redirect, role, router)
+  setTimeout(() => {
+    router.push(back ?? '/')
+  }, 500)
+}
+
 function handleRegister() {
   if (!registerForm.username || !registerForm.password) {
     toast(t('auth.validation.fillAll'), 'error')
@@ -259,6 +300,7 @@ function handleRegister() {
     toast(t('auth.passwordRules.tooWeak'), 'error')
     return
   }
+  if (backend) return registerWithBackend()
   const role = effectiveRole.value
   const church = effectiveChurch.value
   if (role !== 'admin' && !church) {

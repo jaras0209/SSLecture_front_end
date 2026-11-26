@@ -114,7 +114,9 @@ const signedOutNote =
     ? t('auth.login.signedOutIdle')
     : signOutReason === 'restored'
       ? t('auth.login.signedOutRestored')
-      : ''
+      : signOutReason === 'expired'
+        ? t('auth.login.signedOutExpired')
+        : ''
 
 const activeTab = ref<'login' | 'register'>('login')
 const showForgotModal = ref(false)

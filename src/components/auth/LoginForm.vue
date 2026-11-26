@@ -83,6 +83,7 @@
 </template>
 
 <script setup lang="ts">
+import { usesBackend } from '@/utils/backendMode'
 import { MAX_LENGTH } from '@/utils/limits'
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -108,12 +109,15 @@ const { t } = useI18n()
 const showLoginPwd = ref(false)
 const remember = ref(false)
 
-function handleLogin() {
+async function handleLogin() {
   if (!username.value || !password.value) {
     toast(t('auth.validation.fillAll'), 'error')
     return
   }
-  const result = authStore.login(username.value, password.value, remember.value)
+  // With the backend (utils/backendMode.ts) the server checks the password; else the demo's accounts
+  const result = usesBackend()
+    ? await authStore.signIn(username.value, password.value, remember.value)
+    : authStore.login(username.value, password.value, remember.value)
   if (result.success) {
     toast(result.message, 'success')
     // Back to the page they were sent here from, if they may open it; else their home

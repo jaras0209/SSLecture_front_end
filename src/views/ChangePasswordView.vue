@@ -38,7 +38,7 @@ function goHome(message: string) {
 }
 
 function signOut() {
-  authStore.logout()
+  void authStore.signOut()
   router.replace('/login')
 }
 </script>

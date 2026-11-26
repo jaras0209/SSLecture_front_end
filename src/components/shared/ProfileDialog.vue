@@ -185,6 +185,7 @@
 </template>
 
 <script setup lang="ts">
+import { usesBackend } from '@/utils/backendMode'
 import { MAX_LENGTH } from '@/utils/limits'
 import CharCount from '@/components/shared/CharCount.vue'
 import { vDialog } from '@/directives/dialog'
@@ -293,15 +294,19 @@ function applyCustomUrl() {
 }
 
 // ── Actions ──
-function saveProfile() {
+async function saveProfile() {
   const username = authStore.currentUser?.username
   if (!username) return
-  const result = authStore.updateProfile(username, {
+  const patch = {
     displayName: draftDisplayName.value.trim(),
     realName: draftRealName.value.trim(),
     avatarUrl: draftAvatarUrl.value,
     email: draftEmail.value
-  })
+  }
+  // With the backend (utils/backendMode.ts) the profile is saved on the server
+  const result = usesBackend()
+    ? await authStore.saveProfile(patch)
+    : authStore.updateProfile(username, patch)
   saveMsg.value = result.message
   saveOk.value = result.success
   // A problem (e.g. an email in use) stays until fixed; success closes the dialog
