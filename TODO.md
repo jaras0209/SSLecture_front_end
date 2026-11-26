@@ -1,11 +1,11 @@
 # TODO：後端串接待辦清單
 
 > **建立時間**：2026-08-12
-> **最後更新**：2026-11-26（管理員與邀請碼改接後端：API 規格 v1.15.0、資料庫 v1.16.1、第一階段計畫 v1.4.0）
+> **最後更新**：2026-11-26（管理員與邀請碼改接後端：API 規格 v1.15.0、資料庫 v1.16.1、第一階段計畫 v1.4.1）
 > **目的**：追蹤前端 Mock 實作中，待後端 Spring Boot 就緒後需實作或替換的所有項目
 > **參考文件**（從哪裡讀起見 [`docs/README.md`](./docs/README.md) 文件導覽）：
 > - [`docs/backend_api_spec.md`](./docs/backend_api_spec.md)（v1.15.0：API、可見範圍規則、嘗試次數限制、登入期限、CORS、錯誤碼、第 13 節 Store → API 對照）
-> - [`docs/backend_phase1_plan.md`](./docs/backend_phase1_plan.md)（v1.4.0：後端第一階段的工作順序與目前進度、第二階段的項目）
+> - [`docs/backend_phase1_plan.md`](./docs/backend_phase1_plan.md)（v1.4.1：後端第一階段的工作順序與目前進度、第二階段的項目）
 > - [`docs/database_schema.md`](./docs/database_schema.md)（v1.16.1：MySQL 8.4 建表 SQL、種子資料、5.10–5.17 設計決策、第 9 節資料搬移）
 > - [`docs/oauth2_social_login_spec.md`](./docs/oauth2_social_login_spec.md)（v1.1.2：社群登入流程、8.5 社群帳號規則）
 
@@ -89,7 +89,7 @@
 
 - [ ] 決定部署位置後建立正式的 MySQL 8.4 資料庫與帳號（字元集與定序由後端 Liquibase 的第一個 changeset 設定；
   連線時區 UTC 等已在後端的 `application.yml`；保留嚴格模式，見資料庫第 6 節的設定表）
-- [x] 後端的 Liquibase changelog 改為 MySQL 8.4：與第 6 節、7.1 相同，7.3 的示範帳號只在 dev、test 執行（`SSLecture_backend`，待推送）
+- [x] 後端的 Liquibase changelog 改為 MySQL 8.4：與第 6 節、7.1 相同，7.3 的示範帳號只在 dev、test 執行（`SSLecture_backend`，已合併）
 - [ ] 正式環境上線：匯入前端備份（下方〈既有資料搬遷〉），或不匯入時以 7.2 建立第一個管理員
 - [x] 後端的整合測試在真正的 MySQL 8.4 上執行（Testcontainers 或 CI 的 MySQL 服務，`SSLecture_backend` 的 `.github/workflows/ci.yml`）
 - [ ] 後端把資料庫規則被違反的錯誤（`DataIntegrityViolationException`）轉成 API 規格的錯誤碼（如 `409 LECTURER_EXISTS`）；
