@@ -82,6 +82,8 @@ import { backupOverdue, lastBackupAt } from '@/utils/backup'
 import ChurchBookings from '@/components/shared/ChurchBookings.vue'
 import { avatarSrc, useFallbackAvatar } from '@/utils/avatar'
 import { scrollMotion } from '@/utils/motion'
+import { usesBackend } from '@/utils/backendMode'
+import { useToast } from '@/composables/useToast'
 
 const { t } = useI18n()
 const { tDateTime } = useI18nHelper()
@@ -90,6 +92,15 @@ const { tDateTime } = useI18nHelper()
 const ProfileDialog = defineAsyncComponent(() => import('@/components/shared/ProfileDialog.vue'))
 
 const authStore = useAuthStore()
+const { toast } = useToast()
+
+// With the backend: show the server's accounts and invite codes (utils/backendMode.ts)
+if (usesBackend()) {
+  void Promise.all([authStore.loadAccounts(), authStore.loadInviteCodes()]).then((results) => {
+    const failed = results.find((r) => !r.success)
+    if (failed) toast(failed.message, 'error')
+  })
+}
 
 const showProfileDialog = ref(false)
 

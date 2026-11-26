@@ -168,6 +168,7 @@ import { useToast } from '@/composables/useToast'
 import { useAuthStore } from '@/stores/auth'
 import type { UserRole } from '@/stores/auth'
 import { useCoursesStore } from '@/stores/courses'
+import { usesBackend } from '@/utils/backendMode'
 
 const { confirm, toast } = useToast()
 const { t } = useI18n()
@@ -189,9 +190,22 @@ const usersList = computed(() => {
   }))
 })
 
-function updateUserRole(username: string, newRole: UserRole) {
+/** With the backend (utils/backendMode.ts) the server changes and cleans up accounts */
+const backend = usesBackend()
+
+async function updateUserRole(username: string, newRole: UserRole) {
   const account = authStore.usersDb[username]
   if (!account || account.role === newRole) return
+  if (backend) {
+    const result = await authStore.adminUpdateAccount(username, { role: newRole })
+    if (result.cleanup) reportCleanup(result.cleanup)
+    // Refused: show the role the server still has
+    if (!result.success) {
+      toast(result.message, 'error')
+      void authStore.loadAccounts()
+    }
+    return
+  }
   reportCleanup(releaseRole(username, account.role, 'roleChanged', newRole))
   account.role = newRole
 }
@@ -216,6 +230,13 @@ function toggleRestriction(username: string, page: string) {
 
 async function deleteUser(username: string) {
   const ok = await confirm(t('admin.userList.deleteConfirm', { username }))
+  if (ok && backend) {
+    const result = await authStore.adminDeleteAccount(username)
+    if (!result.success) return toast(result.message, 'error')
+    toast(t('admin.userList.deletedToast', { username }), 'info')
+    if (result.cleanup) reportCleanup(result.cleanup)
+    return
+  }
   if (ok) {
     const role = authStore.usersDb[username]?.role
     const summary = role ? releaseRole(username, role, 'deleted') : undefined
@@ -235,7 +256,9 @@ const resetResult = ref<{ username: string; password: string } | null>(null)
 async function resetUserPassword(username: string) {
   const ok = await confirm(t('admin.userList.resetPwdConfirm', { username }))
   if (!ok) return
-  const result = authStore.adminResetPassword(username)
+  const result = backend
+    ? await authStore.adminResetPasswordOnServer(username)
+    : authStore.adminResetPassword(username)
   if (result.success && result.password) {
     resetResult.value = { username, password: result.password }
   } else {

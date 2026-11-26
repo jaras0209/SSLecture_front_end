@@ -943,6 +943,8 @@
       "ATTENDEE_ALREADY_EXISTS": "這位學員已經在此預約中",
       "CHURCH_REQUIRED": "請選擇所屬教會",
       "INVALID_INVITE_CODE": "邀請碼無效",
+      "INVITE_CODE_ALREADY_USED": "邀請碼已被使用，無法作廢",
+      "INVITE_CODE_NOT_FOUND": "找不到此邀請碼",
       "INTERNAL_ERROR": "伺服器發生錯誤，請稍後再試",
       "EMAIL_TAKEN": "這個信箱已被其他帳號使用",
       "PASSWORD_CHANGE_REQUIRED": "請先設定新密碼",

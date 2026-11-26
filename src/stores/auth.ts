@@ -16,8 +16,19 @@ import {
   backendUpdateProfile,
   type AuthResult
 } from '@/stores/parts/authBackend'
+import {
+  accountRecord,
+  createAccountOnServer,
+  createInviteCodeOnServer,
+  deleteAccountOnServer,
+  fetchAccounts,
+  fetchInviteCodes,
+  revokeInviteCodeOnServer,
+  updateAccountOnServer,
+  type CleanupCounts
+} from '@/stores/parts/adminBackend'
 import { usesBackend } from '@/utils/backendMode'
-import { clearTokens, hasTokens } from '@/utils/api'
+import { ApiError, clearTokens, hasTokens } from '@/utils/api'
 
 // 後端就緒後，在 exchangeOAuthCode / completeProfile 中：
 // 移除 mock 區塊，改用 src/utils/api.ts 的 apiPost / apiPut 取代 fetch 呼叫
@@ -630,6 +641,121 @@ export const useAuthStore = defineStore('auth', () => {
     return result
   }
 
+  // ── Admin, with the backend ───────────────────────────────────────────────
+  // The admin pages call these when usesBackend(); the server's answer replaces what this browser
+  // keeps (usersDb, inviteCodesDb), so every page shows the server's accounts and codes.
+
+  /** A failed call as a result for the admin; anything unexpected is rethrown */
+  function failure(err: unknown): { success: false; message: string } {
+    if (err instanceof ApiError) return { success: false, message: err.message }
+    throw err
+  }
+
+  /** Replace the accounts kept here with the server's (admin) */
+  async function loadAccounts(): Promise<AuthResult> {
+    try {
+      const accounts = await fetchAccounts()
+      usersDb.value = Object.fromEntries(accounts.map((u) => [u.username, accountRecord(u)]))
+      return { success: true, message: '' }
+    } catch (err) {
+      return failure(err)
+    }
+  }
+
+  /** Replace the invite codes kept here with the server's (admin) */
+  async function loadInviteCodes(): Promise<AuthResult> {
+    try {
+      inviteCodesDb.value = await fetchInviteCodes()
+      return { success: true, message: '' }
+    } catch (err) {
+      return failure(err)
+    }
+  }
+
+  /** createAccount() on the server */
+  async function adminCreateAccount(account: {
+    username: string
+    password: string
+    role: UserRole
+    church?: string
+    email?: string
+  }): Promise<AuthResult & { username?: string }> {
+    try {
+      const created = await createAccountOnServer(account)
+      usersDb.value[created.username] = accountRecord(created)
+      return { success: true, message: '', username: created.username }
+    } catch (err) {
+      return failure(err)
+    }
+  }
+
+  /** Change an account on the server (role, gender); returns what was cleaned up */
+  async function adminUpdateAccount(
+    username: string,
+    patch: { role?: UserRole; gender?: Gender | '' }
+  ): Promise<AuthResult & { cleanup?: CleanupCounts }> {
+    try {
+      const { user, cleanup } = await updateAccountOnServer(username, patch)
+      usersDb.value[user.username] = accountRecord(user)
+      return { success: true, message: '', cleanup }
+    } catch (err) {
+      return failure(err)
+    }
+  }
+
+  /** adminResetPassword() on the server: a new random temporary password, returned to show once */
+  async function adminResetPasswordOnServer(
+    username: string
+  ): Promise<AuthResult & { password?: string }> {
+    const password = randomPassword()
+    try {
+      const { user } = await updateAccountOnServer(username, { password })
+      usersDb.value[user.username] = accountRecord(user)
+      return { success: true, message: t('stores.auth.passwordReset', { username }), password }
+    } catch (err) {
+      return failure(err)
+    }
+  }
+
+  /** deleteAccount() on the server, which also cleans up; returns what was cleaned up */
+  async function adminDeleteAccount(
+    username: string
+  ): Promise<AuthResult & { cleanup?: CleanupCounts }> {
+    try {
+      const { cleanup } = await deleteAccountOnServer(username)
+      deleteAccount(username)
+      return { success: true, message: '', cleanup }
+    } catch (err) {
+      return failure(err)
+    }
+  }
+
+  /** generateInviteCode() on the server */
+  async function adminGenerateInviteCode(
+    role: UserRole,
+    church: string | undefined,
+    expiryDays: number
+  ): Promise<AuthResult & { code?: string }> {
+    try {
+      const { code } = await createInviteCodeOnServer(role, church, expiryDays)
+      await loadInviteCodes()
+      return { success: true, message: '', code }
+    } catch (err) {
+      return failure(err)
+    }
+  }
+
+  /** revokeInviteCode() on the server */
+  async function adminRevokeInviteCode(code: string): Promise<AuthResult> {
+    try {
+      await revokeInviteCodeOnServer(code)
+      await loadInviteCodes()
+      return { success: true, message: t('stores.auth.inviteRevoked', { code }) }
+    } catch (err) {
+      return failure(err)
+    }
+  }
+
   /** Bring the signed-in user up to date with the server (role or profile changed elsewhere) */
   async function refreshCurrentUser(): Promise<void> {
     if (!usesBackend() || !currentUser.value) return
@@ -758,6 +884,14 @@ export const useAuthStore = defineStore('auth', () => {
     changeOwnPassword,
     saveProfile,
     refreshCurrentUser,
+    loadAccounts,
+    loadInviteCodes,
+    adminCreateAccount,
+    adminUpdateAccount,
+    adminResetPasswordOnServer,
+    adminDeleteAccount,
+    adminGenerateInviteCode,
+    adminRevokeInviteCode,
     updatePassword,
     adminResetPassword,
     updateProfile

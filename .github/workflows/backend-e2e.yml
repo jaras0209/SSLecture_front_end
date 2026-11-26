@@ -1,0 +1,131 @@
+name: Front end with the backend
+
+# 以瀏覽器測試「接上後端」的前端（VITE_DEMO_MODE=false）：啟動 SSLecture_backend 與 MySQL 8.4，
+# 以後端模式建置前端，執行 e2e-backend/ 的測試（登入、註冊、登出、修改密碼、管理員）。
+# 只在登入與管理員相關的檔案改動時執行；另每週執行一次，抓出後端的改動造成的不一致。
+on:
+  push:
+    paths:
+      - src/App.vue
+      - src/stores/auth.ts
+      - src/stores/parts/authBackend.ts
+      - src/stores/parts/adminBackend.ts
+      - src/utils/api.ts
+      - src/utils/backendMode.ts
+      - src/utils/session.ts
+      - src/components/auth/**
+      - src/components/admin/**
+      - src/components/shared/PasswordChangeForm.vue
+      - src/components/shared/ProfileDialog.vue
+      - src/components/shared/GenderSelect.vue
+      - src/views/LoginView.vue
+      - src/views/AdminDashboard.vue
+      - e2e-backend/**
+      - playwright.backend.config.ts
+      - .github/workflows/backend-e2e.yml
+  pull_request:
+    paths:
+      - src/App.vue
+      - src/stores/auth.ts
+      - src/stores/parts/authBackend.ts
+      - src/stores/parts/adminBackend.ts
+      - src/utils/api.ts
+      - src/utils/backendMode.ts
+      - src/utils/session.ts
+      - src/components/auth/**
+      - src/components/admin/**
+      - src/components/shared/PasswordChangeForm.vue
+      - src/components/shared/ProfileDialog.vue
+      - src/components/shared/GenderSelect.vue
+      - src/views/LoginView.vue
+      - src/views/AdminDashboard.vue
+      - e2e-backend/**
+      - playwright.backend.config.ts
+      - .github/workflows/backend-e2e.yml
+  schedule:
+    - cron: '17 19 * * 1' # 每週二 03:17（台灣時間）
+  workflow_dispatch:
+    inputs:
+      backend_ref:
+        description: 後端的分支或 commit（預設 main）
+        required: false
+        default: main
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root # 只用於這個暫時的測試容器
+          MYSQL_DATABASE: sslecture
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Checkout the backend
+        uses: actions/checkout@v7
+        with:
+          repository: jaras0209/SSLecture_backend
+          ref: ${{ inputs.backend_ref || 'main' }}
+          path: backend
+
+      - name: Set up Java 25
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+
+      # 後端以 dev 設定執行：建表、示範帳號（student、admin 等，密碼 123456）由 Liquibase 建立
+      - name: Start the backend
+        working-directory: backend
+        env:
+          DB_URL: jdbc:mysql://127.0.0.1:3306/sslecture
+          DB_USERNAME: root
+          DB_PASSWORD: root
+          CORS_ALLOWED_ORIGINS: http://localhost:4174
+        run: |
+          nohup sh mvnw -B -q spring-boot:run > ../backend.log 2>&1 &
+          for i in $(seq 1 100); do
+            curl -sf http://localhost:8080/actuator/health | grep -q UP && exit 0
+            sleep 3
+          done
+          echo "The backend did not start:"; tail -50 ../backend.log; exit 1
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Set up Playwright
+        uses: ./.github/actions/setup-playwright
+
+      - name: End-to-end tests against the backend
+        run: npx playwright test -c playwright.backend.config.ts
+
+      - name: Upload traces and the backend log
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: backend-e2e
+          path: |
+            test-results/
+            backend.log
+          retention-days: 7

@@ -1,6 +1,6 @@
 # SSLecture 後端第一階段工作計畫
 
-> **文件版本**：v1.3.0  
+> **文件版本**：v1.4.0  
 > **最後更新**：2026-11-26  
 > **資料庫**：MySQL 8.4 LTS（建表 SQL 見[資料庫設計第 6 節](./database_schema.md#6-sql-建表語句mysql)）  
 > **後端**：[`SSLecture_backend`](https://github.com/jaras0209/SSLecture_backend)（Java 25、Spring Boot 4、Liquibase）；本 repository 只有前端與文件  
@@ -46,9 +46,10 @@
 
 | 步驟 | 後端 | 前端改接 |
 |------|------|----------|
-| 0 專案骨架 | 完成。資料庫由 PostgreSQL ＋ H2 改為 MySQL 8.4、資料庫規則的錯誤回傳對應的錯誤碼，已完成並通過測試，待推送到後端 repository | — |
+| 0 專案骨架 | 完成。資料庫由 PostgreSQL ＋ H2 改為 MySQL 8.4、資料庫規則的錯誤回傳對應的錯誤碼，已完成並通過測試，待推送到後端 repository | 以瀏覽器對真正的後端測試（`e2e-backend/`，CI 的 `backend-e2e.yml`） |
 | 1 登入與帳號 | 大致完成：登入、註冊、換發 Token、登出、重設密碼、`GET` / `PATCH /auth/me`、嘗試次數限制、記住我、`token_version` | 完成：登入、註冊、登出、Token 換發、修改密碼、個人資料（`VITE_DEMO_MODE=false` 時，見 `src/utils/backendMode.ts`）。尚未：家長註冊時綁定孩子（等步驟 3）、社群登入（第二階段） |
-| 2–5 | 尚未開始 | 尚未開始 |
+| 2 管理員與邀請碼 | 完成：`/admin/users`（列表、建立、改角色與清理、重設密碼、性別、停用）、`/admin/invite-codes`（列表、產生、作廢），待推送到後端 repository | 完成：管理員頁面的帳號列表、建立、改角色、性別、重設密碼、刪除，以及邀請碼，接上後端時改呼叫 API（`src/stores/parts/adminBackend.ts`）。頁面存取限制、教會概況仍在瀏覽器裡（第二階段） |
+| 3–5 | 尚未開始 | 尚未開始 |
 
 ### 步驟 0：專案骨架
 
@@ -123,6 +124,10 @@
 ---
 
 ## 版本紀錄
+
+### v1.4.0（2026-11-26）步驟 2 完成
+
+- 〈目前進度〉：步驟 2（管理員與邀請碼）的後端與前端改接完成；前端以瀏覽器對真正的後端測試，並加入 CI
 
 ### v1.3.0（2026-11-26）前端改接登入
 

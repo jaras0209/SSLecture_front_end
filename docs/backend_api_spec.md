@@ -1,6 +1,6 @@
 # SSLecture 後端 API 規格文件
 
-> **文件版本**：v1.14.3
+> **文件版本**：v1.15.0
 > **最後更新**：2026-11-26
 > **前端版本**：Vue 3 + TypeScript（目前以 localStorage 模擬，待串接）
 > **後端**：[`SSLecture_backend`](https://github.com/jaras0209/SSLecture_backend)（Spring Boot 4 + Spring Security；OAuth2 Client + JWT）
@@ -1184,7 +1184,40 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 | `role` | string | 篩選角色 |
 | `church` | string | 篩選教會 |
 | `page` | number | 頁碼（預設 1）|
-| `pageSize` | number | 每頁筆數（預設 20）|
+| `pageSize` | number | 每頁筆數（預設 20，最多 500）|
+
+**Response**：[分頁格式](#分頁格式列表類-api)，`items` 為啟用中的帳號（[User](#user使用者)，不含 `passwordHash`、`updatedAt`）；
+停用（刪除）的帳號只保留名稱，不列出。家長附 `childUsernames`。
+
+```json
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "6f1c2c43-…",
+        "username": "student01",
+        "role": "student",
+        "church": "愛與話語",
+        "displayName": "小明",
+        "realName": "王小明",
+        "email": null,
+        "gender": "male",
+        "avatarUrl": null,
+        "loginMethod": "credentials",
+        "mustChangePassword": false,
+        "isActive": true,
+        "childUsernames": null,
+        "lastLoginAt": "2026-11-20T01:30:00Z",
+        "createdAt": "2026-10-01T00:00:00Z"
+      }
+    ],
+    "total": 42,
+    "page": 1,
+    "pageSize": 20
+  }
+}
+```
 
 ---
 
@@ -1207,6 +1240,9 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 
 - 帳號與信箱規則同 `POST /auth/register`；建立的帳號 `mustChangePassword = true`，
   使用者第一次登入須先換掉管理員設定的密碼（前端 `authStore.createAccount()`）
+- `admin` 以外的角色須指定教會（`400 CHURCH_REQUIRED`）
+
+**Response**：建立的帳號（同 `GET /admin/users` 的一筆）
 
 ---
 
@@ -1225,6 +1261,11 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
   "password": "新密碼（選填）"
 }
 ```
+
+**Response**：`{ "user": { …同 GET /admin/users 的一筆… }, "cleanup": { "mentorAssignments": 0, "lecturerLinks": 0, "cancelledBookings": 0 } }`；
+`cleanup` 為改角色時清理的筆數（沒有改角色時都是 0）。
+
+- `gender` 只能設定在 `student`、`teacher`（其他角色回 `400 VALIDATION_ERROR`）；送空字串表示清除
 
 **更改角色時**：先依「原本的角色」做與刪除帳號相同的清理（見下方），再更新角色；角色不變則不清理。
 預約的取消原因為「輔導教師已不再擔任此身分」。
@@ -1262,6 +1303,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 閃耀計畫與回覆。前端以 `authStore.retiredUsernames` 做同樣的事（見 `authStore.deleteAccount()`）。
 
 停用後，該帳號已登入的工作階段須立即失效，見[帳號變更時結束既有的登入](#帳號變更時結束既有的登入)。
+管理員不能刪除自己的帳號（`400 VALIDATION_ERROR`）；已停用或不存在的帳號回 `404 USER_NOT_FOUND`。
 
 **Response**：回傳清理的筆數，前端據此提示管理員
 ```json
@@ -1365,7 +1407,7 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 {
   "role": "teacher",
   "church": "愛與話語", // admin 角色時可為 null
-  "expiryDays": 7
+  "expiryDays": 7 // 1–30，預設 7
 }
 ```
 
@@ -1399,8 +1441,8 @@ API 套用同樣的規則**，否則前端的限制可以被繞過。以下各�
 ```
 
 **錯誤**：
-- `400 ALREADY_USED`：邀請碼已被使用，無法作廢
-- `404 NOT_FOUND`：邀請碼不存在
+- `400 INVITE_CODE_ALREADY_USED`：邀請碼已被使用，無法作廢
+- `404 INVITE_CODE_NOT_FOUND`：邀請碼不存在
 
 ---
 
@@ -1986,6 +2028,8 @@ PATCH /bookings/sessions/:sessionId/attendees/:studentUsername
 | 400 | `WEAK_PASSWORD` | 密碼不符合密碼規則（見 `POST /auth/register`） |
 | 400 | `CHURCH_REQUIRED` | 沒有選擇所屬教會（註冊、首次社群登入） |
 | 400 | `INVALID_INVITE_CODE` | 邀請碼無效、過期或已作廢 |
+| 400 | `INVITE_CODE_ALREADY_USED` | 邀請碼已被使用，無法作廢 |
+| 404 | `INVITE_CODE_NOT_FOUND` | 找不到此邀請碼 |
 | 403 | `PASSWORD_CHANGE_REQUIRED` | 須先修改管理員設定的密碼 |
 | 409 | `ATTENDEE_ALREADY_EXISTS` | 該學員已加入此場次 |
 | 500 | `INTERNAL_ERROR` | 伺服器內部錯誤 |
@@ -2145,6 +2189,13 @@ Refresh Token 有效期：未勾「記住我」閒置 2 小時、勾選 30 天�
 ---
 
 ## 版本紀錄
+
+### v1.15.0（2026-11-26）管理員 API 的回應
+
+- `GET /admin/users` 補上回應（分頁、只列啟用中的帳號、`pageSize` 最多 500）；`POST` 回傳建立的帳號；
+  `PUT` 回傳 `{ user, cleanup }`，說明性別只限學員與教師；`DELETE` 補上不能刪除自己、找不到的帳號
+- 作廢邀請碼的錯誤碼改為 `INVITE_CODE_ALREADY_USED`、`INVITE_CODE_NOT_FOUND`（原本的 `ALREADY_USED`、`NOT_FOUND`
+  不在第 12 節，前端沒有翻譯），並加入第 12 節；`expiryDays` 為 1–30 天
 
 ### v1.14.3（2026-11-26）前端已改接登入
 

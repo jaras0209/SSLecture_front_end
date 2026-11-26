@@ -943,6 +943,8 @@
       "ATTENDEE_ALREADY_EXISTS": "This student is already in the booking",
       "CHURCH_REQUIRED": "Please choose your church",
       "INVALID_INVITE_CODE": "Invalid invite code",
+      "INVITE_CODE_ALREADY_USED": "This invite code has been used and can't be revoked",
+      "INVITE_CODE_NOT_FOUND": "Invite code not found",
       "INTERNAL_ERROR": "Something went wrong on the server. Please try again later",
       "EMAIL_TAKEN": "That email is already used by another account",
       "PASSWORD_CHANGE_REQUIRED": "Please set a new password first",

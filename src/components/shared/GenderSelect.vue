@@ -20,14 +20,25 @@
 import { computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import type { Gender } from '@/types/auth'
+import { usesBackend } from '@/utils/backendMode'
+import { useToast } from '@/composables/useToast'
 
 const props = defineProps<{ username: string }>()
 
 const authStore = useAuthStore()
+const { toast } = useToast()
 const name = computed(() => authStore.usersDb[props.username]?.realName || props.username)
 
-function onChange(e: Event) {
+async function onChange(e: Event) {
   const value = (e.target as HTMLSelectElement).value
+  // With the backend an admin sets it on the server (a pastor's way comes with step 3 of the plan)
+  if (usesBackend() && authStore.currentUser?.role === 'admin') {
+    const result = await authStore.adminUpdateAccount(props.username, {
+      gender: value as Gender | ''
+    })
+    if (!result.success) toast(result.message, 'error')
+    return
+  }
   authStore.setGender(props.username, (value || undefined) as Gender | undefined)
 }
 </script>

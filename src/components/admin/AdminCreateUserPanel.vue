@@ -79,6 +79,7 @@
 </template>
 
 <script setup lang="ts">
+import { usesBackend } from '@/utils/backendMode'
 import { MAX_LENGTH } from '@/utils/limits'
 import { ref, reactive } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -108,13 +109,16 @@ function showAlert(msg: string, type: 'success' | 'error' = 'success') {
   }, 4000)
 }
 
-function createUser() {
+async function createUser() {
   if (!newUser.username || !newUser.password) {
     showAlert(t('auth.validation.fillAll'), 'error')
     return
   }
-  // The person replaces this first password when they first sign in
-  const result = authStore.createAccount(newUser)
+  // The person replaces this first password when they first sign in. With the backend
+  // (utils/backendMode.ts) the account is made on the server
+  const result = usesBackend()
+    ? await authStore.adminCreateAccount({ ...newUser })
+    : authStore.createAccount(newUser)
   if (!result.success) {
     showAlert(result.message, 'error')
     return

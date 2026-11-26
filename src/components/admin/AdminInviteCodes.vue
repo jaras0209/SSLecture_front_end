@@ -117,6 +117,7 @@
 </template>
 
 <script setup lang="ts">
+import { usesBackend } from '@/utils/backendMode'
 import { ref, reactive, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useI18nHelper } from '@/composables/useI18nHelper'
@@ -139,10 +140,22 @@ const lastGeneratedCode = ref('')
 
 const allInviteCodes = computed(() => authStore.getInviteCodes())
 
-function generateInviteCode() {
+async function generateInviteCode() {
   const me = authStore.currentUser
   if (!me) return
   const church = inviteForm.role !== 'admin' ? inviteForm.church : undefined
+  // With the backend (utils/backendMode.ts) the server makes and keeps the code
+  if (usesBackend()) {
+    const result = await authStore.adminGenerateInviteCode(
+      inviteForm.role,
+      church,
+      inviteForm.expiryDays
+    )
+    if (!result.success || !result.code) return toast(result.message, 'error')
+    lastGeneratedCode.value = result.code
+    toast(t('admin.inviteCode.generated', { code: result.code }), 'success')
+    return
+  }
   const code = authStore.generateInviteCode(
     inviteForm.role,
     church,
@@ -156,7 +169,9 @@ function generateInviteCode() {
 async function revokeCode(code: string) {
   const ok = await confirm(t('admin.inviteCode.revokeConfirm', { code }))
   if (!ok) return
-  const result = authStore.revokeInviteCode(code)
+  const result = usesBackend()
+    ? await authStore.adminRevokeInviteCode(code)
+    : authStore.revokeInviteCode(code)
   toast(result.message, result.success ? 'success' : 'error')
 }
 

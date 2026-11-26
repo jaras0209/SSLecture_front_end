@@ -28,3 +28,6 @@ playwright-report
 
 # Python (scripts/)
 __pycache__/
+
+# Front end built for the backend end-to-end tests (playwright.backend.config.ts)
+dist-backend/

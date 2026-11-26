@@ -1,11 +1,11 @@
 # TODO：後端串接待辦清單
 
 > **建立時間**：2026-08-12
-> **最後更新**：2026-11-26（前端改接後端的登入：API 規格 v1.14.3、資料庫 v1.16.1、第一階段計畫 v1.3.0）
+> **最後更新**：2026-11-26（管理員與邀請碼改接後端：API 規格 v1.15.0、資料庫 v1.16.1、第一階段計畫 v1.4.0）
 > **目的**：追蹤前端 Mock 實作中，待後端 Spring Boot 就緒後需實作或替換的所有項目
 > **參考文件**（從哪裡讀起見 [`docs/README.md`](./docs/README.md) 文件導覽）：
-> - [`docs/backend_api_spec.md`](./docs/backend_api_spec.md)（v1.14.3：API、可見範圍規則、嘗試次數限制、登入期限、CORS、錯誤碼、第 13 節 Store → API 對照）
-> - [`docs/backend_phase1_plan.md`](./docs/backend_phase1_plan.md)（v1.3.0：後端第一階段的工作順序與目前進度、第二階段的項目）
+> - [`docs/backend_api_spec.md`](./docs/backend_api_spec.md)（v1.15.0：API、可見範圍規則、嘗試次數限制、登入期限、CORS、錯誤碼、第 13 節 Store → API 對照）
+> - [`docs/backend_phase1_plan.md`](./docs/backend_phase1_plan.md)（v1.4.0：後端第一階段的工作順序與目前進度、第二階段的項目）
 > - [`docs/database_schema.md`](./docs/database_schema.md)（v1.16.1：MySQL 8.4 建表 SQL、種子資料、5.10–5.17 設計決策、第 9 節資料搬移）
 > - [`docs/oauth2_social_login_spec.md`](./docs/oauth2_social_login_spec.md)（v1.1.2：社群登入流程、8.5 社群帳號規則）
 
@@ -56,7 +56,7 @@
   - [ ] 教師管理的預約中看不到的學員只回傳 `hiddenAttendeeCount`，不回姓名
 - [ ] **寫入檢查**：指派輔導教師須通過 `canMentor`（否則 `403 STUDENT_NOT_VISIBLE`）；講師只能改 `attendanceStatus`
   且需時間已確認（否則 `409 BOOKING_NOT_CONFIRMED`）；只有同教會牧者或 admin 能設定性別、綁定家長
-- [ ] **邀請碼**在後端驗證與作廢（前端 `validateInviteCode` / `consumeInviteCode` 只是 mock）；
+- [x] **邀請碼**在後端驗證與作廢（後端 `/admin/invite-codes`、註冊時驗證；前端接上後端時不再用 `validateInviteCode` / `consumeInviteCode`）；
   以密碼學安全的亂數產生 8 碼（格式見 API 規格 `POST /admin/invite-codes`，前端 `randomCode()`）
 - [ ] 正式環境把 `VITE_DEMO_MODE` 設為 `false`，並移除 `auth.ts` 內建的示範帳號（密碼皆為 123456）
 - [ ] **嘗試次數限制**：登入、邀請碼、忘記密碼、重設密碼、修改密碼、`POST /auth/exchange`，依帳號與來源 IP 各算一份，
@@ -135,8 +135,9 @@
 - [ ] 使用者與性別：`authStore.setGender()` → `PUT /users/:username/gender`；`/auth/me`、`/admin/users` 回傳 `gender`、`loginMethod`
 - [ ] 家長綁定：`bindChild()` / `unbindChild()` / `parentsOf()` / `childrenOf()` → `/parents/:parentUsername/children`、`/students/:studentUsername/parents`
 - [ ] 關懷指派：`/assignments` 已不含 `parent`；處理 `403 STUDENT_NOT_VISIBLE`
-- [ ] 刪除帳號 / 變更角色：`AdminUserTable` 改呼叫 `DELETE` / `PUT /admin/users/:username`，用回應的 `cleanup` 筆數顯示提示，
-  移除前端的 `useAccountCleanup()`、`cancelOpenSessionsOf()`、`releaseCaretaker()`、`unlinkLecturerAccount()`、`releaseStudent()`
+- [x] 刪除帳號 / 變更角色：接上後端時 `AdminUserTable` 呼叫 `DELETE` / `PUT /admin/users/:username`，以回應的 `cleanup` 筆數顯示提示
+- [ ] 全部改接後端後，移除前端的 `useAccountCleanup()`、`cancelOpenSessionsOf()`、`releaseCaretaker()`、`unlinkLecturerAccount()`、
+  `releaseStudent()`（示範模式還在用）
 - [ ] 我的授課：`useMyLectures()` 改用 `GET /bookings/sessions?lecturerUsername=&includeAttendees=true`；
   出席記錄走 `PATCH /bookings/sessions/:id/attendees/:username`（處理 `409 BOOKING_NOT_CONFIRMED`）
 - [ ] 教會預約總覽（牧者）：`ChurchBookings` 改用 `GET /bookings/sessions?church=`（管理員不帶 church 查全部）
@@ -148,8 +149,8 @@
 - [ ] 家長看孩子的預約：`StudentBookingsSummary` 改用 `GET /bookings/sessions?studentUsername=`（後端檢查家長綁定）
 - [x] 個人資料：接上後端時 `authStore.saveProfile()` 呼叫 `PATCH /auth/me`
 - [ ] 專題主題：`addTheme()` / `updateTheme()` / `deleteTheme()` 改用 `/themes`（處理 `409 THEME_EXISTS`）
-- [ ] 管理員：`adminResetPassword()` 改用 `PUT /admin/users/:username`；`deleteAccount()` 改用 `DELETE /admin/users/:username`，
-  後端會保留帳號名稱，前端可移除 `retiredUsernames`
+- [x] 管理員：接上後端時帳號列表、建立、重設密碼、性別、刪除與邀請碼都呼叫 `/admin/users`、`/admin/invite-codes`
+  （`src/stores/parts/adminBackend.ts`）；全部改接後可移除 `retiredUsernames`
 - [x] 登入：接上後端時 `authStore.signIn()` 把「記住我」送成 `rememberMe`；`src/utils/session.ts` 的閒置計時與提醒保留，
   以後端的 `401` 為準，Token 換發失敗就回登入頁並說明原因（`src/stores/parts/authBackend.ts`、`src/utils/api.ts`）
 - [x] 登入的帳號資料（`mustChangePassword`、`loginMethod`、`childUsernames` 等）以 `GET /auth/me` 為準，開啟網站時重新讀取
