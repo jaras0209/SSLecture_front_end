@@ -1,13 +1,13 @@
 # SSLecture 後端資料庫設計文件
 
-> **文件版本**：v1.16.1  
+> **文件版本**：v1.16.2  
 > **最後更新**：2026-11-25  
 > **資料來源**：分析前端 `src/stores/auth.ts`、`src/stores/courses.ts`、`src/stores/bookings.ts`、localStorage 資料結構  
 > **資料庫**：MySQL 8.4 LTS（8.0.16 以上皆可；第 6 節的 SQL 已實測可建立全部 22 張表，字元集、定序與連線時區的設定也見第 6 節）。
 > 不適用 MariaDB 與 PostgreSQL（`CHECK`、運算式索引、`JSON` 的寫法不同）  
 > **後端存取**：Spring Boot（見 [API 規格](./backend_api_spec.md)）以 Spring Data JPA（Hibernate）存取，
 > 以 Liquibase 管理建表與日後的結構變更（後端 [`SSLecture_backend`](https://github.com/jaras0209/SSLecture_backend) 的
-> `src/main/resources/db/changelog/`，內容與第 6、7 節相同）  
+> `src/main/resources/db/changelog/`，由第 6、7 節以 `scripts/gen-backend-changelog.py` 產生，CI 比對兩邊一致）  
 > **相關文件**：[文件導覽](./README.md)・[API 規格](./backend_api_spec.md)・[社群登入](./oauth2_social_login_spec.md)・各版本異動見文末[版本紀錄](#版本紀錄)
 
 ---
@@ -2091,6 +2091,11 @@ mysql --default-character-set=utf8mb4 -u <帳號> -p sslecture < import.sql
 ---
 
 ## 版本紀錄
+
+### v1.16.2（2026-11-27）後端 changelog 的比對
+
+- 後端的 Liquibase changelog（001–003）改由 `scripts/gen-backend-changelog.py` 從第 6、7 節產生；CI 改文件時與每週
+  比對後端 `main` 的檔案，不一致就失敗。改結構時先改這份文件，再以此程式更新後端
 
 ### v1.16.1（2026-11-26）唯一限制的名稱
 

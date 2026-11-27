@@ -81,6 +81,7 @@ SSLecture/
 ├── scripts/
 │   ├── audit.mjs           # CI 的套件漏洞檢查（npm audit，高風險以上即失敗，例外見上）
 │   ├── check-schema.py     # 以 MySQL 實際執行資料庫文件的建表 SQL、測試各項限制與備份匯入
+│   ├── gen-backend-changelog.py # 由資料庫文件產生後端的 Liquibase changelog，或比對兩邊一致（--check）
 │   ├── backup-to-sql.py    # 把前端的備份檔轉成匯入 MySQL 的 SQL（後端上線時用）
 │   └── fixtures/           # 範例備份（由 src/__tests__/sampleBackup.spec.ts 以前端程式產生，供匯入工具的測試使用）
 ├── public/                 # 直接複製到網站的檔案：分頁圖示 favicon.svg、手機主畫面圖示 apple-touch-icon.png

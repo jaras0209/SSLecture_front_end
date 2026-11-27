@@ -1,7 +1,9 @@
 name: Database schema
 
 # 以 MySQL 8.4 實際執行 docs/database_schema.md 第 6、7 節的 SQL，測試每個 CHECK、唯一限制與外鍵，
-# 並以範例備份測試匯入工具（scripts/check-schema.py）。只在相關檔案改動時執行，不影響網站部署
+# 並以範例備份測試匯入工具（scripts/check-schema.py）；再確認後端 SSLecture_backend 的 Liquibase changelog
+# 與文件一致（scripts/gen-backend-changelog.py --check）。只在相關檔案改動時執行，不影響網站部署；
+# 另每週執行一次，抓出只改了後端那一邊的情況
 on:
   push:
     paths:
@@ -9,6 +11,7 @@ on:
       - scripts/check-schema.py
       - scripts/backup-to-sql.py
       - scripts/fixtures/**
+      - scripts/gen-backend-changelog.py
       - .github/workflows/schema.yml
   pull_request:
     paths:
@@ -16,7 +19,10 @@ on:
       - scripts/check-schema.py
       - scripts/backup-to-sql.py
       - scripts/fixtures/**
+      - scripts/gen-backend-changelog.py
       - .github/workflows/schema.yml
+  schedule:
+    - cron: '43 19 * * 1' # 每週二 03:43（台灣時間）
   workflow_dispatch:
 
 permissions:
@@ -53,3 +59,19 @@ jobs:
           MYSQL_HOST: 127.0.0.1
           MYSQL_PWD: root
         run: python3 scripts/check-schema.py
+
+  backend-changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Checkout the backend
+        uses: actions/checkout@v7
+        with:
+          repository: jaras0209/SSLecture_backend
+          path: backend
+
+      # 不同時印出差異：改文件後以此程式更新後端的檔案（或後端才是對的，就改文件）
+      - name: The backend changelog matches docs/database_schema.md
+        run: python3 scripts/gen-backend-changelog.py --check backend/src/main/resources/db/changelog/changes

@@ -1,12 +1,12 @@
 # TODO：後端串接待辦清單
 
 > **建立時間**：2026-08-12
-> **最後更新**：2026-11-26（管理員與邀請碼改接後端：API 規格 v1.15.0、資料庫 v1.16.1、第一階段計畫 v1.4.1）
+> **最後更新**：2026-11-27（後端 changelog 由文件產生並由 CI 比對：API 規格 v1.15.0、資料庫 v1.16.2、第一階段計畫 v1.4.1）
 > **目的**：追蹤前端 Mock 實作中，待後端 Spring Boot 就緒後需實作或替換的所有項目
 > **參考文件**（從哪裡讀起見 [`docs/README.md`](./docs/README.md) 文件導覽）：
 > - [`docs/backend_api_spec.md`](./docs/backend_api_spec.md)（v1.15.0：API、可見範圍規則、嘗試次數限制、登入期限、CORS、錯誤碼、第 13 節 Store → API 對照）
 > - [`docs/backend_phase1_plan.md`](./docs/backend_phase1_plan.md)（v1.4.1：後端第一階段的工作順序與目前進度、第二階段的項目）
-> - [`docs/database_schema.md`](./docs/database_schema.md)（v1.16.1：MySQL 8.4 建表 SQL、種子資料、5.10–5.17 設計決策、第 9 節資料搬移）
+> - [`docs/database_schema.md`](./docs/database_schema.md)（v1.16.2：MySQL 8.4 建表 SQL、種子資料、5.10–5.17 設計決策、第 9 節資料搬移）
 > - [`docs/oauth2_social_login_spec.md`](./docs/oauth2_social_login_spec.md)（v1.1.2：社群登入流程、8.5 社群帳號規則）
 
 ---
@@ -98,7 +98,7 @@
   `prep_scriptures` 每段最多 100 字
 - [ ] 決定部署位置後，設定每日備份並演練還原
 - [x] `docs/database_schema.md` 改為 MySQL 8.4（v1.14.0）；第 6、7 節的 SQL 由 CI 以 MySQL 8.4 自動建表並測試各項限制
-  （`scripts/check-schema.py`），後端的 Liquibase changelog 與之相同
+  （`scripts/check-schema.py`），後端的 Liquibase changelog 由 `scripts/gen-backend-changelog.py` 產生，CI 比對兩邊一致
 
 ---
 
